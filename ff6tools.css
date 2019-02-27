@@ -1,0 +1,806 @@
+/*
+
+ff6tools.css
+created 1/11/2018
+
+*/
+
+body {
+    margin: 0px;
+    padding: 0px;
+    font-family: sans-serif;
+    background-color: hsl(0, 0%, 95%);
+}
+
+.float-left {
+    float: left;
+}
+
+.float-right {
+    float: right;
+}
+
+.icon-btn {
+    background-color: transparent;
+    border-radius: 5px;
+    border-color: transparent;
+    color: inherit;
+    width: 36px;
+    height: 36px;
+    margin: 4px 2px;
+    font-size: 20px;
+    cursor: default;
+    outline: none;
+    align-content: center;
+}
+
+.icon-btn:hover {
+    background-color: hsl(210, 100%, 50%);
+    color: white;
+    transition: 0.2s;
+}
+
+.icon-btn:active {
+    background-color: hsl(210, 100%, 40%);
+    color: hsl(0, 0%, 95%);
+    transition: 0.2s;
+}
+
+#outer {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    align-content: stretch;
+}
+
+#topbar {
+    margin: 0px;
+    padding: 0px;
+    flex-shrink: 0;
+    background: linear-gradient(to top, hsl(0, 0%, 30%), hsl(0, 0%, 40%));
+    color: hsl(0, 0%, 95%);
+}
+
+#main {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    align-content: stretch;
+    position: relative;
+    height: 100%;
+    width: 100%;
+    overflow: auto;
+    flex: 2 1 auto;
+}
+
+#nav {
+    width: 256px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    min-width: 256px;
+    flex: 0 0 auto;
+    overflow: hidden;
+}
+
+#nav.hidden {
+    display: none;
+}
+
+#nav div {
+    margin: 4px;
+    width: 256px;
+}
+
+.nav-list {
+    display: none;
+    margin: 0px;
+    padding: 0px;
+}
+
+.nav-category.shown ul {
+    display: block;
+}
+
+.nav-category {
+    padding: 0px;
+    font-size: small;
+    background-color: hsl(0, 0%, 95%);
+    border-bottom: 1px solid #ccc;
+    color: black;
+    font-weight: bold;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+/*
+.nav-category p:after {
+    font-size: small;
+    margin: 0px;
+    padding: 0px;
+    content: '\02795';
+    float: right;
+}
+
+.nav-category.shown p:after {
+    content: "\2796";
+}
+*/
+
+.nav-category p {
+    margin: 0px;
+    padding: 8px 8px;
+}
+
+.nav-category p:hover {
+    background-color: hsl(0, 0%, 90%);
+}
+
+.nav-object {
+    padding: 1px 0px;
+    font-size: small;
+    background-color: white;
+    color: black;
+    font-weight: normal;
+    white-space: nowrap;
+}
+
+#navList {
+    background-color: white;
+    margin: 0px;
+    padding: 0px;
+    overflow-y: scroll;
+    height: 100%;
+}
+
+/*
+#navList li {
+    font-size: small;
+    list-style: none;
+    cursor: default;
+    overflow-x: hidden;
+    white-space: nowrap;
+    padding-top: 1px;
+    padding-bottom: 1px;
+}
+*/
+
+.nav-object:hover {
+    background-color: hsl(210, 100%, 90%);
+}
+
+.nav-object:active {
+    background-color: hsl(210, 100%, 40%);
+    color: hsl(0, 0%, 95%);
+    transition: 0.1s;
+}
+
+.nav-object.selected {
+    background-color: hsl(210, 100%, 50%);
+    color: white;
+    transition: 0.1s;
+}
+
+.navListIndex {
+    width: 2.5em;
+    float: left;
+    clear: left;
+    text-align: right;
+    padding-right: 0.5em;
+}
+
+#edit {
+    margin: 0px;
+    padding: 0px;
+    align-items: stretch;
+    align-content: stretch;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    flex: 2 1 auto;
+    width: 0;
+    overflow: auto;
+}
+
+#edit-top {
+    flex: 1 0 auto;
+    position: relative;
+    height: 100%;
+    width: 100%;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    align-content: stretch;
+    background-color: #333;
+    background-image:
+    linear-gradient(45deg, rgba(0,0,0,.1) 25%, transparent 25%, transparent 75%, rgba(0,0,0,.1) 75%, rgba(0,0,0,.1)),
+    linear-gradient(135deg, rgba(0,0,0,.1) 25%, transparent 25%, transparent 75%, rgba(0,0,0,.1) 75%, rgba(0,0,0,.1));
+    background-size: 16px 16px;
+}
+
+#map-edit {
+    width: 100%;
+    height: 100%;
+    overflow: scroll;
+    position: relative;
+}
+
+#battle-edit {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+#edit-div {
+/*    overflow: auto;*/
+    position: relative;
+    flex: 1 0 auto;
+    width: 100%;
+    height: 0;
+}
+
+#map {
+    z-index: 1;
+    position: absolute;
+    pointer-events: none;
+}
+
+#map-controls {
+    padding: 4px 0px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex: 0 0 20px;
+    height: 20px;
+    background: linear-gradient(#fff,#ddd);
+    border-bottom: 1px solid #ccc;
+}
+
+#map-controls.hidden {
+    display: none;
+}
+
+#map-controls input {
+/*    float: left;*/
+}
+
+#map-controls p {
+    margin: 0px 8px;
+}
+
+#map-cursor {
+    z-index: 4;
+    position: absolute;
+    pointer-events: none;
+}
+
+#edit-bottom {
+    margin: 0px;
+    padding: 0px;
+    display: flex;
+    overflow: auto;
+    height: 100%;
+    min-height: 44px;
+    flex: 1;
+    flex-direction: column;
+    align-items: stretch;
+    align-content: stretch;
+}
+
+#edit-bottom.hidden {
+    display: none;
+}
+
+#script-bar {
+    flex: 0;
+    background: linear-gradient(#fff,#ddd);
+    border-bottom: 1px solid #ccc;
+}
+
+#script-div {
+    display: block;
+    flex: 1;
+    overflow-y: scroll;
+    margin: 0px;
+    padding: 0px;
+    background-color: white;
+}
+
+#script-list {
+    background-color: white;
+    margin: 0px;
+    padding: 0px;
+}
+
+#script-list li {
+    font-size: small;
+    list-style: none;
+    cursor: default;
+    overflow-x: hidden;
+    white-space: nowrap;
+    padding: 1px 4px;
+    margin: 0px;
+}
+
+#script-list p {
+    margin: 0px;
+    float: left;
+    width: 75%;
+}
+
+#script-list li:hover {
+    background-color: hsl(210, 100%, 90%);
+}
+
+#script-list li:active {
+    background-color: hsl(210, 100%, 40%);
+    color: hsl(0, 0%, 95%);
+    transition: 0.1s;
+}
+
+#script-list li.selected {
+    background-color: hsl(210, 100%, 50%);
+    color: white;
+    transition: 0.1s;
+}
+
+.script-spacer {
+    margin: 0px;
+    padding: 0px;
+}
+
+.script-offset {
+    display: inline-block;
+    width: 25%;
+    overflow-x: hidden;
+    float: left;
+    clear: left;
+}
+
+.bold {
+    font-weight: bold;
+}
+
+.two-state {
+/*    float: left;*/
+    display: inline-block;
+    height: auto;
+    padding: 2px 10px;
+    margin: 0px 3px;
+    border-radius: 5px;
+    width: auto;
+    font-size: small;
+    color: black;
+    transition: 0.2s;
+    flex-shrink: 0;
+}
+
+.two-state.checked {
+    background: hsl(210, 100%, 50%);
+    color: white;
+    transition: 0.2s;
+}
+
+.two-state:hover {
+    background: hsl(210, 100%, 70%);
+    color: white;
+    transition: 0.2s;
+}
+
+.two-state:active {
+    background: hsl(210, 100%, 40%);
+    color: hsl(0, 0%, 95%);
+    transition: 0.2s;
+}
+
+.two-state input {
+    display: none;
+}
+
+#zoom {
+/*    margin-left: auto;*/
+}
+
+#zoom-value {
+    margin-left: auto;
+    font-size: small;
+}
+
+#coordinates {
+    margin: auto 8px;
+    width: 60px;
+    font-size: small;
+    text-align: center;
+}
+
+#toolbox {
+    margin: 0px 0px;
+    padding: 0px 0px;
+    width: 256px;
+    min-width: 256px;
+    position: relative;
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+#toolbox.hidden {
+    display: none;
+}
+
+#toolbox button {
+    background-color: inherit;
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 6px 2px;
+    margin: 0px 0px;
+    font-size: small;
+    transition: 0.2s;
+}
+
+#toolbox button.selected {
+    background-color: hsl(210, 100%, 50%);
+    color: white;
+    transition: 0.2s;
+}
+
+#toolbox button:hover {
+    background: hsl(210, 100%, 70%);
+    color: white;
+    transition: 0.2s;
+}
+
+#toolbox button:active {
+    background-color: hsl(210, 100%, 40%);
+    color: hsl(0, 0%, 95%);
+    transition: 0.2s;
+}
+
+#toolbox button:disabled {
+    background-color: inherit;
+    color: gray;
+    transition: 0.2s;
+}
+
+.relative {
+    position: relative;
+    height: 256px;
+    width: 256px;
+}
+
+.gutter.gutter-horizontal {
+    cursor: ew-resize;
+}
+
+.gutter.gutter-vertical {
+    cursor: ns-resize;
+}
+
+#tileset-div.hidden {
+    display: none;
+}
+
+#tileset {
+    z-index: 1;
+    position: absolute;
+}
+
+#tileset-layers {
+/*    text-align: center;*/
+    width: 256px;
+/*    width: 100%;*/
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    align-content: stretch;
+    flex: 0 0 auto;
+    background: linear-gradient(#fff,#ddd);
+}
+
+#tileset-layers.hidden {
+    display: none;
+}
+
+#tileset-cursor {
+    pointer-events: none;
+    z-index: 2;
+    position: absolute;
+}
+
+.no-select {
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+#properties {
+    font-size: 75%;
+    flex: 2;
+    overflow: scroll;
+    width: 100%;
+    padding: 0px;
+    margin: 0px;
+    border-top: 1px solid #ccc;
+}
+
+.property-heading {
+    padding: 0px;
+    margin: 0px 4px;
+/*    border-bottom: 1px solid #ccc;*/
+    flex: 1 1 0;
+}
+
+.property-heading p {
+    padding: 0px;
+    margin: 4px 0px;
+    font-weight: bold;
+}
+
+.property-heading select {
+    padding: 0px;
+    margin-top: 4px;
+    width: 100%;
+}
+
+.property-category {
+    padding: 0px;
+    margin: 0px 4px;
+    border-top: 1px solid #ccc;
+    flex: 1 1 0;
+}
+
+.property-category p {
+    padding: 0px;
+    margin: 4px 0px;
+    font-weight: bold;
+}
+
+.property-div {
+    margin: 0px;
+    padding: 4px 4px;
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+}
+
+.property-label {
+    text-align: right;
+    flex-shrink: 0;
+    flex-grow: 0;
+    flex-basis: auto;
+    padding-right: 1px;
+}
+
+.property-control-div {
+    width: 100%;
+    margin: 0px 4px;
+    flex: 1 1 0;
+}
+
+.property-control {
+    width: 100%;
+    margin: 0px 0px;
+    padding: 0px 0px;
+}
+
+.property-text {
+    font-family: monospace;
+    font-size: medium;
+}
+
+.property-textarea {
+    font-family: monospace;
+    font-size: medium;
+    overflow-y: visible;
+    vertical-align: middle;
+    resize: vertical;    
+}
+
+.property-check-div {
+    padding-top: 4px;
+}
+
+.property-check {
+    margin: 0px;
+    padding: 0px;
+}
+
+.property-check-label {
+    padding-left: 4px;
+}
+
+.menu {
+    display: none;
+    position: absolute;
+    z-index: 10;
+    padding: 5px 0px;
+    margin: 0px;
+    border-radius: 5px;
+    width: auto;
+    background-color: hsl(0, 0%, 95%);
+    box-shadow: 2px 2px 4px #666;
+    list-style-type: none;
+}
+
+.menu-item:hover > .menu-submenu {
+    display: block;
+}
+
+.menu-active {
+    display: block;
+}
+
+.menu-submenu {
+    left: 90px;
+    top: -5px;
+    height: auto;
+}
+
+.menu-item {
+    display: block;
+    position: relative;
+    background-color: hsl(0, 0%, 95%);
+    color: black;
+    width: auto;
+    font-size: small;
+    list-style: none;
+    white-space: nowrap;
+    padding: 2px 20px;
+    cursor: default;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.menu-item:hover {
+    background-color: hsl(210, 100%, 50%);
+    color: white;
+    transition: 0.2s;
+}
+
+.menu-item:active {
+    background-color: hsl(210, 100%, 40%);
+    color: hsl(0, 0%, 95%);
+    transition: 0.2s;
+}
+
+.menu-item-disabled {
+    background-color: hsl(0, 0%, 95%);
+    color: gray;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip .tooltiptext {
+    opacity: 0;
+    display: none;
+    z-index: 12;
+    width: 120px;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    font-size: small;
+    border-radius: 5px;
+    padding: 5px;
+    position: absolute;
+    top: 150%;
+    left: 50%;
+    margin-left: -65px;
+}
+
+.tooltip .tooltiptext::after {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent black transparent;
+}
+
+/*
+.tooltip:hover .tooltiptext {
+    display: inline-block;
+    transition: 0.5s;
+    transition-delay: 0.25s;
+    opacity: 1;
+}
+*/
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 11;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+    box-shadow: 2px 2px 4px #666;
+}
+
+.modal-window {
+    background-color: hsl(0, 0%, 95%);
+    margin: 15% auto;
+    padding: 10px;
+    border-radius: 5px;
+    width: 40%;
+}
+
+#modal-title {
+    margin: 6px 0px;
+    font-size: large;
+    font-weight: bold;
+    text-align: center;
+}
+
+.modal-content p {
+    padding: 0px;
+    padding-bottom: 10px;
+    margin: 0;
+}
+
+#close-modal {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+#close-modal:hover,
+#close-modal:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.modal-list {
+    background-color: white;
+    border: 1px solid #ccc;
+    padding: 0;
+}
+
+.modal-list li {
+    color: black;
+    font-size: small;
+    list-style: none;
+    cursor: default;
+    padding: 1px 0px 1px 4px;
+}
+
+.modal-list li:hover {
+    background-color: hsl(210, 100%, 90%);
+}
+
+.modal-list li:active {
+    background-color: hsl(210, 100%, 40%);
+    color: hsl(0, 0%, 95%);
+    transition: 0.1s;
+}
+
+.expand-div {
+    margin-bottom: 1em;
+    margin-left: 1em;
+    margin-right: 1em;
+}
+
+.expand-div label {
+    font-size: small;
+}

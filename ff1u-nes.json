@@ -1,0 +1,3021 @@
+{
+    "type": "rom",
+    "key": "ff1u-nes",
+    "name": "Final Fantasy (US)",
+    "length": "0x040010",
+    "crc32": "0xAB12ECE6",
+    "system": "nes",
+    "mode": "mmc1",
+    "pad": "0x00",
+    "assembly": {
+        "armorProperties": {
+            "type": "array",
+            "name": "Weapon Properties",
+            "range": "0x0C8140-0x0C81E0",
+            "array": {
+                "length": 40
+            },
+            "assembly": {
+                "type": "data",
+                "length": 4,
+                "assembly": {
+                    "weight": {
+                        "type": "property",
+                        "name": "Weight",
+                        "begin": 0
+                    },
+                    "defense": {
+                        "type": "property",
+                        "name": "Defense",
+                        "begin": 1
+                    },
+                    "element": {
+                        "type": "property",
+                        "name": "Element",
+                        "begin": 2,
+                        "flag": true,
+                        "stringTable": "element"
+                    },
+                    "spellCast": {
+                        "type": "property",
+                        "name": "Spell Cast",
+                        "begin": 3,
+                        "stringTable": {
+                            "length": 65,
+                            "default": "<stringTable.spell[%i-1]>",
+                            "string": {
+                                "0": "None"
+                            }
+                            
+                        }
+                    }
+                }
+            }
+        },
+        "attackName": {
+            "type": "array",
+            "name": "Attack Name",
+            "range": "0x0AB634-0x0AB6F5",
+            "array": {
+                "length": 26
+            },
+            "assembly": {
+                "type": "text",
+                "encoding": "nullTerminated"
+            },
+            "pointerTable": {
+                "range": "0x0AB600-0x0AB634",
+                "offset": "0x0A0000"
+            },
+            "stringTable": {
+                "length": 26,
+                "default": "<attackName[%i]>",
+                "string": {
+                    "0xFF": "None"
+                }
+            }
+        },
+        "battleBackgroundPalette": {
+            "type": "array",
+            "name": "Battle Background Palette",
+            "range": "0x00B200-0x00B300",
+            "array": {
+                "length": 24
+            },
+            "assembly": {
+                "length": 4,
+                "format": "nesPalette"
+            }
+        },
+        "battleMessage": {
+            "type": "array",
+            "name": "Battle Message",
+            "range": "0x0B8C40-0x0B8F50",
+            "array": {
+                "length": 78
+            },
+            "assembly": {
+                "type": "text",
+                "encoding": "nullTerminated"
+            },
+            "pointerTable": {
+                "range": "0x0B8F50-0x0B8FEC",
+                "offset": "0x0B0000"
+            },
+            "stringTable": {
+                "length": 26,
+                "default": "<battleMessage[%i-1]>",
+                "string": {
+                    "0": "None"
+                }
+            }
+        },
+        "battleProperties": {
+            "type": "array",
+            "name": "Battle Properties",
+            "range": "0x0B8400-0x0B8C00",
+            "array": {
+                "length": 128
+            },
+            "assembly": {
+                "type": "data",
+                "length": 16,
+                "editor": "FF1Battle",
+                "assembly": {
+                    "size": {
+                        "type": "property",
+                        "name": "Size",
+                        "begin": 0,
+                        "mask": "0xF0",
+                        "stringTable": {
+                            "string": {
+                                "0": "9 Small",
+                                "1": "4 Large",
+                                "2": "2 Large, 6 Small",
+                                "3": "Fiend",
+                                "4": "Chaos"
+                            }
+                        }
+                    },
+                    "graphics": {
+                        "type": "property",
+                        "name": "Graphics",
+                        "begin": 0,
+                        "mask": "0x0F",
+                        "stringTable": "monsterGraphics"
+                    },
+                    "palette1": {
+                        "type": "property",
+                        "name": "Palette 1",
+                        "begin": 10
+                    },
+                    "palette2": {
+                        "type": "property",
+                        "name": "Palette 2",
+                        "begin": 11
+                    },
+                    "surprise": {
+                        "type": "property",
+                        "name": "Surprise Rate",
+                        "begin": 12
+                    },
+                    "noRun": {
+                        "type": "property",
+                        "name": "Can't Run",
+                        "begin": 13,
+                        "mask": "0x01",
+                        "bool": true
+                    },
+                    "cat-monster1": "Monster 1",
+                    "monster1": {
+                        "type": "property",
+                        "name": "Monster",
+                        "begin": 2,
+                        "stringTable": "monsterName",
+                        "link": "monsterProperties[%i]"
+                    },
+                    "monster1Graphics": {
+                        "type": "property",
+                        "name": "Graphics",
+                        "begin": 1,
+                        "mask": "0x03"
+                    },
+                    "monster1Palette": {
+                        "type": "property",
+                        "name": "Palette",
+                        "begin": 13,
+                        "mask": "0x80",
+                        "stringTable": {
+                            "string": {
+                                "0": "Palette 1",
+                                "1": "Palette 2"
+                            }
+                        }
+                    },
+                    "monster1Min": {
+                        "type": "property",
+                        "name": "Min. Count",
+                        "begin": 6,
+                        "mask": "0xF0"
+                    },
+                    "monster1Max": {
+                        "type": "property",
+                        "name": "Max. Count",
+                        "begin": 6,
+                        "mask": "0x0F"
+                    },
+                    "monster1MinB": {
+                        "type": "property",
+                        "name": "Min. Count (B)",
+                        "begin": 14,
+                        "mask": "0xF0"
+                    },
+                    "monster1MaxB": {
+                        "type": "property",
+                        "name": "Max. Count (B)",
+                        "begin": 14,
+                        "mask": "0x0F"
+                    },
+                    "cat-monster2": "Monster 2",
+                    "monster2": {
+                        "type": "property",
+                        "name": "Monster",
+                        "begin": 3,
+                        "stringTable": "monsterName",
+                        "link": "monsterProperties[%i]"
+                    },
+                    "monster2Graphics": {
+                        "type": "property",
+                        "name": "Graphics",
+                        "begin": 1,
+                        "mask": "0x0C"
+                    },
+                    "monster2Palette": {
+                        "type": "property",
+                        "name": "Palette",
+                        "begin": 13,
+                        "mask": "0x40",
+                        "stringTable": "battleProperties.monster1Palette"
+                    },
+                    "monster2Min": {
+                        "type": "property",
+                        "name": "Min. Count",
+                        "begin": 7,
+                        "mask": "0xF0"
+                    },
+                    "monster2Max": {
+                        "type": "property",
+                        "name": "Max. Count",
+                        "begin": 7,
+                        "mask": "0x0F"
+                    },
+                    "monster2MinB": {
+                        "type": "property",
+                        "name": "Min. Count (B)",
+                        "begin": 15,
+                        "mask": "0xF0"
+                    },
+                    "monster2MaxB": {
+                        "type": "property",
+                        "name": "Max. Count (B)",
+                        "begin": 15,
+                        "mask": "0x0F"
+                    },
+                    "cat-monster3": "Monster 3",
+                    "monster3": {
+                        "type": "property",
+                        "name": "Monster",
+                        "begin": 4,
+                        "stringTable": "monsterName",
+                        "link": "monsterProperties[%i]"
+                    },
+                    "monster3Graphics": {
+                        "type": "property",
+                        "name": "Graphics",
+                        "begin": 1,
+                        "mask": "0x30"
+                    },
+                    "monster3Palette": {
+                        "type": "property",
+                        "name": "Palette",
+                        "begin": 13,
+                        "mask": "0x20",
+                        "stringTable": "battleProperties.monster1Palette"
+                    },
+                    "monster3Min": {
+                        "type": "property",
+                        "name": "Min. Count",
+                        "begin": 8,
+                        "mask": "0xF0"
+                    },
+                    "monster3Max": {
+                        "type": "property",
+                        "name": "Max. Count",
+                        "begin": 8,
+                        "mask": "0x0F"
+                    },
+                    "cat-monster4": "Monster 4",
+                    "monster4": {
+                        "type": "property",
+                        "name": "Monster",
+                        "begin": 5,
+                        "stringTable": "monsterName",
+                        "link": "monsterProperties[%i]"
+                    },
+                    "monster4Graphics": {
+                        "type": "property",
+                        "name": "Graphics",
+                        "begin": 1,
+                        "mask": "0xC0"
+                    },
+                    "monster4Palette": {
+                        "type": "property",
+                        "name": "Palette",
+                        "begin": 13,
+                        "mask": "0x10",
+                        "stringTable": "battleProperties.monster1Palette"
+                    },
+                    "monster4Min": {
+                        "type": "property",
+                        "name": "Min. Count",
+                        "begin": 9,
+                        "mask": "0xF0"
+                    },
+                    "monster4Max": {
+                        "type": "property",
+                        "name": "Max. Count",
+                        "begin": 9,
+                        "mask": "0x0F"
+                    }
+                }
+            },
+            "stringTable": {
+                "length": 128,
+                "default": "Battle %i"
+            }
+        },
+        "battleGroup": {
+            "type": "array",
+            "name": "Battle Group",
+            "range": "0x0B8000-0x0B8400",
+            "array": {
+                "length": 128
+            },
+            "assembly": {
+                "type": "data",
+                "length": 8,
+                "assembly": {
+                    "battle1": {
+                        "type": "property",
+                        "name": "Battle 1 (12/64)",
+                        "begin": 0,
+                        "mask": "0x7F",
+                        "link": "battleProperties[%i]",
+                        "stringTable": "battleProperties"
+                    },
+                    "battle2": {
+                        "type": "property",
+                        "name": "Battle 2 (12/64)",
+                        "begin": 1,
+                        "mask": "0x7F",
+                        "link": "battleProperties[%i]",
+                        "stringTable": "battleProperties"
+                    },
+                    "battle3": {
+                        "type": "property",
+                        "name": "Battle 3 (12/64)",
+                        "begin": 2,
+                        "mask": "0x7F",
+                        "link": "battleProperties[%i]",
+                        "stringTable": "battleProperties"
+                    },
+                    "battle4": {
+                        "type": "property",
+                        "name": "Battle 4 (12/64)",
+                        "begin": 3,
+                        "mask": "0x7F",
+                        "link": "battleProperties[%i]",
+                        "stringTable": "battleProperties"
+                    },
+                    "battle5": {
+                        "type": "property",
+                        "name": "Battle 5 (6/64)",
+                        "begin": 4,
+                        "mask": "0x7F",
+                        "link": "battleProperties[%i]",
+                        "stringTable": "battleProperties"
+                    },
+                    "battle6": {
+                        "type": "property",
+                        "name": "Battle 6 (6/64)",
+                        "begin": 5,
+                        "mask": "0x7F",
+                        "link": "battleProperties[%i]",
+                        "stringTable": "battleProperties"
+                    },
+                    "battle7": {
+                        "type": "property",
+                        "name": "Battle 7 (3/64)",
+                        "begin": 6,
+                        "mask": "0x7F",
+                        "link": "battleProperties[%i]",
+                        "stringTable": "battleProperties"
+                    },
+                    "battle8": {
+                        "type": "property",
+                        "name": "Battle 8 (1/64)",
+                        "begin": 7,
+                        "mask": "0x7F",
+                        "link": "battleProperties[%i]",
+                        "stringTable": "battleProperties"
+                    }
+                }
+            }
+        },
+        "dialog": {
+            "type": "array",
+            "name": "Dialog",
+            "range": "0x0A8200-0x0AB486",
+            "array": {
+                "length": 256
+            },
+            "assembly": {
+                "type": "text",
+                "encoding": "dialog",
+                "multiLine": true
+            },
+            "pointerTable": {
+                "range": "0x0A8000-0x0A8200",
+                "offset": "0x0A0000"
+            },
+            "stringTable": {
+                "length": 256,
+                "default": "<dialog[%i]>"
+            }
+        },
+        "itemClass": {
+            "type": "array",
+            "name": "Item Class",
+            "range": "0x0EBF50-0x0EBFF0",
+            "array": {
+                "length": 80
+            },
+            "assembly": {
+                "type": "data",
+                "length": 2,
+                "assembly": {
+                    "class": {
+                        "type": "property",
+                        "name": "Class",
+                        "begin": 0,
+                        "mask": "0x0FFF",
+                        "flag": true,
+                        "invert": true,
+                        "stringTable": "class"
+                    }
+                }
+            }
+        },
+        "itemProperties": {
+            "type": "array",
+            "name": "Item Properties",
+            "range": "0x0DBC00-0x0DBE00",
+            "stringTable": "text",
+            "array": {
+                "length": 256
+            },
+            "assembly": {
+                "type": "data",
+                "length": 2,
+                "assembly": {
+                    "itemName": {
+                        "type": "assembly",
+                        "name": "Name",
+                        "external": "text[%i]"
+                    },
+                    "gp": {
+                        "type": "property",
+                        "name": "GP",
+                        "begin": 0,
+                        "mask": "0xFFFF"
+                    },
+                    "hitRate-w": {
+                        "type": "assembly",
+                        "external": "weaponProperties[%i-28].hitRate",
+                        "invalid": "(this.parent.i < 28) || (this.parent.i >= 68)"
+                    },
+                    "damage-w": {
+                        "type": "assembly",
+                        "external": "weaponProperties[%i-28].damage",
+                        "invalid": "(this.parent.i < 28) || (this.parent.i >= 68)"
+                    },
+                    "crit-w": {
+                        "type": "assembly",
+                        "external": "weaponProperties[%i-28].crit",
+                        "invalid": "(this.parent.i < 28) || (this.parent.i >= 68)"
+                    },
+                    "spellCast-w": {
+                        "type": "assembly",
+                        "external": "weaponProperties[%i-28].spellCast",
+                        "invalid": "(this.parent.i < 28) || (this.parent.i >= 68)"
+                    },
+                    "graphics-w": {
+                        "type": "assembly",
+                        "external": "weaponProperties[%i-28].graphics",
+                        "invalid": "(this.parent.i < 28) || (this.parent.i >= 68)"
+                    },
+                    "palette-w": {
+                        "type": "assembly",
+                        "external": "weaponProperties[%i-28].palette",
+                        "invalid": "(this.parent.i < 28) || (this.parent.i >= 68)"
+                    },
+                    "category-w": {
+                        "type": "assembly",
+                        "external": "weaponProperties[%i-28].category",
+                        "invalid": "(this.parent.i < 28) || (this.parent.i >= 68)"
+                    },
+                    "element-w": {
+                        "type": "assembly",
+                        "external": "weaponProperties[%i-28].element",
+                        "invalid": "(this.parent.i < 28) || (this.parent.i >= 68)"
+                    },
+                    "weight-a": {
+                        "type": "assembly",
+                        "external": "armorProperties[%i-68].weight",
+                        "invalid": "(this.parent.i < 68) || (this.parent.i >= 108)"
+                    },
+                    "defense-a": {
+                        "type": "assembly",
+                        "external": "armorProperties[%i-68].defense",
+                        "invalid": "(this.parent.i < 68) || (this.parent.i >= 108)"
+                    },
+                    "spellCast-a": {
+                        "type": "assembly",
+                        "external": "armorProperties[%i-68].spellCast",
+                        "invalid": "(this.parent.i < 68) || (this.parent.i >= 108)"
+                    },
+                    "element-a": {
+                        "type": "assembly",
+                        "external": "armorProperties[%i-68].element",
+                        "invalid": "(this.parent.i < 68) || (this.parent.i >= 108)"
+                    },
+                    "accuracy-s": {
+                        "type": "assembly",
+                        "external": "spellProperties[%i-176].accuracy",
+                        "invalid": "(this.parent.i < 176) || (this.parent.i >= 240)"
+                    },
+                    "target-s": {
+                        "type": "assembly",
+                        "external": "spellProperties[%i-176].target",
+                        "invalid": "(this.parent.i < 176) || (this.parent.i >= 240)"
+                    },
+                    "effect-s": {
+                        "type": "assembly",
+                        "external": "spellProperties[%i-176].effect",
+                        "invalid": "(this.parent.i < 176) || (this.parent.i >= 240)"
+                    },
+                    "graphics-s": {
+                        "type": "assembly",
+                        "external": "spellProperties[%i-176].graphics",
+                        "invalid": "(this.parent.i < 176) || (this.parent.i >= 240)"
+                    },
+                    "palette-s": {
+                        "type": "assembly",
+                        "external": "spellProperties[%i-176].palette",
+                        "invalid": "(this.parent.i < 176) || (this.parent.i >= 240)"
+                    },
+                    "element-s": {
+                        "type": "assembly",
+                        "external": "spellProperties[%i-176].element",
+                        "invalid": "(this.parent.i < 176) || (this.parent.i >= 240)"
+                    },
+                    "message-s": {
+                        "type": "assembly",
+                        "external": "spellMessage[%i-176].message",
+                        "invalid": "(this.parent.i < 176) || (this.parent.i >= 240)"
+                    },
+                    "class-i": {
+                        "type": "assembly",
+                        "external": "itemClass[%i-28].class",
+                        "invalid": "(this.parent.i < 28) || (this.parent.i >= 108)"
+                    }
+                }
+            }
+        },
+        "mapEntrance": {
+            "type": "array",
+            "name": "Map Entrance",
+            "range": "0x00AD00-0x00ADC0",
+            "format": "interlace(1,3,64)",
+            "array": {
+                "length": 64
+            },
+            "assembly": {
+                "type": "data",
+                "length": 3,
+                "assembly": {
+                    "x": {
+                        "type": "property",
+                        "name": "X Destination",
+                        "begin": 0,
+                        "max": 63
+                    },
+                    "y": {
+                        "type": "property",
+                        "name": "Y Destination",
+                        "begin": 1,
+                        "max": 63
+                    },
+                    "map": {
+                        "type": "property",
+                        "name": "Map",
+                        "begin": 2,
+                        "stringTable": "mapProperties",
+                        "link": "mapProperties[%i]"
+                    }
+                }
+            },
+            "stringTable": {
+                "default": "Map Entrance %i",
+                "length": 64,
+                "string": {
+                    "0x00": "Coneria Castle",
+                    "0x01": "Time Warp"
+                }
+            }
+        },
+        "mapExit": {
+            "type": "array",
+            "name": "Map Exit",
+            "range": "0x00AC60-0x00AC80",
+            "format": "interlace(1,2,16)",
+            "array": {
+                "length": 16
+            },
+            "assembly": {
+                "type": "data",
+                "length": 2,
+                "assembly": {
+                    "x": {
+                        "type": "property",
+                        "name": "X Destination",
+                        "begin": 0,
+                        "max": 63
+                    },
+                    "y": {
+                        "type": "property",
+                        "name": "Y Destination",
+                        "begin": 1,
+                        "max": 63
+                    }
+                }
+            },
+            "stringTable": {
+                "default": "Map Exit %i",
+                "length": 16,
+                "string": {
+                    "0x00": "Titan E",
+                    "0x01": "Titan W",
+                    "0x02": "Ice Cave",
+                    "0x03": "Castle Ordeals",
+                    "0x04": "Castle Coneria",
+                    "0x05": "Earth Cave",
+                    "0x06": "Gurgu Volcano",
+                    "0x07": "Sea Shrine",
+                    "0x08": "Sky Castle"
+                }
+            }
+        },
+        "mapGraphics": {
+            "type": "array",
+            "name": "Map Graphics",
+            "range": "0x038000-0x048000",
+            "array": {
+                "length": 8
+            },
+            "assembly": {
+                "length": "0x0800",
+                "format": "nes2bpp"
+            }
+        },
+        "mapLayout": {
+            "type": "array",
+            "name": "Map Layout",
+            "range": "0x048080-0x06AC9A",
+            "isSequential": true,
+            "array": {
+                "length": 64
+            },
+            "assembly": {
+                "format": "ff1-map"
+            },
+            "pointerTable": {
+                "range": "0x048000-0x048080",
+                "offset": "0x048000",
+                "reference": [
+                    {
+                        "begin": "0x0FD130",
+                        "mask": "0xFFFF"
+                    }, {
+                        "begin": "0x0FD135",
+                        "mask": "0xFFFF",
+                        "offset": -1
+                    }
+                ]
+            },
+            "reference": [
+                {
+                    "begin": "0x0FD127",
+                    "mask": "0xFF",
+                    "bankByte": true
+                }
+            ]
+        },
+        "mapPalette": {
+            "type": "array",
+            "name": "Map Palette",
+            "range": "0x00A000-0x00AC00",
+            "array": {
+                "length": 64
+            },
+            "assembly": {
+                "length": "0x30",
+                "format": "nesPalette"
+            }
+        },
+        "mapProperties": {
+            "type": "array",
+            "name": "Map Properties",
+            "range": "0x00ACC0-0x00AD00",
+            "array": {
+                "length": 64
+            },
+            "assembly": {
+                "type": "data",
+                "length": 1,
+                "editor": "FF1Map",
+                "assembly": {
+                    "tileset": {
+                        "type": "property",
+                        "name": "Tileset",
+                        "stringTable": "mapTileset"
+                    },
+                    "battle1": {
+                        "type": "assembly",
+                        "external": "battleGroup[%i+64].battle1"
+                    },
+                    "battle2": {
+                        "type": "assembly",
+                        "external": "battleGroup[%i+64].battle2"
+                    },
+                    "battle3": {
+                        "type": "assembly",
+                        "external": "battleGroup[%i+64].battle3"
+                    },
+                    "battle4": {
+                        "type": "assembly",
+                        "external": "battleGroup[%i+64].battle4"
+                    },
+                    "battle5": {
+                        "type": "assembly",
+                        "external": "battleGroup[%i+64].battle5"
+                    },
+                    "battle6": {
+                        "type": "assembly",
+                        "external": "battleGroup[%i+64].battle6"
+                    },
+                    "battle7": {
+                        "type": "assembly",
+                        "external": "battleGroup[%i+64].battle7"
+                    },
+                    "battle8": {
+                        "type": "assembly",
+                        "external": "battleGroup[%i+64].battle8"
+                    }
+                }
+            },
+            "stringTable": {
+                "default": "Map %i",
+                "length": 64,
+                "string": {
+					"0x00": "Coneria",
+                    "0x01": "Provoka",
+                    "0x02": "Elfland",
+                    "0x03": "Melmond",
+                    "0x04": "Crescent Lake",
+                    "0x05": "Gaia",
+                    "0x06": "Onrac",
+                    "0x07": "Lefein",
+                    "0x08": "Coneria Castle 1F",
+                    "0x09": "Elfland Castle",
+                    "0x0A": "Northwest Castle",
+                    "0x0B": "Castle of Ordeals 1F",
+                    "0x0C": "Temple of Fiends",
+                    "0x0D": "Earth Cave B1",
+                    "0x0E": "Gurgu Volcano B1",
+                    "0x0F": "Ice Cave B1",
+                    "0x10": "Cardia",
+                    "0x11": "Bahamut's Room B1",
+                    "0x12": "Waterfall",
+                    "0x13": "Dwarf Cave",
+                    "0x14": "Matoya's Cave",
+                    "0x15": "Sarda's Cave",
+                    "0x16": "Marsh Cave B1",
+                    "0x17": "Mirage Tower 1F",
+                    "0x18": "Coneria Castle 2F",
+                    "0x19": "Castle of Ordeals 2F",
+                    "0x1A": "Castle of Ordeals 3F",
+                    "0x1B": "Marsh Cave B2",
+                    "0x1C": "Marsh Cave B3",
+                    "0x1D": "Earth Cave B2",
+                    "0x1E": "Earth Cave B3",
+                    "0x1F": "Earth Cave B4",
+                    "0x20": "Earth Cave B5",
+                    "0x21": "Gurgu Volcano B2",
+                    "0x22": "Gurgu Volcano B3",
+                    "0x23": "Gurgu Volcano B4",
+                    "0x24": "Gurgu Volcano B5",
+                    "0x25": "Ice Cave B2",
+                    "0x26": "Ice Cave B3",
+                    "0x27": "Bahamut's Room B2",
+                    "0x28": "Mirage Tower 2F",
+                    "0x29": "Mirage Tower 3F",
+                    "0x2A": "Sea Shrine B5",
+                    "0x2B": "Sea Shrine B4",
+                    "0x2C": "Sea Shrine B3",
+                    "0x2D": "Sea Shrine B2",
+                    "0x2E": "Sea Shrine B1",
+                    "0x2F": "Sky Palace 1F",
+                    "0x30": "Sky Palace 2F",
+                    "0x31": "Sky Palace 3F",
+                    "0x32": "Sky Palace 4F",
+                    "0x33": "Sky Palace 5F",
+                    "0x34": "Temple of Fiends 1F",
+                    "0x35": "Temple of Fiends 2F",
+                    "0x36": "Temple of Fiends 3F",
+                    "0x37": "Temple of Fiends - Earth",
+                    "0x38": "Temple of Fiends - Fire",
+                    "0x39": "Temple of Fiends - Water",
+                    "0x3A": "Temple of Fiends - Air",
+                    "0x3B": "Temple of Fiends - Chaos",
+                    "0x3C": "Titan's Tunnel",
+                    "0x3F": "Overworld"
+                }
+            }
+        },
+        "mapSpriteGraphics": {
+            "type": "data",
+            "name": "Map Sprite Graphics",
+            "range": "0x1B8000-0x1C8000",
+            "format": "snes3bpp"
+        },
+        "mapSpritePalettes": {
+            "type": "array",
+            "name": "Map Sprite Palettes",
+            "range": "0x0D8000-0x0D8040",
+            "array": {
+                "length": 4
+            },
+            "assembly": {
+                "length": 16,
+                "format": "bgr555"
+            }
+        },
+        "mapTileProperties": {
+            "type": "array",
+            "name": "Map Tile Properties",
+            "range": "0x008800-0x009000",
+            "array": {
+                "length": 8
+            },
+            "assembly": {
+                "type": "array",
+                "array": {
+                    "length": 128
+                },
+                "length": 256,
+                "assembly": {
+                    "type": "data",
+                    "length": 2,
+                    "assembly": {
+                        "isBattle": {
+                            "type": "property",
+                            "name": "Battle",
+                            "bool": true,
+                            "mask": "0x20",
+                            "hidden": true
+                        },
+                        "impassable": {
+                            "type": "property",
+                            "name": "Impassable",
+                            "bool": true,
+                            "mask": "0x01"
+                        },
+                        "entrance": {
+                            "type": "property",
+                            "name": "Entrance",
+                            "mask": "0xC0",
+                            "stringTable": {
+                                "string": {
+                                    "0": "None",
+                                    "1": "To Previous Map",
+                                    "2": "Entrance (Normal Map)",
+                                    "3": "Exit (World Map)"
+                                }
+                            }
+                        },
+                        "mapEntrance": {
+                            "type": "property",
+                            "name": "Entrance",
+                            "begin": 1,
+                            "invalid": "this.parent.entrance.value !== 2",
+                            "stringTable": "mapEntrance",
+                            "link": "mapEntrance[%i]"
+                        },
+                        "mapExit": {
+                            "type": "property",
+                            "name": "Exit",
+                            "begin": 1,
+                            "invalid": "this.parent.entrance.value !== 3",
+                            "stringTable": "mapExit",
+                            "link": "mapExit[%i]"
+                        },
+                        "special": {
+                            "type": "property",
+                            "name": "Special",
+                            "mask": "0x1E",
+                            "invalid": "this.parent.entrance.value !== 0",
+                            "stringTable": {
+                                "string": {
+                                    "0": "Dialog",
+                                    "1": "Door/Shop",
+                                    "2": "Locked Door",
+                                    "3": "Close Rooms",
+                                    "4": "Treasure",
+                                    "5": "Battle",
+                                    "6": "Damage",
+                                    "7": "Use Crown",
+                                    "8": "Use Cube",
+                                    "9": "4 Orbs",
+                                    "10": "Use Rod",
+                                    "11": "Use Lute",
+                                    "12": "Earth Orb",
+                                    "13": "Fire Orb",
+                                    "14": "Water Orb",
+                                    "15": "Air Orb"
+                                }
+                            }
+                        },
+                        "dialog": {
+                            "type": "property",
+                            "name": "Dialog",
+                            "begin": 1,
+                            "invalid": "this.parent.entrance.value !== 0 || this.parent.special.value !== 0",
+                            "stringTable": "dialog",
+                            "link": "dialog[%i]"
+                        },
+                        "shop": {
+                            "type": "property",
+                            "name": "Shop/Door",
+                            "begin": 1,
+                            "invalid": "this.parent.entrance.value !== 0 || this.parent.special.value !== 1",
+                            "stringTable": "shop",
+                            "link": "shop[%i]",
+                            "special": {
+                                "0": "Door"
+                            }
+                        },
+                        "treasure": {
+                            "type": "property",
+                            "name": "Treasure",
+                            "begin": 1,
+                            "invalid": "this.parent.entrance.value !== 0 || this.parent.special.value !== 4",
+                            "stringTable": "treasure",
+                            "link": "treasure[%i]"
+                        },
+                        "battle": {
+                            "type": "property",
+                            "name": "Battle",
+                            "begin": 1,
+                            "invalid": "this.parent.entrance.value !== 0 || this.parent.special.value !== 5",
+                            "link": "battleProperties[%i]",
+                            "stringTable": "battleProperties",
+                            "special": {
+                                "0x80": "Random Battle"
+                            }
+                        },
+                        "byte2": {
+                            "type": "property",
+                            "name": "Byte 2",
+                            "begin": 1,
+                            "invalid": "true"
+                        }
+                    }
+                }
+            }
+        },
+        "mapTitle": {
+            "type": "array",
+            "name": "Map Title",
+            "range": "0x159620-0x159AEF",
+            "terminator": 0,
+            "array": {
+                "length": 121,
+                "max": 121
+            },
+            "assembly": {
+                "type": "text",
+                "encoding": "nullTerminated"
+            },
+            "stringTable": {
+                "name": "Map Title",
+                "length": 121,
+                "default": "<mapTitle[%i]>"
+            }
+        },
+        "mapTriggers": {
+            "type": "array",
+            "name": "Map Triggers",
+            "range": "0x158300-0x15961F",
+            "isSequential": true,
+            "array": {
+                "length": 384
+            },
+            "assembly": {
+                "type": "array",
+                "assembly": {
+                    "type": "data",
+                    "assembly": {
+                        "x": {
+                            "type": "property",
+                            "name": "X Position",
+                            "begin": 0,
+                            "hidden": true
+                        },
+                        "y": {
+                            "type": "property",
+                            "name": "Y Position",
+                            "begin": 1,
+                            "hidden": true
+                        },
+                        "map": {
+                            "type": "property",
+                            "name": "Map",
+                            "begin": 2,
+                            "max": 253,
+                            "stringTable": "mapProperties",
+                            "link": "mapProperties[%i]",
+                            "invalid": "(this.parent.map.value === 0xFE) || (this.parent.map.value === 0xFF)"
+                        },
+                        "xDest": {
+                            "type": "property",
+                            "name": "X Destination",
+                            "begin": 3,
+                            "invalid": "this.parent.map.invalid"
+                        },
+                        "yDest": {
+                            "type": "property",
+                            "name": "Y Destination",
+                            "begin": 4,
+                            "invalid": "this.parent.map.invalid"
+                        },
+                        "direction": {
+                            "type": "property",
+                            "name": "Facing Direction",
+                            "begin": 3,
+                            "mask": "0xC0",
+                            "invalid": "this.parent.map.invalid || (this.parent.map.value === 0xFB) || (this.parent.map.value === 0xFC) || (this.parent.map.value === 0x1FB) || (this.parent.map.value === 0x1FC)",
+                            "stringTable": "directions"
+                        },
+                        "event": {
+                            "type": "property",
+                            "name": "Trigger Event",
+                            "begin": 3,
+                            "invalid": "this.parent.map.value !== 0xFF",
+                            "link": "triggerScript[%i]",
+                            "stringTable": "triggerScript"
+                        },
+                        "treasureType": {
+                            "type": "property",
+                            "name": "Type",
+                            "begin": 3,
+                            "mask": "0xC0",
+                            "stringTable": {
+                                "string": {
+                                    "0": "GP",
+                                    "1": "Monsters",
+                                    "2": "Item",
+                                    "3": "Monsters"
+                                }
+                            },
+                            "invalid": "this.parent.map.value !== 0xFE"
+                        },
+                        "battle": {
+                            "type": "property",
+                            "name": "Battle",
+                            "begin": 3,
+                            "mask": "0x1F",
+                            "invalid": "(this.parent.map.value !== 0xFE) || !(this.parent.treasureType.value & 1)",
+                            "offset": "0x01C0",
+                            "link": "battleProperties[%i]",
+                            "stringTable": "battleProperties"
+                        },
+                        "item": {
+                            "type": "property",
+                            "name": "Item",
+                            "begin": 4,
+                            "stringTable": "itemNames",
+                            "invalid": "(this.parent.map.value !== 0xFE) || (this.parent.treasureType.value === 0)"
+                        },
+                        "gp10": {
+                            "type": "property",
+                            "name": "GP (×10)",
+                            "begin": 4,
+                            "mask": "0x7F",
+                            "multiplier": 10,
+                            "invalid": "(this.parent.map.value !== 0xFE) || (this.parent.treasureType.value !== 0) || (this.parent.gpMultiplier.value === 1)"
+                        },
+                        "gp1000": {
+                            "type": "property",
+                            "name": "GP (×1000)",
+                            "begin": 4,
+                            "mask": "0x7F",
+                            "multiplier": 1000,
+                            "invalid": "(this.parent.map.value !== 0xFE) || (this.parent.treasureType.value !== 0) || (this.parent.gpMultiplier.value === 0)"
+                        },
+                        "gpMultiplier": {
+                            "type": "property",
+                            "name": "Multiplier",
+                            "begin": 4,
+                            "mask": "0x80",
+                            "stringTable": {
+                                "string": {
+                                    "0": "×10",
+                                    "1": "×1000"
+                                }
+                            },
+                            "invalid": "(this.parent.map.value !== 0xFE) || (this.parent.treasureType.value !== 0)"
+                        }
+                    },
+                    "length": 5
+                }
+            },
+            "pointerTable": {
+                "range": "0x158000-0x158300",
+                "offset": "0x158300"
+            }
+        },
+        "mapTileset": {
+            "type": "array",
+            "name": "Map Tileset",
+            "range": "0x009000-0x00A000",
+            "array": {
+                "length": 8
+            },
+            "assembly": {
+                "type": "assembly",
+                "length": 512
+            },
+            "stringTable": {
+                "length": 8,
+                "string": {
+                    "0": "Town",
+                    "1": "Castle",
+                    "2": "Cave 1",
+                    "3": "Cave 2",
+                    "4": "Tower",
+                    "5": "Shrine",
+                    "6": "Sky Castle",
+                    "7": "Temple of Fiends"
+                }
+            }
+        },
+        "mapNPC": {
+            "type": "array",
+            "name": "Map NPC",
+            "range": "0x00B400-0x018000",
+            "array": {
+                "length": 64
+            },
+            "assembly": {
+                "type": "array",
+                "array": {
+                    "length": 16
+                },
+                "length": 48,
+                "assembly": {
+                    "type": "data",
+                    "length": 3,
+                    "assembly": {
+                        "npcID": {
+                            "type": "property",
+                            "name": "I.D.",
+                            "min": 1,
+                            "link": "npcProperties[%i]",
+                            "stringTable": "npcProperties"
+                        },
+                        "x": {
+                            "type": "property",
+                            "name": "X Position",
+                            "begin": 1,
+                            "mask": "0x3F",
+                            "hidden": true
+                        },
+                        "y": {
+                            "type": "property",
+                            "name": "Y Position",
+                            "begin": 2,
+                            "mask": "0x3F",
+                            "hidden": true
+                        },
+                        "inRooms": {
+                            "type": "property",
+                            "name": "In Rooms",
+                            "begin": 1,
+                            "mask": "0x80",
+                            "bool": true
+                        },
+                        "stationary": {
+                            "type": "property",
+                            "name": "Stationary",
+                            "begin": 1,
+                            "mask": "0x40",
+                            "bool": true
+                        }
+                    }
+                }
+            }
+        },
+        "mapSpriteGraphics": {
+            "type": "array",
+            "name": "Map Sprite Graphics",
+            "range": "0x02A200-0x038000",
+            "array": {
+                "length": 30
+            },
+            "assembly": {
+                "length": "0x0100",
+                "format": "nes2bpp"
+            },
+            "stringTable": {
+                "length": 30,
+                "default": "NPC Graphics %i",
+                "string": {
+                    "0": "Princess",
+                    "1": "Woman",
+                    "2": "Old Woman",
+                    "3": "Dancer",
+                    "4": "Orb",
+                    "5": "Witch",
+                    "6": "Prince",
+                    "7": "Soldier",
+                    "8": "Scholar",
+                    "9": "Mohawk",
+                    "10": "Man",
+                    "11": "Old Man",
+                    "12": "Dwarf",
+                    "13": "Mermaid",
+                    "14": "Lefein",
+                    "15": "King",
+                    "16": "Broom",
+                    "17": "Bat",
+                    "18": "Garland",
+                    "19": "Pirate",
+                    "20": "Fairy",
+                    "21": "Robot",
+                    "22": "Dragon",
+                    "23": "Bahamut",
+                    "24": "Female Elf",
+                    "25": "Male Elf",
+                    "26": "Elf Prince",
+                    "27": "Plate",
+                    "28": "Titan",
+                    "29": "Vampire"
+                }
+            }
+        },
+        "monsterAI": {
+            "type": "array",
+            "name": "Monster A.I.",
+            "range": "0x0C9020-0x0C92E0",
+            "array": {
+                "length": 44
+            },
+            "assembly": {
+                "type": "data",
+                "length": 16,
+                "assembly": {
+                    "cat_magic": "Magic",
+                    "magicProb": {
+                        "type": "property",
+                        "name": "Probability",
+                        "begin": 0
+                    },
+                    "magic1": {
+                        "type": "property",
+                        "name": "Spell 1",
+                        "begin": 2,
+                        "stringTable": "spell",
+                        "special": {
+                            "0xFF": "None"
+                        }
+                    },
+                    "magic2": {
+                        "type": "property",
+                        "name": "Spell 2",
+                        "begin": 3,
+                        "stringTable": "spell",
+                        "special": {
+                            "0xFF": "None"
+                        }
+                    },
+                    "magic3": {
+                        "type": "property",
+                        "name": "Spell 3",
+                        "begin": 4,
+                        "stringTable": "spell",
+                        "special": {
+                            "0xFF": "None"
+                        }
+                    },
+                    "magic4": {
+                        "type": "property",
+                        "name": "Spell 4",
+                        "begin": 5,
+                        "stringTable": "spell",
+                        "special": {
+                            "0xFF": "None"
+                        }
+                    },
+                    "magic5": {
+                        "type": "property",
+                        "name": "Spell 5",
+                        "begin": 6,
+                        "stringTable": "spell",
+                        "special": {
+                            "0xFF": "None"
+                        }
+                    },
+                    "magic6": {
+                        "type": "property",
+                        "name": "Spell 6",
+                        "begin": 7,
+                        "stringTable": "spell",
+                        "special": {
+                            "0xFF": "None"
+                        }
+                    },
+                    "magic7": {
+                        "type": "property",
+                        "name": "Spell 7",
+                        "begin": 8,
+                        "stringTable": "spell",
+                        "special": {
+                            "0xFF": "None"
+                        }
+                    },
+                    "magic8": {
+                        "type": "property",
+                        "name": "Spell 8",
+                        "begin": 9,
+                        "stringTable": "spell",
+                        "special": {
+                            "0xFF": "None"
+                        }
+                    },
+                    "cat-special": "Special Attack",
+                    "specialProb": {
+                        "type": "property",
+                        "name": "Probability",
+                        "begin": 1
+                    },
+                    "special1": {
+                        "type": "property",
+                        "name": "Special 1",
+                        "begin": 11,
+                        "stringTable": "attackName"
+                    },
+                    "special2": {
+                        "type": "property",
+                        "name": "Special 2",
+                        "begin": 12,
+                        "stringTable": "attackName"
+                    },
+                    "special3": {
+                        "type": "property",
+                        "name": "Special 3",
+                        "begin": 13,
+                        "stringTable": "attackName"
+                    },
+                    "special4": {
+                        "type": "property",
+                        "name": "Special 4",
+                        "begin": 14,
+                        "stringTable": "attackName"
+                    }
+                }
+            },
+            "stringTable": {
+                "length": 44,
+                "default": "A.I. %i",
+                "string": {
+                    "0x00": "FrWolf",
+                    "0x01": "Agama",
+                    "0x02": "Medusa",
+                    "0x03": "Oddeye",
+                    "0x04": "Bigeye",
+                    "0x05": "Cerebus",
+                    "0x06": "WzOgre",
+                    "0x07": "Sand W",
+                    "0x08": "Eye",
+                    "0x09": "Phantom",
+                    "0x0A": "Mancat",
+                    "0x0B": "Vampire",
+                    "0x0C": "WzVamp",
+                    "0x0D": "R.Goyle",
+                    "0x0E": "Frost D",
+                    "0x0F": "Red D",
+                    "0x10": "Perelisk",
+                    "0x11": "R. Hydra",
+                    "0x12": "Naga",
+                    "0x13": "GrNaga",
+                    "0x14": "Chimera",
+                    "0x15": "Jimera",
+                    "0x16": "Sorcerer",
+                    "0x17": "Gas D",
+                    "0x18": "Blue D",
+                    "0x19": "MudGol",
+                    "0x1A": "RockGol",
+                    "0x1B": "IronGol",
+                    "0x1C": "Evilman",
+                    "0x1D": "Mage",
+                    "0x1E": "Fighter",
+                    "0x1F": "Nitemare",
+                    "0x20": "WarMech",
+                    "0x21": "Manticor",
+                    "0x22": "Lich",
+                    "0x23": "Lich 2",
+                    "0x24": "Kary",
+                    "0x25": "Kary 2",
+                    "0x26": "Kraken",
+                    "0x27": "Kraken 2",
+                    "0x28": "Tiamat",
+                    "0x29": "Tiamat 2",
+                    "0x2A": "Chaos",
+                    "0x2B": "Astos",
+                    "0xFF": "None"
+                }
+            }
+        },
+        "monsterGraphics": {
+            "type": "array",
+            "name": "Monster Graphics",
+            "range": "0x078000-0x098000",
+            "array": {
+                "length": 16
+            },
+            "assembly": {
+                "length": "0x0800",
+                "format": "nes2bpp"
+            },
+            "stringTable": {
+                "length": 16,
+                "string": {
+                    "0": "Imp, Wolf, Iguana, Giant",
+                    "1": "Sahag, Pirate, Shark, BigEye",
+                    "2": "Bone, Creep, Hyena, Ogre",
+                    "3": "Asp, Lobster, Bull, Troll",
+                    "4": "Image, Geist, Worm, Eye",
+                    "5": "Medusa, Catman, Pede, Tiger",
+                    "6": "Vamp, Gargoyle, Earth, Dragon 1",
+                    "7": "Slime, Spider, Manticore, Ankylo",
+                    "8": "Mummy, Cocatrice, Wyvern, Tyro",
+                    "9": "Caribe, Gator, Ocho, Hydra",
+                    "10": "Sentry, Water, Naga, Chimera",
+                    "11": "Wizard, Garland, Dragon 2, Golem",
+                    "12": "Badman, Astos, Madpony, Warmech",
+                    "13": "Kary, Lich",
+                    "14": "Kraken, Tiamat",
+                    "15": "Chaos"
+                }
+            }
+        },
+        "monsterMapChaos": {
+            "type": "data",
+            "name": "Chaos Graphics Map",
+            "range": "0x0B9420-0x0B94D8",
+            "assembly": {
+                "tiles": {
+                    "type": "assembly",
+                    "range": "0x00-0xA8"
+                },
+                "palette": {
+                    "type": "assembly",
+                    "range": "0xA8-0xB8",
+                    "format": ["interlace(2,4,2)", "linear2bpp"]
+                }
+            }
+        },
+        "monsterMapFiend": {
+            "type": "array",
+            "name": "Fiend Graphics Map",
+            "range": "0x0B92E0-0x0B9420",
+            "array": {
+                "length": 4
+            },
+            "assembly": {
+                "type": "data",
+                "length": "0x50",
+                "assembly": {
+                    "tiles": {
+                        "type": "assembly",
+                        "range": "0x00-0x40"
+                    },
+                    "palette": {
+                        "type": "assembly",
+                        "range": "0x40-0x50",
+                        "format": ["interlace(2,4,2)", "linear2bpp"]
+                    }
+                }
+            }
+        },
+        "monsterName": {
+            "type": "array",
+            "name": "Monster Name",
+            "range": "0x0B95E0-0x0B9947",
+            "array": {
+                "length": 128
+            },
+            "assembly": {
+                "type": "text",
+                "encoding": "nullTerminated"
+            },
+            "pointerTable": {
+                "range": "0x0B94E0-0x0B95E0",
+                "offset": "0x0B0000"
+            },
+            "stringTable": {
+                "length": 128,
+                "default": "<monsterName[%i].formattedText>"
+            }
+        },
+        "monsterPalette": {
+            "type": "array",
+            "name": "Monster Palette",
+            "range": "0x0C8F20-0x0C9020",
+            "array": {
+                "length": 64
+            },
+            "assembly": {
+                "length": 4,
+                "format": "nesPalette"
+            }
+        },
+        "monsterProperties": {
+            "type": "array",
+            "name": "Monster Properties",
+            "range": "0x0C8520-0x0C8F20",
+            "stringTable": "monsterName",
+            "array": {
+                "length": 128
+            },
+            "assembly": {
+                "type": "data",
+                "length": 20,
+                "assembly": {
+                    "monsterName": {
+                        "type": "assembly",
+                        "name": "Name",
+                        "external": "monsterName[%i]"
+                    },
+                    "experience": {
+                        "type": "property",
+                        "name": "Experience",
+                        "begin": 0,
+                        "mask": "0xFFFF"
+                    },
+                    "gp": {
+                        "type": "property",
+                        "name": "GP",
+                        "begin": 2,
+                        "mask": "0xFFFF"
+                    },
+                    "hp": {
+                        "type": "property",
+                        "name": "HP",
+                        "begin": 4,
+                        "mask": "0xFFFF"
+                    },
+                    "ai": {
+                        "type": "property",
+                        "name": "A.I.",
+                        "begin": 7,
+                        "link": "monsterAI[%i]",
+                        "stringTable": "monsterAI"
+                    },
+                    "attack": {
+                        "type": "property",
+                        "name": "Attack",
+                        "begin": 12
+                    },
+                    "critRate": {
+                        "type": "property",
+                        "name": "Crit. Rate",
+                        "begin": 13
+                    },
+                    "hits": {
+                        "type": "property",
+                        "name": "No. of Hits",
+                        "begin": 10
+                    },
+                    "hitRate": {
+                        "type": "property",
+                        "name": "Hit Rate",
+                        "begin": 11
+                    },
+                    "defense": {
+                        "type": "property",
+                        "name": "Defense",
+                        "begin": 9
+                    },
+                    "magDef": {
+                        "type": "property",
+                        "name": "Magic Def.",
+                        "begin": 17
+                    },
+                    "morale": {
+                        "type": "property",
+                        "name": "Morale",
+                        "begin": 6
+                    },
+                    "agility": {
+                        "type": "property",
+                        "name": "Agility",
+                        "begin": 8
+                    },
+                    "unknown": {
+                        "type": "property",
+                        "name": "Unknown",
+                        "begin": 14
+                    },
+                    "inflicts": {
+                        "type": "property",
+                        "name": "Inflicts",
+                        "begin": 15,
+                        "flag": true,
+                        "stringTable": "status"
+                    },
+                    "category": {
+                        "type": "property",
+                        "name": "Category",
+                        "begin": 16,
+                        "flag": true,
+                        "stringTable": "monsterType"
+                    },
+                    "elementWeak": {
+                        "type": "property",
+                        "name": "Weakness",
+                        "begin": 18,
+                        "flag": true,
+                        "stringTable": "element"
+                    },
+                    "elementResist": {
+                        "type": "property",
+                        "name": "Resistance",
+                        "begin": 19,
+                        "flag": true,
+                        "stringTable": "element"
+                    }
+                }
+            }
+        },
+        "npcEvent": {
+            "type": "array",
+            "name": "NPC Event",
+            "range": "0x0E90D3-0x0E9273",
+            "array": {
+                "length": 208
+            },
+            "assembly": {
+                "type": "data",
+                "length": 2,
+                "assembly": {
+                    "event": {
+                        "type": "property",
+                        "name": "Event",
+                        "begin": 0,
+                        "mask": "0xFFFF",
+                        "stringTable": {
+                            "default": "Event %i",
+                            "hideIndex": true,
+                            "string": {
+                                "0x9296": "No Event",
+                                "0x9297": "King Coneria",
+                                "0x92B1": "Garland (1st Time)",
+                                "0x92BE": "Kidnapped Princess",
+                                "0x92D0": "Bikke the Pirate",
+                                "0x9301": "Elf Doctor",
+                                "0x931E": "Elf Prince",
+                                "0x9338": "Astos",
+                                "0x9352": "Nerrick",
+                                "0x936C": "Smith",
+                                "0x9398": "Matoya",
+                                "0x93BA": "Dr. Unne",
+                                "0x93D7": "Vampire",
+                                "0x93E4": "Sarda",
+                                "0x93FB": "Bahamut",
+                                "0x941B": "If Object Visible",
+                                "0x9428": "Submarine Engineer",
+                                "0x9438": "Waterfall Robot",
+                                "0x9448": "Rescued Pricess",
+                                "0x9458": "Fairy",
+                                "0x9468": "Titan",
+                                "0x947D": "Canoe Sage",
+                                "0x9492": "Generic Dialog",
+                                "0x9495": "Show Object After Dialog",
+                                "0x94A2": "Hide Object After Dialog",
+                                "0x94AA": "Battle",
+                                "0x94B7": "Unused",
+                                "0x94B8": "Need Item",
+                                "0x94C5": "Invisible Woman (Castle Coneria)",
+                                "0x94D7": "If Bridge is Built",
+                                "0x94E2": "If Event Switch",
+                                "0x94F0": "If Princess Saved but No Bridge",
+                                "0x9502": "Black Orb",
+                                "0x951F": "If All Orbs are Lit",
+                                "0x9533": "If Party Has Canoe",
+                                "0x953E": "If Canal is Open",
+                                "0x9549": "If Party Has Key but not TNT",
+                                "0x9559": "If Vampire is Defeated but Earth Orb is Not Lit",
+                                "0x956B": "If Party Doesn't Have the Airship",
+                                "0x9576": "If Earth Orb is Lit but Fire Orb is Not Lit",
+                                "0x9586": "If Party Has Cube (Unused)",
+                                "0x9594": "Lefein Charm Guy"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "npcGraphics": {
+            "type": "array",
+            "name": "NPC Graphics",
+            "range": "0x00AE00-0x00AF00",
+            "array": {
+                "length": 208
+            },
+            "assembly": {
+                "type": "data",
+                "length": 1,
+                "assembly": {
+                    "graphics": {
+                        "type": "property",
+                        "name": "Graphics",
+                        "link": "mapSpriteGraphics[%i]",
+                        "stringTable": "mapSpriteGraphics"
+                    }
+                }
+            }
+        },
+        "npcProperties": {
+            "type": "array",
+            "name": "NPC Properties",
+            "range": "0x0E95D5-0x0E9915",
+            "array": {
+                "length": 208
+            },
+            "assembly": {
+                "type": "data",
+                "length": 4,
+                "assembly": {
+                    "graphics": {
+                        "type": "assembly",
+                        "external": "npcGraphics[%i].graphics"
+                    },
+                    "event": {
+                        "type": "assembly",
+                        "external": "npcEvent[%i].event"
+                    },
+                    "object1": {
+                        "type": "property",
+                        "name": "Object 1",
+                        "begin": 0,
+                        "stringTable": "npcProperties",
+                        "invalid": "(this.parent.event.value !== 0x941B) && (this.parent.event.value !== 0x9495) && (this.parent.event.value !== 0x94A2) && (this.parent.event.value !== 0x94AA)"
+                    },
+                    "object2": {
+                        "type": "property",
+                        "name": "Object 2",
+                        "begin": 3,
+                        "stringTable": "npcProperties",
+                        "invalid": "this.parent.event.value !== 0x9495"
+                    },
+                    "item": {
+                        "type": "property",
+                        "name": "Item",
+                        "begin": 0,
+                        "stringTable": "text",
+                        "invalid": "this.parent.event.value !== 0x94B8"
+                    },
+                    "switch": {
+                        "type": "property",
+                        "name": "Switch",
+                        "begin": 0,
+                        "invalid": "this.parent.event.value !== 0x94E2"
+                    },
+                    "dialog1": {
+                        "type": "property",
+                        "name": "Dialog 1",
+                        "begin": 1,
+                        "link": "dialog[%i]",
+                        "stringTable": "dialog"
+                    },
+                    "dialog2": {
+                        "type": "property",
+                        "name": "Dialog 2",
+                        "begin": 2,
+                        "link": "dialog[%i]",
+                        "stringTable": "dialog"
+                    },
+                    "dialog3": {
+                        "type": "property",
+                        "name": "Dialog 3",
+                        "begin": 3,
+                        "link": "dialog[%i]",
+                        "stringTable": "dialog",
+                        "invalid": "(this.parent.event.value === 0x9495) || (this.parent.event.value === 0x94AA)"
+                    },
+                    "battle": {
+                        "type": "property",
+                        "name": "Battle",
+                        "begin": 3,
+                        "invalid": "this.parent.event.value !== 0x94AA",
+                        "link": "battleProperties[%i]",
+                        "stringTable": "battleProperties"
+                    }
+                }
+            },
+            "stringTable": {
+                "default": "NPC %i",
+                "length": 208,
+                "string": {
+                    "0x00": "None",
+                    "0x01": "King of Coneria",
+                    "0x02": "Garland",
+                    "0x03": "Kidnapped Princess",
+                    "0x04": "Bikke the Pirate",
+                    "0x05": "Elf Prince's Doctor",
+                    "0x06": "Elf Prince",
+                    "0x07": "Astos",
+                    "0x08": "Nerrick",
+                    "0x09": "Dwarven Blacksmith",
+                    "0x0A": "Matoya",
+                    "0x0B": "Dr. Unne",
+                    "0x0C": "Vampire",
+                    "0x0D": "Sarda",
+                    "0x0E": "Bahamut",
+                    "0x0F": "Unknown",
+                    "0x10": "Submarine Engineer",
+                    "0x11": "Waterfall Robot",
+                    "0x12": "Rescued Princess",
+                    "0x13": "Fairy in Bottle",
+                    "0x14": "Titan",
+                    "0x15": "Canoe Sage",
+                    "0x16": "Earth Plate",
+                    "0x17": "Fiends' Plate",
+                    "0x18": "Final Garland 1",
+                    "0x19": "Final Garland 2",
+                    "0x1A": "Final Garland 3",
+                    "0x1B": "Lich",
+                    "0x1C": "Kary",
+                    "0x1D": "Kraken",
+                    "0x1E": "Tiamat",
+                    "0x20": "Coneria Castle 1F - 1",
+                    "0x22": "Coneria Castle 1F - 2",
+                    "0x23": "Coneria Castle 1F - 3",
+                    "0x25": "Coneria Castle 1F - 4",
+                    "0x26": "Coneria Castle 1F - 5",
+                    "0x29": "Coneria Castle 1F - 6",
+                    "0x2A": "Coneria Castle 1F - 7",
+                    "0x2B": "Coneria Castle 2F - 1",
+                    "0x2C": "Coneria Castle 1F - 8",
+                    "0x2E": "Coneria Castle 1F - 9",
+                    "0x30": "Coneria Castle 2F - 2",
+                    "0x31": "Coneria - 1",
+                    "0x32": "Coneria - 2",
+                    "0x34": "Coneria - 3",
+                    "0x35": "Coneria - 4",
+                    "0x36": "Coneria - 5",
+                    "0x37": "Coneria - 6",
+                    "0x38": "Coneria - 7",
+                    "0x39": "Coneria - 8",
+                    "0x3A": "Sky Warrior Bat - 1",
+                    "0x3B": "Sky Warrior Bat - 2",
+                    "0x3C": "Sky Warrior Bat - 3",
+                    "0x3D": "Sky Warrior Bat - 4",
+                    "0x3E": "Sky Warrior Bat - 5",
+                    "0x3F": "Provoka - 1",
+                    "0x40": "Provoka - 2",
+                    "0x41": "Provoka - 3",
+                    "0x42": "Provoka - 4",
+                    "0x43": "Provoka - 5",
+                    "0x45": "Elfland Castle - 1",
+                    "0x46": "Elfland Castle - 2",
+                    "0x47": "Elfland Castle - 3",
+                    "0x48": "Elfland Castle - 4",
+                    "0x49": "Elfland Castle - 5",
+                    "0x4A": "Elfland Castle - 6",
+                    "0x4D": "Elfland - 1",
+                    "0x4E": "Elfland - 2",
+                    "0x4F": "Elfland - 3",
+                    "0x50": "Elfland - 4",
+                    "0x51": "Elfland - 5",
+                    "0x52": "Elfland - 6",
+                    "0x53": "Elfland - 7",
+                    "0x54": "Elfland - 8",
+                    "0x57": "Bat",
+                    "0x58": "Dwarf Cave - 1",
+                    "0x59": "Dwarf Cave - 2",
+                    "0x5A": "Dwarf Cave - 3",
+                    "0x5B": "Dwarf Cave - 4",
+                    "0x5C": "Dwarf Cave - 5",
+                    "0x5D": "Dwarf Cave - 6",
+                    "0x5E": "Dwarf Cave - 7",
+                    "0x5F": "Dwarf Cave - 8",
+                    "0x60": "Dwarf Cave - 9",
+                    "0x61": "Dwarf Cave - 10",
+                    "0x63": "Dwarf Cave - 11",
+                    "0x64": "Matoya's Broom - 1",
+                    "0x65": "Matoya's Broom - 2",
+                    "0x66": "Matoya's Broom - 3",
+                    "0x67": "Matoya's Broom - 4",
+                    "0x68": "Melmond - 1",
+                    "0x69": "Melmond - 2",
+                    "0x6A": "Melmond - 3",
+                    "0x6B": "Melmond - 4",
+                    "0x6C": "Melmond - 5",
+                    "0x6D": "Melmond - 6",
+                    "0x6E": "Melmond - 7",
+                    "0x6F": "Melmond - 8",
+                    "0x70": "Melmond - 9",
+                    "0x71": "Melmond - 10",
+                    "0x72": "Melmond - 11",
+                    "0x73": "Melmond - 12",
+                    "0x74": "Melmond - 13",
+                    "0x77": "Crescent Lake - 1",
+                    "0x78": "Crescent Lake - 2",
+                    "0x79": "Crescent Lake - 3",
+                    "0x7A": "Crescent Lake - 4",
+                    "0x7B": "Crescent Lake - 5",
+                    "0x7C": "Crescent Lake - 6",
+                    "0x7D": "Crescent Lake - 7",
+                    "0x7E": "Crescent Lake - 8",
+                    "0x7F": "Crescent Lake - 9",
+                    "0x80": "Crescent Lake - 10",
+                    "0x81": "Crescent Lake - 11",
+                    "0x82": "Crescent Lake - 12",
+                    "0x83": "Crescent Lake - 13",
+                    "0x84": "Castle of Ordeals 1F",
+                    "0x85": "Cardian Dragon - 1",
+                    "0x86": "Cardian Dragon - 2",
+                    "0x87": "Cardian Dragon - 3",
+                    "0x88": "Cardian Dragon - 4",
+                    "0x89": "Cardian Dragon - 5",
+                    "0x8A": "Cardian Dragon - 6",
+                    "0x8B": "Cardian Dragon - 7",
+                    "0x8C": "Cardian Dragon - 8",
+                    "0x8D": "Cardian Dragon - 9",
+                    "0x8E": "Cardian Dragon - 10",
+                    "0x8F": "Cardian Dragon - 11",
+                    "0x90": "Cardian Dragon - 12",
+                    "0x93": "Onrac - 1",
+                    "0x94": "Onrac - 2",
+                    "0x95": "Onrac - 3",
+                    "0x96": "Onrac - 4",
+                    "0x97": "Onrac - 5",
+                    "0x98": "Onrac - 6",
+                    "0x99": "Onrac - 7",
+                    "0x9A": "Onrac - 8",
+                    "0x9B": "Onrac - 9",
+                    "0x9C": "Onrac - 10",
+                    "0x9D": "Onrac - 11",
+                    "0x9E": "Onrac - 12",
+                    "0x9F": "Onrac - 13",
+                    "0xA0": "Onrac - 14",
+                    "0xA3": "Mermaid - 1",
+                    "0xA4": "Mermaid - 2",
+                    "0xA5": "Mermaid - 3",
+                    "0xA6": "Mermaid - 4",
+                    "0xA7": "Mermaid - 5",
+                    "0xA8": "Mermaid - 6",
+                    "0xA9": "Mermaid - 7",
+                    "0xAA": "Mermaid - 8",
+                    "0xAB": "Mermaid - 9",
+                    "0xAC": "Mermaid - 10",
+                    "0xAE": "Gaia - 1",
+                    "0xAF": "Gaia - 2",
+                    "0xB0": "Gaia - 3",
+                    "0xB1": "Gaia - 4",
+                    "0xB2": "Gaia - 5",
+                    "0xB3": "Gaia - 6",
+                    "0xB4": "Gaia - 7",
+                    "0xB5": "Gaia - 8",
+                    "0xB6": "Gaia - 9",
+                    "0xB7": "Gaia - 10",
+                    "0xB8": "Gaia - 11",
+                    "0xB9": "Gaia - 12",
+                    "0xBA": "Gaia - 13",
+                    "0xBB": "Lefein - 1",
+                    "0xBC": "Lefein - 2",
+                    "0xBD": "Lefein - 3",
+                    "0xBE": "Lefein - 4",
+                    "0xBF": "Lefein - 5",
+                    "0xC0": "Lefein - 6",
+                    "0xC1": "Lefein - 7",
+                    "0xC2": "Lefein - 8",
+                    "0xC3": "Lefein - 9",
+                    "0xC4": "Lefein - 10",
+                    "0xC5": "Lefein - 11",
+                    "0xC6": "Lefein - 12",
+                    "0xC8": "Lefein - 13",
+                    "0xC9": "Lefein - 14",
+                    "0xCA": "Black Orb",
+                    "0xCC": "Robot 2",
+                    "0xCD": "Robot 3",
+                    "0xCE": "Robot 1",
+                    "0xCF": "Robot 4"
+                }
+            }
+        },
+        "shop": {
+            "type": "array",
+            "name": "Shop",
+            "range": "0x0E838E-0x0E8467",
+            "array": {
+                "length": 71
+            },
+            "assembly": {
+                "type": "data",
+                "format": "ff1-shop",
+                "assembly": {
+                    "item1": {
+                        "type": "property",
+                        "name": "Item 1",
+                        "begin": 0,
+                        "stringTable": "text",
+                        "link": "itemProperties[%i]",
+                        "invalid": "(this.parent.i > 40) && (this.parent.i <= 60)"
+                    },
+                    "item2": {
+                        "type": "property",
+                        "name": "Item 2",
+                        "begin": 1,
+                        "stringTable": "text",
+                        "link": "itemProperties[%i]",
+                        "invalid": "(this.parent.i > 40) && (this.parent.i <= 60)"
+                    },
+                    "item3": {
+                        "type": "property",
+                        "name": "Item 3",
+                        "begin": 2,
+                        "stringTable": "text",
+                        "link": "itemProperties[%i]",
+                        "invalid": "(this.parent.i > 40) && (this.parent.i <= 60)"
+                    },
+                    "item4": {
+                        "type": "property",
+                        "name": "Item 4",
+                        "begin": 3,
+                        "stringTable": "text",
+                        "link": "itemProperties[%i]",
+                        "invalid": "(this.parent.i > 40) && (this.parent.i <= 60)"
+                    },
+                    "clinicPrice": {
+                        "type": "property",
+                        "name": "Clinic Price",
+                        "begin": 0,
+                        "mask": "0xFFFF",
+                        "invalid": "(this.parent.i <= 40) || (this.parent.i > 50)"
+                    },
+                    "innPrice": {
+                        "type": "property",
+                        "name": "Inn Price",
+                        "begin": 0,
+                        "mask": "0xFFFF",
+                        "invalid": "(this.parent.i <= 50) || (this.parent.i > 60)"
+                    }
+                }
+            },
+            "pointerTable": {
+                "range": "0x0E8300-0x0E838E",
+                "offset": "0x0E0000"
+            },
+            "stringTable": {
+                "length": 71,
+                "default": "Shop %i",
+                "string": {
+                    "1": "Weapon Shop (Coneria)",
+                    "2": "Weapon Shop (Provoka)",
+                    "3": "Weapon Shop (Elfland)",
+                    "4": "Weapon Shop (Melmond)",
+                    "5": "Weapon Shop (Crescent Lake)",
+                    "6": "Weapon Shop (Gaia)",
+                    "7": "Weapon Shop (Unused)",
+                    "8": "Weapon Shop (Unused)",
+                    "9": "Weapon Shop (Unused)",
+                    "10": "Weapon Shop (Unused)",
+                    "11": "Armor Shop (Coneria)",
+                    "12": "Armor Shop (Provoka)",
+                    "13": "Armor Shop (Elfland)",
+                    "14": "Armor Shop (Melmond)",
+                    "15": "Armor Shop (Crescent Lake)",
+                    "16": "Armor Shop (Gaia)",
+                    "17": "Armor Shop (Unused)",
+                    "18": "Armor Shop (Unused)",
+                    "19": "Armor Shop (Unused)",
+                    "20": "Armor Shop (Unused)",
+                    "21": "White Magic Shop (Coneria)",
+                    "22": "White Magic Shop (Provoka)",
+                    "23": "White Magic Shop 1 (Elfland)",
+                    "24": "White Magic Shop (Melmond)",
+                    "25": "White Magic Shop (Crescent Lake)",
+                    "26": "White Magic Shop 2 (Elfland)",
+                    "27": "White Magic Shop 1 (Gaia)",
+                    "28": "White Magic Shop 2 (Gaia)",
+                    "29": "White Magic Shop (Onrac)",
+                    "30": "White Magic Shop (Lefein)",
+                    "31": "Black Magic Shop (Coneria)",
+                    "32": "Black Magic Shop (Provoka)",
+                    "33": "Black Magic Shop 1 (Elfland)",
+                    "34": "Black Magic Shop (Melmond)",
+                    "35": "Black Magic Shop (Crescent Lake)",
+                    "36": "Black Magic Shop 2 (Elfland)",
+                    "37": "Black Magic Shop 1 (Gaia)",
+                    "38": "Black Magic Shop 2 (Gaia)",
+                    "39": "Black Magic Shop (Onrac)",
+                    "40": "Black Magic Shop (Lefein)",
+                    "41": "Clinic (Coneria)",
+                    "42": "Clinic (Elfland)",
+                    "43": "Clinic (Crescent Lake)",
+                    "44": "Clinic (Gaia)",
+                    "45": "Clinic (Onrac)",
+                    "46": "Clinic (Provoka)",
+                    "47": "Clinic (Unused)",
+                    "48": "Clinic (Unused)",
+                    "49": "Clinic (Unused)",
+                    "50": "Clinic (Unused)",
+                    "51": "Inn (Coneria)",
+                    "52": "Inn (Provoka)",
+                    "53": "Inn (Elfland)",
+                    "54": "Inn (Melmond)",
+                    "55": "Inn (Crescent Lake)",
+                    "56": "Inn (Gaia)",
+                    "57": "Inn (Onrac)",
+                    "58": "Inn (Unused)",
+                    "59": "Inn (Unused)",
+                    "60": "Inn (Unused)",
+                    "61": "Item Shop (Coneria)",
+                    "62": "Item Shop (Provoka)",
+                    "63": "Item Shop (Elfland)",
+                    "64": "Item Shop (Crescent Lake)",
+                    "65": "Item Shop (Gaia)",
+                    "66": "Item Shop (Onrac)",
+                    "67": "Item Shop (Unused)",
+                    "68": "Item Shop (Unused)",
+                    "69": "Item Shop (Unused)",
+                    "70": "Item Shop (Caravan)"
+                }
+            }
+        },
+        "spellClass": {
+            "type": "array",
+            "name": "Spell Class",
+            "range": "0x0EAD18-0x0EBFF0",
+            "array": {
+                "length": 12
+            },
+            "assembly": {
+                "type": "data",
+                "length": 8,
+                "assembly": {
+                    "spell": {
+                        "type": "property",
+                        "name": "spell",
+                        "begin": 0,
+                        "flag": true,
+                        "invert": true,
+                        "stringTable": "spell"
+                    }
+                }
+            }
+        },
+        "spellMessage": {
+            "type": "array",
+            "name": "Spell Message",
+            "range": "0x0C84C0-0x0C8500",
+            "array": {
+                "length": 64
+            },
+            "assembly": {
+                "type": "data",
+                "length": 1,
+                "assembly": {
+                    "message": {
+                        "type": "property",
+                        "name": "Message",
+                        "stringTable": "battleMessage"
+                    }
+                }
+            }
+        },
+        "spellProperties": {
+            "type": "array",
+            "name": "Spell Properties",
+            "range": "0x0C81E0-0x0C83E0",
+            "array": {
+                "length": 64
+            },
+            "assembly": {
+                "type": "data",
+                "length": 8,
+                "assembly": {
+                    "accuracy": {
+                        "type": "property",
+                        "name": "Accuracy",
+                        "begin": 0
+                    },
+                    "status": {
+                        "type": "property",
+                        "name": "Status",
+                        "begin": 1,
+                        "stringTable": "status"
+                    },
+                    "resist": {
+                        "type": "property",
+                        "name": "Resist",
+                        "begin": 1,
+                        "stringTable": "element"
+                    },
+                    "power": {
+                        "type": "property",
+                        "name": "Power",
+                        "begin": 1
+                    },
+                    "element": {
+                        "type": "property",
+                        "name": "Element",
+                        "begin": 2,
+                        "flag": true,
+                        "stringTable": "element"
+                    },
+                    "target": {
+                        "type": "property",
+                        "name": "Target",
+                        "begin": 3,
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "0": "All Enemies",
+                                "1": "Single Enemy",
+                                "2": "All Allies",
+                                "3": "Single Ally",
+                                "4": "Caster Only"
+                            }
+                        }
+                    },
+                    "effect": {
+                        "type": "property",
+                        "name": "Effect",
+                        "begin": 4,
+                        "stringTable": {
+                            "string": {
+                                "0": "None",
+                                "1": "Damage",
+                                "2": "Damage Undead",
+                                "3": "Inflict Status",
+                                "4": "Decrease Hits",
+                                "5": "Decrease Morale",
+                                "6": "Restore HP",
+                                "7": "Restore HP",
+                                "8": "Remove Status",
+                                "9": "Increase Defense",
+                                "10": "Resist Element",
+                                "11": "Increase Attack",
+                                "12": "Increase Hits",
+                                "13": "Increase Attack/Hit Rate",
+                                "14": "Decrease Evade",
+                                "15": "Set HP to Max",
+                                "16": "Increase Evade",
+                                "17": "Remove Resistance",
+                                "18": "Inflict Status"
+                            }
+                        }
+                    },
+                    "graphics": {
+                        "type": "property",
+                        "name": "Graphics",
+                        "begin": 5
+                    },
+                    "palette": {
+                        "type": "property",
+                        "name": "Palette",
+                        "begin": 6
+                    }
+                }
+            }
+        },
+        "text": {
+            "type": "array",
+            "name": "Text",
+            "range": "0x0AB900-0x0ABFB3",
+            "array": {
+                "length": 256
+            },
+            "assembly": {
+                "type": "text",
+                "encoding": "nullTerminated"
+            },
+            "pointerTable": {
+                "range": "0x0AB700-0x0AB900",
+                "offset": "0x0A0000"
+            },
+            "stringTable": {
+                "length": 256,
+                "default": "<text[%i]>",
+                "string": {
+                    "0": "Nothing"
+                }
+            }
+        },
+        "textGraphics": {
+            "type": "assembly",
+            "name": "Text Graphics",
+            "range": "0x098800-0x099000",
+            "format": "nes2bpp"
+        },
+        "tilesetPalette": {
+            "type": "array",
+            "name": "Tileset Palette",
+            "range": "0x008400-0x008800",
+            "array": {
+                "length": 8
+            },
+            "assembly": {
+                "type": "assembly",
+                "length": 128
+            }
+        },
+        "treasure": {
+            "type": "array",
+            "name": "Treasure",
+            "range": "0x00B100-0x00B200",
+            "array": {
+                "length": 256
+            },
+            "assembly": {
+                "type": "data",
+                "length": 1,
+                "assembly": {
+                    "contents": {
+                        "type": "property",
+                        "name": "Contents",
+                        "stringTable": "text",
+                        "link": "itemProperties[%i]"
+                    }
+                },
+                "stringTable": {
+                    "length": 256,
+                    "default": "Treasure %i"
+                }
+            }
+        },
+        "weaponProperties": {
+            "type": "array",
+            "name": "Weapon Properties",
+            "range": "0x0C8000-0x0C8140",
+            "array": {
+                "length": 40
+            },
+            "assembly": {
+                "type": "data",
+                "length": 8,
+                "assembly": {
+                    "hitRate": {
+                        "type": "property",
+                        "name": "Hit Rate",
+                        "begin": 0
+                    },
+                    "damage": {
+                        "type": "property",
+                        "name": "Damage",
+                        "begin": 1
+                    },
+                    "crit": {
+                        "type": "property",
+                        "name": "Crit. Rate",
+                        "begin": 2
+                    },
+                    "spellCast": {
+                        "type": "property",
+                        "name": "Spell Cast",
+                        "begin": 3,
+                        "stringTable": {
+                            "length": 65,
+                            "default": "<stringTable.spell[%i-1]>",
+                            "string": {
+                                "0": "None"
+                            }
+                            
+                        }
+                    },
+                    "graphics": {
+                        "type": "property",
+                        "name": "Graphics",
+                        "begin": 6
+                    },
+                    "palette": {
+                        "type": "property",
+                        "name": "Palette",
+                        "begin": 7
+                    },
+                    "element": {
+                        "type": "property",
+                        "name": "Element",
+                        "begin": 4,
+                        "flag": true,
+                        "stringTable": "element"
+                    },
+                    "category": {
+                        "type": "property",
+                        "name": "Category",
+                        "begin": 5,
+                        "flag": true,
+                        "stringTable": "monsterType"
+                    }
+                }
+            }
+        },
+        "worldBattle": {
+            "type": "array",
+            "name": "World Battle",
+            "range": "0x0EC542-0x0EC596",
+            "array": {
+                "length": 84
+            },
+            "assembly": {
+                "type": "data",
+                "length": 1,
+                "assembly": {
+                    "battleGroup": {
+                        "type": "property",
+                        "name": "Battle Group",
+                        "link": "battleGroupWorld[%i]",
+                        "stringTable": "battleGroupWorld"
+                    },
+                    "overworldProbability": {
+                        "type": "property",
+                        "name": "Probability",
+                        "external": "worldBattleProbability[%i].probability",
+                        "invalid": "this.rom.editors.FF4Map.m !== 251"
+                    },
+                    "undergroundProbability": {
+                        "type": "property",
+                        "name": "Probability",
+                        "external": "worldBattleProbability[64].probability",
+                        "invalid": "this.rom.editors.FF4Map.m !== 252"
+                    },
+                    "moonProbability": {
+                        "type": "property",
+                        "name": "Probability",
+                        "external": "worldBattleProbability[65].probability",
+                        "invalid": "this.rom.editors.FF4Map.m !== 253"
+                    }
+                }
+            }
+        },
+        "worldBattleBackground": {
+            "type": "array",
+            "name": "Map Battle Background",
+            "range": "0x00B300-0x00B380",
+            "array": {
+                "length": 128
+            },
+            "assembly": {
+                "type": "data",
+                "length": 1,
+                "assembly": {
+                    "background": {
+                        "type": "property",
+                        "name": "Background",
+                        "stringTable": "battleBackground",
+                        "special": {
+                            "0xFF": "None"
+                        }
+                    }
+                }
+            }
+        },
+        "worldBattleProbability": {
+            "type": "array",
+            "name": "Map Battle Probability",
+            "range": "0x0EC300-0x0EC342",
+            "array": {
+                "length": 66
+            },
+            "assembly": {
+                "type": "data",
+                "length": 1,
+                "assembly": {
+                    "probability": {
+                        "type": "property",
+                        "name": "Battle Probability",
+                        "min": 1,
+                        "special": {
+                            "0": "No Battles"
+                        }
+                    }
+                }
+            }
+        },
+        "worldGraphics": {
+            "type": "assembly",
+            "name": "World Graphics",
+            "range": "0x028000-0x038000",
+            "format": "nes2bpp"
+        },
+        "worldLayout": {
+            "type": "array",
+            "name": "World Layout",
+            "range": "0x018200-0x01BF40",
+            "array": {
+                "length": "0x0100"
+            },
+            "assembly": {
+                "format": "ff1-map"
+            },
+            "pointerTable": {
+                "range": "0x018000-0x018200",
+                "offset": "0x010000"
+            }
+        },
+        "worldPalette": {
+            "type": "assembly",
+            "name": "World Palette",
+            "range": "0x008380-0x0083A0",
+            "format": "nesPalette"
+        },
+        "worldPaletteAssignment": {
+            "type": "assembly",
+            "name": "World Palette Assignment",
+            "range": "0x008300-0x008380"
+        },
+        "worldTileProperties": {
+            "type": "array",
+            "name": "World Map Tile Properties",
+            "range": "0x008000-0x008100",
+            "array": {
+                "length": 128
+            },
+            "assembly": {
+                "type": "data",
+                "length": 2,
+                "assembly": {
+                    "passability": {
+                        "type": "property",
+                        "name": "Passability",
+                        "flag": true,
+                        "mask": "0x3F",
+                        "stringTable": {
+                            "string": {
+                                "0": "Impassable on Foot",
+                                "1": "Impassable in Canoe",
+                                "2": "Impassable in Ship",
+                                "3": "Airship Can't Land",
+                                "4": "Forest",
+                                "5": "Ship Can Dock"
+                            }
+                        }
+                    },
+                    "special": {
+                        "type": "property",
+                        "name": "Special",
+                        "mask": "0xC0",
+                        "stringTable": {
+                            "string": {
+                                "0": "None",
+                                "1": "Chime",
+                                "2": "Caravan",
+                                "3": "Airship"
+                            }
+                        }
+                    },
+                    "trigger": {
+                        "type": "property",
+                        "name": "Trigger",
+                        "begin": 1,
+                        "mask": "0xC0",
+                        "stringTable": {
+                            "string": {
+                                "0": "None",
+                                "1": "Battle",
+                                "2": "Entrance"
+                            }
+                        }
+                    },
+                    "entrance": {
+                        "type": "property",
+                        "name": "Entrance",
+                        "begin": 1,
+                        "mask": "0x3F",
+                        "invalid": "this.parent.trigger.value !== 2",
+                        "stringTable": "worldEntrance",
+                        "link": "worldEntrance[%i]"
+                    },
+                    "battle": {
+                        "type": "property",
+                        "name": "Battle",
+                        "begin": 1,
+                        "mask": "0x3F",
+                        "invalid": "this.parent.trigger.value !== 1",
+                        "stringTable": {
+                            "string": {
+                                "0": "Land",
+                                "1": "River",
+                                "2": "Ocean"
+                            }
+                        }
+                    },
+                    "background": {
+                        "type": "assembly",
+                        "external": "worldBattleBackground[%i].background"
+                    }
+                }
+            }
+        },
+        "worldTileset": {
+            "type": "array",
+            "name": "World Tileset",
+            "range": "0x008100-0x008300"
+        },
+        "worldEntrance": {
+            "type": "array",
+            "name": "World Entrance",
+            "range": "0x00AC00-0x00AC60",
+            "format": "interlace(1,3,32)",
+            "array": {
+                "length": 32
+            },
+            "assembly": {
+                "type": "data",
+                "length": 3,
+                "assembly": {
+                    "x": {
+                        "type": "property",
+                        "name": "X Destination",
+                        "begin": 0,
+                        "max": 63
+                    },
+                    "y": {
+                        "type": "property",
+                        "name": "Y Destination",
+                        "begin": 1,
+                        "max": 63
+                    },
+                    "map": {
+                        "type": "property",
+                        "name": "Map",
+                        "begin": 2,
+                        "stringTable": "mapProperties",
+                        "link": "mapProperties[%i]"
+                    }
+                }
+            },
+            "stringTable": {
+                "default": "World Entrance %i",
+                "length": 32,
+                "string": {
+                    "0x00": "Cardia 1",
+                    "0x01": "Coneria",
+                    "0x02": "Provoka",
+                    "0x03": "Elfland",
+                    "0x04": "Melmond",
+                    "0x05": "Crescent Lake",
+                    "0x06": "Gaia",
+                    "0x07": "Onrac",
+                    "0x08": "Lefein",
+                    "0x09": "Coneria Castle",
+                    "0x0A": "Elfland Castle",
+                    "0x0B": "Northwest Castle",
+                    "0x0C": "Castle of Ordeals",
+                    "0x0D": "Temple of Fiends",
+                    "0x0E": "Earth Cave",
+                    "0x0F": "Gurgu Volcano",
+                    "0x10": "Ice Cave",
+                    "0x11": "Cardia 2",
+                    "0x12": "Bahamut's Room",
+                    "0x13": "Waterfall",
+                    "0x14": "Dwarf Cave",
+                    "0x15": "Matoya's Cave",
+                    "0x16": "Sarda's Cave",
+                    "0x17": "Marsh Cave",
+                    "0x18": "Mirage Tower",
+                    "0x19": "Titan's Tunnel East",
+                    "0x1A": "Titan's Tunnel West",
+                    "0x1B": "Cardia 3",
+                    "0x1C": "Cardia 4",
+                    "0x1D": "Cardia 5"
+                }
+            }
+        }
+    },
+    "charTable": {
+        "dte": {
+            "name": "DTE",
+            "char": {
+                "0x05": "\\n",
+                "0x1A": "e ",
+                "0x1B": " t",
+                "0x1C": "th",
+                "0x1D": "he",
+                "0x1E": "s ",
+                "0x1F": "in",
+                "0x20": " a",
+                "0x21": "t ",
+                "0x22": "an",
+                "0x23": "re",
+                "0x24": " s",
+                "0x25": "er",
+                "0x26": "ou",
+                "0x27": "d ",
+                "0x28": "to",
+                "0x29": "n ",
+                "0x2A": "ng",
+                "0x2B": "ea",
+                "0x2C": "es",
+                "0x2D": " i",
+                "0x2E": "o ",
+                "0x2F": "ar",
+                "0x30": "is",
+                "0x31": " b",
+                "0x32": "ve",
+                "0x33": " w",
+                "0x34": "me",
+                "0x35": "or",
+                "0x36": " o",
+                "0x37": "st",
+                "0x38": " c",
+                "0x39": "at",
+                "0x3A": "en",
+                "0x3B": "nd",
+                "0x3C": "on",
+                "0x3D": "hi",
+                "0x3E": "se",
+                "0x3F": "as",
+                "0x40": "ed",
+                "0x41": "ha",
+                "0x42": " m",
+                "0x43": " f",
+                "0x44": "r ",
+                "0x45": "le",
+                "0x46": "ow",
+                "0x47": "g ",
+                "0x48": "ce",
+                "0x49": "om",
+                "0x4A": "GI",
+                "0x4B": "y ",
+                "0x4C": "of",
+                "0x4D": "ro",
+                "0x4E": "ll",
+                "0x4F": " p",
+                "0x50": " y",
+                "0x51": "ca",
+                "0x52": "MA",
+                "0x53": "te",
+                "0x54": "f ",
+                "0x55": "ur",
+                "0x56": "yo",
+                "0x57": "ti",
+                "0x58": "l ",
+                "0x59": " h",
+                "0x5A": "ne",
+                "0x5B": "it",
+                "0x5C": "ri",
+                "0x5D": "wa",
+                "0x5E": "ac",
+                "0x5F": "al",
+                "0x60": "we",
+                "0x61": "il",
+                "0x62": "be",
+                "0x63": "rs",
+                "0x64": "u ",
+                "0x65": " l",
+                "0x66": "ge",
+                "0x67": " d",
+                "0x68": "li",
+                "0x69": "……"
+            }
+        },
+        "fixedLength": {
+            "name": "Fixed Length",
+            "char": {
+                "0xFF": "\\pad"
+            }
+        },
+        "nullTerminated": {
+            "name": "Null-Terminated",
+            "char": {
+                "0x00": "\\0",
+                "0xFF": " "
+            }
+        },
+        "text": {
+            "name": "Text",
+            "char": {
+                "0x80": "0",
+                "0x81": "1",
+                "0x82": "2",
+                "0x83": "3",
+                "0x84": "4",
+                "0x85": "5",
+                "0x86": "6",
+                "0x87": "7",
+                "0x88": "8",
+                "0x89": "9",
+                "0x8A": "A",
+                "0x8B": "B",
+                "0x8C": "C",
+                "0x8D": "D",
+                "0x8E": "E",
+                "0x8F": "F",
+                "0x90": "G",
+                "0x91": "H",
+                "0x92": "I",
+                "0x93": "J",
+                "0x94": "K",
+                "0x95": "L",
+                "0x96": "M",
+                "0x97": "N",
+                "0x98": "O",
+                "0x99": "P",
+                "0x9A": "Q",
+                "0x9B": "R",
+                "0x9C": "S",
+                "0x9D": "T",
+                "0x9E": "U",
+                "0x9F": "V",
+                "0xA0": "W",
+                "0xA1": "X",
+                "0xA2": "Y",
+                "0xA3": "Z",
+                "0xA4": "a",
+                "0xA5": "b",
+                "0xA6": "c",
+                "0xA7": "d",
+                "0xA8": "e",
+                "0xA9": "f",
+                "0xAA": "g",
+                "0xAB": "h",
+                "0xAC": "i",
+                "0xAD": "j",
+                "0xAE": "k",
+                "0xAF": "l",
+                "0xB0": "m",
+                "0xB1": "n",
+                "0xB2": "o",
+                "0xB3": "p",
+                "0xB4": "q",
+                "0xB5": "r",
+                "0xB6": "s",
+                "0xB7": "t",
+                "0xB8": "u",
+                "0xB9": "v",
+                "0xBA": "w",
+                "0xBB": "x",
+                "0xBC": "y",
+                "0xBD": "z",
+                "0xBE": "'",
+                "0xBF": ",",
+                "0xC0": ".",
+                "0xC1": " ",
+                "0xC2": "-",
+                "0xC3": "…",
+                "0xC4": "!",
+                "0xC5": "?",
+                "0xD4": "\\sword",
+                "0xD5": "\\hammer",
+                "0xD6": "\\knife",
+                "0xD7": "\\axe",
+                "0xD8": "\\staff",
+                "0xD9": "\\nunchucks",
+                "0xDA": "\\armor",
+                "0xDB": "\\shield",
+                "0xDC": "\\helmet",
+                "0xDD": "\\glove",
+                "0xDE": "\\bracelet",
+                "0xDF": "\\robe",
+                "0xE0": "%",
+                "0xE1": "\\potion",
+                "0xFF": "\\pad"
+            }
+        }
+    },
+    "textEncoding": {
+        "dialog": {
+            "name": "Dialog",
+            "charTable": [
+                "text",
+                "dte",
+                "nullTerminated"
+            ]
+        },
+        "fixedLength": {
+            "name": "Fixed Length",
+            "charTable": [
+                "text",
+                "fixedLength"
+            ]
+        },
+        "nullTerminated": {
+            "name": "Null-Terminated",
+            "charTable": [
+                "text",
+                "nullTerminated"
+            ]
+        }
+    },
+    "stringTable": {
+        "armor": {
+            "name": "Armor",
+            "length": 40,
+            "default": "<text[%i+0x44]>"
+        },
+        "battleBackground": {
+            "name": "Battle Background",
+            "string": {
+                "0": "Grass",
+                "1": "Marsh Cave",
+                "2": "Cave",
+                "3": "Ocean",
+                "4": "Forest",
+                "5": "Temple of Fiends",
+                "6": "Desert",
+                "7": "Swamp",
+                "8": "Earth Cave",
+                "9": "Castle",
+                "10": "River",
+                "11": "Mirage Tower",
+                "12": "Sea Shrine",
+                "13": "Ice Cave",
+                "14": "Gurgu Volcano",
+                "15": "Waterfall"
+            }
+        },
+        "class": {
+            "name": "Class",
+            "length": 12,
+            "default": "<text[0xFB-%i]>"
+        },
+        "element": {
+            "name": "Element",
+            "string": {
+                "0": "Status",
+                "1": "Poison/Stone",
+                "2": "Time",
+                "3": "Death",
+                "4": "Fire",
+                "5": "Ice",
+                "6": "Lightning",
+                "7": "Earth"
+            }
+        },
+        "gp": {
+            "name": "GP",
+            "length": 68,
+            "default": "<text[%i+0x6C]>"
+        },
+        "item": {
+            "name": "Item",
+            "length": 28,
+            "default": "<text[%i]>"
+        },
+        "monsterType": {
+            "name": "Monster Type",
+            "string": {
+                "0": "Elemental",
+                "1": "Reptile",
+                "2": "Giant",
+                "3": "Undead",
+                "4": "Were",
+                "5": "Aquatic",
+                "6": "Mage",
+                "7": "Regenerative"
+            }
+        },
+        "spell": {
+            "name": "Spell",
+            "length": 64,
+            "default": "<text[%i+0xB0]>"
+        },
+        "status": {
+            "name": "Status",
+            "string": {
+                "0": "Death",
+                "1": "Petrify",
+                "2": "Poison",
+                "3": "Blind",
+                "4": "Paralyze",
+                "5": "Sleep",
+                "6": "Silence",
+                "7": "Confuse"
+            }
+        },
+        "weapon": {
+            "name": "Weapon",
+            "length": 40,
+            "default": "<text[%i+0x1C]>"
+        }
+    },
+    "freeSpace": [
+        "0x06AC9A-0x078000"
+    ]
+}

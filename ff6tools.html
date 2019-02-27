@@ -1,0 +1,651 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+    <head>
+        <meta charset="UTF-8">
+        <title>FF6 Tools</title>
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+        <link rel="stylesheet" type="text/css" href="ff6tools.css" />
+        
+        <script src="https://unpkg.com/split.js@1.5.9/dist/split.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js"></script>
+        <script type="text/javascript" src="gfx.js"></script>
+        <script type="text/javascript" src="romtools.js"></script>
+        <script type="text/javascript" src="ff1map.js"></script>
+        <script type="text/javascript" src="ff1battle.js"></script>
+        <script type="text/javascript" src="ff4map.js"></script>
+        <script type="text/javascript" src="ff4battle.js"></script>
+        <script type="text/javascript" src="ff4script.js"></script>
+        <script type="text/javascript" src="ff5map.js"></script>
+        <script type="text/javascript" src="ff5battle.js"></script>
+        <script type="text/javascript" src="ff5script.js"></script>
+        <script type="text/javascript" src="ff6map.js"></script>
+        <script type="text/javascript" src="ff6battle.js"></script>
+        <script type="text/javascript" src="ff6script.js"></script>
+        <script type="text/javascript">
+            
+            var rom, definition, data, scriptList, modal, definitions;
+
+            window.onload = function() {
+
+                // read the list of definition files
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState != 4 || xhr.status !== 200) return;
+                    definitions = JSON.parse(xhr.responseText);
+                };
+                xhr.onerror = function() {
+                    console.log("Unable to load ROM definitions");
+                };
+                xhr.open("get", "def.json");
+                xhr.send();
+
+                /////////////////////////////////////////
+//                var localROM = new XMLHttpRequest();
+//                localROM.onload = function() {
+//                    if (localROM.status != 200) return;
+//                    var arrayBuffer = localROM.response;
+//                    data = new Uint8Array(arrayBuffer);
+//
+//                    loadBuiltInDefinition();
+//                };
+//                localROM.open("get", "roms\\ff1u.nes");
+//                localROM.responseType = "arraybuffer";
+//                localROM.send();
+                /////////////////////////////////////////
+                
+                modal = document.getElementById('modal');
+                
+                var romFile = document.getElementById("rom-file");
+                romFile.onchange = selectROM;
+
+                // When the user clicks on <span> (x), close the modal
+                var closeButton = document.getElementById("close-modal");
+                closeButton.onclick = closeModal;
+
+                Split(["#nav", "#edit", "#toolbox"], {
+                    sizes: [5, 80, 5],
+                    minSize: [256, 0, 256],
+                    gutterSize: 5,
+                    snapOffset: 0,
+                    direction: 'horizontal',
+                    elementStyle: function (dimension, size, gutterSize) {
+                        return {
+                            'flex-shrink': 1,
+                            'flex-basis': 'calc(' + size + '% - ' + gutterSize + 'px)'
+                        }
+                    },
+                    gutterStyle: function (dimension, gutterSize) {
+                        return {
+                            'flex-shrink': 0,
+                            'flex-basis':  gutterSize + 'px',
+                            'background-color': 'hsl(0, 0%, 30%)'
+                        }
+                    }
+                });
+                
+                Split(["#edit-top", "#edit-bottom"], {
+                    sizes: [50, 50],
+                    minSize: [29, 44],
+                    gutterSize: 5,
+                    snapOffset: 0,
+                    direction: 'vertical',
+                    elementStyle: function (dimension, size, gutterSize) {
+                        return {
+                            'flex-basis': 'calc(' + size + '% - ' + gutterSize + 'px)'
+                        }
+                    },
+                    gutterStyle: function (dimension, gutterSize) {
+                        return {
+                            'flex-shrink': 0,
+                            'flex-basis':  gutterSize + 'px',
+                            'background-color': 'hsl(0, 0%, 30%)'
+                        }
+                    }
+                });
+                
+            }
+
+            window.onbeforeunload = function() {
+                return "Are you sure you want to leave?";
+            };
+            
+            // When the user clicks anywhere outside of the modal, close it
+            window.onclick = function(e) {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            }
+
+            function openModal(title) {
+                modal.style.display = "block";
+                
+                var modalTitle = document.getElementById('modal-title');
+                modalTitle.innerHTML = title;
+                
+                var content = document.getElementById('modal-content');
+                content.innerHTML = "";
+                return content;
+            }
+            
+            function closeModal() {
+                modal.style.display = "none";
+            }
+            
+            function selectROM() {
+                
+                var romfile = document.getElementById("rom-file");
+                if (!romfile || !romfile.files[0]) return;
+                var file = romfile.files[0];
+                romfile.value = null;
+                var filereader = new FileReader();
+                filereader.readAsArrayBuffer(file);
+                filereader.onload = function() {
+                    
+                    // get the file as a byte array
+                    var arrayBuffer = filereader.result;
+                    data = new Uint8Array(arrayBuffer);
+
+                    // load built-in definition
+                    if (loadBuiltInDefinition()) return;
+                    
+                    // try removing a 512 byte copier header
+                    if (data.length % 0x0400 === 0x0200) {
+                        data = data.slice(0x0200);
+                        if (loadBuiltInDefinition()) return;
+                    }
+                    
+                    // prompt the user to load their own definition
+                    var content = openModal("Select Definition");
+                    var p = document.createElement('p');
+                    p.innerHTML = "The CRC32 of this ROM does not match any built-in definitions. Please select a built-in definition manually from the list or choose a custom definition file.";
+                    content.appendChild(p);
+                    
+                    var ul = document.createElement('ul');
+                    ul.classList.add('modal-list');
+                    var keys = Object.keys(definitions);
+                    for (var i = 0; i < keys.length; i++) {
+                        var key = keys[i];
+                        var def = definitions[key];
+                        var li = liForDefinition(def, key);
+                        ul.appendChild(li);
+                    }
+                    content.appendChild(ul);
+                    
+                    var file = document.createElement('input');
+                    file.type = 'file';
+                    file.id = 'definition-file';
+                    file.onchange = loadUserDefinition;
+                    content.appendChild(file);
+                };
+            }
+            
+            function liForDefinition(def, url) {
+                var li = document.createElement('li');
+                li.onclick = function(e) {
+                    closeModal();
+                    loadBuiltInDefinition(url); 
+                }
+                li.innerHTML = def.name;
+                return li;
+            }
+            
+            function loadBuiltInDefinition(url) {
+                
+                if (!url) {
+                    var crc32 = ROM.crc32(data);
+
+                    if (!definitions) return false;
+                    var keys = Object.keys(definitions);
+                    for (var i = 0; i < keys.length; i++) {
+                        var key = keys[i];
+                        var def = definitions[key];
+                        if (!def.crc32 || !def.crc32.length) continue;
+                        for (var c = 0; c < def.crc32.length; c++) {
+                            if (Number(def.crc32[c]) === crc32) url = key;
+                        }
+                        if (url) break;
+                    }
+                }
+                
+                if (!url) return false;
+                
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState != 4 || xhr.status !== 200) return;
+                    definition = JSON.parse(xhr.responseText);
+                    
+                    loadROM();
+                };
+                xhr.onerror = function() {
+                    console.log("Error opening ROM definition: " + url);
+                };
+                xhr.open("get", url);
+                xhr.send();
+
+                return true;
+            }
+
+            function loadUserDefinition() {
+
+                closeModal();
+
+                var definitionfile = document.getElementById("definition-file");
+                if (!definitionfile || !definitionfile.files[0]) return;
+                var file = definitionfile.files[0];
+                definitionfile.value = null;
+                var filereader = new FileReader();
+                filereader.readAsText(file);
+                filereader.onload = function() {
+                    
+                    // get the file as a byte array
+                    var textBuffer = filereader.result;
+                    definition = JSON.parse(textBuffer);
+                    
+                    loadROM();
+                };
+            }
+
+            function loadROM() {
+                
+                if (!data || !definition) return;
+                
+                // create the rom object
+                rom = ROMObject.create(null, definition);
+                rom.disassemble(data);
+
+                
+                console.log("CRC32: " + hexString(ROM.crc32(data), 8));
+                if (rom.isSFC) console.log("SNES Checksum: " + hexString(ROM.checksum(data), 4));
+
+                // update the map list
+                loadMapNames();
+                
+                // select the first map
+                rom.select(rom.mapProperties.item(0));
+
+                // create the script list
+                scriptList = new ROMScriptList(rom);
+                
+                // output strings to the console
+//                var bigString = "";
+//                for (var d = 0; d < rom.dialog.array.length; d++) {
+//                    var dialogString = rom.dialog.item(d).text;
+//                    bigString += hexString(d, 4) + ": " + dialogString.replace(/\\n/g, "\n        ").replace(/\\page/g, "\n        ") + "\n";
+//                }
+//                console.log(bigString);
+            }
+
+            function saveROM(forceSave) {
+                
+                if (!rom) return;
+                
+//                rom.treasureProperties.markAsDirty();
+//                rom.mapLayoutsPointerTable.markAsDirty();
+                
+                if (!rom.assemble()) {
+                    if (forceSave) {
+                        showOrphans();
+                    } else {
+                        chooseExpandMode();
+                    }
+                    return;
+                }
+                
+                var definition = JSON.stringify(rom.definition, null, 4);
+                
+                // update the script list since the script references will change
+                scriptList.update();
+
+                // create a zip file with the rom and the definition file
+                var zip = new JSZip();
+                zip.file(rom.name + '.' + rom.system, rom.data);
+                zip.file(rom.name + '.json', definition);
+                
+                zip.generateAsync({type:"blob"}).then(function(content) {
+                    // see FileSaver.js
+                    saveAs(content, rom.name + ".zip");
+                });
+            }
+            
+            function chooseExpandMode() {
+                var content = openModal("Save ROM");
+
+                var p = document.createElement('p');
+                p.innerHTML = "Some data has increased in size and no longer fits in its alotted range. What would you like to do?";
+                content.appendChild(p);
+
+                function createExpandRadio(expandMode, description) {
+                    var div = document.createElement('div');
+                    div.classList.add("expand-div");
+                    var button = document.createElement('input');
+                    button.type = "radio";
+                    button.id = "expand-" + expandMode;
+                    button.classList.add("expand-radio");
+                    button.name = "expandMode";
+                    button.value = expandMode;
+                    button.checked = (rom.expandMode === button.value);
+                    div.appendChild(button);
+                    var label = document.createElement('label');
+                    label.htmlFor = button.id;
+                    label.innerHTML = description;
+                    div.appendChild(label);
+                    content.appendChild(div);
+                }
+                
+                createExpandRadio(ROMData.ExpandMode.truncate, "<b>Truncate:</b> Data will be truncated to fit its range (Default behavior, may result in loss of data)");
+                createExpandRadio(ROMData.ExpandMode.overwrite, "<b>Overwrite:</b> Data will overwrite adjacent data (May result in corruption of data, not recommended unless using Steam ROM)");
+                createExpandRadio(ROMData.ExpandMode.relocate, "<b>Relocate:</b> Modified data will be relocated automatically if space is available elsewhere (Recommended, may result in loss of compatibility with patches and other utilities)");
+                createExpandRadio(ROMData.ExpandMode.optimize, "<b>Optimize:</b> All possible data will be relocated to optimize use of free space (Recommended if unable to relocate, may result in loss of compatibility with patches and other utilities)");
+                if (rom.isSFC) createExpandRadio(ROMData.ExpandMode.expand, "<b>Expand:</b> The ROM will be expanded and data will be relocated to the expanded area automatically (SNES/SFC only)");
+
+                var okay = document.createElement('button');
+                okay.innerHTML = "Okay";
+                okay.onclick = function() {
+                    closeModal();
+                    var radioButtons = document.getElementsByClassName('expand-radio');
+                    for (var i = 0; i < radioButtons.length; i++) {
+                        var button = radioButtons[i];
+                        if (!button.checked) continue;
+                        if (button.value === ROMData.ExpandMode.expand) {
+                            rom.expand(rom.data.length + 0x100000);
+                            if (rom.expandMode !== ROMData.ExpandMode.optimize) rom.expandMode = ROMData.ExpandMode.relocate;
+                        } else {
+                            rom.expandMode = button.value;
+                        }
+                        saveROM(true);
+                        break;
+                    }
+                };
+                content.appendChild(okay);
+
+                var cancel = document.createElement('button');
+                cancel.innerHTML = "Cancel";
+                cancel.onclick = function() { closeModal(); };
+                content.appendChild(cancel);
+            }
+            
+            function showOrphans() {
+                var content = openModal("Save ROM");
+                var p = document.createElement('p');
+                content.appendChild(p);
+                if (!rom.orphans || !rom.orphans.length) {
+                    p.innerHTML = "Unable to save ROM. Try optimizing or expanding.";
+                    return;
+                }
+                p.innerHTML = "Failed to save the data listed below. Try optimizing or expanding.";
+                
+                var ul = document.createElement('ul');
+                content.appendChild(ul);
+                ul.classList.add("modal-list");
+                for (var i = 0; i < rom.orphans.length; i++) {
+                    var assembly = rom.orphans[i];
+                    var li = document.createElement('li');
+                    li.innerHTML = assembly.name || assembly.key;
+                    if (!assembly.canRelocate) {
+                        li.innerHTML += " (cannot relocate)";
+                    } else {
+                        li.innerHTML += " (" + assembly.assembledLength + " bytes)";
+                    }
+                    ul.appendChild(li);
+                }
+            }
+            
+            function selectMap(m) {
+                
+                var navList = document.getElementById("nav-list-Maps");
+                if (!navList) return;
+                for (var i = 0; i < navList.childNodes.length; i++) {
+                    if (i === m) {
+                        navList.childNodes[i].classList.add("selected");
+                        selectBattle(null);
+                    } else {
+                        navList.childNodes[i].classList.remove("selected");
+                    }
+                }
+            }
+
+            function selectBattle(m) {
+                
+                var navList = document.getElementById("nav-list-Battles");
+                if (!navList) return;
+                for (var i = 0; i < navList.childNodes.length; i++) {
+                    if (i === m) {
+                        navList.childNodes[i].classList.add("selected");
+                        selectMap(null);
+                    } else {
+                        navList.childNodes[i].classList.remove("selected");
+                    }
+                }
+            }
+
+            function undo() {
+                if (rom.canUndo()) rom.undo();
+            }
+            
+            function redo() {
+                if (rom.canRedo()) rom.redo();
+            }
+            
+            function twoState(obj) {
+                if (obj.checked){
+                    // if checkbox is being checked, add a "checked" class
+                    obj.parentNode.classList.add("checked");
+                } else {
+                    // else remove it
+                    obj.parentNode.classList.remove("checked");
+                }
+            }
+            
+            function loadMapNames() {
+                var navList = document.getElementById("navList");
+                navList.innerHTML = "";
+                
+                // load maps
+                if (!rom.mapProperties) return;
+                var mapCategory = document.createElement("li");
+                mapCategory.classList.add("nav-category");
+//                mapCategory.classList.add("shown");
+                mapCategory.onclick = function() {
+                    this.classList.toggle("shown");
+                }
+                navList.appendChild(mapCategory);
+                
+                var p = document.createElement("p");
+                p.innerHTML = "Maps";
+                mapCategory.appendChild(p);
+                
+                var mapList = document.createElement("ul");
+                mapList.id = "nav-list-Maps";
+                mapList.classList.add("nav-list");
+                mapCategory.appendChild(mapList);
+                
+                for (var m = 0; m < rom.mapProperties.array.length; m++) {
+                    mapList.appendChild(liForMap(m));
+                }
+                
+                // load battles
+                if (!rom.battleProperties) return;
+                var battleCategory = document.createElement("li");
+                battleCategory.classList.add("nav-category");
+//                battleCategory.classList.add("shown");
+                battleCategory.onclick = function() {
+                    this.classList.toggle("shown");
+                }
+                navList.appendChild(battleCategory);
+                
+                var p = document.createElement("p");
+                p.innerHTML = "Battles";
+                battleCategory.appendChild(p);
+                
+                var battleList = document.createElement("ul");
+                battleList.id = "nav-list-Battles";
+                battleList.classList.add("nav-list");
+                battleCategory.appendChild(battleList);
+                
+                for (var b = 0; b < rom.battleProperties.array.length; b++) {
+                    battleList.appendChild(liForBattle(b));
+                }
+
+            }
+            
+            function liForMap(m) {
+                var mapNames = rom.stringTable["mapProperties"];
+                var li = document.createElement("li");
+                li.classList.add("nav-object")
+                li.onclick = function(e) {
+                    e.stopPropagation();
+                    rom.select(rom.mapProperties.item(m));
+                }
+                var span = document.createElement("span");
+                span.innerHTML = m.toString();
+                span.classList.add("navListIndex");
+                li.appendChild(span);
+                li.innerHTML += mapNames.string[m].fString();
+                return li;
+            }
+
+            function liForBattle(b) {
+                var li = document.createElement("li");
+                li.classList.add("nav-object")
+                li.onclick = function(e) {
+                    e.stopPropagation();
+                    rom.select(rom.battleProperties.item(b));
+                }
+                var span = document.createElement("span");
+                span.innerHTML = b.toString();
+                span.classList.add("navListIndex");
+                li.appendChild(span);
+                var name = battleName(b);
+                rom.stringTable.battleProperties.string[b].value = name;
+                li.innerHTML += rom.stringTable.battleProperties.string[b].fString();
+                return li;
+            }
+            
+            function battleName(b) {
+
+                var defaultName = "Battle " + b.toString();
+                if (!rom.battleProperties) return defaultName;
+                var battleProperties = rom.battleProperties.item(b);
+                if (!battleProperties || !battleProperties.editor) return defaultName;
+                var editor = rom.getEditor(battleProperties.editor);
+                if (!editor || !editor.battleName) return defaultName;
+                var name = editor.battleName(b);
+                if (name === "") return defaultName;
+                return name;
+            }
+
+            function togglePane(p) {
+                var pane = document.getElementById(p);
+                if (pane.classList.contains("hidden")) {
+                    pane.classList.remove("hidden");
+                } else {
+                    pane.classList.add("hidden");
+                }
+            }
+
+        </script>
+    </head>
+    
+    <body>
+        <div id="outer">
+            
+            <div id="topbar">
+                <div>
+                    <button class="icon-btn float-left tooltip" onclick="document.getElementById('rom-file').click();" >
+                        <i class="fas fa-folder-open"></i>
+                        <span class="tooltiptext">Open ROM</span>
+                    </button>
+                    <input type="file" style="display:none;" id="rom-file" name="file"/>
+                    <button class="icon-btn float-left tooltip" onclick="saveROM()">
+                        <i class="fas fa-save"></i>
+                        <span class="tooltiptext">Save ROM</span>
+                    </button>
+                    <button class="icon-btn float-left tooltip" onclick="undo()">
+                        <i class="fas fa-undo"></i>
+                        <span class="tooltiptext">Undo</span>
+                    </button>
+                    <button class="icon-btn float-left tooltip" onclick="redo()">
+                        <i class="fas fa-redo"></i>
+                        <span class="tooltiptext">Redo</span>
+                    </button>
+                    
+                    <button class="icon-btn float-right tooltip" onclick="togglePane('toolbox')">
+                        <i class="fas fa-angle-double-right"></i>
+                        <span class="tooltiptext">Show/Hide Toolbox</span>
+                    </button>
+                    <button class="icon-btn float-right tooltip" onclick="togglePane('edit-bottom')">
+                        <i class="fas fa-angle-double-down"></i>
+                        <span class="tooltiptext">Show/Hide Script</span>
+                    </button>
+                    <button class="icon-btn float-right tooltip" onclick="togglePane('nav')">
+                        <i class="fas fa-angle-double-left"></i>
+                        <span class="tooltiptext">Show/Hide Navigator</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="main">
+                <div id="nav">
+                    <ul id="navList"></ul>
+                </div>
+
+                <div id="edit">
+                    <div id="edit-top">
+                        <div id="map-controls">
+                            <label class="two-state checked tooltip"><input id="showLayer1" type="checkbox" checked="true" onchange="twoState(this)">Layer 1</label>
+                            <label class="two-state checked"><input id="showLayer2" type="checkbox" checked="true" onchange="twoState(this)">Layer 2</label>
+                            <label class="two-state checked"><input id="showLayer3" type="checkbox" checked="true" onchange="twoState(this)">Layer 3</label>
+                            <label class="two-state checked"><input id="showTriggers" type="checkbox" checked="true" onchange="twoState(this)">Triggers</label>
+                            <div id="zoom-value">100%</div>
+                            <input type="range" id="zoom" min="-2" max="2" step="1" value="0">
+                            <div id="coordinates">(0,0)</div>
+                        </div>
+
+                        <div id="edit-div" class="no-select"></div>
+                    </div>
+                    
+                    <div id="edit-bottom" class="hidden">
+                        <div id="script-bar">
+                            <button id="script-insert" class="icon-btn"><i class="fas fa-plus"></i></button>
+                            <button class="icon-btn" onclick="scriptList.delete()"><i class="fas fa-minus"></i></button>
+                            <button class="icon-btn" onclick="scriptList.moveUp()"><i class="fas fa-arrow-up"></i></button>
+                            <button class="icon-btn" onclick="scriptList.moveDown()"><i class="fas fa-arrow-down"></i></button>
+                            <button class="icon-btn" style="display:none"><i class="fas fa-copy"></i></button>
+                            <button class="icon-btn" style="display:none"><i class="fas fa-paste"></i></button>
+                        </div>
+                        <div id="script-div">
+                            <ul id="script-list"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="toolbox">
+
+                    <div id="tileset-layers">
+                        <button class="toolbox-button selected" value="0">Layer 1</button>
+                        <button class="toolbox-button" value="1">Layer 2</button>
+                        <button class="toolbox-button" value="2">Layer 3</button>
+                        <button class="toolbox-button" value="3">Triggers</button>
+                    </div>
+
+                    <div id="tileset-div" class="relative no-select">
+                        <canvas id="tileset" width="256" height="256"></canvas>
+                        <canvas id="tileset-cursor" width="256" height="256"></canvas>
+                    </div>
+
+                    <div id="properties"></div>
+                </div>
+            </div>
+        </div>
+        <ul id="menu" class="menu"></ul>
+        
+        <div id="modal" class="modal">
+            <div class="modal-window">
+                <span id="close-modal"><i class="fas fa-times"></i></span>
+                <p id="modal-title">Select Definition</p>
+                <div id="modal-content"></div>
+            </div>
+        </div>
+    </body>
+</html>

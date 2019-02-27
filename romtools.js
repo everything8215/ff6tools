@@ -1,0 +1,5499 @@
+// 
+// romtools.js
+// created 1/4/2018
+// 
+
+// ROMObject
+function ROMObject(rom, definition, parent) {
+
+    this.rom = rom;
+    this.type = definition.type;
+    this.key = definition.key;
+    this.name = definition.name;
+    this.editor = definition.editor;
+    this.parent = parent;
+    this.observers = [];
+}
+
+ROMObject.Type = {
+    array: "array",
+    assembly: "assembly",
+    command: "command",
+    data: "data",
+    object: "object",
+    property: "property",
+    reference: "reference",
+    rom: "rom",
+    script: "script",
+    scriptEncoding: "scriptEncoding",
+    string: "string",
+    stringTable: "stringTable",
+    text: "text",
+    textEncoding: "textEncoding"
+};
+
+// ROMObject factory method
+ROMObject.create = function(rom, definition, parent) {
+    switch (definition.type) {
+    case ROMObject.Type.array:
+        return new ROMArray(rom, definition, parent);
+    case ROMObject.Type.assembly:
+        return new ROMAssembly(rom, definition, parent);
+    case ROMObject.Type.command:
+        return new ROMCommand(rom, definition, parent);
+    case ROMObject.Type.data:
+        return new ROMData(rom, definition, parent);
+    case ROMObject.Type.property:
+        return new ROMProperty(rom, definition, parent);
+    case ROMObject.Type.reference:
+        return new ROMReference(rom, definition, parent);
+    case ROMObject.Type.rom:
+        return new ROM(rom, definition, parent);
+    case ROMObject.Type.script:
+        return new ROMScript(rom, definition, parent);
+    case ROMObject.Type.scriptEncoding:
+        return new ROMScriptEncoding(rom, definition, parent);
+    case ROMObject.Type.string:
+        return new ROMString(rom, definition, parent);
+    case ROMObject.Type.stringTable:
+        return new ROMStringTable(rom, definition, parent);
+    case ROMObject.Type.text:
+        return new ROMText(rom, definition, parent);
+    case ROMObject.Type.textEncoding:
+        return new ROMTextEncoding(rom, definition, parent);
+    default:
+        return new ROMAssembly(rom, definition, parent);
+    }
+};
+
+Object.defineProperty(ROMObject.prototype, "definition", { get: function() {
+    var definition = {};
+
+    definition.type = this.type;
+    definition.key = this.key;
+    definition.name = this.name;
+    if (this.editor) definition.editor = this.editor;
+
+    return definition;
+}});
+
+ROMObject.prototype.copy = function(parent) {
+    return ROMObject.create(this.rom, this.definition, parent);
+}
+
+ROMObject.prototype.addObserver = function(object, callback, args) {
+    if (this.getObserver(object)) return;
+    this.observers.push({object: object, callback: callback, args: args, asleep: false});
+}
+
+ROMObject.prototype.removeObserver = function(object) {
+    this.observers = this.observers.filter(function(observer) {
+        return (observer.object !== object);
+    });
+}
+
+ROMObject.prototype.notifyObservers = function() {
+    this.observers.forEach(function(observer) {
+        if (observer.asleep) return;
+        observer.callback.apply(observer.object, observer.args);
+    });
+}
+
+ROMObject.prototype.getObserver = function(object) {
+    for (var o = 0; o < this.observers.length; o++) {
+        if (this.observers[o].object === object) return this.observers[o];
+    }
+    return null;
+}
+
+// ROMAssembly
+function ROMAssembly(rom, definition, parent) {
+    
+    ROMObject.call(this, rom, definition, parent);
+    
+    this.isLoaded = false;
+    this.isDirty = false;
+    
+    // range
+    this.range = ROMRange.parse(definition.range);
+    
+    // begin
+    if (definition.begin) {
+        var begin = Number(definition.begin);
+        if (isNumber(begin)) {
+            this.range.begin = begin;
+            this.range.end = begin + 1;
+        }
+    }
+    
+    if (definition.end) {
+        // end
+        var end = Number(definition.end);
+        if (isNumber(end)) {
+            this.range.end = end;
+        }
+        
+    } else if (definition.length) {
+        // length
+        var length = Number(definition.length);
+        if (isNumber(length)) {
+            this.range.end = this.range.begin + length;
+        }
+    }
+    
+    if (parent === rom) this.range = rom.mapRange(this.range);
+    
+    this.format = definition.format;
+    this.external = definition.external;
+    this.reference = definition.reference || [];
+    this.align = Number(definition.align) || 1;
+    this.canRelocate = definition.canRelocate || false;
+    this._invalid = definition.invalid || false;
+    this._hidden = definition.hidden || false;
+    this._disabled = definition.disabled || false;
+    this.pad = Number(definition.pad);
+    if (!isNumber(this.pad)) this.pad = 0xFF;
+
+    // create the string table
+    if (isString(definition.stringTable)) {
+        this.stringTable = definition.stringTable;
+    } else if (definition.stringTable && rom !== this) {
+        var stringTable = new ROMStringTable(this.rom, definition.stringTable);
+        stringTable.key = this.path;
+        if (!stringTable.name) stringTable.name = this.name;
+        rom.stringTable[this.path] = stringTable;
+        this.stringTable = this.path;
+    }
+}
+
+ROMAssembly.prototype = Object.create(ROMObject.prototype);
+ROMAssembly.prototype.constructor = ROMAssembly;
+
+Object.defineProperty(ROMAssembly.prototype, "definition", { get: function() {
+    var definition = Object.getOwnPropertyDescriptor(ROMObject.prototype, "definition").get.call(this);
+    
+    var range = this.range;
+    if (this.parent === this.rom) range = this.rom.unmapRange(range);
+    if (!range.isEmpty) definition.range = range.toString();
+    
+    if (this.stringTable) definition.stringTable = this.stringTable;
+    if (this.format) definition.format = this.format;
+    if (this.external) definition.external = this.external;
+    if (this.align !== 1) definition.align = hexString(this.align);
+    if (this.canRelocate) definition.canRelocate = true;
+    if (this._invalid) definition.invalid = this._invalid;
+    if (this._hidden) definition.hidden = this._hidden;
+    if (this._disabled) definition.disabled = this._disabled;
+    if (this.pad != 0xFF) { definition.pad = hexString(this.pad, 1); }
+    
+    definition.reference = [];
+    for (var r = 0; r < this.reference.length; r++) {
+        var reference = this.reference[r];
+        // skip defined references (ones created automatically by scripts, etc.)
+        if (reference instanceof ROMReference) continue;
+        definition.reference.push(reference);
+    }
+    if (definition.reference.length === 0) delete definition.reference;
+    
+    return definition;
+}});
+
+Object.defineProperty(ROMAssembly.prototype, "assembledLength", { get: function() {
+    
+    // do a dummy assemble if lazy data is not valid
+    if (!this.lazyData) this.assemble();
+    
+    return this.lazyData.length;
+}});
+
+Object.defineProperty(ROMAssembly.prototype, "path", { get: function() {
+    if (!this.parent || this.parent === this.rom) {
+        return this.key;
+    } else if (this.parent instanceof ROMArray) {
+        return this.parent.path;
+    } else if (this instanceof ROMCommand) {
+        return this.parent.path + "." + this.encoding + "." + this.key;
+    }
+    return this.parent.path + "." + this.key;
+}});
+
+// invalid: assembly is not shown in property view and will not be assembled
+Object.defineProperty(ROMAssembly.prototype, "invalid", { get: function() {
+    if (isString(this._invalid)) return eval(this._invalid);
+    return this._invalid;
+}, set: function(invalid) {
+    this._invalid = invalid;
+}});
+
+// hidden: assembly is not shown in property view but will still get assembled
+Object.defineProperty(ROMAssembly.prototype, "hidden", { get: function() {
+    if (isString(this._hidden)) return eval(this._hidden);
+    return this._hidden;
+}, set: function(hidden) {
+    this._hidden = hidden;
+}});
+
+// disabled: assembly is disabled in property view and will not be assembled
+Object.defineProperty(ROMAssembly.prototype, "disabled", { get: function() {
+    if (isString(this._disabled)) return eval(this._disabled);
+    return this._disabled;
+}, set: function(disabled) {
+    this._disabled = disabled;
+}});
+
+ROMAssembly.prototype.assemble = function(data) {
+
+    // skip external assemblies
+    if (this.external) return;
+    
+    // encode the data if needed
+    this.lazyData = this.lazyData || ROMAssembly.encode(this.data, this.format);
+
+    // return if just updating lazyData (no data parameter)
+    if (!data) return false;
+    
+    // check if assembly won't fit in its range
+    var success = true;
+    if (this.assembledLength > this.range.length) {
+        // truncate the data to fit
+        data.set(this.lazyData.subarray(0, this.range.length), this.range.begin);
+        
+        // return false if assembly overflowed its range
+        success = false;
+    } else {
+        data.set(this.lazyData, this.range.begin);
+    }
+
+//    this.updateReferences();
+    return success;
+}
+
+ROMAssembly.prototype.disassemble = function(data) {
+    
+    if (this.external) return;
+    
+    if (!this.range) this.range = new ROMRange(0, 0);
+    var range = this.range;
+    
+    // validate the range vs. the input data
+    if (range.begin > data.length) {
+        // beginning of range is past the end of the data
+//        this.rom.log("Invalid range " + range.toString() + " for data of length " + data.length);
+        range.begin = 0;
+        range.end = 0;
+    } else if (range.end > data.length) {
+        // end of range is past the end of the data
+//        this.rom.log("Range " + range.toString() + " exceeds data length " + hexString(data.length, 6));
+        range.end = data.length;
+    }
+    
+    // copy the appropriate range of data
+    this.lazyData = data.slice(range.begin, range.end);
+    
+    // decode the data
+    this.data = ROMAssembly.decode(this.lazyData, this.format);
+    this.isLoaded = true;
+}
+
+ROMAssembly.prototype.updateReferences = function() {
+    for (var r = 0; r < this.reference.length; r++) {
+        var reference = this.reference[r];
+        if (!(reference instanceof ROMReference)) {
+            // reference stored as definition
+            reference = new ROMReference(this.rom, reference, this);
+        }
+        if (reference.update) reference.update();
+    }
+}
+
+ROMAssembly.prototype.relocate = function(begin, end) {
+    // this should be the only way to modify an assembly's range
+    var oldBegin = this.range.begin;
+    if (!isNumber(begin)) begin = oldBegin;
+    if (!isNumber(end)) end = begin + this.assembledLength;
+    
+    // update the range
+    this.range = new ROMRange(begin, end);
+    if (begin === oldBegin) return;
+    
+    // log relocation if this is a direct child of the rom
+    if (this.parent === this.rom) {
+        this.rom.log("Relocating " + this.name + " from " +
+             hexString(this.rom.unmapAddress(oldBegin)) + " to " +
+             hexString(this.rom.unmapAddress(begin)));
+    }
+    
+    // update references if the assembly moved
+    this.updateReferences();
+}
+
+ROMAssembly.encode = function(data, format) {
+    // return if the data is not compressed
+    if (!format) return data;
+    
+    if (isArray(format)) {
+        // multi-pass encoding format
+        for (var i = 0; i < format.length; i++) {
+            data = ROMAssembly.encode(data, format[i]);
+        }
+        return data;
+    }
+    
+    // parse the format name
+    var formatName = format.match(/[^\(]+/);
+    if (!isArray(formatName)) return data;
+    formatName = formatName[0];
+    var f = ROM.dataFormat[formatName];
+    if (!f) return data;
+    
+    // parse arguments
+    var args = [data];
+    var argsList = format.match(/\([^\)]+\)/);
+    if (isArray(argsList)) {
+        argsList = argsList[0];
+        argsList = argsList.substring(1, argsList.length - 1).split(",");
+        argsList.forEach(function(arg, i) {
+            args.push(Number(arg));
+        });
+    }
+    return f.encode.apply(null, args);
+}
+
+ROMAssembly.decode = function(data, format) {
+    // return if the data is not compressed
+    if (!format) return data;
+    
+    if (isArray(format)) {
+        // multi-pass encoding format
+        for (var i = format.length - 1; i >= 0; i--) {
+            data = ROMAssembly.decode(data, format[i]);
+        }
+        return data;
+    }
+    
+    // parse the format name
+    var formatName = format.match(/[^\(]+/);
+    if (!isArray(formatName)) return data;
+    formatName = formatName[0];
+    var f = ROM.dataFormat[formatName];
+    if (!f) return data;
+    
+    // parse arguments
+    var args = [data];
+    var argsList = format.match(/\([^\)]+\)/);
+    if (isArray(argsList)) {
+        argsList = argsList[0];
+        argsList = argsList.substring(1, argsList.length - 1).split(",");
+        argsList.forEach(function(arg, i) {
+            args.push(Number(arg));
+        });
+    }
+    return f.decode.apply(null, args);
+}
+
+ROMAssembly.prototype.markAsDirty = function() {
+    if (this.external) return;
+    this.lazyData = null;
+    this.isDirty = true;
+    if (this.parent && this.parent.markAsDirty) this.parent.markAsDirty();
+}
+
+ROMAssembly.prototype.setData = function(array, offset) {
+
+    if (this.external) return;
+    
+    if (!isNumber(offset)) offset = 0;
+    
+    // return if the array didn't change
+    var oldArray = this.data.slice(offset, offset + array.length);
+    if (compareTypedArrays(oldArray, array)) return;
+
+    // perform an action to set the array
+    var assembly = this;
+    function redo() {
+        assembly.data.set(array, offset);
+        assembly.notifyObservers();
+    }
+    function undo() {
+        assembly.data.set(oldArray, offset);
+        assembly.notifyObservers();
+    }
+    var description = "Set " + this.name + " data [" + offset.toString() + "-" + (offset + array.length).toString() + "]";
+    var action = new ROMAction(this, undo, redo, description);
+    this.rom.doAction(action);
+}
+
+Object.defineProperty(ROMAssembly.prototype, "labelString", { get: function() {
+    if (!this.parent) return null;
+    if (this.parent === this.rom) return null;
+    var i = Number(this.i);
+    if (!isNumber(i)) return null;
+    if (!this.parent.stringTable) return null;
+    var stringTable = this.rom.stringTable[this.parent.stringTable];
+    if (!stringTable) return null;
+    return stringTable.string[i];
+}});
+
+ROMAssembly.prototype.labelHTML = function() {
+    
+    var string = this.labelString;
+    if (!string) return null;
+    
+    // create a div for the label
+    var labelDiv = document.createElement('div');
+    labelDiv.classList.add("property-div");
+    labelDiv.id = "label-" + this.key;
+    var id = "label-control-" + this.key;
+    
+    // create a label for the label
+    var label = document.createElement('label');
+    label.htmlFor = id;
+    label.classList.add("property-label");
+    label.innerHTML = "Label:";
+    labelDiv.appendChild(label);
+
+    // create a div for the control(s)
+    var controlDiv = document.createElement('div');
+    labelDiv.appendChild(controlDiv);
+    controlDiv.classList.add("property-control-div");
+        
+    // create a text box
+    var input = document.createElement('input');
+    controlDiv.appendChild(input);
+    input.id = id;
+    var defaultString = string.parent.defaultString;
+    defaultString = defaultString.value || defaultString;
+    input.placeholder = defaultString;
+    if (string.value !== defaultString) input.value = string.value;
+    input.classList.add("property-control");
+    input.onchange = function() {
+        if (this.value === "") {
+            string.setValue(defaultString);
+        } else {
+            string.setValue(this.value);
+        }
+        document.getElementById(this.id).focus();
+    };
+
+    return labelDiv;
+}
+
+// ROMReference
+function ROMReference(rom, definition, parent) {
+    ROMObject.call(this, rom, definition, parent);
+    this.type = ROMObject.Type.reference;
+    
+    // the reference's parent is the source of the value
+    
+    // the target is the object that the reference will be written to (default is the rom itself)
+    if (isString(definition.target)) {
+        this.target = this.rom[definition.target];
+    } else {
+        this.target = definition.target || this.rom;
+    }
+    
+    // options to determine the value and how to write it
+    this.options = definition.options || definition;
+}
+
+ROMReference.prototype = Object.create(ROMObject.prototype);
+ROMReference.prototype.constructor = ROMReference;
+
+ROMReference.prototype.update = function() {
+    var value = 0;
+    
+    if (this.options.arrayLength && this.parent instanceof ROMArray) {
+        // the value is the length of the array
+        value = this.parent.array.length;
+        
+    } else if (this.options.dataLength && this.parent instanceof ROMAssembly) {
+        // the value is the length of the parent's data
+        value = this.parent.assembledLength;
+        
+    } else if (this.options.eval) {
+        // generic value that can be evaluated at run-time
+        value = eval(this.options.eval);
+        
+    } else if (this.options.fixed) {
+        // fixed value
+        value = Number(this.options.fixed)
+        
+    } else if (this.options.pointerOffset && this.parent.pointerOffset) {
+        // pointer table offset
+        value = Number(this.parent.pointerOffset);
+        
+    } else if (this.options.endPointer) {
+        // pointer to the end of the data
+        value = this.parent.range.end;
+        if (this.target.unmapAddress) value = this.target.unmapAddress(value);
+        
+    } else {
+        // the value is the parent's address within its own parent (default)
+        value = this.parent.range.begin;
+        if (this.target.unmapAddress) {
+            value = this.target.unmapAddress(value);
+        } else if (this.options.relative) {
+            // address is relative to the address of some other assembly
+            value += this.options.relative.range.begin;
+        }
+    }
+
+    // bank byte only
+    if (this.options.bankByte) value >>= 16;
+    
+    this.value = value;
+}
+
+Object.defineProperty(ROMReference.prototype, "value", { get: function() {
+    var value = 0
+    if (this.target instanceof ROMProperty) {
+        value = this.target.value;
+    } else if (this.target instanceof ROMAssembly) {
+        var property = new ROMProperty(this.rom, this.options, this.target);
+        property.disassemble(this.target.data);
+        value =  property.value;
+    }
+    return value;
+
+}, set: function(value) {
+    if (this.target instanceof ROMProperty) {
+        if (this.target.value === value) return;
+        this.target.value = value;
+        this.target.markAsDirty();
+    } else if (this.target instanceof ROMAssembly) {
+        var property = new ROMProperty(this.rom, this.options, this.target);
+        property.disassemble(this.target.data);
+        if (property.value === value) return;
+        property.value = value;
+        property.assemble(this.target.data);
+        this.target.markAsDirty();
+    }
+}});
+
+// ROMData
+function ROMData(rom, definition, parent) {
+    ROMAssembly.call(this, rom, definition, parent);
+    
+    if (isArray(definition.freeSpace)) {
+        for (var r = 0; r < definition.freeSpace.length; r++) {
+            var freeRange = ROMRange.parse(definition.freeSpace[r]);
+            if (freeRange.isEmpty) continue;
+            if (this.mapRange) freeRange = this.mapRange(freeRange);
+            this.addFreeSpace(freeRange);
+        }
+    }
+
+    this.assembly = {};
+    this.orphans = null;
+    this.isSequential = definition.isSequential || false;
+    this.expandMode = definition.expandMode || ROMData.ExpandMode.truncate;
+
+    // return if there are no sub-assemblies
+    if (!definition.assembly) return;
+    var keys = Object.keys(definition.assembly);
+    if (!keys) return;
+        
+    for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        if (!isString(key)) continue;
+        var assemblyDefinition = definition.assembly[key];
+        if (isString(assemblyDefinition)) {
+            // add a category
+            this.assembly[key] = assemblyDefinition;
+            continue;
+        }
+        if (!assemblyDefinition.type) assemblyDefinition.type = ROMObject.Type.assembly;
+        assemblyDefinition.key = key;
+        this.addAssembly(assemblyDefinition);
+    }
+}
+
+ROMData.prototype = Object.create(ROMAssembly.prototype);
+ROMData.prototype.constructor = ROMData;
+
+ROMData.ExpandMode = {
+    manual: "manual",
+    truncate: "truncate",
+    overwrite: "overwrite",
+    relocate: "relocate",
+    optimize: "optimize",
+    expand: "expand"
+}
+
+Object.defineProperty(ROMData.prototype, "definition", { get: function() {
+    var definition = Object.getOwnPropertyDescriptor(ROMAssembly.prototype, "definition").get.call(this);
+    
+    // free space
+    if (isArray(this.freeSpace) && this.freeSpace.length) {
+        definition.freeSpace = [];
+        for (var r = 0; r < this.freeSpace.length; r++) {
+            var freeRange = this.freeSpace[r];
+            if (this.unmapRange) freeRange = this.unmapRange(freeRange);
+            definition.freeSpace.push(freeRange.toString());
+        }
+    }
+
+    if (this.isSequential) definition.isSequential = true;
+    
+    var keys = Object.keys(this.assembly);
+    if (keys.length === 0) return definition;
+    
+    // add sub-assembly definitions
+    definition.assembly = {};
+    for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        var assembly = this.assembly[key];
+        
+        // strings are category names (not actual assemblies)
+        if (isString(assembly)) {
+            definition.assembly[key] = assembly;
+            continue;
+        }
+        
+        // don't include pointer tables (they will be defined by their array)
+        if (assembly.key.endsWith("PointerTable")) continue;
+        
+        var assemblyDefinition = assembly.definition;
+        if (!assemblyDefinition) continue;
+        delete assemblyDefinition.key; // key is implied
+        definition.assembly[key] = assemblyDefinition;
+    }
+    return definition;
+}});
+
+ROMData.prototype.updateReferences = function() {
+
+    // update references for children
+    var keys = Object.keys(this.assembly);
+    for (var i = 0; i < keys.length; i++) {
+        var assembly = this.assembly[keys[i]];
+        if (!assembly.updateReferences || !assembly.isDirty || assembly.invalid || assembly.disabled) continue;
+        assembly.updateReferences();
+    }
+    
+    ROMAssembly.prototype.updateReferences.call(this);
+}
+
+ROMData.prototype.assemble = function(data) {
+
+    // assemble children
+    var keys = Object.keys(this.assembly);
+    
+    if (this.isSequential) {
+        // put assemblies in order, back to back
+        var length = 0;
+        var self = this;
+        keys.sort(function(a, b) {
+            var assembly1 = self.assembly[a];
+            var assembly2 = self.assembly[a];
+            return assembly2.range.begin - assembly1.range.begin;
+        });
+        for (var i = 0; i < keys.length; i++) {
+            var key = keys[i];
+            var assembly = this.assembly[key];
+            if (!assembly.assemble || assembly.invalid || assembly.disabled) continue;
+            assembly.relocate(length);
+            length += assembly.assembledLength;
+        }
+        if (length > this.data.length) {
+            // data got longer
+            var newData = new Uint8Array(length);
+            newData.set(this.data);
+            this.data = newData;
+            this.markAsDirty();
+        } else if (length < this.data.length) {
+            // data got shorter
+            this.data = this.data.subarray(length);
+            this.markAsDirty();
+        }
+    }
+    
+    var dirtyAssemblies = [];
+    this.orphans = [];
+    
+    // for optimize mode, mark all relocateable assemblies as dirty
+    if (this.expandMode === ROMData.ExpandMode.optimize) {
+        for (var i = 0; i < keys.length; i++) {
+            var key = keys[i];
+            var assembly = this.assembly[key];
+            if (!assembly.canRelocate) continue;
+
+            this[key]; // this makes sure the assembly is loaded
+            assembly.markAsDirty();
+            this.orphans.push(assembly);
+            dirtyAssemblies.push(assembly);
+            this.addFreeSpace(assembly.range);
+        }
+    }
+    
+    // make an array of dirty assemblies and orphans
+    for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        var assembly = this.assembly[key];
+        
+        // we already dealt with assemblies for optimize mode
+        if (this.expandMode === ROMData.ExpandMode.optimize && assembly.canRelocate) continue;
+        
+        // skip invalid and disabled assemblies
+        if (!assembly.assemble || !assembly.isDirty || assembly.invalid || assembly.disabled) continue;
+        dirtyAssemblies.push(assembly);
+
+        // adjust the assembly's range
+        var newRange = new ROMRange(assembly.range.begin, assembly.range.begin + assembly.assembledLength);
+        this.addFreeSpace(assembly.range);
+        if (this.expandMode === ROMData.ExpandMode.overwrite) {
+            // overwrite adjacent data
+            assembly.relocate(newRange.begin);
+        } else {
+            // truncate to size of free space
+            newRange = this.rangeIsFree(newRange);
+            assembly.relocate(newRange.begin, newRange.end);
+        }
+        
+        // check if the assembly fits
+        if (assembly.range.length < assembly.assembledLength) {
+            this.orphans.push(assembly);
+        } else {
+            this.removeFreeSpace(assembly.range);
+        }
+    }
+
+    // resolve orphans
+    if (!this.orphans.length) this.orphans = null;
+    var success = this.resolveOrphans();
+    
+    // assemble all dirty assemblies
+    for (var i = 0; i < dirtyAssemblies.length; i++) {
+        var assembly = dirtyAssemblies[i];
+        
+        if (assembly.assemble(this.data)) {
+            // assembled successfully
+            assembly.isDirty = false;
+        } else {
+            // failed to assemble
+            success = false;
+        }
+    }
+    
+    // pad free space
+    this.padFreeSpace();
+    
+    return ROMAssembly.prototype.assemble.call(this, data) && success;
+}
+
+ROMData.prototype.resolveOrphans = function() {
+
+    // make sure there are actually some orphans
+    if (!isArray(this.orphans) || !this.orphans.length) return true;
+    
+    // don't bother relocating if we are truncating or overwriting
+    if (this.expandMode === ROMData.ExpandMode.overwrite || this.expandMode === ROMData.ExpandMode.truncate)
+        return false;
+    
+    // sort orphans by assembled length (largest to smallest)
+    this.orphans.sort(function(a, b) { return b.assembledLength - a.assembledLength; });
+    
+    var success = true;
+    
+    var remainingOrphans = [];
+    
+    // try to find new homes for relocateable assemblies
+    for (var o = 0; o < this.orphans.length; o++) {
+        var assembly = this.orphans[o];
+        
+        // always return false if one of the assemblies can't be relocated
+        if (!assembly.canRelocate) {
+            success = false;
+            continue;
+        }
+
+        // look for a new range
+        var range = this.findFreeSpace(assembly.assembledLength, assembly.align);
+        if (range.isEmpty) {
+            // unable to relocate assembly
+            this.rom.log("Unable to relocate assembly: " + assembly.name);
+            remainingOrphans.push(assembly);
+            success = false;
+        } else {
+            // relocate and assemble
+            assembly.relocate(range.begin);
+        }
+        this.removeFreeSpace(assembly.range);
+    }
+    
+    this.orphans = remainingOrphans;
+
+    return success;
+}
+
+ROMData.prototype.addAssembly = function(definition) {
+    var key = definition.key;
+    if (!key) return;
+    var assembly = ROMObject.create(this.rom, definition, this);
+    assembly.parent = this;
+    this.assembly[key] = assembly;
+
+    // create a lazy getter function for this assembly
+    function getter(assembly) {
+        return function() {
+            if (assembly.external) {
+                return this.rom.parseLink(assembly.external.replace("%i", this.i));
+            } else if (!assembly.isLoaded && assembly.disassemble) {
+                // disassemble this assembly if it hasn't been loaded yet
+                assembly.disassemble(this.data);
+            }
+            return assembly;
+        }
+    }
+    
+    Object.defineProperty(this, key, { get: getter(assembly), configurable: true });
+    return assembly;
+}
+
+ROMData.prototype.addFreeSpace = function(freeRange) {
+
+    if (!(freeRange instanceof ROMRange)) return;
+    if (!this.freeSpace) this.freeSpace = [];
+    
+    // copy the range
+    freeRange = new ROMRange(freeRange.begin, freeRange.end);
+    this.freeSpace.push(freeRange);
+    this.cleanUpFreeSpace();
+}
+
+ROMData.prototype.removeFreeSpace = function(range) {
+    var newFreeSpace = [];
+    for (var i = 0; i < this.freeSpace.length; i++) {
+        var overlap = this.freeSpace[i];
+        if (overlap.contains(range.begin)) {
+            var topRange = new ROMRange(overlap.begin, range.begin);
+            if (!topRange.isEmpty) newFreeSpace.push(topRange);
+            overlap.begin = Math.min(overlap.end, range.end);
+        } else if (overlap.contains(range.end)) {
+            var bottomRange = new ROMRange(range.end, overlap.end);
+            if (!bottomRange.isEmpty) newFreeSpace.push(bottomRange);
+            overlap.end = Math.max(overlap.begin, range.begin);
+        }
+    }
+    this.freeSpace.concat(newFreeSpace);
+    this.cleanUpFreeSpace();
+}
+
+ROMData.prototype.cleanUpFreeSpace = function() {
+    if (!this.freeSpace || !this.freeSpace.length) return;
+
+    // sort the ranges (lowest to highest)
+    this.freeSpace.sort(function(a, b) { return a.begin - b.begin; });
+
+    // make a new clean array, combining adjacent ranges and eliminating overlaps
+    var cleanSpace = [];
+    for (var i = 0; i < this.freeSpace.length; i++) {
+        var range1 = this.freeSpace[i];
+        if (!range1 || range1.isEmpty) continue;
+        for (var j = i + 1; j < this.freeSpace.length; j++) {
+            var range2 = this.freeSpace[j];
+            if (range2.isEmpty) continue;
+            
+            // break if not adjacent or overlapping
+            if (range1.end < range2.begin) break;
+            
+            // combine the two ranges
+            range1.end = Math.max(range1.end, range2.end);
+            range2.end = range2.begin;
+        }
+        range1.end = Math.min(range1.end, this.range.length);
+        if (range1.isEmpty) continue;
+        cleanSpace.push(range1);
+    }
+    
+    this.freeSpace = cleanSpace;
+    if (!this.freeSpace.length) this.freeSpace = null;
+}
+
+ROMData.prototype.padFreeSpace = function() {
+    if (!this.freeSpace || !this.freeSpace.length) return;
+    
+    for (var i = 0; i < this.freeSpace.length; i++) {
+        var range = this.freeSpace[i];
+        for (var d = range.begin; d < range.end; d++) {
+            this.data[d] = this.pad;
+        }
+    }
+}
+
+ROMData.prototype.findFreeSpace = function(length, align) {
+
+    align = align || 1;
+    var bestRange = ROMRange.emptyRange;
+    if (!this.freeSpace || !this.freeSpace.length) return bestRange;
+    
+    // find the smallest range of free space that is at least as large as required
+    for (var i = 0; i < this.freeSpace.length; i++) {
+        var range = this.freeSpace[i];
+        var begin = range.begin;
+        
+        // align the range
+        if (this.unmapAddress) begin = this.unmapAddress(begin);
+        if (begin % align) begin = Math.ceil(begin / align + 1) * align;
+        if (this.mapAddress) begin = this.mapAddress(begin);
+        if (begin > range.end) continue;
+        
+        // TODO: if the data is smaller than one bank, make sure it doesn't straddle two banks
+        
+        range = new ROMRange(begin, range.end);
+        if (range.length < length) continue;
+        if (bestRange.isEmpty || range.length < bestRange.length)
+            bestRange = range;
+    }
+    return bestRange;
+}
+
+ROMData.prototype.rangeIsFree = function(range) {
+    if (!this.freeSpace || !this.freeSpace.length) return ROMRange.emptyRange;
+    for (var i = 0; i < this.freeSpace.length; i++) {
+        var intersection = this.freeSpace[i].intersection(range);
+        if (!intersection.isEmpty) return intersection;
+    }
+    return ROMRange.emptyRange;
+}
+
+// ROM
+function ROM(rom, definition) {
+
+    this.crc32 = Number(definition.crc32);
+    this.system = definition.system;
+    this.mode = definition.mode;
+    this.editors = {};
+    this.pointerLength = Number(definition.pointerLength);
+    if (!isNumber(this.pointerLength)) { this.pointerLength = 2; }
+
+    var i, key, keys;
+    
+    // copy character tables
+    this.charTable = {};
+    if (definition.charTable) {
+        keys = Object.keys(definition.charTable);
+        for (i = 0; i < keys.length; i++) {
+            key = keys[i];
+            definition.charTable[key].key = key;
+            this.charTable[key] = new ROMCharTable(this, definition.charTable[key], this);
+        }
+    }
+    
+    // create text encodings
+    this.textEncoding = {};
+    if (definition.textEncoding) {
+        keys = Object.keys(definition.textEncoding);
+        for (i = 0; i < keys.length; i++) {
+            key = keys[i];
+            definition.textEncoding[key].key = key;
+            this.textEncoding[key] = new ROMTextEncoding(this, definition.textEncoding[key], this);
+        }
+    }
+
+    // load string tables
+    this.stringTable = {};
+    if (definition.stringTable) {
+        keys = Object.keys(definition.stringTable);
+        for (i = 0; i < keys.length; i++) {
+            key = keys[i];
+            definition.stringTable[key].key = key;
+            var stringTable = new ROMStringTable(this, definition.stringTable[key], this);
+            stringTable.key = key;
+            this.stringTable[key] = stringTable;
+        }
+    }
+
+    // create script encodings
+    this.scriptEncoding = {};
+    if (definition.scriptEncoding) {
+        keys = Object.keys(definition.scriptEncoding);
+        for (i = 0; i < keys.length; i++) {
+            key = keys[i];
+            definition.scriptEncoding[key].key = key;
+            this.scriptEncoding[key] = new ROMScriptEncoding(this, definition.scriptEncoding[key], this);
+        }
+    }
+    
+    this.observer = new ROMObserver(this, this, {sub: true, link: true, label: true});
+    this.selection = {current: null, previous: [], next: []};
+    this.undoStack = [];
+    this.redoStack = [];
+    this.action = null;
+
+    // create the assemblies
+    ROMData.call(this, this, definition);
+}
+
+ROM.prototype = Object.create(ROMData.prototype);
+ROM.prototype.constructor = ROM;
+
+Object.defineProperty(ROM.prototype, "definition", { get: function() {
+    var definition = Object.getOwnPropertyDescriptor(ROMData.prototype, "definition").get.call(this);
+
+    delete definition.range;
+    definition.length = hexString(this.data.length);
+    definition.crc32 = hexString(ROM.crc32(this.data), 8);
+    definition.system = this.system;
+    definition.mode = this.mode;
+    if (this.pointerLength != 2) { definition.pointerLength = this.pointerLength; }
+
+    var keys, key;
+    
+    // create character table definitions
+    definition.charTable = {};
+    keys = Object.keys(this.charTable);
+    for (i = 0; i < keys.length; i++) {
+        key = keys[i];
+        definition.charTable[key] = this.charTable[key].definition;
+    }
+
+    // create text encoding definitions
+    definition.textEncoding = {};
+    keys = Object.keys(this.textEncoding);
+    for (i = 0; i < keys.length; i++) {
+        key = keys[i];
+        definition.textEncoding[key] = this.textEncoding[key].definition;
+    }
+
+    // create string table definitions
+    definition.stringTable = {};
+    keys = Object.keys(this.stringTable);
+    for (var i = 0; i < keys.length; i++) {
+        key = keys[i];
+        var stringTable = this.stringTable[key];
+        var assemblyDefinition = this.parseLink(key, definition.assembly);
+        if (!isString(assemblyDefinition)) {
+            assemblyDefinition.stringTable = stringTable.definition;
+        } else {
+            definition.stringTable[key] = stringTable.definition;
+        }
+    }
+
+    // create script encoding definitions
+    definition.scriptEncoding = {};
+    keys = Object.keys(this.scriptEncoding);
+    for (i = 0; i < keys.length; i++) {
+        key = keys[i];
+        definition.scriptEncoding[key] = this.scriptEncoding[key].definition;
+    }
+
+    return definition;
+}});
+
+ROM.prototype.assemble = function(data) {
+
+    // mark modified assemblies as dirty
+    function markDirty(action) {
+        
+        if (isArray(action)) {
+            action.forEach(markDirty);
+            return;
+        }
+        if (!action.object || !action.object.markAsDirty) return;
+        action.object.markAsDirty();
+    }
+    
+    this.undoStack.forEach(markDirty);
+    this.redoStack.forEach(markDirty);
+
+    // do a first pass assemble to trigger auto-relocation
+    // this will also dirty up a lot of things when references get updated
+    ROMData.prototype.assemble.call(this, this.data);
+    
+    // do a second pass
+    var success = ROMData.prototype.assemble.call(this, this.data);
+
+    // fix the SNES checksum
+    this.fixChecksum();
+
+    return success;
+}
+
+ROM.prototype.expand = function(length) {
+    if (length <= this.data.length) return;
+    
+    var freeRange = new ROMRange(this.range.end, length);
+
+    // expand the rom
+    var expandedData = new Uint8Array(length);
+    expandedData.set(this.data);
+    this.data = expandedData;
+    this.range.end = this.range.begin + length;
+    this.markAsDirty();
+    
+    // add free space
+    this.addFreeSpace(freeRange);
+    
+    // update the snes header
+    if (this.system === ROM.System.sfc && this.snesHeader) {
+        var mbit = 1024 * 1024 / 8;
+        var romSize = null;
+        if (length <= 4*mbit) {
+            romSize = 9;
+        } else if (length <= 8*mbit) {
+            romSize = 10;
+        } else if (length <= 16*mbit) {
+            romSize = 11;
+        } else if (length <= 32*mbit) {
+            romSize = 12;
+        } else if (length <= 64*mbit) {
+            romSize = 13;
+        } else {
+            return;
+        }
+        this.snesHeader.romSize.value = romSize;
+        this.snesHeader.romSize.markAsDirty();
+        this.snesHeader.assemble(this.data);
+    }
+}
+
+ROM.prototype.log = function(text) {
+    console.log(text);
+}
+
+ROM.System = {
+    none: "none",
+    nes: "nes",
+    sfc: "sfc",
+    gba: "gba",
+    psx: "psx"
+}
+
+Object.defineProperty(ROM.prototype, "isNES", { get: function() { return this.system === ROM.System.nes; } });
+Object.defineProperty(ROM.prototype, "isSFC", { get: function() { return this.system === ROM.System.sfc; } });
+Object.defineProperty(ROM.prototype, "isGBA", { get: function() { return this.system === ROM.System.gba; } });
+Object.defineProperty(ROM.prototype, "isPSX", { get: function() { return this.system === ROM.System.psx; } });
+
+ROM.MapMode = {
+    none: "none",
+    mmc1: "mmc1",
+    loROM: "loROM",
+    hiROM: "hiROM",
+    gba: "gba",
+    psx: "psx"
+}
+
+ROM.prototype.bankSize = function() {
+    switch (this.mode) {
+        case ROM.MapMode.mmc1: return 0x4000;
+        case ROM.MapMode.loROM: return 0x8000;
+        case ROM.MapMode.hiROM: return 0x10000;
+        default: return 0x10000;
+    }
+}
+
+ROM.prototype.mapAddress = function(address) {
+    switch (this.mode) {
+        case ROM.MapMode.mmc1:
+            var bank = address & 0xFF0000;
+            return (bank >> 2) + (address & 0xFFFF) - 0x8000 + 0x10;
+
+        case ROM.MapMode.loROM:
+            var bank = address & 0xFF0000;
+            return (bank >> 1) + (address & 0xFFFF) - 0x8000;
+
+        case ROM.MapMode.hiROM:
+            if (address >= 0xC00000) {
+                return address - 0xC00000;
+            } else if (address >= 0x800000) {
+                return address - 0x800000;
+            } else {
+                return address;
+            }
+
+        case ROM.MapMode.gba:
+            if (address >= 0x08000000) {
+                return address - 0x08000000;
+            } else {
+                return address;
+            }
+
+        case ROM.MapMode.None:
+        default:
+            return address;
+    }
+}
+
+ROM.prototype.mapRange = function(range) {
+    var begin = this.mapAddress(range.begin);
+    var end = this.mapAddress(range.end);
+    return new ROMRange(begin, end);
+}
+
+ROM.prototype.unmapAddress = function(address) {
+    switch (this.mode) {
+        case ROM.MapMode.mmc1:
+            address -= 0x10; // header
+            var bank = (address << 2) & 0xFF0000;
+            return bank | (address & 0x3FFF) | 0x8000;
+
+        case ROM.MapMode.loROM:
+            var bank = (address << 1) & 0xFF0000;
+            return bank | (address & 0x7FFF) | 0x8000;
+
+        case ROM.MapMode.hiROM:
+            return address + 0xC00000;
+
+        case ROM.MapMode.gba:
+            return address | 0x08000000;
+
+        case ROM.MapMode.None:
+        default:
+            return address;
+    }
+}
+
+ROM.prototype.unmapRange = function(range) {
+    var begin = this.unmapAddress(range.begin);
+    var end = this.unmapAddress(range.end);
+    return new ROMRange(begin, end);
+}
+
+ROM.prototype.fixChecksum = function() {
+    if (!this.isSFC || !this.snesHeader) return;
+    
+    this.snesHeader.checksum.value = 0;
+    this.snesHeader.checksumInverse.value = 0xFFFF;
+    
+    var checksum = ROM.checksum(this.data);
+    this.snesHeader.checksum.value = checksum;
+    this.snesHeader.checksum.markAsDirty();
+    this.snesHeader.checksumInverse.value = checksum ^ 0xFFFF;
+    this.snesHeader.checksumInverse.markAsDirty();
+    
+    this.snesHeader.assemble(this.data);
+}
+
+ROM.checksum = function(data) {
+
+    function calcSum(data) {
+        var sum = 0;
+        for (var i = 0; i < data.length; i++) sum += data[i];
+        return sum & 0xFFFF;
+    }
+    
+    function mirrorSum(data, mask) {
+        while (!(data.length & mask)) mask >>= 1;
+        
+        var part1 = calcSum(data.slice(0, mask));
+        var part2 = 0;
+        
+        var nextLength = data.length - mask;
+        if (nextLength) {
+            part2 = mirrorSum(data.slice(mask), nextLength, mask >> 1);
+            
+            while (nextLength < mask) {
+                nextLength += nextLength;
+                part2 += part2;
+            }
+        }
+        return (part1 + part2) & 0xFFFF;
+    }
+    
+    return mirrorSum(data, 0x800000);
+}
+
+ROM.crc32Table = [
+    0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f,
+    0xe963a535, 0x9e6495a3, 0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988,
+    0x09b64c2b, 0x7eb17cbd, 0xe7b82d07, 0x90bf1d91, 0x1db71064, 0x6ab020f2,
+    0xf3b97148, 0x84be41de, 0x1adad47d, 0x6ddde4eb, 0xf4d4b551, 0x83d385c7,
+    0x136c9856, 0x646ba8c0, 0xfd62f97a, 0x8a65c9ec, 0x14015c4f, 0x63066cd9,
+    0xfa0f3d63, 0x8d080df5, 0x3b6e20c8, 0x4c69105e, 0xd56041e4, 0xa2677172,
+    0x3c03e4d1, 0x4b04d447, 0xd20d85fd, 0xa50ab56b, 0x35b5a8fa, 0x42b2986c,
+    0xdbbbc9d6, 0xacbcf940, 0x32d86ce3, 0x45df5c75, 0xdcd60dcf, 0xabd13d59,
+    0x26d930ac, 0x51de003a, 0xc8d75180, 0xbfd06116, 0x21b4f4b5, 0x56b3c423,
+    0xcfba9599, 0xb8bda50f, 0x2802b89e, 0x5f058808, 0xc60cd9b2, 0xb10be924,
+    0x2f6f7c87, 0x58684c11, 0xc1611dab, 0xb6662d3d, 0x76dc4190, 0x01db7106,
+    0x98d220bc, 0xefd5102a, 0x71b18589, 0x06b6b51f, 0x9fbfe4a5, 0xe8b8d433,
+    0x7807c9a2, 0x0f00f934, 0x9609a88e, 0xe10e9818, 0x7f6a0dbb, 0x086d3d2d,
+    0x91646c97, 0xe6635c01, 0x6b6b51f4, 0x1c6c6162, 0x856530d8, 0xf262004e,
+    0x6c0695ed, 0x1b01a57b, 0x8208f4c1, 0xf50fc457, 0x65b0d9c6, 0x12b7e950,
+    0x8bbeb8ea, 0xfcb9887c, 0x62dd1ddf, 0x15da2d49, 0x8cd37cf3, 0xfbd44c65,
+    0x4db26158, 0x3ab551ce, 0xa3bc0074, 0xd4bb30e2, 0x4adfa541, 0x3dd895d7,
+    0xa4d1c46d, 0xd3d6f4fb, 0x4369e96a, 0x346ed9fc, 0xad678846, 0xda60b8d0,
+    0x44042d73, 0x33031de5, 0xaa0a4c5f, 0xdd0d7cc9, 0x5005713c, 0x270241aa,
+    0xbe0b1010, 0xc90c2086, 0x5768b525, 0x206f85b3, 0xb966d409, 0xce61e49f,
+    0x5edef90e, 0x29d9c998, 0xb0d09822, 0xc7d7a8b4, 0x59b33d17, 0x2eb40d81,
+    0xb7bd5c3b, 0xc0ba6cad, 0xedb88320, 0x9abfb3b6, 0x03b6e20c, 0x74b1d29a,
+    0xead54739, 0x9dd277af, 0x04db2615, 0x73dc1683, 0xe3630b12, 0x94643b84,
+    0x0d6d6a3e, 0x7a6a5aa8, 0xe40ecf0b, 0x9309ff9d, 0x0a00ae27, 0x7d079eb1,
+    0xf00f9344, 0x8708a3d2, 0x1e01f268, 0x6906c2fe, 0xf762575d, 0x806567cb,
+    0x196c3671, 0x6e6b06e7, 0xfed41b76, 0x89d32be0, 0x10da7a5a, 0x67dd4acc,
+    0xf9b9df6f, 0x8ebeeff9, 0x17b7be43, 0x60b08ed5, 0xd6d6a3e8, 0xa1d1937e,
+    0x38d8c2c4, 0x4fdff252, 0xd1bb67f1, 0xa6bc5767, 0x3fb506dd, 0x48b2364b,
+    0xd80d2bda, 0xaf0a1b4c, 0x36034af6, 0x41047a60, 0xdf60efc3, 0xa867df55,
+    0x316e8eef, 0x4669be79, 0xcb61b38c, 0xbc66831a, 0x256fd2a0, 0x5268e236,
+    0xcc0c7795, 0xbb0b4703, 0x220216b9, 0x5505262f, 0xc5ba3bbe, 0xb2bd0b28,
+    0x2bb45a92, 0x5cb36a04, 0xc2d7ffa7, 0xb5d0cf31, 0x2cd99e8b, 0x5bdeae1d,
+    0x9b64c2b0, 0xec63f226, 0x756aa39c, 0x026d930a, 0x9c0906a9, 0xeb0e363f,
+    0x72076785, 0x05005713, 0x95bf4a82, 0xe2b87a14, 0x7bb12bae, 0x0cb61b38,
+    0x92d28e9b, 0xe5d5be0d, 0x7cdcefb7, 0x0bdbdf21, 0x86d3d2d4, 0xf1d4e242,
+    0x68ddb3f8, 0x1fda836e, 0x81be16cd, 0xf6b9265b, 0x6fb077e1, 0x18b74777,
+    0x88085ae6, 0xff0f6a70, 0x66063bca, 0x11010b5c, 0x8f659eff, 0xf862ae69,
+    0x616bffd3, 0x166ccf45, 0xa00ae278, 0xd70dd2ee, 0x4e048354, 0x3903b3c2,
+    0xa7672661, 0xd06016f7, 0x4969474d, 0x3e6e77db, 0xaed16a4a, 0xd9d65adc,
+    0x40df0b66, 0x37d83bf0, 0xa9bcae53, 0xdebb9ec5, 0x47b2cf7f, 0x30b5ffe9,
+    0xbdbdf21c, 0xcabac28a, 0x53b39330, 0x24b4a3a6, 0xbad03605, 0xcdd70693,
+    0x54de5729, 0x23d967bf, 0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94,
+    0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d ];
+
+// CRC32 for uint8 arrays
+ROM.crc32 = function(data) {
+    var crc32 = ~0;
+    for (var i = 0; i < data.length; i++)
+        crc32 = ((crc32 >> 8) & 0x00FFFFFF) ^ ROM.crc32Table[(crc32 ^ data[i]) & 0xFF];
+
+    return (~crc32) >>> 0;
+}
+
+ROM.dataFormat = {
+    // generic formats
+    "bgr555": {
+        encode: GFX.encodeBGR555,
+        decode: GFX.decodeBGR555
+    },
+    "byteSwapped": {
+        encode: function(data) {
+            return data.reverse();
+        },
+        decode: function(data) {
+            return data.reverse();
+        }
+    },
+    "interlace": {
+        encode: function(data, word, layers, stride) {
+            var src = data;
+            var s = 0;
+            var dest = new Uint8Array(data.length);
+            var d = 0;
+            var step = word * layers; // 2
+            var block = word * stride * layers; // 512
+            while (s < src.length) {
+                var s1 = s;
+                while ((s1 - s) < step) {
+                    var s2 = s1;
+                    while ((s2 - s) < block) {
+                        dest.set(src.subarray(s2, s2 + word), d);
+                        d += word;
+                        s2 += step;
+                    }
+                    s1 += word;
+                }
+                s += block;
+            }
+            
+            return dest;
+        },
+        decode: function(data, word, layers, stride) {
+            var src = data;
+            var s = 0;
+            var dest = new Uint8Array(data.length);
+            var d = 0;
+            var block = word * stride * layers; // 512
+            while (s < src.length) {
+                var s1 = s;
+                while ((s1 - s) < stride * word) {
+                    var s2 = s1;
+                    while ((s2 - s) < block) {
+                        dest.set(src.subarray(s2, s2 + word), d);
+                        d += word;
+                        s2 += stride * word;
+                    }
+                    s1 += word;
+                }
+                s += block;
+            }
+            
+            return dest;
+        }
+    },
+    "linear1bpp": {
+        encode: GFX.encodeLinear1bpp,
+        decode: GFX.decodeLinear1bpp
+    },
+    "linear2bpp": {
+        encode: GFX.encodeLinear2bpp,
+        decode: GFX.decodeLinear2bpp
+    },
+    "linear4bpp": {
+        encode: GFX.encodeLinear4bpp,
+        decode: GFX.decodeLinear4bpp
+    },
+    "nes2bpp": {
+        encode: GFX.encodeNES2bpp,
+        decode: GFX.decodeNES2bpp
+    },
+    "nesPalette": {
+        encode: GFX.encodeNESPalette,
+        decode: GFX.decodeNESPalette
+    },
+    "none": {
+        encode: function(data) { return data; },
+        decode: function(data) { return data; }
+    },
+    "snes2bpp": {
+        encode: GFX.encodeSNES2bpp,
+        decode: GFX.decodeSNES2bpp
+    },
+    "snes3bpp": {
+        encode: GFX.encodeSNES3bpp,
+        decode: GFX.decodeSNES3bpp
+    },
+    "snes4bpp": {
+        encode: GFX.encodeSNES4bpp,
+        decode: GFX.decodeSNES4bpp
+    },
+    "terminated": {
+        encode: function(data, terminator) {
+            terminator = terminator || 0;
+//            if (data[data.length - 1] === terminator) return data;
+            var newData = new Uint8Array(data.length + 1);
+            newData.set(data);
+            newData[newData.length - 1] = terminator;
+            return newData;
+        },
+        decode: function(data, terminator) {
+//            terminator = terminator || 0;
+//            if (data[data.length - 1] !== terminator) return data;
+            return data.subarray(0, data.length - 1);
+        }
+    },
+    
+    // game-specific formats
+    "ff1-map": {
+        encode: function(data) {
+            var src = data;
+            var s = 0; // source pointer
+            var dest = new Uint8Array(4096);
+            var d = 0;
+            var b, l;
+
+            while (s < src.length) {
+                b = src[s++];
+                l = 0;
+                while (b === src[s + l]) l++;
+                if (l > 255) {
+                    dest[d++] = b | 0x80;
+                    dest[d++] = 0;
+                    s += 255;
+                } else if (l > 2) {
+                    dest[d++] = b | 0x80;
+                    dest[d++] = l + 1;
+                    s += l;
+                } else {
+                    dest[d++] = b;
+                }
+            }
+            dest[d++] = 0xFF;
+
+            return dest.slice(0, d);
+        },
+        decode: function(data) {
+            var src = data;
+            var s = 0; // source pointer
+            var dest = new Uint8Array(4096);
+            var d = 0; // destination pointer
+            var b, l;
+
+            while (s < src.length) {
+                b = src[s++];
+                if (b === 0xFF) break;
+                if (b & 0x80) {
+                    l = src[s++] || 256;
+                    b &= 0x7F;
+                    while (l--) dest[d++] = b;
+                } else {
+                    dest[d++] = b;
+                }
+            }
+            return dest.slice(0, d);
+        }
+    },
+    "ff1-shop": {
+        encode: function(data) {
+            var newData = new Uint8Array(5);
+            var d = 0;
+            for (var i = 0; i < 4; i++) {
+                if (!data[i]) continue;
+                newData[d++] = data[i];
+            }
+            newData[d++] = 0;
+            return newData.slice(0, d);
+        },
+        decode: function(data) {
+            var newData = new Uint8Array(4);
+            for (var i = 0; i < data.length; i++) {
+                newData[i] = data[i];
+            }
+            return newData;
+        }
+    },
+    "ff4-battlebg": {
+        encode: function(data) {
+            var newData = new Uint8Array(data.length);
+            for (var i = 0; i < data.length; i++) {
+                var t = (data[i] - 1) & 0x3F;
+                var p = (data[i] - 0x0400) & 0x0400;
+                var v = (data[i] & 0x8000);
+                newData[i] = t | (p >> 4) | (v >> 8);
+            }
+            return newData;
+        },
+        decode: function(data) {
+            var newData = new Uint16Array(data.length);
+            for (var i = 0; i < data.length; i++) {
+                var t = data[i] & 0x3F;
+                var p = (data[i] & 0x40) + 0x40;
+                var v = data[i] & 0x80;
+                newData[i] = (t + 0x0201) | (p << 4) | (v << 8);
+            }
+            return newData;
+        }
+    },
+    "ff4-monster": {
+        encode: function(data) {
+            var newData = new Uint8Array(20);
+            newData.set(data.subarray(0, 9));
+            var flags = 0;
+            var i = 10;
+            if (data[10] || data[11] || data[12]) {
+                flags |= 0x80;
+                newData.set(data.subarray(10, 13), i);
+                i += 3
+            }
+            if (data[13] || data[14] || data[15]) {
+                flags |= 0x40;
+                newData.set(data.subarray(13, 16), i);
+                i += 3
+            }
+            if (data[16]) {
+                flags |= 0x20;
+                newData[i++] = data[16];
+            }
+            if (data[17]) {
+                flags |= 0x10;
+                newData[i++] = data[17];
+            }
+            if (data[18]) {
+                flags |= 0x08;
+                newData[i++] = data[18];
+            }
+            if (data[19]) {
+                flags |= 0x04;
+                newData[i++] = data[19];
+            }
+            newData[9] = flags;
+            return newData.slice(0, i);
+        },
+        decode: function(data) {
+            var newData = new Uint8Array(20);
+            newData.set(data.subarray(0, 9));
+            var flags = data[9];
+            var i = 10;
+            if (flags & 0x80) {
+                newData.set(data.subarray(i, i + 3), 10);
+                i += 3;
+            }
+            if (flags & 0x40) {
+                newData.set(data.subarray(i, i + 3), 13);
+                i += 3;
+            }
+            if (flags & 0x20) newData[16] = data[i++];
+            if (flags & 0x10) newData[17] = data[i++];
+            if (flags & 0x08) newData[18] = data[i++];
+            if (flags & 0x04) newData[19] = data[i++];
+            return newData;
+        }
+    },
+    "ff4-world": {
+        encode: function(data) {
+            var src = data;
+            var s = 0; // source pointer
+            var dest = new Uint8Array(256);
+            var d = 0;
+            var b, l;
+
+            while (s < src.length) {
+                b = src[s++];
+                if ((b === 0x00) || (b === 0x10) || (b === 0x20) || (b === 0x30)) {
+                    dest[d++] = b;
+                    s += 3;
+                    continue;
+                }
+                l = 0;
+                while (b === src[s + l]) l++;
+                if (l > 1) {
+                    dest[d++] = b | 0x80;
+                    dest[d++] = l;
+                    s += l;
+                } else {
+                    dest[d++] = b;
+                }
+            }
+
+            return dest.slice(0, d);
+        },
+        decode: function(data) {
+            var src = data;
+            var s = 0; // source pointer
+            var dest = new Uint8Array(256);
+            var d = 0; // destination pointer
+            var b, l;
+
+            while (s < src.length) {
+                b = src[s++];
+                if (b & 0x80) {
+                    l = src[s++] + 1;
+                    b &= 0x7F;
+                    while (l--) dest[d++] = b;
+                } else if ((b === 0x00) || (b === 0x10) || (b === 0x20) || (b === 0x30)) {
+                    dest[d++] = b;
+                    dest[d++] = (b >> 4) * 3 + 0x70;
+                    dest[d++] = (b >> 4) * 3 + 0x71;
+                    dest[d++] = (b >> 4) * 3 + 0x72;
+                } else {
+                    dest[d++] = b;
+                }
+            }
+            return dest.slice(0, d);
+        }
+    },
+    "ff4-map": {
+        encode: function(data) {
+            var src = data;
+            var s = 0; // source pointer
+            var dest = new Uint8Array(1024);
+            var d = 0;
+            var b, l;
+
+            while (s < src.length) {
+                b = src[s];
+                l = 1;
+                while (b === src[s + l]) l++;
+                if (l > 2) {
+                    l = Math.min(l, 255);
+                    dest[d++] = b | 0x80;
+                    dest[d++] = l - 1;
+                    s += l;
+                } else {
+                    dest[d++] = b;
+                    s++;
+                }
+            }
+            return dest.slice(0, d);
+        },
+        decode: function(data) {
+            var src = data;
+            var s = 0; // source pointer
+            var dest = new Uint8Array(1024);
+            var d = 0; // destination pointer
+            var b, l;
+
+            while (s < src.length) {
+                b = src[s++];
+                if (b & 0x80) {
+                    l = src[s++] + 1;
+                    b &= 0x7F;
+                    while (l--) dest[d++] = b;
+                } else {
+                    dest[d++] = b;
+                }
+            }
+            return dest.slice(0, d);
+        }
+    },
+    "ff5-battlebg": {
+        encode: function(data) {
+            return data;
+        },
+        decode: function(data) {
+            var newData = new Uint16Array(0x0280);
+            var s = 0;
+            var d = 0;
+            while (d < 0x0280) {
+                var b = data[s++];
+                if (b !== 0xFF) {
+                    newData[d++] = b;
+                    continue;
+                }
+                
+                b = data[s++];
+                var t1 = data[s++];
+                var t2 = data[s++];
+                
+                if (b & 0x80) {
+                    b &= 0x3F;
+                    for (var i = 0; i < b; i++) {
+                        newData[d++] = t1;
+                        newData[d++] = t2;
+                    }
+                } else if (b & 0x40) {
+                    b &= 0x3F;
+                    for (var i = 0; i < b; i++) {
+                        newData[d++] = t1;
+                        t1 -= t2;
+                    }
+                } else {
+                    b &= 0x3F;
+                    for (var i = 0; i < b; i++) {
+                        newData[d++] = t1;
+                        t1 += t2;
+                    }
+                }
+            }
+            for (var i = 0; i < 0x0280; i++) {
+                var b = newData[i];
+                if (b & 0x80) {
+                    newData[i] |= 0x0880;
+                } else {
+                    newData[i] |= 0x0480;
+                }
+            }
+            return newData;
+        }
+    },
+    "ff5-battlebgflip": {
+        encode: function(data) {
+            return newData;
+        },
+        decode: function(data) {
+            var newData = new Uint8Array(0x0280);
+            var s = 0;
+            var d = 0;
+            while (d < 0x0280) {
+                var b = data[s++];
+                if (b === 0) {
+                    // repeat zero
+                    var c = data[s++] * 8;
+                    for (var i = 0; i < c; i++) newData[d++] = 0;
+                    continue;
+                }
+                
+                for (var i = 0; i < 8; i++) {
+                    newData[d++] = b & 0x80;
+                    b <<= 1;
+                }
+            }
+            return newData;
+        }
+    },
+    "ff5-world": {
+        encode: function(data) {
+            var src = data;
+            var s = 0; // source pointer
+            var dest = new Uint8Array(256);
+            var d = 0;
+            var b, l;
+
+            while (s < 256) {
+                b = src[s++];
+                if ((b === 0x0C) || (b === 0x1C) || (b === 0x2C)) {
+                    dest[d++] = b;
+                    s += 2;
+                    continue;
+                }
+                l = 0;
+                while (b === src[s + l]) l++;
+                if (l > 1) {
+                    l = Math.min(l, 32);
+                    dest[d++] = 0xC0 + l;
+                    dest[d++] = b;
+                    s += l;
+                } else {
+                    dest[d++] = b;
+                }
+            }
+
+            return dest.slice(0, d);
+        },
+        decode: function(data) {
+            var src = data;
+            var s = 0; // source pointer
+            var dest = new Uint8Array(256);
+            var d = 0; // destination pointer
+            var b, l;
+
+            while (s < src.length) {
+                b = src[s++];
+                if (b > 0xBF) {
+                    l = b - 0xBF;
+                    b = src[s++];
+                    while (l--) dest[d++] = b;
+                } else if ((b === 0x0C) || (b === 0x1C) || (b === 0x2C)) {
+                    dest[d++] = b;
+                    dest[d++] = b + 1;
+                    dest[d++] = b + 2;
+                } else {
+                    dest[d++] = b;
+                }
+            }
+            return dest;
+        }
+    },
+    "ff5-lzss": {
+        encode: function(data) {
+
+            // create a source buffer preceded by 2K of empty space (this increases compression for some data)
+            var src = new Uint8Array(0x0800 + data.length);
+            src.set(data, 0x0800);
+            var s = 0x0800; // start at 0x0800 to ignore the 2K of empty space
+
+            var dest = new Uint8Array(0x10000);
+            var d = 2; // start at 2 so we can fill in the length at the end
+
+            var header = 0;
+            var line = new Uint8Array(17);
+
+            var l = 1; // start at 1 so we can fill in the header at the end
+            var b = 0x07DE; // buffer position
+            var p = 0;
+            var pMax, len, lenMax;
+
+            var w;
+            var mask = 1;
+
+            while (s < src.length) {
+                // find the longest sequence that matches the decompression buffer
+                lenMax = 0;
+                pMax = 0;
+                for (p = 1; p <= 0x0800; p++) {
+                    len = 0;
+
+                    while ((len < 34) && (s + len < src.length) && (src[s + len - p] == src[s + len]))
+                        len++;
+
+                    if (len > lenMax) {
+                        // this sequence is longer than any others that have been found so far
+                        lenMax = len;
+                        pMax = (b - p) & 0x07FF;
+                    }
+                }
+
+                // check if the longest sequence is compressible
+                if (lenMax >= 3) {
+                    // sequence is compressible - add compressed data to line buffer
+                    w = pMax & 0xFF;
+                    w |= (pMax & 0x0700) << 5;
+                    w |= (lenMax - 3) << 8;
+                    line[l++] = w & 0xFF;
+                    w >>= 8;
+                    line[l++] = w & 0xFF;
+                    s += lenMax;
+                    b += lenMax;
+                } else {
+                    // sequence is not compressible - update header byte and add byte to line buffer
+                    header |= mask;
+                    line[l++] = src[s];
+                    s++;
+                    b++;
+                }
+
+                b &= 0x07FF;
+                mask <<= 1;
+
+                if (mask == 0x0100) {
+                    // finished a line, copy it to the destination
+                    line[0] = header;
+
+                    dest.set(line.subarray(0, l), d);
+                    d += l;
+                    header = 0;
+                    l = 1;
+                    mask = 1;
+                }
+            }
+
+            if (mask != 1) {
+                // we're done with all the data but we're still in the middle of a line
+                line[0] = header;
+                dest.set(line.subarray(0, l), d);
+                d += l;
+            }
+
+            // fill in the length
+            dest[0] = data.length & 0xFF;
+            dest[1] = (data.length >> 8) & 0xFF;
+
+            return dest.slice(0, d);
+        },
+        decode: function(data) {
+            var src = data;
+            var s = 0; // source pointer
+            var dest = new Uint8Array(0x10000);
+            var d = 0; // destination pointer
+            var buffer = new Uint8Array(0x0800);
+            var b = 0x07DE;
+            var line = new Uint8Array(34);
+            var header, pass, r, w, c, i, l;
+
+            var length = src[s++] | (src[s++] << 8);
+            while (d < length) { // ff5
+
+                // read header
+                header = src[s++];
+
+                for (pass = 0; pass < 8; pass++, header >>= 1) {
+                    l = 0;
+                    if (header & 1) {
+                        // single byte (uncompressed)
+                        c = src[s++];
+                        line[l++] = c;
+                        buffer[b++] = c;
+                        b &= 0x07FF;
+                    } else {
+                        // 2-bytes (compressed)
+                        w = src[s++];
+                        r = src[s++];
+                        w |= (r & 0xE0) << 3;
+                        r = (r & 0x1F) + 3;
+
+                        for (i = 0; i < r; i++) {
+                            c = buffer[(w + i) & 0x07FF];
+                            line[l++] = c;
+                            buffer[b++] = c;
+                            b &= 0x07FF;
+                        }
+                    }
+                    if ((d + l) > dest.length) {
+                        // maximum buffer length exceeded
+                        dest.set(line.subarray(0, dest.length - d), d)
+                        return dest;
+                    } else {
+                        // copy this pass to the destination buffer
+                        dest.set(line.subarray(0, l), d)
+                        d += l;
+                    }
+
+                    // reached end of compressed data
+                    if (d >= length) break; // ff5
+                }
+            }
+
+            return dest.slice(0, d);
+        }
+    },
+    "ff6-lzss": {
+        encode: function(data) {
+    
+            // create a source buffer preceded by 2K of empty space (this increases compression for some data)
+            var src = new Uint8Array(0x0800 + data.length);
+            src.set(data, 0x0800);
+            var s = 0x0800; // start at 0x0800 to ignore the 2K of empty space
+
+            var dest = new Uint8Array(0x10000);
+            var d = 2; // start at 2 so we can fill in the length at the end
+
+            var header = 0;
+            var line = new Uint8Array(17);
+
+            var l = 1; // start at 1 so we can fill in the header at the end
+            var b = 0x07DE; // buffer position
+            var p = 0;
+            var pMax, len, lenMax;
+
+            var w;
+            var mask = 1;
+
+            while (s < src.length) {
+                // find the longest sequence that matches the decompression buffer
+                lenMax = 0;
+                pMax = 0;
+                for (p = 1; p <= 0x0800; p++) {
+                    len = 0;
+
+                    while ((len < 34) && (s + len < src.length) && (src[s + len - p] == src[s + len]))
+                        len++;
+
+                    if (len > lenMax) {
+                        // this sequence is longer than any others that have been found so far
+                        lenMax = len;
+                        pMax = (b - p) & 0x07FF;
+                    }
+                }
+
+                // check if the longest sequence is compressible
+                if (lenMax >= 3) {
+                    // sequence is compressible - add compressed data to line buffer
+                    w = ((lenMax - 3) << 11) | pMax;
+                    line[l++] = w & 0xFF;
+                    w >>= 8;
+                    line[l++] = w & 0xFF;
+                    s += lenMax;
+                    b += lenMax;
+                } else {
+                    // sequence is not compressible - update header byte and add byte to line buffer
+                    header |= mask;
+                    line[l++] = src[s];
+                    s++;
+                    b++;
+                }
+
+                b &= 0x07FF;
+                mask <<= 1;
+
+                if (mask == 0x0100) {
+                    // finished a line, copy it to the destination
+                    line[0] = header;
+
+                    dest.set(line.subarray(0, l), d);
+                    d += l;
+                    header = 0;
+                    l = 1;
+                    mask = 1;
+                }
+            }
+
+            if (mask != 1) {
+                // we're done with all the data but we're still in the middle of a line
+                line[0] = header;
+                dest.set(line.subarray(0, l), d);
+                d += l;
+            }
+
+            // fill in the length
+            dest[0] = d & 0xFF;
+            dest[1] = (d >> 8) & 0xFF;
+
+            return dest.slice(0, d);
+        },
+        decode: function(data) {
+            var src = data;
+            var s = 0; // source pointer
+            var dest = new Uint8Array(0x10000);
+            var d = 0; // destination pointer
+            var buffer = new Uint8Array(0x0800);
+            var b = 0x07DE;
+            var line = new Uint8Array(34);
+            var header, pass, r, w, c, i, l;
+
+            var length = src[s++] | (src[s++] << 8);
+            while (s < length) {
+
+                // read header
+                header = src[s++];
+
+                for (pass = 0; pass < 8; pass++, header >>= 1) {
+                    l = 0;
+                    if (header & 1) {
+                        // single byte (uncompressed)
+                        c = src[s++];
+                        line[l++] = c;
+                        buffer[b++] = c;
+                        b &= 0x07FF;
+                    } else {
+                        // 2-bytes (compressed)
+                        w = src[s++];
+                        w |= (src[s++] << 8);
+                        r = (w >> 11) + 3;
+                        w &= 0x07FF;
+
+                        for (i = 0; i < r; i++) {
+                            c = buffer[(w + i) & 0x07FF];
+                            line[l++] = c;
+                            buffer[b++] = c;
+                            b &= 0x07FF;
+                        }
+                    }
+                    if ((d + l) > dest.length) {
+                        // maximum buffer length exceeded
+                        dest.set(line.subarray(0, dest.length - d), d)
+                        return dest;
+                    } else {
+                        // copy this pass to the destination buffer
+                        dest.set(line.subarray(0, l), d)
+                        d += l;
+                    }
+
+                    // reached end of compressed data
+                    if (s >= length) break;
+                }
+            }
+
+            return dest.slice(0, d);
+        }
+    }
+};
+
+ROM.prototype.parseLink = function(link, object) {
+    var components = link.split(".");
+    var object = object || this;
+    for (var c = 0; c < components.length; c++) {
+        
+        var key = components[c];
+        var i = null;
+
+        // check for an array subscript
+        var subStart = key.indexOf('[');
+        var subEnd = key.indexOf(']');
+        if (subStart !== -1 && subEnd > subStart) {
+            var sub = key.substring(subStart + 1, subEnd);
+            var i = Number(sub);
+            if (!isNumber(i)) {
+                try {
+                    i = eval(sub);
+                } catch (e) {
+//                    this.log("Invalid Link: " + link);
+                    return "Invalid Link: " + link;
+                }
+            }
+            key = key.substring(0, subStart);
+        }
+        
+        if (object && object[key] !== undefined) {
+            object = object[key];
+            if (!isNumber(i)) continue;
+            
+            if (object instanceof ROMArray) {
+                // array entry
+                object = object.item(i);
+                continue;
+            } else if (object instanceof ROMStringTable) {
+                // string table entry
+                object = object.string[i];
+                continue;
+            }
+        } else {
+//            this.log("Invalid Link: " + link);
+            return "Invalid Link: " + link;
+        }
+    }
+    return object;
+}
+
+ROM.prototype.getEditor = function(name) {
+    if (this.editors[name]) return this.editors[name];
+    
+    var editorClass = window[name];
+    if (!editorClass) return null;
+    editor = new editorClass(this);
+    this.editors[name] = editor;
+    return editor;
+}
+
+ROM.prototype.showEditor = function(object) {
+    if (!object.editor) return;
+    var editor = this.getEditor(object.editor);
+    if (!editor) return;
+    
+    var editDiv = document.getElementById('edit-div');
+    if (!editDiv.contains(editor.div)) {
+        editDiv.innerHTML = "";
+        editDiv.appendChild(editor.div);
+    }
+
+    editor.selectObject(object);
+    
+    // TODO: come up with a way to select any object in the navigator pane
+    if (object.editor.includes("Map")) {
+        selectMap(object.i);
+    } else if (object.editor.includes("Battle")) {
+        selectBattle(object.i);
+    }
+}
+
+ROM.prototype.showProperties = function() {
+    
+    // stop observing eveything
+    this.observer.stopObservingAll();
+    
+    var properties = document.getElementById("properties");
+    properties.innerHTML = "";
+    
+    var object = this.selection.current;
+    if (!object) return;
+    
+    // start observing the selected object
+//    this.observer.startObserving(object, this.showProperties)
+
+    // show heading
+    if (object.name) {
+        var headingDiv = document.createElement('div');
+        properties.appendChild(headingDiv);
+        headingDiv.classList.add("property-heading");
+                
+        // array list
+        if (object.parent instanceof ROMArray) {
+            var array = object.parent;
+            var list = document.createElement('select');
+            headingDiv.appendChild(list);
+            var rom = this;
+            list.onchange = function() {
+                var i = Number(this.value);
+                rom.select(array.item(i))
+            };
+
+            // create an option for each valid string in the table
+            var stringTable = rom.stringTable[array.stringTable];
+            for (var i = 0; i < array.array.length; i++) {
+
+                var optionString = i.toString() + ": ";
+                if (stringTable && stringTable.string[i]) {
+                    optionString += stringTable.string[i].fString(40);
+                } else {
+                    optionString += array.name + " " + i;
+                }
+
+                var option = document.createElement('option');
+                option.value = i;
+                option.innerHTML = optionString;
+                list.appendChild(option);
+            }
+            list.value = object.i;
+        }
+
+        // object name
+        var heading = document.createElement('p');
+        headingDiv.appendChild(heading);
+        heading.innerHTML = object.name.replace("%i", object.i);
+    }
+    
+    // show object label (string table or script label)
+    if (object.labelHTML) {
+        this.observeLabel(object);
+//        this.observer.startObserving(object.labelString, this.showProperties);
+        var labelDiv = object.labelHTML();
+        if (labelDiv) properties.appendChild(labelDiv);
+    }
+
+    if (object instanceof ROMString && object.language) {
+        // strings with multiple languages
+        var language = object.language;
+        var keys = Object.keys(language);
+        for (var i = 0; i < keys.length; i++) {
+            var key = keys[i];
+            var linkString = language[key].link.replace("%i", object.i);
+            var link = this.parseLink(linkString)
+            if (!link.propertyHTML) continue;
+            this.observeAssembly(link);
+//            this.observer.startObserving(link, this.showProperties);
+            var propertyDiv = link.propertyHTML(language[key].name);
+            if (propertyDiv) properties.appendChild(propertyDiv);
+        }
+        
+    } else if (object.propertyHTML) {
+        // object with a single property
+        this.observeAssembly(object);
+//        this.observer.startObserving(object, this.showProperties);
+        var propertyDiv = object.propertyHTML();
+        if (propertyDiv) properties.appendChild(propertyDiv);
+
+    } else if (object instanceof ROMData || object instanceof ROMCommand) {
+        // object with sub-assemblies
+//        this.observer.startObserving(object, this.showProperties);
+        var keys = Object.keys(object.assembly);
+        for (var i = 0; i < keys.length; i++) {
+            var key = keys[i];
+            if (isString(object.assembly[key])) {
+                // category name
+                var categoryDiv = document.createElement('div');
+                categoryDiv.classList.add("property-category");
+                properties.appendChild(categoryDiv);
+                
+                var category = document.createElement('p');
+                category.innerHTML = object.assembly[key];
+                categoryDiv.appendChild(category);
+                continue;
+            }
+            if (object.assembly[key].invalid) continue;
+            var assembly = object[key];
+            if (!assembly) continue;
+            if (!assembly.propertyHTML) continue;
+            this.observeAssembly(assembly);
+//            this.observer.startObserving(assembly, this.showProperties);
+            var propertyDiv = assembly.propertyHTML(object.assembly[key].name);
+            if (propertyDiv) properties.appendChild(propertyDiv);
+        }
+    }
+    
+    this.updateLabels();
+}
+
+ROM.prototype.observeLabel = function(object) {
+    var rom = this;
+    
+    this.observer.startObserving(object.labelString, this.showProperties);
+    return;
+    
+//    this.observer.startObserving(object.labelString, function() {
+//
+//        // return if the label doesn't exist
+//        var oldLabel = document.getElementById("label-" + object.key);
+//        if (!oldLabel) return;
+//        var parent = oldLabel.parentElement;
+//        if (!parent) return;
+//        
+//        var newLabel = object.labelHTML();
+//        parent.replaceChild(newLabel, oldLabel);
+//        rom.updateLabels();
+//
+//        var control = document.getElementById("label-control-" + object.key);
+//        if (control) control.focus();
+//    });
+}
+
+ROM.prototype.observeAssembly = function(assembly) {
+    var rom = this;
+    
+    this.observer.startObserving(assembly, this.showProperties);
+    return;
+        
+//    this.observer.startObserving(assembly, function() {
+//        
+//        // return if the property doesn't exist
+//        var oldProperty = document.getElementById("property-" + assembly.key);
+//        if (!oldProperty) return;
+//        var parent = oldProperty.parentElement;
+//        if (!parent) return;
+//        
+//        var newProperty = assembly.propertyHTML(assembly.name);
+//        parent.replaceChild(newProperty, oldProperty);
+//        rom.updateLabels();
+//        
+//        var control = document.getElementById("property-control-" + assembly.key);
+//        if (control) control.focus();
+//    });
+}
+
+ROM.prototype.updateLabels = function() {
+    var labels = document.getElementsByClassName("property-label");
+    var w = 0;
+    var l;
+
+    // reset all labels to their default size
+    for (l = 0; l < labels.length; l++) labels[l].style.width = "auto";
+
+    // find the widest label
+    for (l = 0; l < labels.length; l++) w = Math.max(w, labels[l].clientWidth);
+
+    // make all labels the same width
+    for (l = 0; l < labels.length; l++) labels[l].style.width = w + "px";
+    
+    // make all text controls the same height as the text
+    var text = document.getElementsByClassName("property-textarea");
+    for (t = 0; t < text.length; t++) {
+        var input = text[t];
+        var height = input.scrollHeight;
+        input.style.height = height + "px";
+    }
+}
+
+ROM.prototype.select = function(object) {
+
+    // if the object is a string, try to parse it as an object
+    if (isString(object)) {
+        object = this.parseLink(object);
+        // return if it's an invalid link
+        if (isString(object)) return;
+    }
+    
+    // update properties if the selection didn't change
+    if (this.selection.current === object) {
+        this.showProperties();
+        return;
+    }
+    
+    // deselect everything
+    this.deselectAll();
+
+    // select nothing
+    if (!object) {
+        this.selection.current = null;
+        this.showProperties();
+        return;
+    }
+    
+    // select a script (this might be redundant)
+    if (object instanceof ROMScript) {
+        scriptList.selectScript(object);
+        return;
+    }
+
+    // show the object's properties
+    this.selection.current = object;
+
+    // show the editor for this object
+    this.showEditor(object);
+    
+    // show properties for this object
+    this.showProperties();
+}
+
+ROM.prototype.selectPrevious = function() {
+    var current = this.selection.current;
+    var previous = this.selection.previous.pop();
+    if (!previous) return;
+    this.select(previous);
+    this.selection.next.push(current);
+}
+
+ROM.prototype.selectNext = function() {
+    var current = this.selection.current;
+    var next = this.selection.next.pop();
+    if (!next) return;
+    this.select(next);
+    this.selection.previous.push(current);
+}
+
+ROM.prototype.deselectAll = function() {
+    // stop observing the previous selection
+    if (this.selection.current) {
+//        this.observer.stopObserving(this.selection.current);
+        this.selection.previous.push(this.selection.current);
+        this.selection.next = [];
+    }
+    
+    this.selection.current = null;
+}
+
+ROM.prototype.canUndo = function() { return this.undoStack.length > 0; }
+ROM.prototype.canRedo = function() { return this.redoStack.length > 0; }
+
+ROM.prototype.undo = function() {
+    if (!this.canUndo()) return;
+    
+    var action = this.undoStack.pop()
+    this.doAction(action, true);
+}
+
+ROM.prototype.redo = function() {
+    if (!this.canRedo()) return;
+    
+    var action = this.redoStack.pop()
+    this.doAction(action, false);
+}
+
+ROM.prototype.doAction = function(action, undo) {
+    
+    if (undo === undefined) this.redoStack = [];
+    
+    this.pushAction(action, undo);
+    if (action instanceof ROMAction) {
+        action.execute(undo);
+    } else if (isArray(action)) {
+        for (var i = 0; i < action.length; i++) {
+            var a = action[undo ? action.length - i - 1 : i];
+            a.execute(undo);
+        }
+    }
+}
+
+ROM.prototype.pushAction = function(action, undo) {
+    
+    if (this.action && action instanceof ROMAction) {
+        this.action.push(action);
+        
+    } else {
+        // single action
+        if (undo) {
+            this.redoStack.push(action);
+        } else {
+            this.undoStack.push(action);
+        }
+    }
+}
+
+ROM.prototype.beginAction = function() {
+    if (!this.action) this.action = [];
+}
+
+ROM.prototype.endAction = function() {
+    if (this.action) this.undoStack.push(this.action);
+//    this.redoStack = [];
+    this.action = null;
+}
+
+// ROMAction
+function ROMAction(object, undo, redo, description) {
+    this.object = object;
+    this.undo = undo;
+    this.redo = redo;
+    this.description = description;
+}
+
+ROMAction.prototype.execute = function(undo) {
+    if (undo && this.undo) {
+//        if (this.description) console.log(this.description);
+        this.undo.call(this.object);
+    } else if (!undo && this.redo) {
+//        if (this.description) console.log(this.description);
+        this.redo.call(this.object);
+    }
+}
+
+// ROMObserver
+function ROMObserver(rom, owner, options) {
+    this.rom = rom;
+    this.owner = owner;
+    this.options = options || {};
+    this.observees = [];
+    this.depth = 0;
+}
+
+ROMObserver.prototype.startObserving = function(object, callback, args) {
+
+    // can't observe nothing
+    if (!object) return;
+
+    if (this.depth > 5) return;
+        
+    this.depth++;
+    
+    // start observing the object and add it to the array of observees
+    if (this.observees.indexOf(object) === -1) this.observees.push(object);
+    if (object.addObserver) object.addObserver(this.owner, callback, args);
+    
+    if (this.options.sub) this.startObservingSub(object, callback, args);
+    if (this.options.link) this.startObservingLink(object, callback, args);
+    if (this.options.array) this.startObservingArray(object, callback, args);
+    if (this.options.label) this.startObservingLabel(object, callback, args);
+    
+    this.depth--;
+}
+
+ROMObserver.prototype.startObservingSub = function(object, callback, args) {
+    // don't observe array prototypes
+    if (object.array || !object.assembly) return;
+    
+    var keys = Object.keys(object.assembly);
+    for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        var sub = object.assembly[key];
+        if (sub.invalid) continue;
+        this.startObserving(object[key], callback, args);
+    }
+}
+
+ROMObserver.prototype.startObservingLink = function(object, callback, args) {
+    if (!object.link) return;
+    var link = object.link.replace(/%i/g, object.value.toString());
+    this.startObserving(this.rom.parseLink(link), callback, args);
+}
+
+ROMObserver.prototype.startObservingArray = function(object, callback, args) {
+    if (!object.array) return;
+    
+    for (var i = 0; i < object.array.length; i++) {
+        this.startObserving(object.array[i], callback, args);
+    }
+}
+
+ROMObserver.prototype.startObservingLabel = function(object, callback, args) {
+    // don't make strings observe themselves
+    if (object instanceof ROMString) return;
+    
+    var label = object.labelString;
+    if (!label) return;
+    this.startObserving(label, callback, args);
+}
+
+ROMObserver.prototype.stopObserving = function(object) {
+
+    // can't observe nothing
+    if (!object) return;
+
+    // stop observing the object and remove it from the array of observees
+    var index = this.observees.indexOf(object);
+    if (index !== -1) this.observees.splice(index, 1);
+    if (object.removeObserver) object.removeObserver(this.owner);
+
+    if (this.options.sub) this.stopObservingSub(object);
+    if (this.options.link) this.stopObservingLink(object);
+    if (this.options.array) this.stopObservingArray(object);
+    if (this.options.label) this.stopObservingLabel(object);
+}
+
+ROMObserver.prototype.stopObservingSub = function(object) {
+    // don't observe array prototype assemblies
+    if (object.array || !object.assembly) return;
+    
+    var keys = Object.keys(object.assembly);
+    for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        var sub = object.assembly[key];
+        if (sub.invalid) continue;
+        this.stopObserving(object[key]);
+    }
+}
+
+ROMObserver.prototype.stopObservingLink = function(object) {
+    if (!object.link) return;
+    var link = object.link.replace(/%i/g, object.value.toString());
+    this.stopObserving(this.rom.parseLink(link));
+}
+
+ROMObserver.prototype.stopObservingArray = function(object) {
+    if (!object.array) return;
+    
+    for (var i = 0; i < object.array.length; i++) {
+        this.stopObserving(object.array[i]);
+    }
+}
+
+ROMObserver.prototype.stopObservingLabel = function(object) {
+    // don't make strings observe themselves
+    if (object instanceof ROMString) return;
+
+    var label = object.labelString;
+    if (!label) return;
+    this.stopObserving(label);
+}
+
+ROMObserver.prototype.stopObservingAll = function() {
+    while (this.observees.length) this.stopObserving(this.observees[0]);
+}
+
+ROMObserver.prototype.sleep = function() {
+    for (var o = 0; o < this.observees.length; o++) {
+        var object = this.observees[o];
+        var observer = object.getObserver(this.owner);
+        if (!observer) continue;
+        observer.asleep = true;
+    }
+}
+
+ROMObserver.prototype.wake = function() {
+    for (var o = 0; o < this.observees.length; o++) {
+        var object = this.observees[o];
+        var observer = object.getObserver(this.owner);
+        if (!observer) continue;
+        observer.asleep = false;
+    }
+}
+
+// ROMProperty
+function ROMProperty(rom, definition, parent) {
+    ROMAssembly.call(this, rom, definition, parent);
+    
+    this.mask = Number(definition.mask);
+    if (!isNumber(this.mask)) this.mask = 0xFF;
+    
+    this.offset = Number(definition.offset);
+    if (!isNumber(this.offset)) this.offset = 0;
+
+    this.multiplier = Number(definition.multiplier);
+    if (!isNumber(this.multiplier)) this.multiplier = 1;
+    
+    this.bool = (definition.bool === true);
+    this.invert = (definition.invert === true);
+    this.flag = (definition.flag === true);
+    this.signed = (definition.signed === true);
+    this.script = definition.script;
+    this.link = definition.link;
+    this.msb = definition.msb;
+    
+    this.special = {};
+    var special = definition.special || {};
+    var specialKeys = Object.keys(special);
+    for (var i = 0; i < specialKeys.length; i++) {
+        var key = specialKeys[i];
+        var index = Number(key);
+        if (!isNumber(index)) continue;
+        this.special[index] = special[key];
+    }
+
+    // calculate the bit index
+    for (var i = 0; ; i++) {
+        if (((1 << i) & this.mask) == 0) continue;
+        this.bit = i;
+        break;
+    }
+    
+    // calculate the mask width
+    this.width = 0;
+    for (var m = this.mask >> this.bit; m !== 0; m >>= 1) this.width++;
+    
+    this.min = Number(definition.min);
+    this.max = Number(definition.max)
+    if (this.signed) {
+        this.min = this.min || -((this.mask >> (this.bit + 1)) + 1);
+        this.max = this.max || (this.mask >> (this.bit + 1));
+    } else {
+        this.min = this.min || 0;
+        this.max = this.max || (this.mask >> this.bit);
+    }
+    
+    var length = 1;
+    var mask = this.mask;
+    while (mask & (~0 ^ 0xFF)) {
+        mask >>= 8;
+        length += 1;
+    }
+    
+    this.value = this.min;
+    
+    // set the range
+    this.range.end = this.range.begin + length;
+}
+
+ROMProperty.prototype = Object.create(ROMAssembly.prototype);
+ROMProperty.prototype.constructor = ROMProperty;
+
+Object.defineProperty(ROMProperty.prototype, "definition", { get: function() {
+    var definition = Object.getOwnPropertyDescriptor(ROMAssembly.prototype, "definition").get.call(this);
+
+    if (definition.range) {
+        definition.begin = this.range.begin;
+        delete definition.range;
+    }
+    
+    if (this.mask !== 0xFF) definition.mask = hexString(this.mask, this.range.length * 2);
+    if (this.offset !== 0) definition.offset = this.offset;
+    if (this.multiplier !== 1) definition.multiplier = this.multiplier;
+    if (this.bool) definition.bool = true;
+    if (this.invert) definition.invert = true;
+    if (this.flag) definition.flag = true;
+    if (this.signed) definition.signed = true;
+    if (this.script) definition.script = this.script;
+    if (this.link) definition.link = this.link;
+    if (this.msb) definition.msb = this.msb;
+    if (Object.keys(this.special).length != 0) definition.special = this.special;
+    if (this.min !== 0) definition.min = this.min;
+    if (this.max !== (this.mask >> this.bit)) definition.max = this.max;
+
+    return definition;
+}});
+
+ROMProperty.prototype.assemble = function(data) {
+    
+    // modify the value if needed
+    var value = this.value;
+    if (this.bool) value = value ? 1 : 0;
+    value -= this.offset;
+    value = Math.floor(value / this.multiplier);
+    
+    if (this.signed && value < 0) {
+        value += 1 << this.width;
+    }
+    value = (value << this.bit) & this.mask;
+    if (this.invert) value ^= this.mask; 
+    
+    // disassemble to get any adjacent data
+    if (data) ROMAssembly.prototype.disassemble.call(this, data);
+    
+    var mask = (~this.mask) >>> 0;
+    for (var i = 0; i < this.data.length; i++) {
+        this.data[i] &= (mask & 0xFF);
+        this.data[i] |= (value & 0xFF);
+        mask >>= 8;
+        value >>= 8;
+    }
+
+    return ROMAssembly.prototype.assemble.call(this, data);    
+}
+
+ROMProperty.prototype.disassemble = function(data) {
+    
+    ROMAssembly.prototype.disassemble.call(this, data);
+
+    this.value = 0;
+    for (var i = this.data.length - 1; i >= 0; i--) {
+        this.value <<= 8;
+        this.value |= this.data[i];
+    }
+    this.value &= this.mask;
+    if (this.invert) this.value ^= this.mask; 
+    this.value >>= this.bit;
+    if (this.bool) {
+        this.value = (this.value === 1);
+        if (this.invertBool) this.value = !this.value;
+        return;
+    } else if (this.signed && this.value & (1 << (this.width - 1))) {
+        this.value -= (1 << this.width);
+    } else if (this.msb) {
+        var msb = eval(this.msb);
+        this.value |= msb.value << this.width;
+    }
+    this.value *= this.multiplier;
+    this.value += this.offset;
+}
+
+ROMProperty.prototype.setValue = function(value) {
+    
+    // return if the value didn't change
+    var oldValue = this.value;
+    if (value === oldValue) {
+        this.notifyObservers();
+        return;
+    }
+
+    // functions to undo/redo
+    var assembly = this;
+    function fixReferences(oldRef, newRef) {
+        var script = assembly.rom[assembly.script];
+        var oldCommand = script.ref[oldRef];
+        // remove the old reference
+        for (var r = 0; r < oldCommand.reference.length; r++) {
+            var reference = oldCommand.reference[r];
+            if (reference.target !== assembly) continue;
+            oldCommand.reference.splice(r, 1);
+        }
+        
+        // add a reference to the new command
+        script.addPlaceholder(assembly, newRef);
+    }
+
+    function redo() {
+        assembly.value = value;
+        if (assembly.msb) {
+            var msb = eval(assembly.msb);
+            msb.value = value >> assembly.width;
+        }
+        assembly.notifyObservers();
+        if (assembly.script) fixReferences(oldValue, value);
+    }
+    function undo() {
+        assembly.value = oldValue;
+        if (assembly.msb) {
+            var msb = eval(assembly.msb);
+            msb.value = oldValue >> assembly.width;
+        }
+        assembly.notifyObservers();
+        if (assembly.script) fixReferences(value, oldValue);
+    }
+        
+    // perform an action to change the value
+    var description = "Set " + this.name;
+    var action = new ROMAction(this, undo, redo, description);
+    this.rom.doAction(action);
+}
+
+ROMProperty.prototype.propertyHTML = function(name) {
+
+    if (this.hidden || this.invalid) return null;
+    var property = this;
+    
+    // create a div for the property
+    var propertyDiv = document.createElement('div');
+    propertyDiv.classList.add("property-div");
+    propertyDiv.id = "property-" + this.key;
+    var id = "property-control-" + this.key;
+    
+    // create a label
+    var label;
+    if (this.link) {
+        // create a label with a link
+        var link = this.link;
+        label = document.createElement('a');
+        link = link.replace("%i", this.value);
+        label.href = "javascript:rom.select(\"" + link + "\");";
+    } else if (this.script) {
+        // create a label with a script link
+        var script = this.rom[this.script];
+        var command = script.ref[this.value];
+        label = document.createElement('a');
+        label.href = "javascript:rom.select(\"" + this.script + "\"); scriptList.selectRef(" + command.ref + ");";
+    } else {
+        // create a normal label
+        label = document.createElement('label');
+        label.htmlFor = id;
+    }
+    label.classList.add("property-label");
+    name = name || this.name;
+    if (name) label.innerHTML = name + ":";
+    propertyDiv.appendChild(label);
+
+    // create a div for the control(s)
+    var controlDiv = document.createElement('div');
+    propertyDiv.appendChild(controlDiv);
+    controlDiv.classList.add("property-control-div");
+    
+    if (this.bool) {
+        // property with a single boolean checkbox
+        var input = document.createElement('input');
+        controlDiv.appendChild(input);
+        input.id = id;
+        input.type = "checkbox";
+        input.checked = this.value;
+        input.disabled = this.disabled;
+        input.classList.add("property-check");
+        input.onchange = function() {
+            var value = this.checked;
+            property.setValue(value);
+            document.getElementById(this.id).focus();
+        };
+        
+        // move the label to the right of the check box
+        label.innerHTML = "";
+        label = document.createElement('label');
+        label.classList.add("property-check-label");
+        label.htmlFor = input.id;
+        if (this.name) label.innerHTML = this.name;
+        controlDiv.appendChild(label);
+        
+    } else if (this.flag) {
+        // property with boolean flags
+        var flagChecks = [];
+        for (var i = 0, mask = 1; mask < (this.mask >> this.bit); i++, mask <<= 1) {
+            
+            // create the check box
+            var check = document.createElement('input');
+            check.classList.add("property-check");
+            check.value = mask;
+            check.type = "checkbox";
+            check.checked = this.value & mask;
+            check.disabled = this.disabled;
+            check.id = id + "-" + i;
+            check.onchange = function() {
+                var value = property.value;
+                if (this.checked) {
+                    // set bit
+                    value |= this.value;
+                } else {
+                    // clear bit
+                    value &= ~this.value;
+                }
+                property.setValue(value);
+                document.getElementById(this.id).focus();
+            }
+
+            // create a label for the check box
+            var label = document.createElement('label');
+            label.classList.add("property-check-label");
+            label.htmlFor = check.id;
+            if (this.stringTable) {
+                var stringTable = rom.stringTable[this.stringTable];
+                if (!stringTable.string[i]) continue;
+                label.innerHTML += stringTable.string[i].fString();
+            } else {
+                label.innerHTML = i;
+            }
+                        
+            // create a div to hold the label and control
+            var flagDiv = document.createElement('div');
+            flagDiv.classList.add("property-check-div");
+            flagDiv.appendChild(check);
+            flagDiv.appendChild(label);
+            flagChecks.push(check);
+            controlDiv.appendChild(flagDiv);
+        }
+        
+        // add check boxes for special values
+        var specialValues = Object.keys(this.special);
+        for (var i = 0; i < specialValues.length; i++) {
+            var special = document.createElement('input');
+            special.classList.add("property-check");
+            special.id = id + "-special" + i;
+            special.disabled = this.disabled;
+            special.type = "checkbox";
+            special.checked = false;
+
+            var key = specialValues[i];
+            var value = Number(key);
+            special.value = value;
+            if (Number(this.value) === value) {
+                flagChecks.forEach(function(div) {
+                    div.disabled = true;
+                });
+                special.checked = true;
+            }
+            special.onchange = function() {
+                if (this.checked) {
+                    property.setValue(Number(this.value));
+                } else {
+                    property.setValue(property.min);
+                }
+                document.getElementById(this.id).focus();
+            };
+
+            // create a label for the check box
+            var label = document.createElement('label');
+            label.classList.add("property-check-label");
+            label.htmlFor = special.id;
+            label.innerHTML = this.special[key];
+
+            // create a div to hold the label and control
+            var specialDiv = document.createElement('div');
+            specialDiv.classList.add("property-check-div");
+            specialDiv.appendChild(special);
+            specialDiv.appendChild(label);
+            controlDiv.appendChild(specialDiv);
+        }
+        
+    } else if (this.stringTable) {
+        // property with a drop down list of strings
+        var input = document.createElement('select');
+        controlDiv.appendChild(input);
+        input.id = id;
+        input.disabled = this.disabled;
+        input.classList.add("property-control");
+        input.onchange = function() {
+            var value = Number(input.value);
+            property.setValue(value);
+            document.getElementById(this.id).focus();
+        };
+
+        // create an option for each valid string in the table
+        var stringTable = rom.stringTable[this.stringTable];
+        var min = this.min + this.offset;
+        var max = this.max + this.offset;
+        for (var i = min; i <= max; i++) {
+            
+            var optionString = "";
+            if (!stringTable.hideIndex) {
+                optionString += i.toString() + ": ";
+            }
+            if (this.special[i]) {
+                optionString += this.special[i];
+            } else if (stringTable.string[i]) {
+                optionString += stringTable.string[i].fString(40);
+            } else {
+                continue;
+            }
+            
+            var option = document.createElement('option');
+            option.value = i;
+            option.innerHTML = optionString;
+            input.appendChild(option);
+        }
+        input.value = this.value;
+        
+    } else if (this.script) {
+        // property linked to a script
+        var script = this.rom[this.script];
+        var command = script.ref[this.value];
+        var input = document.createElement('input');
+        controlDiv.appendChild(input);
+        input.classList.add("property-control");
+        input.id = id;
+        input.disabled = this.disabled;
+        input.type = "text";
+        input.classList.add("property-control");
+        input.value = command.label;
+        input.onchange = function() {
+            var command = script.label[this.value];
+            if (!command) return;
+            property.setValue(command.ref);
+            document.getElementById(this.id).focus();
+        };
+        
+    } else {
+        // property with a number only
+        var input = document.createElement('input');
+        controlDiv.appendChild(input);
+        input.id = id;
+        input.disabled = this.disabled;
+        input.type = "number";
+        input.classList.add("property-control");
+        input.value = this.value.toString();
+        input.step = this.multiplier;
+        input.min = (this.min + this.offset) * this.multiplier;
+        input.max = (this.max + this.offset) * this.multiplier;
+        input.onchange = function() {
+            var value = Number(this.value);
+            value = Math.max(value, input.min);
+            value = Math.min(value, input.max);
+            value -= value % input.step;
+            property.setValue(value);
+            document.getElementById(this.id).focus();
+        };
+
+        // add check boxes for special values
+        var specialValues = Object.keys(this.special);
+        for (var i = 0; i < specialValues.length; i++) {
+            var specialDiv = document.createElement('div');
+            specialDiv.classList.add("property-check-div");
+            controlDiv.appendChild(specialDiv);
+            var special = document.createElement('input');
+            specialDiv.appendChild(special);
+            special.classList.add("property-check");
+            special.id = id + "-special" + i;
+            special.disabled = this.disabled;
+            special.type = "checkbox";
+            special.checked = false;
+
+            var key = specialValues[i];
+            var value = (Number(key) + this.offset) * input.step;
+            if (Number(this.value) === value) {
+                input.disabled = true;
+                special.checked = true;
+            }
+            special.onchange = function() {
+                if (this.checked) {
+                    property.setValue(value);
+                } else {
+                    property.setValue(property.min);
+                }
+                document.getElementById(this.id).focus();
+            };
+
+            // create a label for the check box
+            var label = document.createElement('label');
+            specialDiv.appendChild(label);
+            label.classList.add("property-check-label");
+            label.htmlFor = special.id;
+            label.innerHTML = this.special[key];
+        }
+    }
+
+    return propertyDiv;
+//    parent.appendChild(propertyDiv);
+}
+
+// ROMArray
+function ROMArray(rom, definition, parent) {
+    ROMAssembly.call(this, rom, definition, parent);
+
+    // create the array
+    this.array = [];
+    if (definition.array) {
+        var length = Number(definition.array.length);
+        if (isNumber(length)) this.array.length = length;
+        var max = Number(definition.array.max);
+        if (isNumber(max)) this.array.max = max;
+        var min = Number(definition.array.min);
+        if (isNumber(min)) this.array.min = min;
+    }
+    
+    // determine if elements are strictly sequential or shared
+    this.isSequential = (definition.isSequential === true);
+    this.endPointer = (definition.endPointer === true);
+    this.autoBank = (definition.autoBank === true);
+    this.terminator = definition.terminator;
+    this.pointerAlign = Number(definition.pointerAlign) || 1;
+    
+    // create the prototype assembly
+    this.assembly = this.createPrototype(definition.assembly);
+    
+    if (!definition.pointerTable) return;
+    
+    // create the pointer table
+    if (isString(definition.pointerTable)) {
+        // link to an external pointer table
+        this.pointerTable = definition.pointerTable;
+        this.pointerOffset = definition.pointerTable.offset;
+        
+    } else if (definition.pointerTable) {
+        // pointer table definition
+        this.pointerTable = this.createPointerTable(definition.pointerTable);
+        this.pointerOffset = definition.pointerTable.offset;
+        this.pointerLength = Number(definition.pointerTable.pointerLength) || this.rom.pointerLength;
+    }
+    
+    this.isAbsolute = (this.pointerTable && this.parent === this.rom && !this.pointerOffset);
+}
+
+ROMArray.prototype = Object.create(ROMAssembly.prototype);
+ROMArray.prototype.constructor = ROMArray;
+
+Object.defineProperty(ROMArray.prototype, "definition", { get: function() {
+    var definition = Object.getOwnPropertyDescriptor(ROMAssembly.prototype, "definition").get.call(this);
+    
+    definition.array = {};
+    if (this.array.length) definition.array.length = this.array.length;
+    if (this.array.max) definition.array.max = this.array.max;
+    if (this.array.min) definition.array.min = this.array.min;
+    if (definition.array === {}) delete definition.array;
+    if (this.isSequential) definition.isSequential = true;
+    if (this.endPointer) definition.endPointer = true;
+    if (this.autoBank) definition.autoBank = true;
+    if (this.terminator !== undefined) definition.terminator = this.terminator;
+    if (this.pointerAlign !== 1) definition.pointerAlign = hexString(this.pointerAlign);
+    
+    definition.assembly = this.assembly.definition;
+    
+    if (definition.assembly.type === ROMObject.Type.assembly) delete definition.assembly.type;
+    delete definition.assembly.range;
+    delete definition.assembly.key;
+    delete definition.assembly.name;
+    delete definition.assembly.canRelocate;
+    if (this.assembly.range && !this.assembly.range.isEmpty)
+        definition.assembly.length = this.assembly.range.length;
+    if (Object.keys(definition.assembly).length === 0) delete definition.assembly;
+    
+    if (!this.pointerTable) return definition;
+
+    if (!this.pointerTable.endsWith("PointerTable")) {
+        // non-standard pointer table
+        definition.pointerTable = this.pointerTable;
+    } else {
+        // standard pointer table
+        var pointerTable = this.rom.parseLink(this.pointerTable);
+        var pointerTableDefinition = pointerTable.definition;
+        delete pointerTableDefinition.key;
+        delete pointerTableDefinition.name;
+        delete pointerTableDefinition.type;
+        if (this.pointerLength != this.rom.pointerLength) pointerTableDefinition.pointerLength = this.pointerLength;
+        if (this.pointerOffset) pointerTableDefinition.offset = this.pointerOffset;
+        definition.pointerTable = pointerTableDefinition;
+    }
+
+    return definition;
+}});
+
+ROMArray.prototype.createPrototype = function(definition) {
+
+    // create a prototype assembly
+    definition = definition || {};
+    definition.type = definition.type || ROMObject.Type.assembly;
+    definition.name = definition.name || this.name;
+    definition.key = definition.key || this.key;
+    definition.canRelocate = true;
+    var prototype = ROMObject.create(this.rom, definition, this);
+    return prototype;
+}
+
+ROMArray.prototype.createPointerTable = function(definition) {
+
+    if (!definition) return null;
+    
+    // create a pointer table assembly
+    definition = definition || {};
+    definition.type = definition.type || ROMObject.Type.assembly;
+    definition.name = definition.name || (this.name + " Pointer Table");
+    definition.key = definition.key || (this.key + "PointerTable");
+    var pointerTable = this.parent.addAssembly(definition);
+    return pointerTable.path;
+}
+
+ROMArray.prototype.updateReferences = function() {
+
+    // update references for array items
+    for (var i = 0; i < this.array.length; i++) {
+        var assembly = this.array[i];
+        if (assembly.updateReferences) assembly.updateReferences();
+    }
+    
+    ROMAssembly.prototype.updateReferences.call(this);
+}
+
+ROMArray.prototype.relocate = function(begin, end) {
+    
+    // update the pointer offset if the array moved
+    if (isNumber(begin) && begin !== this.range.begin && Number(this.pointerOffset)) {
+        
+        // change the pointer offset
+        var pointerOffset = begin;
+        if (this.parent.unmapAddress) pointerOffset = this.parent.unmapAddress(pointerOffset);
+        pointerOffset = Math.floor(pointerOffset / this.pointerAlign) * this.pointerAlign;
+        this.pointerOffset = hexString(pointerOffset);
+
+        // create new pointers using the new pointer offset
+        for (var i = 0; i < this.array.length; i++) {
+            var assembly = this.array[i];
+            if (!assembly.reference[0]) continue;
+            var pointer = this.createPointer(i);
+            pointer.parent = assembly;
+            assembly.reference[0] = pointer
+        }
+    }
+    
+    ROMAssembly.prototype.relocate.call(this, begin, end);
+}
+
+ROMArray.prototype.assemble = function(data) {
+
+    var length = 0;
+    var i, assembly, pointer, pointerObject;
+    
+    if (!this.pointerTable || this.isSequential) {
+        // fixed-length items or sequential items
+        for (i = 0; i < this.array.length; i++) {
+            assembly = this.array[i];
+            assembly.relocate(length);
+            length += assembly.assembledLength;
+        }
+        
+    } else {
+        // shared items
+        var duplicates = {};
+        var pointers = [];
+        for (i = 0; i < this.array.length; i++) {
+            assembly = this.array[i];
+            assembly.assemble();
+            var assemblyData = assembly.lazyData;
+            
+            pointer = -1;
+            for (var p = 0; p < pointers.length; p++) {
+                // look for a duplicate item
+                pointer = pointers[p];
+                if (duplicates[pointer] && compareTypedArrays(duplicates[pointer], assemblyData)) break;
+                pointer = -1;
+            }
+            
+            if (pointer === -1) {
+                // no duplicate found
+                pointer = length;
+                duplicates[pointer] = assemblyData;
+                pointers.push(pointer);
+                length += assemblyData.length;
+            }
+            
+            // relocate the assembly
+            assembly.relocate(pointer);
+
+            // for auto-bank arrays, don't allow duplicates to span multiple banks
+            if (this.autoBank && Math.floor(pointer / this.rom.bankSize()) !== Math.floor(length / this.rom.bankSize())) duplicates = {};
+        }
+    }
+    
+    // create an array and assemble each item
+    this.data = new Uint8Array(length);
+    for (i = 0; i < this.array.length; i++) this.array[i].assemble(this.data);
+    
+    return ROMAssembly.prototype.assemble.call(this, data);
+}
+
+ROMArray.prototype.disassemble = function(data) {
+
+    ROMAssembly.prototype.disassemble.call(this, data);
+    
+    // determine the range of each item in the array
+    var itemRanges = [];
+    var pointers = [];
+    var begin, end, pointer;
+    if (this.terminator === "\\0") {
+        // array of null-terminated strings
+        begin = 0;
+        var textEncoding = rom.textEncoding[this.assembly.encoding];
+        while (begin < this.data.length) {
+            end = begin + textEncoding.textLength(this.data.subarray(begin));
+            itemRanges.push(new ROMRange(begin, end));
+            begin = end;
+        }
+
+    } else if (isNumber(Number(this.terminator))) {
+        // null-terminated items
+        var terminator = Number(this.terminator);
+        begin = 0;
+        end = 0;
+        var i = 0;
+        while (end < this.data.length) {
+            while (this.data[end] !== terminator && end < this.data.length) end++;
+            end++;
+            itemRanges.push(new ROMRange(begin, end));
+            begin = end;
+        }
+        
+    } else if (!this.pointerTable) {
+        // fixed-length items
+        var length = this.assembly.range.length || 1;
+        
+        // validate the number of array items
+        if (this.array.length === 0) {
+            var l = Math.floor(this.range.length / length);
+            if (l < 0) console.log(l);
+            this.array.length = Math.floor(this.range.length / length);
+        }
+        
+        for (var i = 0; i < this.array.length; i++) {
+            begin = i * length;
+            itemRanges.push(new ROMRange(begin, begin + length));
+        }
+        
+    } else if (this.isSequential) {
+        // sequential items
+        for (i = 0; i < (this.array.length - 1); i++) {
+            pointer = this.createPointer(i);
+            var nextPointer = this.createPointer(i + 1);
+            begin = pointer.value;
+            end = Math.max(begin, nextPointer.value);
+            itemRanges.push(new ROMRange(begin, end));
+            pointers.push(pointer);
+        }
+        pointer = this.createPointer(this.array.length - 1);
+        begin = pointer.value;
+        end = this.range.end;
+        itemRanges.push(new ROMRange(begin, end));
+        pointers.push(pointer);
+        
+    } else {
+        // shared items
+        var unsorted = [];
+        var bankOffset = 0;
+        var bankSize = this.rom.bankSize();
+        var pointer = 0;
+        var previousPointer = 0;
+        for (i = 0; i < this.array.length; i++) {
+            pointer = this.createPointer(i);
+            pointers.push(pointer);
+            unsorted[i] = pointer.value;
+            
+            // go to the next bank for auto-bank pointers
+            if (!this.autoBank || i === 0) continue;
+            unsorted[i] += bankOffset;
+            if (unsorted[i] < previousPointer) {
+                bankOffset += bankSize;
+                unsorted[i] += bankSize;
+            }
+            previousPointer = unsorted[i];
+        }
+        
+        // sort pointers in reverse order
+        var sorted = unsorted.slice();
+        sorted.sort(function(a, b) { return b - a; });
+        
+        // create an array of ranges corresponding to each pointer
+        var pointerRanges = {};
+        end = this.range.end;
+        for (i = 0; i < sorted.length; i++) {
+            begin = sorted[i];
+            if (pointerRanges[begin] !== undefined) continue;
+            pointerRanges[begin] = new ROMRange(begin, end);
+            end = begin;
+        }
+        
+        // create an array of ranges for each item
+        for (i = 0; i < this.array.length; i++) {
+            begin = unsorted[i];
+            itemRanges.push(pointerRanges[begin]);
+        }
+    }
+    
+    if (this.pointerTable && this.endPointer) {
+        // add a final pointer to mark the end of the data
+        pointer = this.createPointer(this.array.length);
+        pointer.options.endPointer = true;
+        this.reference.push(pointer);
+    }
+
+    // create each array item
+    var definition = this.assembly.definition;
+    for (i = 0; i < itemRanges.length; i++) {
+        var range = itemRanges[i];
+        if (this.isAbsolute) range = this.rom.mapRange(range);
+        if (this.pointerTable) range = range.offset(-this.range.begin);
+        definition.range = range.toString();
+        var assembly = ROMObject.create(this.rom, definition, this);
+        assembly.i = i;
+        assembly.disassemble(this.data);
+        if (pointers[i]) {
+            pointers[i].parent = assembly;
+            assembly.reference.push(pointers[i]);
+        }
+        this.array[i] = assembly;
+    }
+}
+
+ROMArray.pointerMask = [0, 0xFF, 0xFFFF, 0xFFFFFF, 0x7FFFFFFF];
+
+ROMArray.prototype.createPointer = function(i) {
+    if (!isString(this.pointerTable)) return null;
+
+    var offset = Number(this.pointerOffset);
+    if (!isNumber(offset) || offset === 0) {
+        // absolute pointers
+        offset = 0;
+    } else if (this.parent.mapAddress) {
+        // relative pointers
+        offset = this.parent.mapAddress(offset);
+    }
+
+    var target = this.rom.parseLink(this.pointerTable.replace(/%i/g, i.toString()));
+    
+    if (target.key !== this.key + "PointerTable") {
+        // create a new reference
+        var definition = {
+            target: target,
+            offset: offset,
+            relative: this
+        }
+    } else {
+        // create a new reference
+        var definition = {
+            begin: i * this.pointerLength,
+            mask: ROMArray.pointerMask[this.pointerLength],
+            target: target,
+            offset: offset,
+            relative: this
+        }
+    }
+    
+    return new ROMReference(this.rom, definition, this);    
+}
+
+ROMArray.prototype.updateArray = function() {
+    // update item indices
+    for (var i = 0; i < this.array.length; i++) this.array[i].i = i;
+    this.updatePointers();
+    
+    // update string table
+    
+    // update other linked arrays
+}
+
+ROMArray.prototype.updatePointers = function() {
+    if (!isString(this.pointerTable)) return;
+    var pointerTable = this.rom.parseLink(this.pointerTable);
+    if (pointerTable.key !== this.key + "PointerTable") return;
+    
+    // adjust new pointers
+    var pointerTableLength = 0;
+    for (var i = 0; i < this.array.length; i++) {
+        var assembly = this.array[i];
+        var pointer = assembly.reference[0];
+        if (!pointer) {
+            // create a new pointer
+            pointer = this.createPointer(i);
+            if (!pointer) continue;
+            pointer.parent = assembly;
+            assembly.reference.push(pointer);
+        }
+        pointer.options.begin = pointerTableLength;
+        pointerTableLength += this.pointerLength;
+    }
+
+    // find and adjust the end pointer
+    for (var r = 0; r < this.reference.length; r++) {
+        var reference = this.reference[r];
+        if (!reference.options || !reference.options.endPointer) continue;
+        reference.options.begin = pointerTableLength;
+        pointerTableLength += this.pointerLength;
+        break;
+    }
+    
+    // change the size of the pointer table
+    pointerTable.data = new Uint8Array(pointerTableLength);
+    pointerTable.markAsDirty();
+}
+
+ROMArray.prototype.blankAssembly = function() {
+    var assembly = ROMObject.create(this.rom, this.assembly.definition, this);
+    var data = new Uint8Array(assembly.range.length);
+    assembly.range = new ROMRange(0, data.length);
+    assembly.disassemble(data);
+    assembly.i = this.array.length;
+    var pointer = this.createPointer(assembly.i);
+    if (pointer) {
+        pointer.parent = assembly;
+        assembly.reference.push(pointer);
+    }
+    return assembly;
+}
+
+ROMArray.prototype.insertAssembly = function(assembly, i) {
+    if (this.array.max && this.array.length >= this.array.max) {
+        // array is full
+        this.notifyObservers();
+        return null;
+    }
+    
+    // validate the index
+    if (!isNumber(i) || i > this.array.length) i = this.array.length;
+    
+    // perform an action to insert the assembly
+    var self = this;
+    function redo() {
+        self.array.splice(i, 0, assembly);
+        self.updateArray();
+        self.notifyObservers();
+    }
+    function undo() {
+        self.array.splice(i, 1);
+        self.updateArray();
+        self.notifyObservers();
+    }
+    var description = "Insert Assembly";
+    var action = new ROMAction(this, undo, redo, description);
+    this.rom.doAction(action);
+    return this.array[i];
+}
+
+ROMArray.prototype.removeAssembly = function(i) {
+    // validate the index
+    if (!isNumber(i) || i >= this.array.length) {
+        this.notifyObservers();
+        return null;
+    }
+    
+    // perform an action to remove the assembly
+    var self = this;
+    var assembly = this.array[i];
+    function redo() {
+        self.array.splice(i, 1);
+        self.notifyObservers();
+    }
+    function undo() {
+        self.array.splice(i, 0, assembly);
+        self.notifyObservers();
+    }
+    var description = "Remove Assembly";
+    var action = new ROMAction(this, undo, redo, description);
+    this.rom.doAction(action);
+    return this.array[i];
+}
+
+ROMArray.prototype.item = function(i) {
+    
+    var assembly = this.array[i];
+    if (!assembly) {
+        // array index out of bounds
+        return undefined;
+    }
+    
+    if (!assembly.isLoaded) {
+        // lazy load the array item
+        assembly.disassemble(this.data);
+    }
+    return assembly;
+}
+
+// ROMCommand
+function ROMCommand(rom, definition, parent) {
+    this.encoding = definition.encoding;
+    this.ref = definition.ref;
+    this._label = definition.label;
+    this.category = definition.category;
+
+    ROMData.call(this, rom, definition, parent);
+    this.type = ROMObject.Type.command;
+    this.canRelocate = true;
+
+    // minimum length 1
+    if (this.range.length === 0) this.range.end = this.range.begin + 1;
+}
+
+ROMCommand.prototype = Object.create(ROMData.prototype);
+ROMCommand.prototype.constructor = ROMCommand;
+
+ROMCommand.prototype.assemble = function(data) {
+    var encoding = this.rom.scriptEncoding[this.encoding];
+    encoding.willAssemble(this);
+    
+    return ROMData.prototype.assemble.call(this, data);
+}
+
+ROMCommand.prototype.disassemble = function(data) {
+    ROMData.prototype.disassemble.call(this, data);
+    
+    var encoding = this.rom.scriptEncoding[this.encoding];
+    encoding.didDisassemble(this, data);
+}
+
+Object.defineProperty(ROMCommand.prototype, "label", { get: function() {
+    // custom label
+    return (this._label) ? this._label : this.defaultLabel;
+}});
+
+Object.defineProperty(ROMCommand.prototype, "defaultLabel", { get: function() {
+    // default label
+    var parent = this.parent;
+    var address = this.range.begin;
+    while (parent) {
+        address += parent.range.begin;
+        parent = parent.parent;
+    }
+    address = this.rom.unmapAddress(address);
+    var bank = address >> 16;
+    address &= 0xFFFF;
+    bank = bank.toString(16).toUpperCase().padStart(2, '0');
+    address = address.toString(16).toUpperCase().padStart(4, '0');
+    return (bank + "/" + address);
+}});
+
+Object.defineProperty(ROMCommand.prototype, "description", { get: function() {
+    return this.rom.scriptEncoding[this.encoding].description(this);
+}});
+
+Object.defineProperty(ROMCommand.prototype, "nextEncoding", { get: function() {
+    return this.rom.scriptEncoding[this.encoding].nextEncoding(this);
+}});
+
+Object.defineProperty(ROMCommand.prototype, "previousCommand", { get: function() {
+    var i = this.parent.command.indexOf(this);
+    if (i === -1 || i === 0) return null;
+    return this.parent.command[i - 1];
+}});
+
+Object.defineProperty(ROMCommand.prototype, "nextCommand", { get: function() {
+    var i = this.parent.command.indexOf(this);
+    if (i === -1 || i === this.parent.command.length - 1) return null;
+    return this.parent.command[i + 1];
+}});
+
+ROMCommand.prototype.labelHTML = function() {
+    
+//    if (!this._label) return null;
+    
+    // create a div for the label
+    var labelDiv = document.createElement('div');
+    labelDiv.classList.add("property-div");
+    labelDiv.id = "label-" + this.key;
+    var id = "label-control-" + this.key;
+    
+    // create a label for the label
+    var label = document.createElement('label');
+    label.htmlFor = id;
+    label.classList.add("property-label");
+    label.innerHTML = "Label:";
+    labelDiv.appendChild(label);
+
+    // create a div for the control(s)
+    var controlDiv = document.createElement('div');
+    labelDiv.appendChild(controlDiv);
+    controlDiv.classList.add("property-control-div");
+        
+    // create a text box
+    var input = document.createElement('input');
+    controlDiv.appendChild(input);
+    input.id = id;
+    var defaultLabel = this.defaultLabel;
+    input.placeholder = defaultLabel;
+    var command = this;
+    if (command._label) input.value = command._label;
+    input.classList.add("property-control");
+    input.onchange = function() {
+        command.setLabel(this.value);
+        document.getElementById(this.id).focus();
+    };
+
+    return labelDiv;
+}
+
+ROMCommand.prototype.setLabel = function(label) {
+        
+    // return if the value didn't change
+    var oldLabel = this._label;
+    if (label === oldLabel) {
+        this.notifyObservers();
+        return;
+    }
+    
+    // functions to undo/redo
+    var command = this;
+    function redo() {
+        command._label = label;
+        command.notifyObservers();
+    }
+    function undo() {
+        command._label = oldLabel;
+        command.notifyObservers();
+    }
+        
+    // perform an action to change the value
+    var action = new ROMAction(this, undo, redo, "Set Label " + this.name);
+    this.rom.doAction(action);
+}
+
+// ROMScript
+function ROMScript(rom, definition, parent) {
+    ROMAssembly.call(this, rom, definition, parent);
+
+    this.encoding = definition.encoding;
+    this.command = []; // commands in sequential order
+    this.ref = []; // commands by reference (note that this is distinct from "reference")
+    this.label = {}; // commands by label
+    this.nextRef = 0;
+    
+    // create label placeholders
+    if (definition.label) {
+        this.label = definition.label;
+        var keys = Object.keys(definition.label);
+        for (var i = 0; i < keys.length; i++) {
+            var label = keys[i];
+            var ref = definition.label[label];
+            var offset;
+            if (isString(ref)) {
+                // most labels are just an offset
+                offset = Number(ref);
+                ref = { label: label };
+            } else if (ref.offset) {
+                // some are a dictionary with other attributes
+                offset = Number(ref.offset);
+                ref.label = label;
+            }
+            
+            if (!isNumber(offset)) {
+                this.rom.log("Invalid script reference: " + ref);
+                continue;
+            }
+            
+            offset = rom.mapAddress(Number(offset) - this.range.begin);
+            this.ref[offset] = ref;
+        }
+    }
+}
+
+ROMScript.prototype = Object.create(ROMAssembly.prototype);
+ROMScript.prototype.constructor = ROMScript;
+
+Object.defineProperty(ROMScript.prototype, "assembledLength", { get: function() {
+    
+    if (this.lazyData) return this.lazyData.length;
+    
+    var assembledLength = 0;
+    for (var c = 0; c < this.command.length; c++) {
+        assembledLength += this.command[c].assembledLength;
+    }
+
+    this.data = new Uint8Array(assembledLength);
+    this.range.end = this.range.begin + assembledLength;
+    return assembledLength;
+}});
+
+Object.defineProperty(ROMScript.prototype, "definition", { get: function() {
+    var definition = Object.getOwnPropertyDescriptor(ROMAssembly.prototype, "definition").get.call(this);
+    
+    definition.encoding = this.encoding;
+
+    var keys = Object.keys(this.label);
+    if (keys.length) {
+        definition.label = {};
+        for (var i = 0; i < keys.length; i++) {
+            var label = keys[i];
+            var ref = this.label[label];
+            if (ref instanceof ROMCommand) {
+                var command = ref;
+                if (!command._label) continue;
+                var offset = rom.unmapAddress(command.range.begin) + this.range.begin;
+                var previousCommand = command.previousCommand;
+                if (previousCommand && previousCommand.nextEncoding === command.encoding) {
+                    definition.label[label] = hexString(offset, 6);
+                } else {
+                    definition.label[label] = {"offset": hexString(offset, 6), "encoding": command.encoding};
+                }
+            } else {
+                // the script probably hasn't been disassembled
+                definition.label[label] = ref;
+            }
+        }
+    }
+
+    return definition;
+}});
+
+ROMScript.prototype.updateReferences = function() {
+
+    // update references for commands
+    this.ref = [];
+    for (i = 0; i < this.command.length; i++) {
+        var command = this.command[i];
+        command.markAsDirty();
+        command.updateReferences();
+        command.ref = command.range.begin;
+        this.ref[command.ref] = command;
+    }
+    
+    ROMAssembly.prototype.updateReferences.call(this);
+}
+
+ROMScript.prototype.assemble = function(data) {
+
+    // update the length of the script
+    this.assembledLength;
+    for (var c = 0; c < this.command.length; c++) {
+        this.command[c].assemble(this.data);
+    }
+
+    return ROMAssembly.prototype.assemble.call(this, data);
+}
+
+ROMScript.prototype.disassemble = function(data) {
+
+    ROMAssembly.prototype.disassemble.call(this, data);
+
+    // start with default encoding
+    var encoding = this.defaultEncoding;
+    encoding.initScript(this, this.data);
+    
+    // disassemble commands
+    var offset = 0;
+    while (offset < this.data.length) {
+        
+        // get placeholder at this offset
+        var ref = this.ref[offset];
+        if (ref && ref.encoding) {
+            encoding = this.rom.scriptEncoding[ref.encoding] || encoding;
+        }
+        
+        var opcode = this.data[offset];
+        var definition = encoding.command[opcode];
+        
+        // try a 2-byte opcode
+        if (!definition && (offset + 1 <= this.data.length)) {
+            var opcode2 = (opcode << 8) | this.data[offset + 1];
+            definition = encoding.command[opcode2];
+        }
+        
+        // use the default command if the opcode is not defined
+        if (!definition) definition = encoding.command.default;
+        
+        // set the command's offset, ref, and label
+        definition.begin = offset.toString();
+        definition.ref = offset;
+        if (ref && ref.label) definition.label = ref.label;
+        
+        // create the new command and disassemble it
+        var command = new ROMCommand(this.rom, definition, this);
+        definition.begin = null;
+        definition.ref = null;
+        definition.label = null;
+        command.disassemble(this.data);
+        this.command.push(command);
+        this.ref[offset] = command;
+        
+        // copy references from placeholders
+        if (ref && ref.reference) {
+            for (var r = 0; r < ref.reference.length; r++) {
+                // skip references that target the rom, they are just used
+                // to update the script encoding during disassembly
+                if (ref.reference[r].target === this.rom) continue;
+                ref.reference[r].parent = command;
+                command.reference.push(ref.reference[r]);
+            }
+        }
+        
+        // get the encoding for the next command
+        var nextEncoding = command.nextEncoding;
+        if (encoding.key !== nextEncoding) encoding = this.rom.scriptEncoding[nextEncoding];
+        
+        // next command
+        offset += command.assembledLength || 1;
+    }
+    this.nextRef = offset;
+    this.updateOffsets();
+}
+
+ROMScript.prototype.blankCommand = function(identifier) {
+    identifier = identifier || "default";
+    var components = identifier.split('.');
+    var encoding = this.defaultEncoding;
+    if (components.length === 2) {
+        encoding = this.rom.scriptEncoding[components[0]];
+        identifier = components[1];
+    }
+    if (!encoding) return null;
+    var definition = encoding.command[identifier];
+    if (!definition) return null;
+    var command = new ROMCommand(this.rom, definition, this);
+    command.ref = this.nextRef++;
+    var data = new Uint8Array(command.range.length);
+    var opcode = encoding.opcode[identifier];
+    data[0] = opcode & 0xFF;
+    if (opcode > 0xFF && data.length > 1) data[1] = opcode >> 8;
+    command.disassemble(data);
+    return command;
+}
+
+ROMScript.prototype.insertCommand = function(command, ref) {
+    
+    // validate the ref to insert after
+    var previousCommand = this.ref[ref];
+    var i = this.command.indexOf(previousCommand);
+    if (i === -1) i = this.command.length - 1;
+    
+    // perform an action to insert the assembly
+    function redo() {
+        this.command.splice(i, 0, command);
+        if (!command.ref) command.ref = this.nextRef++;
+        this.ref[command.ref] = command;
+        this.notifyObservers();
+    }
+    function undo() {
+        this.command.splice(i, 1);
+        this.ref[command.ref] = null;
+        this.notifyObservers();
+    }
+    var description = "Insert Command";
+    var action = new ROMAction(this, undo, redo, description);
+    this.rom.doAction(action);
+    return this.command[i];
+}
+
+ROMScript.prototype.removeCommand = function(command) {
+    
+    // validate the command
+    var i = this.command.indexOf(command);
+    if (i === -1) {
+        this.notifyObservers();
+        return null;
+    }
+    
+    // perform an action to remove the assembly
+    function redo() {
+        this.command.splice(i, 1);
+        this.ref[command.ref] = null;
+        this.notifyObservers();
+    }
+    function undo() {
+        this.command.splice(i, 0, command);
+        if (!command.ref) command.ref = this.nextRef++;
+        this.ref[command.ref] = command;
+        this.notifyObservers();
+    }
+    var description = "Remove Command";
+    var action = new ROMAction(this, undo, redo, description);
+    this.rom.doAction(action);
+    return this.command[i];
+}
+
+ROMScript.prototype.addPlaceholder = function(target, offset, encoding, label) {
+    var placeholder = this.ref[offset] || {};
+    placeholder.reference = placeholder.reference || [];
+    this.ref[offset] = placeholder;
+
+    // add a reference
+    var reference = new ROMReference(this.rom, {target: target}, placeholder);
+    placeholder.reference.push(reference);
+
+    if (placeholder instanceof ROMCommand) return;
+    
+    // save the encoding and label in the placeholder
+    placeholder.encoding = placeholder.encoding || encoding;
+    placeholder.label = placeholder.label || label;
+}
+
+ROMScript.prototype.updateOffsets = function() {
+    var offset = 0;
+    this.label = {};
+    for (var c = 0; c < this.command.length; c++) {
+        var command = this.command[c];
+        command.i = c;
+        command.range.begin = offset;
+        offset += command.assembledLength;
+        command.range.end = offset;
+        this.label[command.label] = command;
+    }
+}
+
+Object.defineProperty(ROMScript.prototype, "defaultEncoding", { get: function() {
+    var encodingName = isArray(this.encoding) ? this.encoding[0] : this.encoding;
+    return this.rom.scriptEncoding[encodingName];
+}});
+
+// ROMScriptEncoding
+function ROMScriptEncoding(rom, definition, parent) {
+    ROMObject.call(this, rom, definition, parent);
+    this.type = ROMObject.Type.scriptEncoding;
+
+    if (definition.delegate) this.delegate = window[definition.delegate];
+
+    // default opcode definition
+    var opcodeDef = {
+        "type": "property",
+        "name": "Opcode",
+        "begin": 0,
+        "mask": "0xFF",
+        "invalid": true
+    }
+
+    // create the command prototypes
+    this.command = {}; // opcode or key -> command definition
+    this.opcode = {}; // key -> first (or default) opcode
+    if (!definition.command) return;
+    var keys = Object.keys(definition.command);
+    for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        var command = definition.command[key];
+        command.key = key;
+        command.encoding = this.key;
+        if (!command.assembly) command.assembly = {};
+        if (!command.assembly.opcode) command.assembly.opcode = opcodeDef;
+
+        // convert single opcodes to an array
+        var opcodes = command.opcode;
+        if (!opcodes) continue;
+        if (!isArray(opcodes)) opcodes = [opcodes];
+        
+        // change the mask for 2-byte opcodes
+        if (opcodes[0] > 0xFF) command.assembly.opcode.mask = "0xFFFF";
+        
+        // store the command definition by all of its opcodes
+        for (var o = 0; o < opcodes.length; o++) {
+            var opcode = opcodes[o];
+            var range = ROMRange.parse(opcode);
+            var n = Number(opcode);
+            if (!range.isEmpty) {
+                if (o === 0) this.opcode[command.key] = range.begin;
+                for (var r = range.begin; r < range.end; r++) {
+                    this.command[r] = command;
+                }
+            } else if (isNumber(n)) {
+                if (o === 0) this.opcode[command.key] = n;
+                this.command[n] = command;
+            } else if (opcode === "default") {
+                this.command.default = command;
+            }
+        }
+        
+        // store the command definition by key
+        this.command[key] = command;
+    }
+    
+    // default command
+    if (!this.command.default) {
+        this.command.default = {
+            "key": "default",
+            "name": "Default Command",
+            "length": 1,
+            "encoding": this.key,
+            "assembly": {
+                "opcode": opcodeDef
+            }
+        };
+    }
+}
+
+ROMScriptEncoding.prototype = Object.create(ROMObject.prototype);
+ROMScriptEncoding.prototype.constructor = ROMScriptEncoding;
+
+Object.defineProperty(ROMScriptEncoding.prototype, "definition", { get: function() {
+    var definition = Object.getOwnPropertyDescriptor(ROMObject.prototype, "definition").get.call(this);
+    
+    if (this.delegate) definition.delegate = this.delegate.name;
+    
+    definition.command = {};
+    
+    var keys = Object.keys(this.opcode);
+    for (var c = 0; c < keys.length; c++) {
+        var key = keys[c];
+        var opcode = this.opcode[key];
+        var command = this.command[opcode];
+        definition.command[command.key] = command;
+    }
+
+    return definition;
+}});
+
+ROMScriptEncoding.prototype.description = function(command) {
+    if (this.delegate && this.delegate.description) {
+        return this.delegate.description(command);
+    } else {
+        var opcode = command.opcode.value;
+        return "Command " + hexString(opcode, 2);
+    }
+}
+
+ROMScriptEncoding.prototype.initScript = function(script, data) {
+    if (this.delegate && this.delegate.initScript) {
+        return this.delegate.initScript(script, data);
+    }
+}
+
+ROMScriptEncoding.prototype.didDisassemble = function(command, data) {
+    if (this.delegate && this.delegate.didDisassemble) {
+        return this.delegate.didDisassemble(command, data);
+    }
+}
+
+ROMScriptEncoding.prototype.willAssemble = function(command) {
+    if (this.delegate && this.delegate.willAssemble) {
+        return this.delegate.willAssemble(command);
+    }
+}
+
+ROMScriptEncoding.prototype.nextEncoding = function(command) {
+    if (this.delegate && this.delegate.nextEncoding) {
+        return this.delegate.nextEncoding(command);
+    } else {
+        return command.encoding;
+    }
+}
+
+ROMScriptEncoding.prototype.populateMenu = function(menu) {
+    menu.innerHTML = "";
+    menu.classList.add('menu');
+    
+    var hierarchy = {};
+    var names = []; // commands that have already been sorted
+    
+    function createSubMenu(menu, commands) {
+        var keys = Object.keys(commands).sort();
+        for (var i = 0; i < keys.length; i++) {
+            var key = keys[i];
+            var command = commands[key];
+            var li = document.createElement('li');
+            li.innerHTML = key;
+            li.classList.add("menu-item");
+            if (command.encoding) {
+                // command
+                li.id = command.encoding + "." + command.key;
+                li.onclick = function() { eval('scriptList.insert("' + this.id + '")'); };
+            } else {
+                // category
+                var ul = document.createElement('ul');
+                ul.classList.add("menu-submenu");
+                ul.classList.add("menu");
+                createSubMenu(ul, command);
+                li.appendChild(ul);
+            }
+            menu.appendChild(li);
+        }
+    }
+    
+    // go through all of the commands and pick out categories
+    var keys = Object.keys(this.command);
+    for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        var opcode = Number(key);
+        if (!isNumber(opcode)) continue;
+        var command = this.command[key];
+        if (!command.name) continue;
+        if (names.indexOf(command.name) !== -1) continue;
+        names.push(command.name);
+        
+        if (command.category) {
+            // create a category if needed
+            if (!hierarchy[command.category]) hierarchy[command.category] = {};
+            hierarchy[command.category][command.name] = command;
+        } else {
+            hierarchy[command.name] = command;
+        }
+    }
+    
+    createSubMenu(menu, hierarchy);
+}
+
+// ROMScriptList
+function ROMScriptList(rom) {
+    this.rom = rom;
+    this.scriptList = document.getElementById("script-list");
+    this.scriptList.innerHTML = "";
+    this.container = this.scriptList.parentElement;
+    this.script = null;
+    this.selection = []; // selected commands
+    this.node = []; // command nodes by ref
+    
+    this.blockSize = 50; // number of commands per block
+    this.blockStart = 0; // starting location of first block
+    this.numBlocks = 3; // number of blocks visible at one time
+    this.rowHeight = 17;
+    
+    this.observer = new ROMObserver(rom, this, {sub: true});
+    
+    var self = this;
+    this.scriptList.parentElement.onscroll = function() { self.scroll(); };
+    this.menu = document.getElementById('menu');
+    this.scriptList.parentElement.oncontextmenu = function(e) { self.openMenu(e); return false; };
+    
+    var insertButton = document.getElementById("script-insert");
+    insertButton.onclick = function(e) { self.openMenu(e); };
+}
+
+ROMScriptList.prototype.scroll = function() {
+    
+    if (!this.script) return;
+    this.closeMenu();
+    
+    var topSpace = this.scriptList.firstChild;
+    var bottomSpace = this.scriptList.lastChild;
+    if (!topSpace || !bottomSpace) return;
+    
+    if (this.container.scrollTop < topSpace.offsetHeight) {
+        // scrolled off the top
+        var index = Math.floor(this.blockStart - (topSpace.offsetHeight - this.container.scrollTop) / this.rowHeight);
+        
+        // save the scroll position for the top command
+        var topCommand = this.script.command[this.blockStart];
+        var commandNode = this.node[topCommand.ref];
+        var oldOffset, newOffset;
+        if (commandNode) oldOffset = commandNode.offsetTop;
+        
+        // change blockStart so that the previous blocks are visible
+        index = index - index % this.blockSize - this.blockSize * (this.numBlocks - 2);
+        this.blockStart = Math.max(index, 0);
+        this.update();
+        
+        // recalculate the scroll position so that the first command stays in the same spot
+        commandNode = this.node[topCommand.ref];
+        if (commandNode && oldOffset) {
+            newOffset = commandNode.offsetTop;
+            this.scriptList.parentElement.scrollTop += newOffset - oldOffset;
+        }
+        
+    } else if ((this.container.scrollTop + this.container.offsetTop + this.container.offsetHeight) > bottomSpace.offsetTop) {
+        // scrolled off the bottom
+        var index = Math.floor(this.blockStart + (this.container.scrollTop + this.container.offsetTop + this.container.offsetHeight - bottomSpace.offsetTop) / this.rowHeight);
+        
+        // save the scroll position for the bottom command
+        var bottomIndex = Math.min(this.blockStart + this.blockSize * this.numBlocks - 1, this.script.command.length - 1);
+        var bottomCommand = this.script.command[bottomIndex];
+        var commandNode = this.node[bottomCommand.ref];
+        var oldOffset, newOffset;
+        if (commandNode) oldOffset = commandNode.offsetTop;
+        
+        // change blockStart so that the next blocks are visible
+        index = index - index % this.blockSize + this.blockSize * (this.numBlocks - 2);
+        var maxStart = this.script.command.length - this.blockSize * this.numBlocks;
+        maxStart = Math.max(maxStart + this.blockSize - (maxStart % this.blockSize), 0);
+        this.blockStart = Math.min(index, maxStart);
+        this.update();
+        
+        // recalculate the scroll position so that the first command stays in the same spot
+        commandNode = this.node[bottomCommand.ref];
+        if (commandNode && oldOffset) {
+            newOffset = commandNode.offsetTop;
+            this.scriptList.parentElement.scrollTop += newOffset - oldOffset;
+        }
+    }
+}
+
+ROMScriptList.prototype.selectScript = function(script) {
+    document.getElementById("edit-bottom").classList.remove("hidden");
+    
+    if (this.script === script) return;
+    this.deselectAll();
+    this.script = script;
+    
+    // populate the list
+    this.blockStart = 0;
+    this.update();
+}
+
+ROMScriptList.prototype.selectCommand = function(command) {
+    
+    this.closeMenu();
+
+    // clear the old selection
+    this.deselectAll();
+    
+    if (!command) {
+        this.selection = [];
+        return;
+    }
+    this.selection = [command];
+    
+    // select the command in the rom
+    this.rom.select(command);
+    
+    if (!this.node[command.ref]) {
+        // node is not in the current block
+        var index = this.script.command.indexOf(command);
+        this.blockStart = Math.max(index - index % this.blockSize - this.blockSize, 0);
+        this.update();
+    }
+    
+    var node = this.node[command.ref];
+    if (!node) return;
+    node.classList.add("selected");
+    
+    // center the node in the list
+    var nodeTop = node.offsetTop - this.container.offsetTop;
+    var nodeBottom = nodeTop + node.offsetHeight;
+    if ((this.scriptList.parentElement.scrollTop > nodeTop) || ((this.scriptList.parentElement.scrollTop + this.container.offsetHeight) < nodeBottom)) this.scriptList.parentElement.scrollTop = nodeTop - Math.floor(this.container.offsetHeight - node.offsetHeight) / 2;
+}
+
+ROMScriptList.prototype.selectRef = function(ref) {
+    this.selectCommand(this.script.ref[ref]);
+}
+
+ROMScriptList.prototype.deselectAll = function() {
+    for (var c = 0; c < this.selection.length; c++) {
+        var command = this.selection[c];
+        if (!command) continue;
+        var node = this.node[command.ref];
+        if (!node) continue;
+        node.classList.remove("selected");
+    }
+    this.selection = [];
+}
+
+ROMScriptList.prototype.insert = function(identifier) {
+    if (!this.script) return;
+    
+    this.closeMenu();
+    
+    var command = this.script.blankCommand(identifier);
+    
+    var firstCommand = this.selection[0];
+    var lastCommand = this.selection[this.selection.length - 1];
+    var end = this.script.command.indexOf(lastCommand);
+//    if (end === this.script.command.length - 1) return;
+    var nextCommand = this.script.command[end + 1];
+
+    this.rom.beginAction();
+    var self = this;
+    this.rom.pushAction(new ROMAction(this, function() {
+        this.script.updateOffsets();
+        this.selectCommand(lastCommand);
+        this.update();
+    }, null, "Update Script"));
+    this.script.insertCommand(command, nextCommand.ref);
+    this.rom.doAction(new ROMAction(this, null, function() {
+        this.script.updateOffsets();
+        this.selectCommand(command);
+        this.update();
+    }, "Update Script"));
+    this.rom.endAction();
+}
+
+ROMScriptList.prototype.delete = function() {
+    // return if nothing is selected
+    if (!this.script) return;
+    if (this.selection.length === 0) return;
+    this.closeMenu();
+    
+    var lastCommand = this.selection[this.selection.length - 1];
+    var i = this.script.command.indexOf(lastCommand);
+    var nextCommand = this.script.command[i + 1] || this.script.command[this.script.command.length - 2];
+
+    this.rom.beginAction();
+    var self = this;
+    this.rom.pushAction(new ROMAction(this, function() {
+        this.script.updateOffsets();
+        this.selectCommand(lastCommand);
+        this.update();
+    }, null, "Update Script"));
+    this.selection.forEach(function(command) {
+        self.script.removeCommand(command);
+    });
+    this.rom.doAction(new ROMAction(this, null, function() {
+        this.script.updateOffsets();
+        this.selectCommand(nextCommand);
+        this.update();
+    }, "Update Script"));
+    this.rom.endAction();
+}
+
+ROMScriptList.prototype.moveUp = function() {
+    // return if nothing is selected
+    if (!this.script) return;
+    if (this.selection.length === 0) return;
+    this.closeMenu();
+    
+    var firstCommand = this.selection[0];
+    var start = this.script.command.indexOf(firstCommand);
+    if (start === 0) return;
+    var previousCommand = this.script.command[start - 1];
+    var lastCommand = this.selection[this.selection.length - 1];
+    var end = this.script.command.indexOf(lastCommand);
+    if (end === this.script.command.length - 1) return;
+    var nextCommand = this.script.command[end + 1];
+
+    function updateScript() {
+        this.script.updateOffsets();
+        this.selectCommand(firstCommand);
+        this.update();
+    }
+
+    this.rom.beginAction();
+    var self = this;
+    this.rom.pushAction(new ROMAction(this, updateScript, null, "Update Script"));
+    this.script.removeCommand(previousCommand);
+    this.script.insertCommand(previousCommand, nextCommand.ref);
+    this.rom.doAction(new ROMAction(this, null, updateScript, "Update Script"));
+    this.rom.endAction();
+}
+
+ROMScriptList.prototype.moveDown = function() {
+    // return if nothing is selected
+    if (!this.script) return;
+    if (this.selection.length === 0) return;
+    this.closeMenu();
+    
+    var firstCommand = this.selection[0];
+    var start = this.script.command.indexOf(firstCommand);
+    if (start === 0) return;
+    var previousCommand = this.script.command[start - 1];
+    var lastCommand = this.selection[this.selection.length - 1];
+    var end = this.script.command.indexOf(lastCommand);
+    if (end === this.script.command.length - 1) return;
+    var nextCommand = this.script.command[end + 1];
+
+    function updateScript() {
+        this.script.updateOffsets();
+        this.selectCommand(firstCommand);
+        this.update();
+    }
+
+    this.rom.beginAction();
+    var self = this;
+    this.rom.pushAction(new ROMAction(this, updateScript, null, "Update Script"));
+    this.script.removeCommand(nextCommand);
+    this.script.insertCommand(nextCommand, firstCommand.ref);
+    this.rom.doAction(new ROMAction(this, null, updateScript, "Update Script"));
+    this.rom.endAction();
+}
+
+ROMScriptList.prototype.update = function() {
+        
+    if (!this.script) return;
+    
+    // recalculate top and bottom spacers
+    
+    // create a dummy li to determine the row height
+    var dummy = document.createElement("li");
+    dummy.innerHTML = "Dummy"
+    this.scriptList.appendChild(dummy);
+    this.rowHeight = dummy.scrollHeight;
+    this.scriptList.removeChild(dummy);
+    
+    var totalHeight = this.script.command.length * this.rowHeight;
+    var blockTop = this.blockStart * this.rowHeight;
+    var blockBottom = blockTop + this.blockSize * this.numBlocks * this.rowHeight;
+    
+    // stop observing current nodes
+    this.observer.stopObservingAll();
+    
+    // remove all nodes
+    this.node = [];
+    this.scriptList.innerHTML = "";
+    
+    // create top space
+    var topSpace = document.createElement('div');
+    topSpace.className = "script-spacer";
+    this.scriptList.appendChild(topSpace);
+
+    // create nodes
+    for (var c = 0; c < this.blockSize * this.numBlocks; c++) {
+        var command = this.script.command[c + this.blockStart];
+        if (!command) break;
+        var li = this.liForCommand(command);
+        this.node[command.ref] = li;
+        this.scriptList.appendChild(li);
+    }
+
+    // start observing new nodes
+    var self = this;
+    this.node.forEach(function(li) {
+        var command = self.script.ref[li.value];
+        if (!command) return;
+        self.observer.startObserving(command, self.update);
+    });
+
+    // create bottom space
+    var bottomSpace = document.createElement('div');
+    bottomSpace.className = "script-spacer";
+    this.scriptList.appendChild(bottomSpace);
+    
+    // set top space height
+    topSpace.style.height = blockTop + "px";
+    bottomSpace.style.height = Math.max(totalHeight - blockBottom, 0) + "px";
+    
+    // highlight selected commands
+    for (var c = 0; c < this.selection.length; c++) {
+        var command = this.selection[c];
+        var node = this.node[command.ref];
+        if (!node) continue;
+        node.className = "selected";
+    }
+}
+
+ROMScriptList.prototype.liForCommand = function(command) {
+    var li = document.createElement("li");
+    li.value = command.ref;
+    var list = this;
+    li.onclick = function() {
+        list.selectRef(this.value);
+    };
+    var span = document.createElement("span");
+    span.classList.add("script-offset");
+    if (command._label) span.classList.add("bold");
+    span.innerHTML = command.label;
+    li.appendChild(span);
+    var p = document.createElement('p');
+    p.innerHTML = command.description;
+    li.appendChild(p);
+    return li;
+}
+
+ROMScriptList.prototype.updateMenu = function() {
+    
+    this.menu.innerHTML = "";
+    
+    // build the menu for the appropriate script commands
+    if (isArray(this.script.encoding)) {
+        for (var i = 0; i < this.script.encoding.length; i++) {
+            var encodingName = this.script.encoding[i];
+            var encoding = this.rom.scriptEncoding[encodingName];
+            var subMenu = document.createElement("ul");
+            subMenu.classList.add("menu-submenu");
+            if (encoding) encoding.populateMenu(subMenu);
+            var encodingLabel = document.createElement("li");
+            encodingLabel.classList.add("menu-item");
+            encodingLabel.innerHTML = encoding.name;
+            encodingLabel.appendChild(subMenu);
+            this.menu.appendChild(encodingLabel);
+        }
+    } else {
+        var encoding = this.rom.scriptEncoding[this.script.encoding];
+        if (encoding) encoding.populateMenu(this.menu);
+    }
+}
+
+ROMScriptList.prototype.openMenu = function(e) {
+    this.updateMenu();
+    
+    this.menu.classList.add("menu-active");
+    this.menu.style.left = e.x + "px";
+    this.menu.style.height = "";
+    
+    var top = e.y;
+    var height = this.menu.clientHeight;
+    if (height + top > window.innerHeight) {
+        top = window.innerHeight - height;
+    }
+    if (top < 0) {
+        this.menu.style.height = window.innerHeight + "px";
+        top = 0;
+    }
+    this.menu.style.top = top + "px";
+}
+
+ROMScriptList.prototype.closeMenu = function() {
+    this.menu.classList.remove("menu-active");
+}
+
+// ROMText
+function ROMText(rom, definition, parent) {
+    ROMAssembly.call(this, rom, definition, parent);
+    
+    this.encoding = definition.encoding;
+    this.text = "";
+    this.length = definition.length; // this is different from this.range.length
+    this.multiLine = definition.multiLine || false;
+}
+
+ROMText.prototype = Object.create(ROMAssembly.prototype);
+ROMText.prototype.constructor = ROMText;
+
+Object.defineProperty(ROMText.prototype, "definition", { get: function() {
+    var definition = Object.getOwnPropertyDescriptor(ROMAssembly.prototype, "definition").get.call(this);
+
+    delete definition.range;
+    if (this.range.begin) definition.begin = this.range.begin;
+    definition.encoding = this.encoding;
+    definition.length = this.length;
+    if (this.multiLine) definition.multiLine = true;
+
+    return definition;
+}});
+
+ROMText.prototype.disassemble = function(data) {
+    
+    // for variable length text, length is determined by the data
+    if (this.range.length === 0) this.range = new ROMRange(0, data.length);
+    
+    ROMAssembly.prototype.disassemble.call(this, data);
+    
+    var encoding = this.rom.textEncoding[this.encoding];
+    if (encoding) {
+        this.text = encoding.decode(this.data);
+    } else {
+        this.text = String.fromCharCode.apply(null, this.data);
+    }
+}
+
+ROMText.prototype.propertyHTML = function(name) {
+    
+    if (this.hidden || this.invalid) return null;
+    
+    // create a div for the property
+    var propertyDiv = document.createElement('div');
+    propertyDiv.classList.add("property-div");
+    propertyDiv.id = "property-" + this.key;
+    var id = "property-control-" + this.key;
+    
+    // create a label
+    var label = document.createElement('label');
+    label.htmlFor = id;
+    label.classList.add("property-label");
+    name = name || this.name;
+    if (name) label.innerHTML = name + ":";
+    propertyDiv.appendChild(label);
+
+    // create a div for the control(s)
+    var controlDiv = document.createElement('div');
+    propertyDiv.appendChild(controlDiv);
+    controlDiv.classList.add("property-control-div");
+        
+    // create a text box
+    var input = document.createElement(this.multiLine ? 'textarea' : 'input');
+    controlDiv.appendChild(input);
+    input.id = id;
+    input.value = this.text;
+    input.disabled = this.disabled;
+    input.classList.add("property-control");
+    input.classList.add(this.multiLine ? "property-textarea" : "property-text");
+    var text = this;
+    input.onchange = function() {
+        text.setText(this.value);
+        document.getElementById(this.id).focus();
+    };
+
+//    document.body.appendChild(propertyDiv);
+//    parent.appendChild(propertyDiv);
+
+    // calculate the required height
+//    var height = input.scrollHeight;
+//    input.style.height = height + "px";
+    
+    return propertyDiv;
+}
+
+ROMText.prototype.setText = function(text) {
+    
+    // validate the text
+    var encoding = this.rom.textEncoding[this.encoding];
+    if (!encoding) return; // TODO: add default encoding
+    
+    // encode the text to data
+    var data = encoding.encode(text);
+    
+    // pad data for fixed-length text
+    if (this.length) data = encoding.pad(data, this.length);
+    
+    // decode the data back to text to fix identify encoding errors
+    text = encoding.decode(data);
+
+    // return if the value didn't change
+    var oldText = this.text;
+    var oldData = this.data;
+    if (data === oldData) {
+        this.notifyObservers();
+        return;
+    }
+    
+    // functions to undo/redo
+    var assembly = this;
+    function redo() {
+        assembly.text = text;
+        assembly.data = data;
+        assembly.notifyObservers();
+    }
+    function undo() {
+        assembly.text = oldText;
+        assembly.data = oldData;
+        assembly.notifyObservers();
+    }
+        
+    // perform an action to change the value
+    var action = new ROMAction(this, undo, redo, "Set " + this.name);
+    this.rom.doAction(action);
+}
+
+Object.defineProperty(ROMText.prototype, "formattedText", { get: function() {
+    var encoding = this.rom.textEncoding[this.encoding];
+    if (encoding) {
+        return encoding.format(this.text);
+    } else {
+        return this.text;
+    }
+}});
+
+Object.defineProperty(ROMText.prototype, "htmlText", { get: function() {
+    var encoding = this.rom.textEncoding[this.encoding];
+    if (encoding) {
+        return encoding.format(this.text, true);
+    } else {
+        return this.text;
+    }
+}});
+
+// ROMCharTable
+function ROMCharTable(rom, definition, parent) {
+    ROMObject.call(this, rom, definition, parent);
+    this.type = ROMObject.Type.charTable;
+
+    this.char = [];
+    
+    var keys = Object.keys(definition.char);
+    for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        var num = Number(key);
+        if (!isNumber(num)) continue;
+        this.char[num] = definition.char[key];
+    }
+}
+
+Object.defineProperty(ROMCharTable.prototype, "definition", { get: function() {
+    var definition = Object.getOwnPropertyDescriptor(ROMObject.prototype, "definition").get.call(this);
+
+    definition.char = {};
+    
+    this.char.forEach(function(c, i) {
+        var pad = i > 0xFF ? 4 : 2;
+        definition.char[hexString(i, pad)] = c;
+    })
+
+    return definition;
+}});
+
+// ROMTextEncoding
+function ROMTextEncoding(rom, definition, parent) {
+    ROMObject.call(this, rom, definition, parent);
+    this.type = ROMObject.Type.textEncoding;
+    
+    this.encodingTable = {};
+    this.decodingTable = [];
+    this.charTable = definition.charTable;
+    
+    if (!isArray(definition.charTable)) { return; }
+    for (var i = 0; i < definition.charTable.length; i++) {
+        var charTable = this.rom.charTable[this.charTable[i]];
+        if (!charTable) continue;
+        var keys = Object.keys(charTable.char);
+        for (var c = 0; c < keys.length; c++) {
+            var key = Number(keys[c]);
+            var value = charTable.char[key];
+            this.decodingTable[key] = value;
+            this.encodingTable[value] = key;
+        }
+    }
+}
+
+ROMTextEncoding.prototype = Object.create(ROMObject.prototype);
+ROMTextEncoding.prototype.constructor = ROMTextEncoding;
+
+Object.defineProperty(ROMTextEncoding.prototype, "definition", { get: function() {
+    var definition = Object.getOwnPropertyDescriptor(ROMObject.prototype, "definition").get.call(this);
+
+    definition.charTable = this.charTable;
+    
+    return definition;
+}});
+
+ROMTextEncoding.prototype.decode = function(data) {
+    var text = "";
+    var i = 0;
+    var b1, b2, c;
+    
+    while (i < data.length) {
+        c = null;
+        b1 = data[i++];
+        b2 = data[i++];
+        if (b1) c = this.decodingTable[(b1 << 8) | b2];
+        if (!c) {
+            c = this.decodingTable[b1];
+            i--;
+        }
+        
+        if (!c) {
+            text += "\\" + hexString(b1, 2);
+        } else if (c == "\\0") {
+            break; // string terminator
+        } else if (c == "\\pad") {
+            continue; // pad
+        } else if (c.endsWith("[")) {
+            text += c;
+            b1 = data[i++] || 0;
+            text += hexString(b1, 2);
+            text += "]";
+        } else {
+            text += c;
+        }
+    }
+    
+    return text;
+}
+
+ROMTextEncoding.prototype.encode = function(text) {
+    var data = [];
+    var i = 0;
+    var keys = Object.keys(this.encodingTable);
+    
+    while (i < text.length) {
+        var remainingText = text.substring(i);
+        var matches = keys.filter(function(s) {
+            return remainingText.startsWith(s);
+        });
+        
+        if (matches.length === 0) {
+            this.rom.log("Invalid character: " + remainingText[0]);
+            i++;
+            continue;
+        }
+        
+        var match = matches.reduce(function (a, b) {
+            return a.length > b.length ? a : b;
+        });
+        
+        // end of string
+        if (match === "\\0") break;
+        
+        var value = this.encodingTable[match];
+        i += match.length;
+        
+        if (match.endsWith("[")) {
+            var end = text.indexOf("]", i);
+            parameter = text.substring(i, end);
+            var n = Number(parameter);
+            if (!isNumber(n) || n > 0xFF) {
+                this.rom.log("Invalid parameter: " + parameter);
+                n = 0;
+                end = i;
+            }
+            i = end + 1;
+            value <<= 8;
+            value |= n;
+        }
+        
+        if (value > 0xFF) {
+            data.push(value >> 8);
+            data.push(value & 0xFF);
+        } else {
+            data.push(value);
+        }
+    }
+    
+    var terminator = this.encodingTable["\\0"];
+    if (isNumber(terminator) && data[data.length - 1] !== terminator) {
+        data.push(terminator);
+    }
+    
+    return Uint8Array.from(data);
+}
+
+ROMTextEncoding.prototype.pad = function(data, length) {
+    if (data.length > length) {
+        // trim the data if it is too long
+        data = data.subarray(0, length);
+    } else if (data.length < length) {
+        // find the encoding's pad value
+        var padValue = this.encodingTable["\\pad"] || 0xFF;
+        var newData = new Uint8Array(length);
+        newData.set(data);
+        newData.fill(padValue, data.length);
+        data = newData;
+    }
+    return data;
+}
+
+ROMTextEncoding.prototype.textLength = function(data) {
+    var i = 0;
+    var b1, b2, c;
+    
+    while (i < data.length) {
+        c = null;
+        b1 = data[i++];
+        b2 = data[i++];
+        if (b1) c = this.decodingTable[(b1 << 8) | b2];
+        if (!c) {
+            c = this.decodingTable[b1];
+            i--;
+        }
+        
+        if (!c) {
+            continue;
+        } else if (c === "\\0") {
+            break; // string terminator
+        } else if (c.endsWith("[")) {
+            i++;
+        }
+    }
+    
+    return Math.min(i, data.length);
+}
+
+ROMTextEncoding.prototype.format = function(text, html) {
+    
+    var escapeKeys = Object.keys(this.encodingTable);
+    escapeKeys = escapeKeys.filter(str => str.startsWith("\\"));
+    escapeKeys = escapeKeys.sort(function(a, b) { return b.length - a.length; });
+    
+    for (var i = 0; i < escapeKeys.length; i++) {
+        var key = escapeKeys[i];
+        if (!text.includes(key)) continue;
+        
+        if (key.endsWith("[")) {
+            var regex = new RegExp("\\" + key.slice(0, -1) + "\\\[([^\\\]]+)]", "g");
+            text = text.replace(regex, "");
+            continue;
+        }
+        
+        var regex = new RegExp("\\" + key, "g");
+        if (key === "\\n" || key === "\\page") {
+            text = text.replace(regex, (html ? "<br/>" : "\n"));
+        } else if (key === "\\choice") {
+            for (var c = 1; text.includes(key); c++) {
+                text = text.replace(key, c + ": ")
+            }
+        } else if (key.startsWith("\\char")) {
+            var c = Number(key.slice(-2));
+            var characterName = this.rom.stringTable.characterNames.string[c].fString();
+            text = text.replace(regex, characterName);
+        } else if (key.startsWith("\\hchar")) {
+            var c = Number(key.slice(-2));
+            var characterName = this.rom.stringTable.characterNames.string[c].fString();
+            text = text.replace(regex, characterName);
+        } else {
+            text = text.replace(regex, "");
+        }
+    }
+    return text;
+}
+
+// ROMString
+function ROMString(rom, definition, parent) {
+    ROMObject.call(this, rom, definition, parent);
+    this.type = ROMObject.Type.string;
+    this.value = definition.value || "";
+    this.language = definition.language;
+    this._fString = null;
+    this.observer = new ROMObserver(rom, this, null);
+}
+
+ROMString.prototype = Object.create(ROMObject.prototype);
+ROMString.prototype.constructor = ROMString;
+
+ROMString.prototype.fString = function(maxLength) {
+    
+    // formatted string
+    var s = this._fString;
+    var i = this.i;
+
+    // check if the string needs to be formatted
+    if (!s) {
+        this.observer.stopObservingAll();
+
+        // replace string index
+        var s = this.value.replace(/%i/g, i.toString());
+        this._fString = s;
+
+        // replace links
+        var links = s.match(/<([^>]+)>/g);
+        if (!links) return s;
+        for (var l = 0; l < links.length; l++) {
+            var link = links[l];
+            var object = this.rom.parseLink(link.substring(1, link.length - 1));
+            this.observer.startObserving(object, this.reset);
+            if (object instanceof ROMText) {
+                s = s.replace(link, object.formattedText);
+            } else if (object instanceof ROMString) {
+                s = s.replace(link, object.fString());
+            } else if (isString(object)) {
+                s = s.replace(link, object);
+            } else {
+                s = s.replace(link, "Invalid Link");
+            }
+        }
+        this._fString = s;
+    }
+
+    if (maxLength && s.length > maxLength) s = s.substring(0, maxLength) + "…";
+    return s;
+}
+
+ROMString.prototype.htmlString = function(maxLength) {
+    return this.fString(maxLength).replace(/\n/g, "<br/>");
+}
+
+ROMString.prototype.setValue = function(value) {
+        
+    // return if the value didn't change
+    var oldValue = this.value;
+    if (value === oldValue) {
+        this.notifyObservers();
+        return;
+    }
+    
+    // functions to undo/redo
+    var string = this;
+    function redo() {
+        string.value = value;
+        string.reset();
+    }
+    function undo() {
+        string.value = oldValue;
+        string.reset();
+    }
+        
+    // perform an action to change the value
+    var action = new ROMAction(this, undo, redo, "Set String " + this.name);
+    this.rom.doAction(action);
+}
+
+ROMString.prototype.reset = function() {
+    this._fString = null;
+    this.observer.stopObservingAll();
+    this.notifyObservers();
+}
+
+ROMString.prototype.propertyHTML = function(name) {
+    
+    // create a div for the property
+    var propertyDiv = document.createElement('div');
+    propertyDiv.classList.add("property-div");
+    propertyDiv.id = "property-" + this.key;
+    var id = "property-control-" + this.key;
+    
+    // create a label
+    var label;
+    if (this.language) {
+        // create a label with a link to this string
+        label = document.createElement('a');
+        label.href = "javascript:rom.select(\"stringTable." + this.parent.key + "[" + this.i + "]\");";
+    } else {
+        // create a static label
+        label = document.createElement('label');
+    }
+    label.htmlFor = id;
+    label.classList.add("property-label");
+    name = name || this.name;
+    if (name) label.innerHTML = name + ":";
+    propertyDiv.appendChild(label);
+
+    // create a div for the string
+    var stringDiv = document.createElement('div');
+    stringDiv.classList.add("property-control-div");
+    stringDiv.innerHTML = this.fString();
+    stringDiv.id = id;
+    propertyDiv.appendChild(stringDiv);
+
+    return propertyDiv;
+}
+
+//ROMString.prototype.stringHTML = function() {
+//    
+//    // create a div for the property
+//    var propertyDiv = document.createElement('div');
+//    propertyDiv.classList.add("property-div");
+//    var id = "property-" + this.key;
+//    
+//    // create a label
+//    var label = document.createElement('label');
+//    label.htmlFor = id;
+//    label.classList.add("property-label");
+//    label.innerHTML = this.name + ":";
+//    propertyDiv.appendChild(label);
+//
+//    // create a div for the string
+//    var stringDiv = document.createElement('div');
+//    propertyDiv.appendChild(stringDiv);
+//    stringDiv.classList.add("property-control-div");
+//    stringDiv.id = id;
+//    stringDiv.innerHTML = this.fString();
+//
+//    var language = this.parent.language;
+//    if (!language) return propertyDiv;
+//    
+//    var keys = Object.keys(language);
+//    for (var k = 0; k < keys.length; k++) {
+//        // create a property for each language
+//        
+//    }
+//    
+//    return propertyDiv;
+//}
+
+Object.defineProperty(ROMString.prototype, "labelString", { get: function() {
+    return this;
+}});
+
+ROMString.prototype.labelHTML = function() {
+    return ROMAssembly.prototype.labelHTML.call(this);
+
+//    var string = this;
+//    
+//    // create a div for the label
+//    var labelDiv = document.createElement('div');
+//    labelDiv.classList.add("property-div");
+//    var id = "label-" + this.key;
+//    
+//    // create a label for the label
+//    var label;
+//    if (this.parent.language) {
+//        // create a label with a link to this string
+//        label = document.createElement('a');
+//        label.href = "javascript:rom.select(\"" + this.path + "\");";
+//    } else {
+//        // create a static label
+//        label = document.createElement('label');
+//    }
+//    label.htmlFor = id;
+//    label.classList.add("property-label");
+//    label.innerHTML = "Label:";
+//    labelDiv.appendChild(label);
+//
+//    // create a div for the control(s)
+//    var controlDiv = document.createElement('div');
+//    labelDiv.appendChild(controlDiv);
+//    controlDiv.classList.add("property-control-div");
+//        
+//    // create a text box
+//    var input = document.createElement('input');
+//    controlDiv.appendChild(input);
+//    input.id = id;
+//    var defaultString = string.parent.defaultString;
+//    input.placeholder = defaultString;
+//    if (string.value !== defaultString) input.value = string.value;
+//    input.classList.add("property-control");
+//    input.onchange = function() {
+//        if (this.value === "") {
+//            string.setValue(defaultString);
+//        } else {
+//            string.setValue(this.value);
+//        }
+//        document.getElementById(this.id).focus();
+//    };
+//
+//    return labelDiv;
+}
+
+// ROMStringTable
+function ROMStringTable(rom, definition, parent) {
+    ROMObject.call(this, rom, definition, parent);
+    this.type = ROMObject.Type.stringTable;
+    this.language = definition.language;
+    this.hideIndex = definition.hideIndex;
+    
+    this.string = [];
+    var i, string;
+    
+    // convert index strings to numbers
+    if (definition.string) {
+        var keys = Object.keys(definition.string);
+        for (i = 0; i < keys.length; i++) {
+            var key = keys[i];
+            var range = ROMRange.parse(key)
+            var n = Number(key);
+            if (!range.isEmpty) {
+                for (n = range.begin; n < range.end; n++) {
+                    this.string[n] = this.createString(definition.string[key]);
+                    this.string[n].i = n;
+                }
+            } else if (isNumber(n)) {
+                this.string[n] = this.createString(definition.string[key]);
+                this.string[n].i = n;
+            }
+        }
+    }
+    
+    // load default strings
+    this.defaultString = definition.default;
+    if (!this.defaultString) this.defaultString = "String %i";
+    this.length = definition.length;
+    if (this.length) {
+        for (i = 0; i < this.length; i++) {
+            if (this.string[i]) continue;
+            this.string[i] = this.createString(this.defaultString);
+            this.string[i].i = i;
+        }
+    }
+}
+
+ROMStringTable.prototype = Object.create(ROMObject.prototype);
+ROMStringTable.prototype.constructor = ROMStringTable;
+
+Object.defineProperty(ROMStringTable.prototype, "definition", { get: function() {
+    var definition = Object.getOwnPropertyDescriptor(ROMObject.prototype, "definition").get.call(this);
+
+    var defaultString = this.defaultString;
+    if (defaultString !== "String %i") definition.default = defaultString;
+    if (this.length) definition.length = this.length;
+    if (this.language) definition.language = this.language;
+    if (this.hideIndex === true) definition.hideIndex = true;
+    
+    // define the custom string list
+    definition.string = {};
+    this.string.forEach(function(s, i) {
+        if (s.value !== defaultString) definition.string[i] = s.value;
+    })
+    
+    // delete the string list if there were no custom strings
+    if (Object.keys(definition.string).length === 0) definition.string = null;
+
+    return definition;
+}});
+
+ROMStringTable.prototype.createString = function(value) {
+    if (isString(value)) {
+        return new ROMString(this.rom, {value: value, name: this.name}, this);
+    } else {
+        var definition = value;
+        definition.name = value.name || this.name;
+        return new ROMString(this.rom, definition, this);
+    }
+    return null;
+}
+
+ROMStringTable.prototype.insertString = function(i, string) {
+    
+}
+
+ROMStringTable.prototype.removeString = function(i) {
+    
+}
+
+// ROMRange
+function ROMRange(begin, end) {
+    this.begin = begin;
+    this.end = end;
+}
+
+Object.defineProperty(ROMRange.prototype, "isEmpty", {
+    get: function() {
+        return (this.end <= this.begin);
+    }
+});
+
+Object.defineProperty(ROMRange.prototype, "length", {
+    get: function() {
+        return (this.end - this.begin);
+    }
+});
+
+ROMRange.prototype.toString = function(pad) {
+    return (hexString(this.begin, pad) + "-" + hexString(this.end, pad));
+}
+
+ROMRange.parse = function(expression) {
+    var range = new ROMRange(0, 0);
+    if (!isString(expression)) { return range; }
+    var bounds = expression.split("-");
+    if (bounds.length != 2) { return range; }
+    var begin = Number(bounds[0]);
+    var end = Number(bounds[1]);
+    if (!isNumber(begin) || !isNumber(end)) { return range; }
+    range.begin = begin;
+    range.end = end;
+    return range;
+}
+
+ROMRange.prototype.contains = function(i) {
+    return (i >= this.begin && i < this.end);
+}
+
+ROMRange.prototype.offset = function(offset) {
+    return new ROMRange(this.begin + offset, this.end + offset);
+}
+
+ROMRange.prototype.intersection = function(range) {
+    if ((range.end < this.begin) || (range.begin > this.end)) return ROMRange.emptyRange;
+    return new ROMRange(Math.max(range.begin, this.begin), Math.min(range.end, this.end));
+}
+
+ROMRange.prototype.union = function(range) {
+    if ((range.end < this.begin) || (range.begin > this.end)) return ROMRange.emptyRange;
+    return new ROMRange(Math.min(range.begin, this.begin), Math.max(range.end, this.end));
+}
+
+Object.defineProperty(ROMRange, "emptyRange", {
+    get: function() { return new ROMRange(0, 0); }
+});
+
+// misc. methods
+
+function bytesSwapped16(n) {
+    return ((n & 0xFF) << 8) | ((n & 0xFF00) >> 8);
+}
+
+// https://github.com/uxitten/polyfill/blob/master/string.polyfill.js
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padStart
+if (!String.prototype.padStart) {
+    String.prototype.padStart = function padStart(targetLength,padString) {
+        targetLength = targetLength>>0; //truncate if number or convert non-number to 0;
+        padString = String((typeof padString !== 'undefined' ? padString : ' '));
+        if (this.length > targetLength) {
+            return String(this);
+        }
+        else {
+            targetLength = targetLength-this.length;
+            if (targetLength > padString.length) {
+                padString += padString.repeat(targetLength/padString.length); //append to original to ensure we are longer than needed
+            }
+            return padString.slice(0,targetLength) + String(this);
+        }
+    };
+}
+
+function Rect(l, r, t, b) {
+    
+    l = Number(l) || 0;
+    r = Number(r) || 0;
+    t = Number(t) || 0;
+    b = Number(b) || 0;
+    if (r <= l) { l = 0; r = 0; }
+    if (b <= t) { t = 0; b = 0; }
+    
+    this.l = l;
+    this.r = r;
+    this.t = t;
+    this.b = b;
+}
+
+//Rect.emptyRect = new Rect(0, 0, 0, 0);
+Object.defineProperty(Rect, "emptyRect", {
+    get: function() { return new Rect(0, 0, 0, 0); }
+});
+
+Rect.prototype.isEmpty = function() {
+    return (this.r <= this.l) || (this.b <= this.t);
+}
+
+Rect.prototype.isEqual = function(rect) {
+    return (rect.l === this.l) &&
+           (rect.r === this.r) &&
+           (rect.t === this.t) &&
+           (rect.b === this.b);
+}
+
+Rect.prototype.intersect = function(rect) {
+    return new Rect(Math.max(this.l, rect.l),
+                    Math.min(this.r, rect.r),
+                    Math.max(this.t, rect.t),
+                    Math.min(this.b, rect.b));
+}
+
+Rect.prototype.contains = function(rect) {
+    return this.intersect(rect).isEqual(rect);
+}
+
+Rect.prototype.containsPoint = function(x, y) {
+    return (x >= this.l) &&
+           (x < this.r) &&
+           (y >= this.t) &&
+           (y < this.b);
+}
+
+Rect.prototype.scale = function(x, y) {
+    x = Number(x);
+    y = Number(y) || x;
+    
+    return new Rect(this.l * x | 0, this.r * x | 0, this.t * y | 0, this.b * y | 0);
+}
+
+Rect.prototype.offset = function(x, y) {
+    x = Number(x);
+    y = Number(y);
+
+    return new Rect(this.l + x, this.r + x, this.t + y, this.b + y);
+}
+
+Object.defineProperty(Rect.prototype, "w", {
+    get: function() { return this.r - this.l; },
+    set: function(w) { this.r = this.l + w; }
+});
+
+Object.defineProperty(Rect.prototype, "h", {
+    get: function() { return this.b - this.t; },
+    set: function(h) { this.b = this.t + h; }
+});
+
+// returns a hex string of a number with optional padding
+function hexString(num, pad, prefix) {
+    prefix = prefix || "0x";
+    if (num < 0) num = 0xFFFFFFFF + num + 1;
+    var hex = num.toString(16).toUpperCase();
+    if (isNumber(pad)) hex = hex.padStart(pad, "0");
+    return (prefix + hex);
+}
+
+// returns if a value is a string
+function isString(value) {
+    return typeof value === 'string' || value instanceof String;
+}
+
+// returns if a value is really a number
+function isNumber(value) {
+    return typeof value === 'number' && isFinite(value);
+}
+
+// returns if a value is an array
+function isArray(value) {
+    return value && typeof value === 'object' && value.constructor === Array;
+}
+
+function bitCount (value) {
+    for (var count = 0, mask = 1; value !== 0; mask <<= 1) {
+        if (!(value & mask)) continue;
+        count++;
+        value ^= mask;
+    }
+    return count;
+}
+
+function compareTypedArrays(a1, a2) {
+    
+    if (a1 === a2) return true;
+    
+    if (a1.length !== a2.length) return false;
+    
+    var i = a1.length;
+    while (i--) {
+        if (a1[i] !== a2[i]) return false;
+    }
+    
+    return true;
+}

@@ -1,0 +1,253 @@
+<!DOCTYPE HTML>
+    <html lang="en-US">
+        <head>
+            <meta charset="UTF-8">
+            <title>blast.html</title>
+            
+            <style type="text/css">
+                body {
+                    font-family: sans-serif;
+                }
+                textarea {
+                    font-family: monospace;
+                }
+                li {
+                    font-family: monospace;
+                }
+                p {
+                    font-family: monospace;
+                }
+                footer {
+                    font-family: monospace;
+                    text-align: center;
+                }
+            </style>
+            
+            <script type="text/javascript" src="libgme.js"></script>
+            <script type="text/javascript" src="blast.js"></script>
+            <script type="text/javascript" src="examples.js"></script>
+
+            <script type="text/javascript">
+                
+                window.onload = function() {
+                    // read mm6.dat from the server
+                    var oReq = new XMLHttpRequest();
+                    oReq.responseType = "arraybuffer";
+                    oReq.open("GET", "mm6.dat", true);
+                    oReq.onload = function() {
+                        var arrayBuffer = oReq.response;
+                        mm6Data = new Uint8Array(arrayBuffer);
+                    };
+                    oReq.send();
+                    
+                    document.getElementById("bacham").onclick = example;
+                    document.getElementById("bachbbm").onclick = example;
+                    document.getElementById("bachbm").onclick = example;
+                    document.getElementById("windman").onclick = example;
+                    document.getElementById("blizzardman").onclick = example;
+                    document.getElementById("yamatoman").onclick = example;
+                    document.getElementById("blastoff").onclick = example;
+                    document.getElementById("adventure").onclick = example;
+                    document.getElementById("peacefultown").onclick = example;
+                };
+                
+                function example() {
+                    
+                    document.getElementById("script").value = examples[this.id];
+//                    // read script from the server
+//                    var oReq = new XMLHttpRequest();
+//                    oReq.responseType = "text";
+//                    oReq.open("GET", this.id + ".txt", true);
+//                    oReq.onload = function() {
+//                        document.getElementById("script").value = examples[responseText];
+//                    };
+//                    oReq.send();
+                    return false;
+                }
+
+                function example1() {
+                    return false
+                }
+
+                function example2() {
+                    return false
+                }
+
+                function example3() {
+                    return false
+                }
+                
+                function example4() {
+                    return false
+                }
+
+                function example5() {
+                    return false
+                }
+
+                function example6() {
+                    return false
+                }
+
+                function example7() {
+                    return false
+                }
+
+                function example8() {
+                    return false
+                }
+
+            </script>
+        </head>
+        
+        <body>
+
+            <h1>BLAST</h1>
+            <form action="">
+                <div>
+                    <input type="button"
+                           value="Play"
+                           onclick="play();" />
+                    <input type="button"
+                           value="Stop"
+                           onclick="stop();" />
+                    <input type="button"
+                           value="Download NSF"
+                           onclick="download();" />
+                </div>
+                <textarea id="script"
+                          class="mono"
+                          rows="20"
+                          cols="80"></textarea>
+            </form>
+            
+            <h2>About</h2>
+
+            <p>BLAST (Budget-Limited Audio Sequence Tracker) is a text-based audio sequencer that creates music using the <a href="https://www.romhacking.net/documents/274/">sound engine from Capcom's Mega Man 6 for the NES</a>. The song input is a series of space-delimited commands that are interpreted by a JavaScript parser and converted into machine code that the sound engine can understand. The engine and script are then packaged together using the <a href="https://wiki.nesdev.com/w/index.php/NSF">NES Sound Format (NSF)</a> which can be played in the browser or exported as an NSF file. This page uses a JavaScript port of the <a href="http://www.slack.net/~ant/libs/audio.html">libgme</a> library to play NSF files directly in your browser.</p>
+            
+            <p>I originally wrote the BLAST parser in C as a command line program in 2011. This HTML/JavaScript version is my first web-based programming project.</p>
+            
+            <h2>Examples</h2>
+            
+            <ul>
+                <li><a id="bacham" href="">Johann Sebastian Bach - Two Part Invention in A Minor</a></li>
+                <li><a id="bachbbm" href="">Johann Sebastian Bach - Two Part Invention in B Flat Major</a></li>
+                <li><a id="bachbm" href="">Johann Sebastian Bach - Two Part Invention in B Minor</a></li>
+                <li><a id="windman" href="">Mega Man 6 - Wind Man</a></li>
+                <li><a id="blizzardman" href="">Mega Man 6 - Blizzard Man</a></li>
+                <li><a id="yamatoman" href="">Mega Man 6 - Yamato Man</a></li>
+                <li><a id="blastoff" href="">Blast Off! - Original Composition</a></li>
+                <li><a id="adventure" href="">Adventure - Original Composition</a></li>
+                <li><a id="peacefultown" href="">Peaceful Town - Original Composition</a></li>
+            </ul>
+                        
+            <h2>Instructions</h2>
+
+            <h3>Quick Reference</h3>
+
+            <ul>
+                <li>() tie/slur</li>
+                <li>{} triplets</li>
+                <li>. dotted notes (1 1/2 duration)</li>
+                <li>#1, #2, #3, #4 start of channel</li>
+                <li>[name] label (used with jump)</li>
+                <li>|: | :| repeat signs</li>
+                <li>h toggle hi octave</li>
+                <li>i set instrument</li>
+                <li>j jump</li>
+                <li>l set default note length (default is 4)</li>
+                <li>o set octave</li>
+                <li>p pitch slide</li>
+                <li>q set tempo</li>
+                <li>r rest</li>
+                <li>s set ADSR sustain (0-255)</li>
+                <li>t set transpose (signed)</li>
+                <li>v set volume (0-15, 0-63 for triangle)</li>
+                <li>x end of channel (can be omitted if if ending with a jump)</li>
+                <li>y set duty cycle (0-3, square only)</li>
+                <li>z set detune (signed)</li>
+            </ul>
+
+            <h3>Notes and Durations</h3>
+
+            <p>Play a note by typing in the name of the note followed by the note duration (with no space in between). For example, to play a D quarter note, type "D4". Valid durations are:</p>
+
+            <ul>
+                <li>0: double whole note</li>
+                <li>1: whole note</li>
+                <li>2: half note</li>
+                <li>4: quarter note</li>
+                <li>8: eighth note</li>
+                <li>16: sixteenth note</li>
+                <li>32: thirty-second note</li>
+            </ul>
+
+            <p>If no duration is specified, or if the specified duration is invalid, a default duration will be used. The initial default duration is a quarter note, but this can be changed by using the "l" command. For example, type "l16" to make the default duration a sixteenth note.</p>
+
+            <p>To get a dotted note (one and a half times note duration) add a "." right after the duration. A dotted F quarter note would be "F4.". To get triplets (two-thirds note duration) enclose the triplet notes in braces. For example, three triplet eighth notes would be "{A8 A8 A8}". You can also tie two notes together by enclosing them in parentheses. For example, "(C4 C16)" would be a quarter note tied to a sixteenth note (the sixteenth note would not sound). If you put several different notes in parentheses, they will play like a slur.</p>
+
+            <h3>Octaves</h3>
+
+            <p>The octave can be set using the "o" command. For example, type "o3" to set the octave to 3. The lowest octave is 0 and the highest octave is 7. Middle C is in octave 3. A two and a half octave scale is available at any time. Use uppercase letters for the low octave ("C D E F G A B") and lowercase letters for the high octave ("c d e f g a b"). You can also play the first half of the next higher octave (up to F♯) by adding an apostrophe after the note name. For example, "e'" is an octave above "e", which itself is an octave above "e". You can also use the high octave command "h" to temporarily increase the octave by 2. Use the "h" command again to drop back to the original octave.</p>
+
+            <p>To get a rest, use "r" or "R" as the note name. To add a sharp to a node, type either "#" or "+" after the note name. To add a flat, type "b" or "-". Double sharps and double flats are allowed, but please note that C♭ cannot be used due to the way the sound engine works (use B instead). Unlike normal music notation, where an accidental persists until the end of the measure, in BLAST the accidentals must be added to each note. BLAST does not currently support key signatures, so there is no need for a natural sign, though I may add this eventually.</p>
+
+            <h3>Instruments</h3>
+
+            <p>You can define your own instruments using the "#I" command. In order for the parser to differentiate instrument definitions from music commands, this command must be placed at the beginning of a line, and the instrument definition must come right after it, with spaces between each command. An instrument definition can consist of any of the following commands:</p>
+
+            <ul>
+                <li>a: attack rate (0 to 31)</li>
+                <li>d: decay rate (0 to 31)</li>
+                <li>s: sustain rate (0 to 255)</li>
+                <li>r: release rate (0 to 31)</li>
+                <li>x: not sure what this does (does not take a value)</li>
+                <li>f: frequency for vibrato and tremolo (0 to 127)</li>
+                <li>v: vibrato amplitude (0 to 127)</li>
+                <li>t: tremolo amplitude (0 to 127)</li>
+                <li>n: noise parameter (0 to 255)</li>
+            </ul>
+
+            <p>The best way to understand what each of these commands does is to experiment with them. Any commands that are not included in the instrument definition are set to zero. Note that these instruments can be used on any channel, but some commands have no effect on certain channels. For example, the noise parameter only affects the noise channel. If you don't define any instruments, BLAST will automatically load the default instruments from Mega Man 6.</p>
+
+            <h3>Repeats, Jumps, and Labels</h3>
+
+            <p>To add a repeat, type "|:" at the beginning of the repeat and ":|" at the end. Make sure to include a space before and after repeat signs. To repeat more than once, put the number of repeats right after the end repeat sign. For example ":|4" will repeat four times. To add an alternate final ending, include a single "|" sign at the point where you want to jump past the end repeat on the last repeat. The example "|: C D | E D :|3 C" will expand to "C D E D C D E D C D C" when played.</p>
+
+            <p>To add a jump, you first need to add a label to jump to. Labels are placed inside brackets and must have a name, like [start]. You can place a label at any point in a song and use the "j" command to jump to the label. For example, type j[start] at the end of a song to jump back to the [start] label. This command is typically used to cause a song to loop infinitely (like all the songs in Mega Man do). If you instead want your song to end, type "x" to indicate the end of the channel.</p>
+
+            <h3>Channels</h3>
+
+            <p>The NES sound chip has five channels: two square waves, a triangle wave, a noise generator, and a DMC channel. The Mega Man 6 sound engine does not use the DMC channel, so it is not supported by BLAST. The other four channels can all be used. Each channel can only output one note at a time. Each channel's song data must be written separately (i.e. you can't write part of channel 1, then part of channel 2, the go back and write more of channel 1). To indicate the start of a channel, type "#1" for the first square wave, "#2" for the second square wave, "#3" for the triangle wave, or "#4" for the noise channel. This command (like all of the "#" commands) must be the first thing on a line.</p>
+
+            <h3>Other Commands</h3>
+
+            <p>To set the tempo in bpm, use the "q" command. For example, to set the tempo to 120bpm, type "q120". Tempo is the only command that accepts values larger than 255. I'm not sure what the maximum tempo is.</p>
+
+            <p>To set a channel's volume, use the "v" command. For example, to set the volume to 10, type "v10", The maximum volume is 15.</p>
+
+            <p>To transpose a channel by an integer number of half steps, use the "t" command. To detune a channel by microtone, use the "z" command. Detune is often used to create a chorus effect by playing the same notes in both square channels with one of the channels slightly detuned from the other. These commands both accept both positive and negative values.</p>
+
+            <p>The square channels have a special command that sets the duty cycle of the square wave. This effectively changes the timbre of the output sound. Use the "y" command to set the duty cycle. Use "y0" for 12.5% duty cycle, "y1" for 25% duty cycle, and "y2" for 50% duty cycle. You can also use "y3" for 75% duty cycle, but this sound exactly the same as 25%.</p>
+            
+            <p>There is also a pitch slide command "p" that can be used to gradually slide from one note to another, but I honestly can't remember how it works. Play around with it if you're interested.</p>
+
+            <h3>Song Metadata</h3>
+
+            <p>NSF files support three pieces of metadata that describe a song. This data does not affect the music at all, but it can be read and displayed by most NSF players. You can include the following information:</p>
+
+            <ul>
+                <li>Title, e.g. "#T My Song"</li>
+                <li>Artist, e.g. "#A Koji Kondo"</li>
+                <li>Copyright, e.g. "#C (c) 1988 Nintendo"</li>
+            </ul>
+
+            <h3>Comments</h3>
+
+                <p>To add comments to a song, use a semicolon. Any text on a line after a semicolon will not be parsed. Comments cannot be used in a line that includes song metadata.</p>
+
+            <footer>Copyright (c) 2017 Evan Owen <a href="mailto:everything8215@gmail.com">contact</a></footer>
+            
+        </body>
+        
+    </html>

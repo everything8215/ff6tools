@@ -1,0 +1,1596 @@
+{
+    "type": "rom",
+    "key": "ff5j-sfc",
+    "name": "Final Fantasy V 1.0 (J)",
+    "length": "0x200000",
+    "crc32": "0xC1BC267D",
+    "system": "sfc",
+    "mode": "hiROM",
+    "assembly": {
+        "entranceTriggers": {
+            "type": "array",
+            "name": "Entrance Triggers",
+            "range": "0xCE3AC0-0xCE58D2",
+            "isSequential": true,
+            "array": {
+                "length": 512
+            },
+            "assembly": {
+                "type": "array",
+                "assembly": {
+                    "type": "data",
+                    "assembly": {
+                        "x": {
+                            "type": "property",
+                            "name": "X Position",
+                            "begin": 0,
+                            "hidden": true
+                        },
+                        "y": {
+                            "type": "property",
+                            "name": "Y Position",
+                            "begin": 1,
+                            "hidden": true
+                        },
+                        "map": {
+                            "type": "property",
+                            "name": "Map",
+                            "begin": 2,
+                            "mask": "0x03FF",
+                            "stringTable": "mapProperties"
+                        },
+                        "xDest": {
+                            "type": "property",
+                            "name": "X Destination",
+                            "begin": 4
+                        },
+                        "yDest": {
+                            "type": "property",
+                            "name": "Y Destination",
+                            "begin": 5
+                        }
+                    },
+                    "length": 6
+                }
+            },
+            "pointerTable": {
+                "range": "0xCE36C0-0xCE3AC0",
+                "offset": "0xCE36C0"
+            }
+        },
+        "eventTriggers": {
+            "type": "array",
+            "name": "Event Triggers",
+            "range": "0xCE2800-0xCE36C0",
+            "isSequential": true,
+            "array": {
+                "length": 512
+            },
+            "assembly": {
+                "type": "array",
+                "assembly": {
+                    "type": "data",
+                    "assembly": {
+                        "x": {
+                            "type": "property",
+                            "name": "X Position",
+                            "begin": 0,
+                            "hidden": true
+                        },
+                        "y": {
+                            "type": "property",
+                            "name": "Y Position",
+                            "begin": 1,
+                            "hidden": true
+                        },
+                        "event": {
+                            "type": "property",
+                            "name": "Event",
+                            "begin": 2,
+                            "mask": "0xFFFF"
+                        }
+                    },
+                    "length": 4
+                }
+            },
+            "pointerTable": {
+                "range": "0xCE2400-0xCE2800",
+                "offset": "0xCE2400"
+            }
+        },
+        "mapAnimationGraphics": {
+            "type": "assembly",
+            "name": "Map Animation Graphics",
+            "range": "0xDF9B00-0xDFFC00"
+        },
+        "mapAnimationGraphics2": {
+            "type": "assembly",
+            "name": "Map Animation Graphics",
+            "range": "0xDF0000-0xDFFC00"
+        },
+        "mapAnimationProperties": {
+            "type": "array",
+            "name": "Map Animation Properties",
+            "range": "0xC09D9B-0xC0A18B",
+            "array": {
+                "length": 28
+            },
+            "assembly": {
+                "type": "data",
+                "length": 36,
+                "assembly": {
+                    "flag1": {
+                        "type": "property",
+                        "name": "Flag 1",
+                        "begin": 0,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "flag2": {
+                        "type": "property",
+                        "name": "Flag 2",
+                        "begin": 1,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "flag3": {
+                        "type": "property",
+                        "name": "Flag 3",
+                        "begin": 2,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "flag4": {
+                        "type": "property",
+                        "name": "Flag 4",
+                        "begin": 3,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "flag5": {
+                        "type": "property",
+                        "name": "Flag 5",
+                        "begin": 4,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "flag6": {
+                        "type": "property",
+                        "name": "Flag 6",
+                        "begin": 5,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "flag7": {
+                        "type": "property",
+                        "name": "Flag 7",
+                        "begin": 6,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "flag8": {
+                        "type": "property",
+                        "name": "Flag 8",
+                        "begin": 7,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "flag1Layer3": {
+                        "type": "property",
+                        "name": "Flag 1 (Layer 3)",
+                        "begin": 8,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "flag2Layer3": {
+                        "type": "property",
+                        "name": "Flag 2 (Layer 3)",
+                        "begin": 9,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "flag3Layer3": {
+                        "type": "property",
+                        "name": "Flag 3 (Layer 3)",
+                        "begin": 10,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "flag4Layer3": {
+                        "type": "property",
+                        "name": "Flag 4 (Layer 3)",
+                        "begin": 11,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "tile1": {
+                        "type": "property",
+                        "name": "Tile 1",
+                        "begin": 12,
+                        "mask": "0xFFFF"
+                    },
+                    "tile2": {
+                        "type": "property",
+                        "name": "Tile 2",
+                        "begin": 14,
+                        "mask": "0xFFFF"
+                    },
+                    "tile3": {
+                        "type": "property",
+                        "name": "Tile 3",
+                        "begin": 16,
+                        "mask": "0xFFFF"
+                    },
+                    "tile4": {
+                        "type": "property",
+                        "name": "Tile 4",
+                        "begin": 18,
+                        "mask": "0xFFFF"
+                    },
+                    "tile5": {
+                        "type": "property",
+                        "name": "Tile 5",
+                        "begin": 20,
+                        "mask": "0xFFFF"
+                    },
+                    "tile6": {
+                        "type": "property",
+                        "name": "Tile 6",
+                        "begin": 22,
+                        "mask": "0xFFFF"
+                    },
+                    "tile7": {
+                        "type": "property",
+                        "name": "Tile 7",
+                        "begin": 24,
+                        "mask": "0xFFFF"
+                    },
+                    "tile8": {
+                        "type": "property",
+                        "name": "Tile 8",
+                        "begin": 26,
+                        "mask": "0xFFFF"
+                    },
+                    "tile1Layer3": {
+                        "type": "property",
+                        "name": "Tile 1 (Layer 3)",
+                        "begin": 28,
+                        "mask": "0xFFFF"
+                    },
+                    "tile2Layer3": {
+                        "type": "property",
+                        "name": "Tile 2 (Layer 3)",
+                        "begin": 30,
+                        "mask": "0xFFFF"
+                    },
+                    "tile3Layer3": {
+                        "type": "property",
+                        "name": "Tile 3 (Layer 3)",
+                        "begin": 32,
+                        "mask": "0xFFFF"
+                    },
+                    "tile4Layer3": {
+                        "type": "property",
+                        "name": "Tile 4 (Layer 3)",
+                        "begin": 34,
+                        "mask": "0xFFFF"
+                    }
+                }
+            }
+        },
+        "mapColorMath": {
+            "type": "array",
+            "name": "Map Color Math Properties",
+            "range": "0xC05BB8-0xC05BF4",
+            "array": {
+                "length": 20
+            },
+            "assembly": {
+                "type": "data",
+                "assembly": {
+                    "layer1": {
+                        "type": "property",
+                        "name": "Affect Layer 1",
+                        "begin": 0,
+                        "mask": "0x01",
+                        "bool": true
+                    },
+                    "layer2": {
+                        "type": "property",
+                        "name": "Affect Layer 2",
+                        "begin": 0,
+                        "mask": "0x02",
+                        "bool": true
+                    },
+                    "layer3": {
+                        "type": "property",
+                        "name": "Affect Layer 3",
+                        "begin": 0,
+                        "mask": "0x04",
+                        "bool": true
+                    },
+                    "layer4": {
+                        "type": "property",
+                        "name": "Affect Layer 4",
+                        "begin": 0,
+                        "mask": "0x08",
+                        "bool": true
+                    },
+                    "sprites": {
+                        "type": "property",
+                        "name": "Affect Sprites",
+                        "begin": 0,
+                        "mask": "0x10",
+                        "bool": true
+                    },
+                    "back": {
+                        "type": "property",
+                        "name": "Affect Back Area",
+                        "begin": 0,
+                        "mask": "0x20",
+                        "bool": true
+                    },
+                    "half": {
+                        "type": "property",
+                        "name": "Half Add/Sub",
+                        "begin": 0,
+                        "mask": "0x40",
+                        "bool": true
+                    },
+                    "subtract": {
+                        "type": "property",
+                        "name": "Subtract",
+                        "begin": 0,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "main1": {
+                        "type": "property",
+                        "name": "Layer 1 Main Screen",
+                        "begin": 1,
+                        "mask": "0x01",
+                        "bool": true
+                    },
+                    "main2": {
+                        "type": "property",
+                        "name": "Layer 2 Main Screen",
+                        "begin": 1,
+                        "mask": "0x02",
+                        "bool": true
+                    },
+                    "main3": {
+                        "type": "property",
+                        "name": "Layer 3 Main Screen",
+                        "begin": 1,
+                        "mask": "0x04",
+                        "bool": true
+                    },
+                    "main4": {
+                        "type": "property",
+                        "name": "Layer 4 Main Screen",
+                        "begin": 1,
+                        "mask": "0x08",
+                        "bool": true
+                    },
+                    "mainSprites": {
+                        "type": "property",
+                        "name": "Sprites Main Screen",
+                        "begin": 1,
+                        "mask": "0x10",
+                        "bool": true
+                    },
+                    "sub1": {
+                        "type": "property",
+                        "name": "Layer 1 Sub Screen",
+                        "begin": 2,
+                        "mask": "0x01",
+                        "bool": true
+                    },
+                    "sub2": {
+                        "type": "property",
+                        "name": "Layer 2 Sub Screen",
+                        "begin": 2,
+                        "mask": "0x02",
+                        "bool": true
+                    },
+                    "sub3": {
+                        "type": "property",
+                        "name": "Layer 3 Sub Screen",
+                        "begin": 2,
+                        "mask": "0x04",
+                        "bool": true
+                    },
+                    "sub4": {
+                        "type": "property",
+                        "name": "Layer 4 Sub Screen",
+                        "begin": 2,
+                        "mask": "0x08",
+                        "bool": true
+                    },
+                    "subSprites": {
+                        "type": "property",
+                        "name": "Sprites Sub Screen",
+                        "begin": 2,
+                        "mask": "0x10",
+                        "bool": true
+                    }
+                },
+                "length": 3
+            }
+        },
+        "mapGraphics": {
+            "type": "array",
+            "name": "Map Graphics",
+            "range": "0xDC2E24-0xDF9B00",
+            "array": {
+                "length": 40
+            },
+            "assembly": {
+                "format": "snes4bpp"
+            },
+            "pointerTable": {
+                "range": "0xDC2D84-0xDC2E24",
+                "pointerLength": 4,
+                "offset": "0xDC2E24"
+            }
+        },
+        "mapGraphicsLayer3": {
+            "type": "array",
+            "name": "Map Graphics (Layer 3)",
+            "range": "0xDC0024-0xDC2D84",
+            "array": {
+                "length": 18
+            },
+            "assembly": {
+                "format": "snes2bpp"
+            },
+            "pointerTable": {
+                "range": "0xDC0000-0xDC0024",
+                "offset": "0xDC0024"
+            }
+        },
+        "mapLayouts": {
+            "type": "array",
+            "name": "Map Layouts",
+            "range": "0xCB0290-0xCDFA40",
+            "autoBank": true,
+            "array": {
+                "length": 324
+            },
+            "assembly": {
+                "format": "ff5-lzss"
+            },
+            "pointerTable": {
+                "range": "0xCB0000-0xCB0290",
+                "offset": "0xCB0000"
+            }
+        },
+        "mapPalettes": {
+            "type": "array",
+            "name": "Map Palettes",
+            "range": "0xC3BB00-0xC3E700",
+            "array": {
+                "length": 44
+            },
+            "assembly": {
+                "length": 256,
+                "format": "bgr555"
+            }
+        },
+        "mapProperties": {
+            "type": "array",
+            "name": "Map Properties",
+            "range": "0xCE9C00-0xCED000",
+            "array": {
+                "length": 512
+            },
+            "assembly": {
+                "type": "data",
+                "editor": "FF5Map",
+                "length": 26,
+                "assembly": {
+                    "id": {
+                        "type": "property",
+                        "name": "Map ID",
+                        "begin": 0,
+                        "mask": "0xFFFF"
+                    },
+                    "title": {
+                        "type": "property",
+                        "name": "Title",
+                        "begin": 2
+                    },
+                    "song": {
+                        "type": "property",
+                        "name": "Song",
+                        "begin": 25
+                    },
+                    "unknown4_6": {
+                        "type": "property",
+                        "name": "Unknown 4.6",
+                        "begin": 4,
+                        "mask": "0x40",
+                        "bool": true
+                    },
+                    "colorMath": {
+                        "type": "property",
+                        "name": "Color Math",
+                        "begin": 4,
+                        "mask": "0x3F"
+                    },
+                    "category-graphics": "Graphics",
+                    "tileset": {
+                        "type": "property",
+                        "name": "Tileset",
+                        "begin": 8
+                    },
+                    "gfx1": {
+                        "type": "property",
+                        "name": "Graphics 1",
+                        "begin": 9,
+                        "mask": "0x3F"
+                    },
+                    "gfx2": {
+                        "type": "property",
+                        "name": "Graphics 2",
+                        "begin": 9,
+                        "mask": "0x0FC0"
+                    },
+                    "gfx3": {
+                        "type": "property",
+                        "name": "Graphics 3",
+                        "begin": 10,
+                        "mask": "0x03F0"
+                    },
+                    "animation": {
+                        "type": "property",
+                        "name": "Map Animation",
+                        "begin": 4,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "category-layer1": "Layer 1",
+                    "layout1": {
+                        "type": "property",
+                        "name": "Layout",
+                        "begin": 12,
+                        "mask": "0x03FF"
+                    },
+                    "tileProperties": {
+                        "type": "property",
+                        "name": "Tile Properties",
+                        "begin": 5
+                    },
+                    "category-layer2": "Layer 2",
+                    "layout2": {
+                        "type": "property",
+                        "name": "Layout",
+                        "begin": 13,
+                        "mask": "0x0FFC"
+                    },
+                    "vOffsetLayer2": {
+                        "type": "property",
+                        "name": "V-Offset",
+                        "begin": 18
+                    },
+                    "hOffsetLayer2": {
+                        "type": "property",
+                        "name": "H-Offset",
+                        "begin": 19
+                    },
+                    "vParallaxLayer2": {
+                        "type": "property",
+                        "name": "V-Parallax",
+                        "begin": 20,
+                        "mask": "0x0C",
+                        "stringTable": "mapProperties.vParallaxLayer3"
+                    },
+                    "hParallaxLayer2": {
+                        "type": "property",
+                        "name": "H-Parallax",
+                        "begin": 20,
+                        "mask": "0x03",
+                        "stringTable": "mapProperties.vParallaxLayer3"
+                    },
+                    "category-layer3": "Layer 3",
+                    "layout3": {
+                        "type": "property",
+                        "name": "Layout",
+                        "begin": 14,
+                        "mask": "0x3FF0"
+                    },
+                    "gfxLayer3": {
+                        "type": "property",
+                        "name": "Graphics",
+                        "begin": 11,
+                        "mask": "0xFC"
+                    },
+                    "vOffsetLayer3": {
+                        "type": "property",
+                        "name": "V-Offset",
+                        "begin": 16
+                    },
+                    "hOffsetLayer3": {
+                        "type": "property",
+                        "name": "H-Offset",
+                        "begin": 17
+                    },
+                    "vParallaxLayer3": {
+                        "type": "property",
+                        "name": "V-Parallax",
+                        "begin": 20,
+                        "mask": "0xC0",
+                        "stringTable": {
+                            "hideIndex": true,
+                            "string": {
+                                "0": "Normal (1×)",
+                                "1": "Half (½×)",
+                                "2": "Double (2×)",
+                                "3": "Normal (1×)"
+                            }
+                        }
+                    },
+                    "hParallaxLayer3": {
+                        "type": "property",
+                        "name": "H-Parallax",
+                        "begin": 20,
+                        "mask": "0x30",
+                        "stringTable": "mapProperties.vParallaxLayer3"
+                    },
+                    "category-tiled": "Tiled Background",
+                    "tiledLayer3": {
+                        "type": "property",
+                        "name": "Tiled Layer 3",
+                        "begin": 21,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "tiledLayer2": {
+                        "type": "property",
+                        "name": "Tiled Layer 2",
+                        "begin": 21,
+                        "mask": "0x40",
+                        "bool": true
+                    },
+                    "hAutoScroll": {
+                        "type": "property",
+                        "name": "H-Scroll Speed",
+                        "begin": 21,
+                        "mask": "0x38",
+                        "stringTable": {
+                            "hideIndex": true,
+                            "string": {
+                                "0": "None",
+                                "1": "-4",
+                                "2": "-2",
+                                "3": "-1",
+                                "5": "+1",
+                                "6": "+2",
+                                "7": "+4"
+                            }
+                        }
+                    },
+                    "vAutoScroll": {
+                        "type": "property",
+                        "name": "V-Scroll Speed",
+                        "begin": 21,
+                        "mask": "0x07",
+                        "stringTable": "mapProperties.hAutoScroll"
+                    },
+                    "category-palette": "Palette",
+                    "palette": {
+                        "type": "property",
+                        "name": "Palette",
+                        "begin": 22
+                    },
+                    "paletteAnimation": {
+                        "type": "property",
+                        "name": "Animation",
+                        "begin": 23
+                    },
+                    "category-battle": "Battle",
+                    "battleBG": {
+                        "type": "property",
+                        "name": "Battle BG",
+                        "begin": 24
+                    }
+                }
+            },
+            "stringTable": {
+                "default": "Map %i",
+                "length": 512,
+                "string": {
+                     "0x0000": "World Map (World 1)",
+                     "0x0001": "World Map (World 2)",
+                     "0x0002": "World Map (World 3)",
+                     "0x0003": "Sea Floor (World 2)",
+                     "0x0004": "Sea Floor (World 3)",
+                     "0x0005": "Airship",
+                     "0x0006": "Airship",
+                     "0x0007": "Tycoon Castle Tower (Opening)",
+                     "0x0008": "Tycoon Castle Tower (Opening)",
+                     "0x0009": "Pirate Ship",
+                     "0x000A": "Wind Shrine",
+                     "0x000B": "Greenhorn's Club - 1st Floor",
+                     "0x000C": "Greenhorn's Club - 2nd Floor",
+                     "0x000D": "Chocobo's Ability tutorial",
+                     "0x000E": "Wind Shrine",
+                     "0x000F": "Chocobo Forest",
+                     "0x0010": "Chocobo Forest",
+                     "0x0011": "Western Valley",
+                     "0x0012": "Cave Entrance",
+                     "0x0013": "Cave - Level One",
+                     "0x0014": "Cave - Level Two",
+                     "0x0015": "Cave - Level Three",
+                     "0x0016": "Pirates' Hideout",
+                     "0x0017": "Pirates' Hideout",
+                     "0x0018": "Pirate Ship",
+                     "0x0019": "Pirate Ship - Below Deck",
+                     "0x001A": "Pirate Ship - Below Deck",
+                     "0x001B": "Wind Shrine - 1st Floor",
+                     "0x001C": "Wind Shrine - 2nd Floor",
+                     "0x001D": "Wind Shrine - 3rd Floor",
+                     "0x001E": "Wind Shrine - 4th Floor",
+                     "0x001F": "Wind Shrine - Crystal Chamber",
+                     "0x0020": "Tule",
+                     "0x0021": "Tule - Pub",
+                     "0x0022": "Tule - Pub 2nd Floor",
+                     "0x0023": "Tule - Inn",
+                     "0x0024": "Tule - Magic Shop",
+                     "0x0025": "Tule - Weapons Shop",
+                     "0x0026": "Tule - Armor Shop",
+                     "0x0027": "Tule - Zok's House",
+                     "0x0028": "Torna Canal",
+                     "0x0029": "Pirate's Ship (Opening)",
+                     "0x002A": "Pirate's Ship (Opening)",
+                     "0x002B": "Ship Graveyard",
+                     "0x002C": "Shipwreck",
+                     "0x002D": "Shipwreck",
+                     "0x002E": "Shipwreck",
+                     "0x002F": "Shipwreck",
+                     "0x0030": "Shipwreck",
+                     "0x0031": "Shipwreck",
+                     "0x0032": "Pirate Ship - Below Deck",
+                     "0x0033": "Carwen",
+                     "0x0034": "Carwen - Magic Shop",
+                     "0x0035": "Carwen - Item Shop",
+                     "0x0036": "Carwen - Inn",
+                     "0x0037": "Carwen - Pub",
+                     "0x0038": "Carwen - Equipment Shop",
+                     "0x0039": "Carwen - Room",
+                     "0x003A": "Nort Mountain - Rest Area",
+                     "0x003B": "Nort Mountain - Entrance",
+                     "0x003C": "Nort Mountain - Cave",
+                     "0x003D": "Nort Mountain - Eighth Station",
+                     "0x003E": "Nort Mountain - Summit",
+                     "0x003F": "Nort Mountain - Fifth Station",
+                     "0x0040": "Walse",
+                     "0x0041": "Walse - House",
+                     "0x0042": "Walse - Weapon Shop",
+                     "0x0043": "Walse - Inn",
+                     "0x0044": "Walse - Magic Shop",
+                     "0x0045": "Walse - Armor Shop",
+                     "0x0046": "Walse",
+                     "0x0047": "Sea Floor",
+                     "0x0048": "Castle Tycoon",
+                     "0x0049": "Castle Tycoon - 1st Floor",
+                     "0x004A": "Castle Tycoon - 1st Floor",
+                     "0x004B": "Castle Tycoon - 2nd Floor",
+                     "0x004C": "Castle Tycoon - Throne Room",
+                     "0x004D": "Castle Tycoon - King's Chamber",
+                     "0x004E": "Castle Tycoon - Lenna's Room",
+                     "0x004F": "Castle Tycoon - Room",
+                     "0x0050": "Castle Tycoon - 3rd Floor",
+                     "0x0051": "Castle Tycoon - 4th Floor",
+                     "0x0052": "Castle Tycoon - 5th Floor",
+                     "0x0053": "Castle Tycoon - Storehouse",
+                     "0x0054": "Castle Tycoon - East Tower",
+                     "0x0055": "Castle Tycoon - Storehouse",
+                     "0x0056": "Castle Tycoon - Jail",
+                     "0x0057": "Karnak Castle - B5",
+                     "0x0058": "Castle Tycoon - Wind Drake Tower",
+                     "0x0059": "Castle Walse",
+                     "0x005A": "Castle Walse - 2nd Floor",
+                     "0x005B": "Castle Walse - B1",
+                     "0x005C": "Castle Walse",
+                     "0x005D": "Watertower - 1st Floor",
+                     "0x005E": "Watertower - 2nd Floor",
+                     "0x005F": "Watertower - 3rd Floor",
+                     "0x0060": "Watertower - 4th Floor",
+                     "0x0061": "Castle Walse - 2nd Floor",
+                     "0x0062": "Castle Walse - Throne Room",
+                     "0x0063": "Castle Walse - King's Chamber",
+                     "0x0064": "Castle Walse",
+                     "0x0065": "Castle Walse - Storehouse",
+                     "0x0066": "Castle Walse - 3rd Floor",
+                     "0x0067": "Castle Walse - 1st Floor",
+                     "0x0068": "Castle Walse - 3rd Floor",
+                     "0x0069": "**Ghido's Cave - Ocean",
+                     "0x006A": "Tower of Walse - 1st Floor",
+                     "0x006B": "Tower of Walse - 2nd Floor",
+                     "0x006C": "Tower of Walse - 3rd Floor",
+                     "0x006D": "Tower of Walse - 4th Floor",
+                     "0x006E": "Tower of Walse - 5th Floor",
+                     "0x006F": "Tower of Walse - 6th Floor",
+                     "0x0070": "Tower of Walse - 7th Floor",
+                     "0x0071": "Tower of Walse - 8th Floor",
+                     "0x0072": "Tower of Walse - 9th Floor",
+                     "0x0073": "Tower of Walse - Crystal Chamber",
+                     "0x0074": "**Inside the Void",
+                     "0x0075": "**Syldra (Walse Ocean)",
+                     "0x0076": "**Syldra (Walse Beach)",
+                     "0x0077": "Walse Meteorite",
+                     "0x0078": "Inside Walse Meteorite",
+                     "0x0079": "Inside Walse Meteorite",
+                     "0x007A": "Tycoon Meteorite",
+                     "0x007B": "Inside Tycoon Meteorite",
+                     "0x007C": "The Rift - Cave",
+                     "0x007D": "Karnak Meteorite",
+                     "0x007E": "Inside Karnak Meteorite",
+                     "0x007F": "Inside Karnak Meteorite",
+                     "0x0080": "Gohn Meteorite",
+                     "0x0081": "Inside Gohn Meteorite",
+                     "0x0082": "Inside Gohn Meteorite",
+                     "0x0083": "Karnak Castle",
+                     "0x0084": "Karnak Castle - 1st Floor",
+                     "0x0085": "Karkak Castle - Queen's Chamber",
+                     "0x0086": "Karnak Castle - 2nd Floor",
+                     "0x0087": "Karnak Castle - B1",
+                     "0x0088": "Karnak Castle - B2",
+                     "0x0089": "Karnak Castle - B3",
+                     "0x008A": "Karnak Castle - B4",
+                     "0x008B": "Karnak Castle - 2nd Floor",
+                     "0x008C": "Karnak Castle - 1st Floor",
+                     "0x008D": "Karnak Castle - B1",
+                     "0x008E": "Karnak Castle - 2nd Floor",
+                     "0x008F": "Karnak Castle - 1st Floor",
+                     "0x0090": "Karnak Castle - B1",
+                     "0x0091": "Karnak Castle - Crystal Chamber",
+                     "0x0092": "Karnak Castle - B6",
+                     "0x0093": "Karnak",
+                     "0x0094": "Karnak - Pub",
+                     "0x0095": "Karnak - Inn",
+                     "0x0096": "Karnak - Magic Shop",
+                     "0x0097": "Karnak - House",
+                     "0x0098": "Karnak - Equipment Shop",
+                     "0x0099": "Karnak - Room 2nd Floor",
+                     "0x009A": "Fire-Powered Ship - Bulkhead",
+                     "0x009B": "Fire-Powered Ship - Bulkhead",
+                     "0x009C": "Above Deck",
+                     "0x009D": "Fire-Powered Ship - Below Deck",
+                     "0x009E": "Fire-Powered Ship - Bulkhead",
+                     "0x009F": "Fire-Powered Ship - Bulkhead",
+                     "0x00A0": "Fire-Powered Ship - Bulkhead",
+                     "0x00A1": "Fire-Powered Ship - Bulkhead",
+                     "0x00A2": "Fire-Powered Ship - Boiler Room",
+                     "0x00A3": "**Karnak Crystals",
+                     "0x00A4": "Library of the Ancients",
+                     "0x00A5": "Library of the Ancients - B1",
+                     "0x00A6": "Library of the Ancients - B1",
+                     "0x00A7": "Library of the Ancients - B1",
+                     "0x00A8": "Library of the Ancients - B1",
+                     "0x00A9": "Library of the Ancients - 2F",
+                     "0x00AA": "Istory",
+                     "0x00AB": "Istory - Inn",
+                     "0x00AC": "Istory - Items Shop",
+                     "0x00AD": "Istory - Armor Shop",
+                     "0x00AE": "Istory - Magic Shop",
+                     "0x00AF": "Library of the Ancients - Roof",
+                     "0x00B0": "Jachol",
+                     "0x00B1": "Jachol - Magic Shop",
+                     "0x00B2": "Jachol - Inn",
+                     "0x00B3": "Jachol - Equipment Shop",
+                     "0x00B4": "Jachol - Pub",
+                     "0x00B5": "Jachol - Items Shop",
+                     "0x00B6": "Jachol Cave - B1",
+                     "0x00B7": "Jachol Cave - B2",
+                     "0x00B8": "Crescent",
+                     "0x00B9": "Crescent - Armor Shop",
+                     "0x00BA": "Crescent - Weapons Shop",
+                     "0x00BB": "Minstrel's House",
+                     "0x00BC": "Crescent - Magic Shop",
+                     "0x00BD": "Crescent - Inn",
+                     "0x00BE": "Airship",
+                     "0x00BF": "Black Chocobo Forest",
+                     "0x00C0": "Catapult - Passageway",
+                     "0x00C1": "Catapult - Passageway",
+                     "0x00C2": "Catapult - Living Quarters",
+                     "0x00C3": "Ronka Ruins - Level One",
+                     "0x00C4": "Ronka Ruins - Level Two",
+                     "0x00C5": "Ronka Ruins - Level Three",
+                     "0x00C6": "Ronka Ruins - Level Two",
+                     "0x00C7": "Desert of Shifting Sands",
+                     "0x00C8": "Lix",
+                     "0x00C9": "Lix - Magic Shop",
+                     "0x00CA": "Lix - Butz's House",
+                     "0x00CB": "Lix - Inn",
+                     "0x00CC": "Lix - Item Shop",
+                     "0x00CD": "Lix - Equipment Shop",
+                     "0x00CE": "Gohn, the Town of Ruin",
+                     "0x00CF": "Fire-Powered Ship - Elevator",
+                     "0x00D0": "Fire-Powered Ship - Elevator",
+                     "0x00D1": "Fire-Powered Ship - Elevator",
+                     "0x00D2": "Catapult - Storeroom",
+                     "0x00D3": "Catapult",
+                     "0x00D4": "*Guardian Tree",
+                     "0x00D5": "Gohn - B1",
+                     "0x00D6": "Gohn - B1",
+                     "0x00D7": "Ronka Ruins - Level Four",
+                     "0x00D8": "Ronka Ruins - Level Five",
+                     "0x00D9": "Ronka Ruins - Level Four",
+                     "0x00DA": "Ronka Ruins - Level Five",
+                     "0x00DB": "Ronka Ruins - Level Four",
+                     "0x00DC": "Ronka Ruins - Crystal Chamber",
+                     "0x00DD": "Ronka Ruins - Flying Fortress",
+                     "0x00DE": "Catapult",
+                     "0x00DF": "Deserted Island",
+                     "0x00E0": "**Castle Exdeath - Air Proyection",
+                     "0x00E1": "Castle Exdeath",
+                     "0x00E2": "Castle Exdeath - B3",
+                     "0x00E3": "Castle Exdeath - 2nd Floor",
+                     "0x00E4": "Castle Exdeath - 3rd Floor",
+                     "0x00E5": "Castle Exdeath - 1st Floor",
+                     "0x00E6": "Castle Exdeath - B1",
+                     "0x00E7": "Castle Exdeath - B2",
+                     "0x00E8": "**Outside Castle Exdeath",
+                     "0x00E9": "Castle Exdeath",
+                     "0x00EA": "Castle Exdeath - B3",
+                     "0x00EB": "Castle Exdeath - 2nd Floor",
+                     "0x00EC": "Castle Exdeath - 3rd Floor",
+                     "0x00ED": "Castle Exdeath - 1st Floor",
+                     "0x00EE": "Castle Exdeath - B1",
+                     "0x00EF": "Castle Exdeath - B2",
+                     "0x00F0": "Castle Exdeath - 4th Floor",
+                     "0x00F1": "Castle Exdeath - 5th Floor",
+                     "0x00F2": "Castle Exdeath - 6th Floor",
+                     "0x00F3": "Castle Exdeath - 7th Floor",
+                     "0x00F4": "Castle Exdeath - 8th Floor",
+                     "0x00F5": "Castle Exdeath - 9th Floor",
+                     "0x00F6": "**Interdimentional Warp",
+                     "0x00F7": "Regole",
+                     "0x00F8": "Regole - Pub",
+                     "0x00F9": "Regole - Magic Shop",
+                     "0x00FA": "Regole - Items Shop",
+                     "0x00FB": "Regole - Equipment Shop",
+                     "0x00FC": "Regole - Inn",
+                     "0x00FD": "Moogle Forest",
+                     "0x00FE": "**Ronka Ruins - Exdeath Appears",
+                     "0x00FF": "Castle Exdeath - Keep",
+                     "0x0100": "Castle Exdeath - Keep",
+                     "0x0101": "Castle Exdeath - Keep",
+                     "0x0102": "Castle Exdeath - Keep",
+                     "0x0103": "Underground Waterway",
+                     "0x0104": "Underground Waterway",
+                     "0x0105": "*Moogle Village",
+                     "0x0106": "Moogle Village - House",
+                     "0x0107": "Castle Exdeath - 1st Floor",
+                     "0x0108": "Castle Exdeath - 1st Floor",
+                     "0x0109": "Castle of Bal",
+                     "0x010A": "Castle of Bal - Inn",
+                     "0x010B": "Castle of Bal - 1st Floor",
+                     "0x010C": "Castle of Bal - 2nd Floor",
+                     "0x010D": "Castle of Bal - 1st Floor",
+                     "0x010E": "Castle of Bal - Throne Room",
+                     "0x010F": "Castle of Bal - 3rd Floor",
+                     "0x0110": "Castle of Bal - 4th Floor",
+                     "0x0111": "Castle of Bal - B1",
+                     "0x0112": "Castle of Bal",
+                     "0x0113": "**Moogle Village Sky",
+                     "0x0114": "Castle Exdeath",
+                     "0x0115": "Great Sea Trench",
+                     "0x0116": "Kingdom of Dwarves",
+                     "0x0117": "Dwarven Armor Shop",
+                     "0x0118": "Castle of Bal - B2",
+                     "0x0119": "Quelb",
+                     "0x011A": "Kelger's House - 1st Floor",
+                     "0x011B": "Kelger's House - 2nd Floor",
+                     "0x011C": "Quelb - Inn",
+                     "0x011D": "Quelb - Equipment Shop",
+                     "0x011E": "Quelb - Magic Shop",
+                     "0x011F": "Istory Falls - B6",
+                     "0x0120": "Drakenvale - Shack",
+                     "0x0121": "**Exdeath Tomb",
+                     "0x0122": "Barrier Tower",
+                     "0x0123": "Drakenvale - Trail",
+                     "0x0124": "Drakenvale - Trail",
+                     "0x0125": "Drakenvale - Trail",
+                     "0x0126": "Drakenvale - Trail",
+                     "0x0127": "Drakenvale - Cave",
+                     "0x0128": "Drakenvale - Cave",
+                     "0x0129": "*Guardian Tree",
+                     "0x012A": "Ghido's Cave - Entrance",
+                     "0x012B": "Surgate Castle",
+                     "0x012C": "Surgate Castle - Throne Room",
+                     "0x012D": "Surgate Castle - King's Chamber",
+                     "0x012E": "Surgate Castle - B1",
+                     "0x012F": "Surgate Castle - B2",
+                     "0x0130": "Surgate Castle - 3rd Floor",
+                     "0x0131": "Surgate Castle - Library",
+                     "0x0132": "Surgate Castle - Library",
+                     "0x0133": "Kuza, the Sealed Castle",
+                     "0x0134": "Kuza, the Sealed Castle",
+                     "0x0135": "Kuza, the Sealed Castle",
+                     "0x0136": "Sealed Room",
+                     "0x0137": "Tower of Walse - Crystal Chamber",
+                     "0x0138": "Tower of Walse - 9th Floor",
+                     "0x0139": "Tower of Walse - 8th Floor",
+                     "0x013A": "Big Bridge",
+                     "0x013B": "Big Bridge",
+                     "0x013C": "Big Bridge",
+                     "0x013D": "Kingdom of Dwarves - House",
+                     "0x013E": "Great Sea Trench",
+                     "0x013F": "Kuza, the Sealed Castle",
+                     "0x0140": "Kuza, the Sealed Castle",
+                     "0x0141": "Kuza, the Sealed Castle",
+                     "0x0142": "Sealed Room",
+                     "0x0143": "Tower of Walse - 7th Floor",
+                     "0x0144": "Tower of Walse - 6th Floor",
+                     "0x0145": "Tower of Walse - 5th Floor",
+                     "0x0146": "Xezat's Fleet",
+                     "0x0147": "Xezat's Fleet - Below Deck",
+                     "0x0148": "Barrier Tower - 2nd Floor",
+                     "0x0149": "Barrier Tower - 2nd Floor",
+                     "0x014A": "Sea Floor",
+                     "0x014B": "Barrier Tower - 1st Floor",
+                     "0x014C": "Barrier Tower - B1",
+                     "0x014D": "**Barrier Tower - Antenna",
+                     "0x014E": "Barrier Tower - 3rd Floor",
+                     "0x014F": "Barrier Tower - 4th Floor",
+                     "0x0150": "Barrier Tower - 5th Floor",
+                     "0x0151": "Barrier Tower - 6th Floor",
+                     "0x0152": "Barrier Tower - 7th Floor",
+                     "0x0153": "Barrier Tower - 8th Floor",
+                     "0x0154": "Barrier Tower - 9th Floor",
+                     "0x0155": "Barrier Tower - 10th Floor",
+                     "0x0156": "Barrier Tower",
+                     "0x0157": "Submarine",
+                     "0x0158": "Sea Floor",
+                     "0x0159": "Ghido's Cave - B2",
+                     "0x015A": "Ghido's Cave - B3",
+                     "0x015B": "Ghido's Cave - B4",
+                     "0x015C": "Ghido's Cave - B5",
+                     "0x015D": "Island Shrine - 6th Floor",
+                     "0x015E": "Moore",
+                     "0x015F": "Moore - Magic Shop",
+                     "0x0160": "Moore - Weapons Shop",
+                     "0x0161": "Moore - Armor Shop",
+                     "0x0162": "Moore - Inn",
+                     "0x0163": "Moore - Pub",
+                     "0x0164": "Great Forest of Moore",
+                     "0x0165": "Great Forest of Moore",
+                     "0x0166": "Moogle Cave",
+                     "0x0167": "*Great Forest of Moore",
+                     "0x0168": "Guardian Tree - Inside",
+                     "0x0169": "Gil Cave",
+                     "0x016A": "Great Forest of Moore",
+                     "0x016B": "Great Forest of Moore",
+                     "0x016C": "Guardian Tree",
+                     "0x016D": "Guardian Tree - Inside",
+                     "0x016E": "Great Forest of Moore",
+                     "0x016F": "Island Shrine - 3rd Floor",
+                     "0x0170": "Island Shrine - 4th Floor",
+                     "0x0171": "Island Shrine - 5th Floor",
+                     "0x0172": "Death Valley",
+                     "0x0173": "Antlion's Nest",
+                     "0x0174": "?",
+                     "0x0175": "Pyramid - Inside",
+                     "0x0176": "Pyramid - Inside",
+                     "0x0177": "Pyramid - Inside",
+                     "0x0178": "Pyramid - Inside",
+                     "0x0179": "Pyramid - Inside",
+                     "0x017A": "Pyramid of Moore",
+                     "0x017B": "Pyramid - Inside",
+                     "0x017C": "Pyramid - Inside",
+                     "0x017D": "Pyramid - Inside",
+                     "0x017E": "Pyramid - Inside",
+                     "0x017F": "Pyramid - Inside",
+                     "0x0180": "Pyramid - Inside",
+                     "0x0181": "Pyramid - Inside",
+                     "0x0182": "*Pyramid - Inside",
+                     "0x0183": "Island Shrine",
+                     "0x0184": "Island Shrine",
+                     "0x0185": "Island Shrine",
+                     "0x0186": "Island Shrine - 2nd Floor",
+                     "0x0187": "Island Shrine",
+                     "0x0188": "Island Shrine - 7th Floor",
+                     "0x0189": "Fork Tower - Entrance",
+                     "0x018A": "Fork Tower - Black Tower",
+                     "0x018B": "Black Tower - 2nd Floor",
+                     "0x018C": "Black Tower - 3rd Floor",
+                     "0x018D": "Black Tower - 4th Floor",
+                     "0x018E": "Black Tower - 5th Floor",
+                     "0x018F": "Black Tower - 6th Floor",
+                     "0x0190": "Fork Tower - Black Tower",
+                     "0x0191": "Black Tower - 7th Floor",
+                     "0x0192": "Black Tower - 8th Floor",
+                     "0x0193": "Black Tower - 9th Floor",
+                     "0x0194": "Fork Tower - White Tower",
+                     "0x0195": "White Tower - 2nd Floor",
+                     "0x0196": "White Tower - 3rd Floor",
+                     "0x0197": "White Tower - 4th Floor",
+                     "0x0198": "White Tower - 5th Floor",
+                     "0x0199": "White Tower - 6th Floor",
+                     "0x019A": "Fork Tower - White Tower",
+                     "0x019B": "White Tower - 7th Floor",
+                     "0x019C": "White Tower - 8th Floor",
+                     "0x019D": "White Tower - 9th Floor",
+                     "0x019E": "Great Sea Trench",
+                     "0x019F": "Great Sea Trench",
+                     "0x01A0": "Great Sea Trench",
+                     "0x01A1": "Great Sea Trench",
+                     "0x01A2": "Great Sea Trench",
+                     "0x01A3": "Great Sea Trench",
+                     "0x01A4": "Great Sea Trench",
+                     "0x01A5": "*Great Sea Trench",
+                     "0x01A6": "Istory Falls - B1",
+                     "0x01A7": "Istory Falls - B2",
+                     "0x01A8": "Istory Falls - B3",
+                     "0x01A9": "Istory Falls - B4",
+                     "0x01AA": "Istory Falls - B5",
+                     "0x01AB": "*Istory Falls - B6",
+                     "0x01AC": "Sea Floor",
+                     "0x01AD": "Istory Falls - B4",
+                     "0x01AE": "Tower of Walse - 4th Floor",
+                     "0x01AF": "Tower of Walse - 3rd Floor",
+                     "0x01B0": "Tower of Walse - 2nd Floor",
+                     "0x01B1": "Tower of Walse - 1st Floor",
+                     "0x01B2": "Phoenix Tower - 1st Floor",
+                     "0x01B3": "Phoenix Tower - 2nd Floor",
+                     "0x01B4": "Phoenix Tower - 3rd Floor",
+                     "0x01B5": "Phoenix Tower - 4th Floor",
+                     "0x01B6": "Phoenix Tower - 5th Floor",
+                     "0x01B7": "Phoenix Tower - 6th Floor",
+                     "0x01B8": "Phoenix Tower - 7th Floor",
+                     "0x01B9": "Phoenix Tower - 8th Floor",
+                     "0x01BA": "Phoenix Tower - 9th Floor",
+                     "0x01BB": "Phoenix Tower - 10th Floor",
+                     "0x01BC": "Phoenix Tower - 11th Floor",
+                     "0x01BD": "Phoenix Tower - 12th Floor",
+                     "0x01BE": "Phoenix Tower - 13th Floor",
+                     "0x01BF": "Phoenix Tower - 14th Floor",
+                     "0x01C0": "Phoenix Tower - 15th Floor",
+                     "0x01C1": "Phoenix Tower - 16th Floor",
+                     "0x01C2": "Phoenix Tower - 17th Floor",
+                     "0x01C3": "Phoenix Tower - 18th Floor",
+                     "0x01C4": "Phoenix Tower - 19th Floor",
+                     "0x01C5": "Phoenix Tower - 20th Floor",
+                     "0x01C6": "Phoenix Tower - 21st Floor",
+                     "0x01C7": "Phoenix Tower - 22nd Floor",
+                     "0x01C8": "Phoenix Tower - 23rd Floor",
+                     "0x01C9": "Phoenix Tower - 24th Floor",
+                     "0x01CA": "Phoenix Tower - 25th Floor",
+                     "0x01CB": "Phoenix Tower - 26th Floor",
+                     "0x01CC": "Phoenix Tower - 27th Floor",
+                     "0x01CD": "Phoenix Tower - 28th Floor",
+                     "0x01CE": "Phoenix Tower - 29th Floor",
+                     "0x01CF": "Phoenix Tower - 30th Floor",
+                     "0x01D0": "Castle Tycoon",
+                     "0x01D1": "Castle Tycoon",
+                     "0x01D2": "Mirage Town",
+                     "0x01D3": "Mirage Town - House",
+                     "0x01D4": "Mirage Town - Weapons Shop",
+                     "0x01D5": "Mirage Town - Inn",
+                     "0x01D6": "Mirage Town - Items Shop",
+                     "0x01D7": "Mirage Town - B1",
+                     "0x01D8": "Mirage Town - Secret Passage",
+                     "0x01D9": "Mirage Town - Pub",
+                     "0x01DA": "Mirage Town - Armor Shop",
+                     "0x01DB": "Mirage Town - Magic Shop",
+                     "0x01DC": "The Void - Desert",
+                     "0x01DD": "The Void - Ruins",
+                     "0x01DE": "The Void - Ruins",
+                     "0x01DF": "The Void - Ruins",
+                     "0x01E0": "The Void - Ruins",
+                     "0x01E1": "The Void - Mirage Town",
+                     "0x01E2": "The Void - Mirage Town",
+                     "0x01E3": "The Void - Mirage Town",
+                     "0x01E4": "The Void - Mirage Town",
+                     "0x01E5": "The Void - Mirage Town",
+                     "0x01E6": "The Void - Mirage Town",
+                     "0x01E7": "The Void - Mirage Town",
+                     "0x01E8": "The Void - Mirage Town",
+                     "0x01E9": "The Void - Forest",
+                     "0x01EA": "The Void - Cave",
+                     "0x01EB": "The Void - Cave",
+                     "0x01EC": "The Void - Cave",
+                     "0x01ED": "The Void - Library",
+                     "0x01EE": "The Void - Tower",
+                     "0x01EF": "The Void - Dimension Castle",
+                     "0x01F0": "The Void - Dimension Castle",
+                     "0x01F1": "The Void - Dimension Castle",
+                     "0x01F2": "The Void - Dimension Castle",
+                     "0x01F3": "The Void - Dimension Castle",
+                     "0x01F4": "The Void - Dimension Castle",
+                     "0x01F5": "The Void - Dimension Castle",
+                     "0x01F6": "The Void - Dimension Castle",
+                     "0x01F7": "The Void - Dimension Castle",
+                     "0x01F8": "The Void - Last Floor",
+                     "0x01F9": "The Void - Last Floor",
+                     "0x01FA": "The Void - Last Floor",
+                     "0x01FB": "The Void - Last Floor",
+                     "0x01FC": "The Void - Last Floor",
+                     "0x01FD": "The Void - Last Floor",
+                     "0x01FE": "**Space - part 2",
+                     "0x01FF": "**Space - part 1"
+                }
+            }
+        },
+        "mapSpriteFrame": {
+            "type": "array",
+            "name": "Map Sprite Frame",
+            "range": "0xC02A97-0xC02F95",
+            "array": {
+                "length": 79
+            },
+            "assembly": {
+                "type": "data",
+                "length": 16,
+                "assembly": {
+                    "tile1": {
+                        "type": "property",
+                        "name": "Tile 1",
+                        "begin": 0,
+                        "mask": "0xFFFF"
+                    },
+                    "tile2": {
+                        "type": "property",
+                        "name": "Tile 2",
+                        "begin": 4,
+                        "mask": "0xFFFF"
+                    },
+                    "tile3": {
+                        "type": "property",
+                        "name": "Tile 3",
+                        "begin": 8,
+                        "mask": "0xFFFF"
+                    },
+                    "tile4": {
+                        "type": "property",
+                        "name": "Tile 4",
+                        "begin": 12,
+                        "mask": "0xFFFF"
+                    }
+                }
+            }
+        },
+        "mapSpriteGraphics": {
+            "type": "assembly",
+            "name": "Map Sprite Graphics",
+            "range": "0xDA0000-0xDB3A00",
+            "format": "snes4bpp"
+        },
+        "mapSpritePalettes": {
+            "type": "array",
+            "name": "Map Sprite Palettes",
+            "range": "0xDFFC00-0xDFFC80",
+            "array": {
+                "length": 4
+            },
+            "assembly": {
+                "length": 32,
+                "format": "bgr555"
+            }
+        },
+        "mapTilesets": {
+            "type": "array",
+            "name": "Map Tilesets",
+            "range": "0xCF0038-0xCFCA90",
+            "array": {
+                "length": 28
+            },
+            "assembly": {
+                "format": "ff5-lzss"
+            },
+            "pointerTable": {
+                "range": "0xCF0000-0xCF0038",
+                "offset": "0xCF0000"
+            }
+        },
+        "mapTreasures": {
+            "type": "array",
+            "name": "Map Treasures",
+            "range": "0xD13000-0xD13210",
+            "array": {
+                "length": 528
+            },
+            "assembly": {
+                "type": "data",
+                "assembly": {
+                    "treasure": {
+                        "type": "property",
+                        "name": "Treasure",
+                        "begin": 0
+                    }
+                },
+                "length": 1
+            }
+        },
+        "npcProperties": {
+            "type": "array",
+            "name": "NPC Properties",
+            "range": "0xCE5DC2-0xCE9BFE",
+            "isSequential": true,
+            "array": {
+                "length": 512
+            },
+            "assembly": {
+                "type": "array",
+                "assembly": {
+                    "type": "data",
+                    "length": 7,
+                    "assembly": {
+                        "event": {
+                            "type": "property",
+                            "name": "Event",
+                            "begin": 0,
+                            "mask": "0x3FFF"
+                        },
+                        "unknownEvent": {
+                            "type": "property",
+                            "name": "Unknown 1",
+                            "begin": 1,
+                            "mask": "0xC0"
+                        },
+                        "graphics": {
+                            "type": "property",
+                            "name": "Graphics",
+                            "begin": 2
+                        },
+                        "x": {
+                            "type": "property",
+                            "name": "X Position",
+                            "begin": 3,
+                            "mask": "0x3F",
+                            "hidden": true
+                        },
+                        "unknownX": {
+                            "type": "property",
+                            "name": "Unknown 3.6",
+                            "begin": 3,
+                            "mask": "0xC0"
+                        },
+                        "y": {
+                            "type": "property",
+                            "name": "Y Position",
+                            "begin": 4,
+                            "mask": "0x3F",
+                            "hidden": true
+                        },
+                        "unknownY": {
+                            "type": "property",
+                            "name": "Unknown 4.6",
+                            "begin": 4,
+                            "mask": "0xC0"
+                        },
+                        "animationSpeed": {
+                            "type": "property",
+                            "name": "Animation Speed",
+                            "begin": 5,
+                            "mask": "0x03",
+                            "stringTable": {
+                                "string": {
+                                    "0": "Normal",
+                                    "1": "Slow",
+                                    "2": "Slowest",
+                                    "3": "Fast"
+                                }
+                            }
+                        },
+                        "unknown2": {
+                            "type": "property",
+                            "name": "Unknown 5.2",
+                            "begin": 5,
+                            "mask": "0x04",
+                            "bool": true
+                        },
+                        "unknown3": {
+                            "type": "property",
+                            "name": "Unknown 5.3",
+                            "begin": 5,
+                            "mask": "0x08",
+                            "bool": true
+                        },
+                        "animation": {
+                            "type": "property",
+                            "name": "Animation",
+                            "begin": 5,
+                            "mask": "0x70",
+                            "stringTable": {
+                                "string": {
+                                    "0": "Walking",
+                                    "1": "1 Frame",
+                                    "2": "2 Frames",
+                                    "3": "4 Frames",
+                                    "4": "8 Frames",
+                                    "5": "Chocobo/Animal"
+                                }
+                            }
+                        },
+                        "reaction": {
+                            "type": "property",
+                            "name": "Reaction",
+                            "begin": 5,
+                            "mask": "0x80",
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0": "None",
+                                    "1": "Face Party"
+                                }
+                            }
+                        },
+                        "palette": {
+                            "type": "property",
+                            "name": "Palette",
+                            "begin": 6,
+                            "mask": "0x07"
+                        },
+                        "layerPriorityTop": {
+                            "type": "property",
+                            "name": "Layer Priority (Top)",
+                            "begin": 6,
+                            "mask": "0x08",
+                            "bool": true
+                        },
+                        "layerPriorityBottom": {
+                            "type": "property",
+                            "name": "Layer Priority (Bottom)",
+                            "begin": 6,
+                            "mask": "0x10",
+                            "bool": true
+                        },
+                        "direction": {
+                            "type": "property",
+                            "name": "Direction",
+                            "begin": 6,
+                            "mask": "0xE0",
+                            "stringTable": {
+                                "string": {
+                                    "0": "Up",
+                                    "1": "Right",
+                                    "2": "Down",
+                                    "3": "Left",
+                                    "4": "Special 1",
+                                    "5": "Special 2",
+                                    "6": "Special 3",
+                                    "7": "Special 4"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "pointerTable": {
+                "range": "0xCE59C0-0xCE5DC2",
+                "offset": "0xCE59C0"
+            }
+        },
+        "snesHeader": {
+            "type": "data",
+            "name": "SNES Header",
+            "range": "0x00FFC0-0x00FFE0",
+            "assembly": {
+                "gameTitle": {
+                    "type": "text",
+                    "name": "Game Title",
+                    "begin": 0,
+                    "length": 21
+                },
+                "romSize": {
+                    "type": "property",
+                    "name": "ROM Size",
+                    "begin": 23,
+                    "stringTable": {
+                        "string": {
+                            "9": "3-4 MBit",
+                            "10": "5-8 MBit",
+                            "11": "9-16 MBit",
+                            "12": "17-32 MBit",
+                            "13": "33-64 MBit"
+                        }
+                    }
+                },
+                "checksumInverse": {
+                    "type": "property",
+                    "name": "Checksum Inverse",
+                    "begin": 28,
+                    "mask": "0xFFFF"
+                },
+                "checksum": {
+                    "type": "property",
+                    "name": "Checksum",
+                    "begin": 30,
+                    "mask": "0xFFFF"
+                }
+            }
+        },
+        "treasureProperties": {
+            "type": "array",
+            "name": "Treasure Properties",
+            "range": "0xD13210-0xD13610",
+            "array": {
+                "length": 256
+            },
+            "assembly": {
+                "type": "data",
+                "assembly": {
+                    "x": {
+                        "type": "property",
+                        "name": "X Position",
+                        "begin": 0,
+                        "hidden": true
+                    },
+                    "y": {
+                        "type": "property",
+                        "name": "Y Position",
+                        "begin": 1,
+                        "hidden": true
+                    }
+                },
+                "length": 4
+            }
+        },
+        "worldGraphics": {
+            "type": "array",
+            "name": "World Graphics",
+            "range": "0xDB8000-0xDBE000",
+            "array": {
+                "length": 3
+            },
+            "assembly": {
+                "length": "0x2000",
+                "format": "linear4bpp"
+            }
+        },
+        "worldPalettes": {
+            "type": "array",
+            "name": "World Palettes",
+            "range": "0xCFFCC0-0xCFFFC0",
+            "array": {
+                "length": 3
+            },
+            "assembly": {
+                "length": "0x0100",
+                "format": "bgr555"
+            }
+        },
+        "worldPaletteAssignments": {
+            "type": "array",
+            "name": "World Palette Assignments",
+            "range": "0xCFF9C0-0xCFFCC0",
+            "array": {
+                "length": 3
+            },
+            "assembly": {
+                "length": "0x0100"
+            }
+        },
+        "worldLayouts": {
+            "type": "array",
+            "name": "World Layouts",
+            "range": "0xC70000-0xC82220",
+            "autoBank": true,
+            "array": {
+                "length": "0x0500"
+            },
+            "assembly": {
+                "format": "ff5-world"
+            },
+            "pointerTable": {
+                "range": "0xCFE000-0xCFEA00",
+                "offset": "0xC70000"
+            }
+        },
+        "worldTilesets": {
+            "type": "array",
+            "name": "World Tilesets",
+            "range": "0xCFF0C0-0xCFF9C0",
+            "array": {
+                "length": 3
+            },
+            "assembly": {
+                "length": "0x0300"
+            }
+        }
+    }
+}

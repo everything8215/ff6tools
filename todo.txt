@@ -1,0 +1,46 @@
++-------------------------+
+| ff6tools todo/wish list |
++-------------------------+
+
+general
+-------
+ * make a better navigator
+ * patch/asm support
+ * make modules with require.js (maybe...)
+ * add an option to switch between hex and decimal
+ * manual relocation
+ * reserve rom ranges (remove free space for patches or compatibility with other editors)
+ * make things load faster!
+ * log rom map
+ * copy and paste
+ * paste-able script text
+ * array insert/remove
+ 
+gui
+---
+ * battle vram viewer
+ * custom property controls (entrance trigger destination, rendered text)
+ * grid check boxes (for element/status)
+ * tile mask layers for map editor
+ * allow multiple selection, cut/copy/paste in script list
+ * make tileset zoom in when sidebar is expanded
+ * top bar for battle editor (change battle type, background)
+ * progress bar
+ * show rom title in top bar
+ * script list/trigger double click functionality
+
+game specific
+-------------
+ * fix ff6 character ai special values
+ * add english string tables for ff6 steam version
+ * world of ruin gets corrupted in roms expanded by ff3usme
+ * ff5 monster ai
+ * ff5 advance
+ * ff4 and ff5 - can't edit map dialog messages
+
+wish list
+---------
+ * music editor
+ * battle animation editor
+ * cinematic editor
+ * graphics import/export
