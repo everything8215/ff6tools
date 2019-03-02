@@ -2320,6 +2320,7 @@
                     },
                     "battleGroup": {
                         "type": "assembly",
+                        "name": "Battle Group",
                         "external": "mapBattleGroups[%i]"
                     },
                     "battleBackground": {
@@ -5437,7 +5438,7 @@
                             "name": "State 2",
                             "begin": 3,
                             "mask": "0x8000",
-                            "stringTable": "eventScript.event.jumpSwitch.state1",
+                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
                             "invalid": "this.parent.count.value < 2"
                         },
                         "switch3": {
@@ -5453,7 +5454,7 @@
                             "name": "State 3",
                             "begin": 5,
                             "mask": "0x8000",
-                            "stringTable": "eventScript.event.jumpSwitch.state1",
+                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
                             "invalid": "this.parent.count.value < 3"
                         },
                         "switch4": {
@@ -5469,7 +5470,7 @@
                             "name": "State 4",
                             "begin": 7,
                             "mask": "0x8000",
-                            "stringTable": "eventScript.event.jumpSwitch.state1",
+                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
                             "invalid": "this.parent.count.value < 4"
                         },
                         "switch5": {
@@ -5485,7 +5486,7 @@
                             "name": "State 5",
                             "begin": 9,
                             "mask": "0x8000",
-                            "stringTable": "eventScript.event.jumpSwitch.state1",
+                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
                             "invalid": "this.parent.count.value < 5"
                         },
                         "switch6": {
@@ -5501,7 +5502,7 @@
                             "name": "State 6",
                             "begin": 11,
                             "mask": "0x8000",
-                            "stringTable": "eventScript.event.jumpSwitch.state1",
+                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
                             "invalid": "this.parent.count.value < 6"
                         },
                         "switch7": {
@@ -5517,7 +5518,7 @@
                             "name": "State 7",
                             "begin": 13,
                             "mask": "0x8000",
-                            "stringTable": "eventScript.event.jumpSwitch.state1",
+                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
                             "invalid": "this.parent.count.value < 7"
                         },
                         "switch8": {
@@ -5533,7 +5534,7 @@
                             "name": "State 8",
                             "begin": 15,
                             "mask": "0x8000",
-                            "stringTable": "eventScript.event.jumpSwitch.state1",
+                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
                             "invalid": "this.parent.count.value < 8"
                         }
                     }
@@ -7897,7 +7898,7 @@
                             "name": "State 2",
                             "begin": 3,
                             "mask": "0x8000",
-                            "stringTable": "eventScript.event.jumpSwitch.state1",
+                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
                             "invalid": "this.parent.count.value < 2"
                         },
                         "switch3": {
@@ -7913,7 +7914,7 @@
                             "name": "State 3",
                             "begin": 5,
                             "mask": "0x8000",
-                            "stringTable": "eventScript.event.jumpSwitch.state1",
+                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
                             "invalid": "this.parent.count.value < 3"
                         },
                         "switch4": {
@@ -7929,7 +7930,7 @@
                             "name": "State 4",
                             "begin": 7,
                             "mask": "0x8000",
-                            "stringTable": "eventScript.event.jumpSwitch.state1",
+                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
                             "invalid": "this.parent.count.value < 4"
                         },
                         "switch5": {
@@ -7945,7 +7946,7 @@
                             "name": "State 5",
                             "begin": 9,
                             "mask": "0x8000",
-                            "stringTable": "eventScript.event.jumpSwitch.state1",
+                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
                             "invalid": "this.parent.count.value < 5"
                         },
                         "switch6": {
@@ -7961,7 +7962,7 @@
                             "name": "State 6",
                             "begin": 11,
                             "mask": "0x8000",
-                            "stringTable": "eventScript.event.jumpSwitch.state1",
+                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
                             "invalid": "this.parent.count.value < 6"
                         },
                         "switch7": {
@@ -7977,7 +7978,7 @@
                             "name": "State 7",
                             "begin": 13,
                             "mask": "0x8000",
-                            "stringTable": "eventScript.event.jumpSwitch.state1",
+                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
                             "invalid": "this.parent.count.value < 7"
                         },
                         "switch8": {
@@ -7993,7 +7994,7 @@
                             "name": "State 8",
                             "begin": 15,
                             "mask": "0x8000",
-                            "stringTable": "eventScript.event.jumpSwitch.state1",
+                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
                             "invalid": "this.parent.count.value < 8"
                         }
                     }
@@ -8446,7 +8447,7 @@
                             "name": "State 2",
                             "begin": 3,
                             "mask": "0x8000",
-                            "stringTable": "eventScript.event.jumpSwitch.state1",
+                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
                             "invalid": "this.parent.count.value < 2"
                         },
                         "switch3": {
@@ -8462,7 +8463,7 @@
                             "name": "State 3",
                             "begin": 5,
                             "mask": "0x8000",
-                            "stringTable": "eventScript.event.jumpSwitch.state1",
+                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
                             "invalid": "this.parent.count.value < 3"
                         },
                         "switch4": {
@@ -8478,7 +8479,7 @@
                             "name": "State 4",
                             "begin": 7,
                             "mask": "0x8000",
-                            "stringTable": "eventScript.event.jumpSwitch.state1",
+                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
                             "invalid": "this.parent.count.value < 4"
                         },
                         "switch5": {
@@ -8494,7 +8495,7 @@
                             "name": "State 5",
                             "begin": 9,
                             "mask": "0x8000",
-                            "stringTable": "eventScript.event.jumpSwitch.state1",
+                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
                             "invalid": "this.parent.count.value < 5"
                         },
                         "switch6": {
@@ -8510,7 +8511,7 @@
                             "name": "State 6",
                             "begin": 11,
                             "mask": "0x8000",
-                            "stringTable": "eventScript.event.jumpSwitch.state1",
+                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
                             "invalid": "this.parent.count.value < 6"
                         },
                         "switch7": {
@@ -8526,7 +8527,7 @@
                             "name": "State 7",
                             "begin": 13,
                             "mask": "0x8000",
-                            "stringTable": "eventScript.event.jumpSwitch.state1",
+                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
                             "invalid": "this.parent.count.value < 7"
                         },
                         "switch8": {
@@ -8542,7 +8543,7 @@
                             "name": "State 8",
                             "begin": 15,
                             "mask": "0x8000",
-                            "stringTable": "eventScript.event.jumpSwitch.state1",
+                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
                             "invalid": "this.parent.count.value < 8"
                         }
                     }

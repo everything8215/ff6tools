@@ -1603,6 +1603,7 @@
                     "category-battle": "Battle",
                     "battleGroup": {
                         "type": "assembly",
+                        "name": "Battle Group",
                         "external": "mapBattleGroups[%i]"
                     },
                     "battleBackground": {

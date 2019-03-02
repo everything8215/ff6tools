@@ -1364,6 +1364,7 @@
                     },
                     "battleGroup": {
                         "type": "property",
+                        "name": "Battle Group",
                         "external": "mapBattle[%i].battleGroup"
                     }
                 },

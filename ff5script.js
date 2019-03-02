@@ -114,7 +114,7 @@ var FF5Script = {
                 return command.name + ": " + this.string(command, "event", "eventScript");
                 
             case "inn":
-                return "Inn: " + this.string(command, "price", "eventScript.event.inn.price");
+                return "Inn: " + this.string(command, "price", "scriptEncoding.event.inn.price");
 
             case "inventoryGP":
                 var gp = command.gp.value;
