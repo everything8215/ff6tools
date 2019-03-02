@@ -183,7 +183,7 @@ FF1Map.prototype.mouseDown = function(e) {
                 this.selectWorldBattle(this.clickedCol, this.clickedRow);
             } else {
                 // select map properties
-                this.rom.select(this.mapProperties);
+                propertyList.select(this.mapProperties);
             }
             this.isDragging = false;
         }
@@ -361,7 +361,7 @@ FF1Map.prototype.setTiles = function() {
 
 FF1Map.prototype.selectTrigger = function(trigger) {
     this.selectedTrigger = trigger;
-    this.rom.select(trigger);
+    propertyList.select(trigger);
     if (!trigger) return;
     this.clickedCol = this.selectedTrigger.x.value;
     this.clickedRow = this.selectedTrigger.y.value;
@@ -401,13 +401,13 @@ FF1Map.prototype.selectTileProperties = function(t) {
     } else if (this.selectedLayer.type === FF1MapLayer.Type.world) {
         // world map tile properties
         tileProperties = this.rom.worldTileProperties;
-        var battleEditor = this.rom.getEditor("FF1Battle");
+        var battleEditor = propertyList.getEditor("FF1Battle");
         battleEditor.bg = this.rom.worldBattleBackground.item(t).background.value;
     } else {
         // return if layer 2
         return;
     }
-    this.rom.select(tileProperties.item(t));
+    propertyList.select(tileProperties.item(t));
 }
 
 FF1Map.prototype.selectLayer = function(l) {
@@ -433,7 +433,7 @@ FF1Map.prototype.selectWorldBattle = function(x, y) {
     var sector = x + (y << 3);
     
     var battleGroup = this.rom.battleGroup.item(sector);
-    this.rom.select(battleGroup);
+    propertyList.select(battleGroup);
 }
 
 FF1Map.prototype.changeLayer = function(id) {
@@ -587,18 +587,7 @@ FF1Map.prototype.loadWorldMap = function(m) {
     layerButtons[2].disabled = true;
 
     this.mapProperties = null;
-    this.rom.select(null);
-
-    // set the map background
-//    var battleEditor = this.rom.getEditor("FF4Battle");
-//    if (this.m === 251) {
-//        battleEditor.bg = 0;
-//    } else if (this.m === 252) {
-//        battleEditor.bg = 15;
-//    } else if (this.m === 253) {
-//        battleEditor.bg = 5;
-//    }
-//    battleEditor.altPalette = false;
+    propertyList.select(null);
 
     // load graphics and layout
     var size = 256;
@@ -759,7 +748,7 @@ FF1Map.prototype.insertNPC = function() {
     this.endAction(this.reloadTriggers);
     
     this.selectedTrigger = npc;
-    this.rom.select(npc);
+    propertyList.select(npc);
 }
 
 FF1Map.prototype.deleteTrigger = function() {
@@ -776,7 +765,7 @@ FF1Map.prototype.deleteTrigger = function() {
     this.endAction(this.reloadTriggers);
     
     this.selectedTrigger = null;
-    this.rom.select(null);
+    propertyList.select(null);
 }
 
 FF1Map.prototype.drawTriggers = function() {

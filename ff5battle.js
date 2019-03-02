@@ -39,7 +39,7 @@ function FF5Battle(rom) {
 
 FF5Battle.prototype.battleName = function(b) {
     var battleProperties = this.rom.battleProperties.item(b);
-    var isBoss = battleProperties.bossBattle.value;
+    var isBoss = battleProperties.flags.value & 0x20;
     
     // count up the monsters
     var monsterList = {};
@@ -77,9 +77,9 @@ FF5Battle.prototype.mouseDown = function(e) {
     if (this.selectedMonster) {
         this.clickedPoint = {x: x, y: y};
         this.monsterPoint = { x: this.selectedMonster.x, y: this.selectedMonster.y };
-        this.rom.select(this.rom.monsterProperties.item(this.selectedMonster.monster));
+        propertyList.select(this.rom.monsterProperties.item(this.selectedMonster.monster));
     } else {
-        this.rom.select(this.battleProperties);
+        propertyList.select(this.battleProperties);
     }
     
     this.drawBattle();
@@ -166,7 +166,7 @@ FF5Battle.prototype.loadBattle = function(b) {
 
 FF5Battle.prototype.monsterInSlot = function(slot) {
     var m;
-    if (this.battleProperties.bossBattle.value) {
+    if (this.battleProperties.flags.value & 0x20) {
         m = this.battleProperties["monster" + slot + "Boss"].value;
     } else {
         m = this.battleProperties["monster" + slot].value;
@@ -178,7 +178,7 @@ FF5Battle.prototype.monsterInSlot = function(slot) {
     var y = monsterPosition.y.value;
     
     var id;
-    if (this.battleProperties.bossBattle.value) {
+    if (this.battleProperties.flags.value & 0x20) {
         id = this.rom.monsterProperties.item(m).monsterIDBoss.value;
     } else {
         id = this.rom.monsterProperties.item(m).monsterID.value;
@@ -327,6 +327,8 @@ FF5Battle.prototype.drawMonster = function(slot) {
     ppu.renderPPU(imageData.data);
     context.putImageData(imageData, 0, 0);
     
+    if (!this.battleProperties["monster" + slot + "Present"].value) this.transparentMonster();
+    
     // tint the selected monster
     if (this.selectedMonster && this.selectedMonster.slot === slot) this.tintMonster();
     
@@ -348,6 +350,20 @@ FF5Battle.prototype.tintMonster = function() {
     ctx = this.monsterCanvas.getContext('2d');
     ctx.globalCompositeOperation = 'source-atop';
     ctx.drawImage(tintCanvas, 0, 0);
+}
+
+FF5Battle.prototype.transparentMonster = function() {
+    // create an offscreen canvas filled with the color
+    var transparentCanvas = document.createElement('canvas');
+    transparentCanvas.width = this.monsterCanvas.width;
+    transparentCanvas.height = this.monsterCanvas.height;
+    var ctx = transparentCanvas.getContext('2d');
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.fillRect(0, 0, this.monsterCanvas.width, this.monsterCanvas.height);
+    
+    ctx = this.monsterCanvas.getContext('2d');
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.drawImage(transparentCanvas, 0, 0);
 }
 
 FF5Battle.prototype.drawBackground = function() {

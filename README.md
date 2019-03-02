@@ -1,7 +1,7 @@
 # FF6Tools
 
 FF6Tools is a browser-based app for editing Final Fantasy ROM files for the NES, SNES, and GBA. The latest version is always available here:
-https://everything8215.github.io/ff6tools.html
+https://everything8215.github.io/ff6tools/
 
 Currently supported ROMs:
 

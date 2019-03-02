@@ -172,13 +172,13 @@ FF5Map.prototype.mouseDown = function(e) {
         if (index !== -1) {
             // select the next trigger in a stack
             this.selectedTrigger = triggers[(index + 1) % triggers.length];
-            this.rom.select(this.selectedTrigger);
+            propertyList.select(this.selectedTrigger);
             this.clickedCol = this.selectedTrigger.x.value;
             this.clickedRow = this.selectedTrigger.y.value;
         } else if (triggers.length !== 0) {
             // select the first trigger
             this.selectedTrigger = triggers[0];
-            this.rom.select(this.selectedTrigger);
+            propertyList.select(this.selectedTrigger);
             this.clickedCol = this.selectedTrigger.x.value;
             this.clickedRow = this.selectedTrigger.y.value;
         } else {
@@ -187,7 +187,7 @@ FF5Map.prototype.mouseDown = function(e) {
             if (this.m < 3) {
                 this.selectWorldBattle(this.clickedCol, this.clickedRow) 
             } else if (this.map >= 5) {
-                this.rom.select(this.mapProperties);
+                propertyList.select(this.mapProperties);
             }
             this.clickedCol = null;
             this.clickedRow = null;
@@ -395,7 +395,7 @@ FF5Map.prototype.selectWorldBattle = function(x, y) {
     
     var sector = x | (y << 3) | (this.m << 6);
     var battleGroup = this.rom.worldBattleGroup.item(sector);
-    this.rom.select(battleGroup);
+    propertyList.select(battleGroup);
 }
 
 FF5Map.prototype.changeLayer = function(id) {
@@ -516,7 +516,7 @@ FF5Map.prototype.loadMap = function(m) {
         this.observer.startObserving(this.mapProperties, this.loadMap);
 
         // set the default battle background
-        var battleEditor = this.rom.getEditor("FF5Battle");
+        var battleEditor = propertyList.getEditor("FF5Battle");
         if (battleEditor) battleEditor.bg = this.mapProperties.battleBackground.value;
     }
 
@@ -681,7 +681,7 @@ FF5Map.prototype.loadWorldMap = function(m) {
     layerButtons[2].disabled = true;
 
     this.mapProperties = null;
-    this.rom.select(null);
+    propertyList.select(null);
 
     // load graphics and layout
     var w = 0;
@@ -874,7 +874,7 @@ FF5Map.prototype.insertTrigger = function(type) {
     this.endAction(this.reloadTriggers);
     
     this.selectedTrigger = trigger;
-    this.rom.select(trigger);
+    propertyList.select(trigger);
 }
 
 FF5Map.prototype.deleteTrigger = function() {
@@ -906,7 +906,7 @@ FF5Map.prototype.deleteTrigger = function() {
     this.endAction(this.reloadTriggers);
     
     this.selectedTrigger = null;
-    this.rom.select(null);
+    propertyList.select(null);
 }
 
 FF5Map.prototype.drawTriggers = function() {

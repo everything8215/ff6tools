@@ -184,7 +184,7 @@ Object.defineProperty(ROMAssembly.prototype, "definition", { get: function() {
     if (this._invalid) definition.invalid = this._invalid;
     if (this._hidden) definition.hidden = this._hidden;
     if (this._disabled) definition.disabled = this._disabled;
-    if (this.pad != 0xFF) { definition.pad = hexString(this.pad, 1); }
+    if (this.pad != 0xFF) { definition.pad = hexString(this.pad, 2); }
     
     definition.reference = [];
     for (var r = 0; r < this.reference.length; r++) {
@@ -212,9 +212,20 @@ Object.defineProperty(ROMAssembly.prototype, "path", { get: function() {
     } else if (this.parent instanceof ROMArray) {
         return this.parent.path;
     } else if (this instanceof ROMCommand) {
-        return this.parent.path + "." + this.encoding + "." + this.key;
+        return "scriptEncoding." + this.encoding + "." + this.key;
     }
     return this.parent.path + "." + this.key;
+}});
+
+Object.defineProperty(ROMAssembly.prototype, "labelString", { get: function() {
+    if (!this.parent) return null;
+    if (this.parent === this.rom) return null;
+    var i = Number(this.i);
+    if (!isNumber(i)) return null;
+    if (!this.parent.stringTable) return null;
+    var stringTable = this.rom.stringTable[this.parent.stringTable];
+    if (!stringTable) return null;
+    return stringTable.string[i];
 }});
 
 // invalid: assembly is not shown in property view and will not be assembled
@@ -423,59 +434,70 @@ ROMAssembly.prototype.setData = function(array, offset) {
     this.rom.doAction(action);
 }
 
-Object.defineProperty(ROMAssembly.prototype, "labelString", { get: function() {
-    if (!this.parent) return null;
-    if (this.parent === this.rom) return null;
-    var i = Number(this.i);
-    if (!isNumber(i)) return null;
-    if (!this.parent.stringTable) return null;
-    var stringTable = this.rom.stringTable[this.parent.stringTable];
-    if (!stringTable) return null;
-    return stringTable.string[i];
-}});
+ROMAssembly.prototype.parsePath = function(path, relative, index) {
+    if (!isNumber(index)) index = this.i || this.value;
+    if (isNumber(index)) path = path.replace(/%i/g, index.toString());
 
-ROMAssembly.prototype.labelHTML = function() {
-    
-    var string = this.labelString;
-    if (!string) return null;
-    
-    // create a div for the label
-    var labelDiv = document.createElement('div');
-    labelDiv.classList.add("property-div");
-    labelDiv.id = "label-" + this.key;
-    var id = "label-control-" + this.key;
-    
-    // create a label for the label
-    var label = document.createElement('label');
-    label.htmlFor = id;
-    label.classList.add("property-label");
-    label.innerHTML = "Label:";
-    labelDiv.appendChild(label);
-
-    // create a div for the control(s)
-    var controlDiv = document.createElement('div');
-    labelDiv.appendChild(controlDiv);
-    controlDiv.classList.add("property-control-div");
+    var components = path.split(".");
+    var object = relative || this.rom;
+    for (var c = 0; c < components.length; c++) {
         
-    // create a text box
-    var input = document.createElement('input');
-    controlDiv.appendChild(input);
-    input.id = id;
-    var defaultString = string.parent.defaultString;
-    defaultString = defaultString.value || defaultString;
-    input.placeholder = defaultString;
-    if (string.value !== defaultString) input.value = string.value;
-    input.classList.add("property-control");
-    input.onchange = function() {
-        if (this.value === "") {
-            string.setValue(defaultString);
-        } else {
-            string.setValue(this.value);
-        }
-        document.getElementById(this.id).focus();
-    };
+        var key = components[c];
 
-    return labelDiv;
+        if (!object) return null;
+            
+        var subStart = key.indexOf('[');
+        var subEnd = key.indexOf(']');
+        var subString = "";
+        if (subStart !== -1) {
+            subString = key.substring(subStart);
+            key = key.substring(0, subStart);
+        }
+
+        object = object[key];
+        if (!object) return null;
+        
+//        while (true) {
+//            if (object[key]) {
+//                object = object[key];
+//                break;
+//            } else if (object.assembly) {
+//                object = object.assembly;
+//            } else {
+//                return null;
+//            }
+//        }
+
+        // parse array subscripts
+        while (true) {
+            subStart = subString.indexOf('[');
+            subEnd = subString.indexOf(']');
+            if (subStart === -1 || subEnd < subStart) break;
+            var sub = subString.substring(subStart + 1, subEnd);
+            subString = subString.substring(subEnd);
+            var i = Number(sub);
+            if (!isNumber(i)) {
+                try {
+                    i = eval(sub);
+                } catch (e) {
+                    return null;
+                }
+            }
+            if (object instanceof ROMArray) {
+                // ROMArray entry
+                object = object.item(i);
+            } else if (object instanceof ROMStringTable) {
+                // string table entry
+                object = object.string[i];
+            } else if (isArray(object)) {
+                // js array
+                object = object[i];
+            } else {
+                return null;
+            }
+        }
+    }
+    return object;
 }
 
 // ROMReference
@@ -837,7 +859,7 @@ ROMData.prototype.addAssembly = function(definition) {
     function getter(assembly) {
         return function() {
             if (assembly.external) {
-                return this.rom.parseLink(assembly.external.replace("%i", this.i));
+                return this.parsePath(assembly.external);
             } else if (!assembly.isLoaded && assembly.disassemble) {
                 // disassemble this assembly if it hasn't been loaded yet
                 assembly.disassemble(this.data);
@@ -963,7 +985,6 @@ function ROM(rom, definition) {
     this.crc32 = Number(definition.crc32);
     this.system = definition.system;
     this.mode = definition.mode;
-    this.editors = {};
     this.pointerLength = Number(definition.pointerLength);
     if (!isNumber(this.pointerLength)) { this.pointerLength = 2; }
 
@@ -1014,9 +1035,7 @@ function ROM(rom, definition) {
             this.scriptEncoding[key] = new ROMScriptEncoding(this, definition.scriptEncoding[key], this);
         }
     }
-    
-    this.observer = new ROMObserver(this, this, {sub: true, link: true, label: true});
-    this.selection = {current: null, previous: [], next: []};
+
     this.undoStack = [];
     this.redoStack = [];
     this.action = null;
@@ -1061,13 +1080,30 @@ Object.defineProperty(ROM.prototype, "definition", { get: function() {
     keys = Object.keys(this.stringTable);
     for (var i = 0; i < keys.length; i++) {
         key = keys[i];
+        
+        // skip script command string tables, they are included
+        // in the script encoding definition already
+        if (key.startsWith("scriptEncoding")) continue;
+        
         var stringTable = this.stringTable[key];
-        var assemblyDefinition = this.parseLink(key, definition.assembly);
-        if (!isString(assemblyDefinition)) {
-            assemblyDefinition.stringTable = stringTable.definition;
-        } else {
+        
+        // append the string table if it doesn't belong to a sub-assembly
+        if (!key.includes(".")) {
             definition.stringTable[key] = stringTable.definition;
+            continue;
         }
+        
+        // find the sub-assembly definition
+        var components = key.split(".");
+        var subDefinition = definition;
+        for (var c = 0; c < components.length; c++) {
+            if (!subDefinition) break;
+            while (subDefinition.assembly) subDefinition = subDefinition.assembly;
+            key = components[c];
+            subDefinition = subDefinition[key];
+        }
+
+        if (subDefinition) subDefinition.stringTable = stringTable.definition;
     }
 
     // create script encoding definitions
@@ -2116,336 +2152,51 @@ ROM.dataFormat = {
     }
 };
 
-ROM.prototype.parseLink = function(link, object) {
-    var components = link.split(".");
-    var object = object || this;
-    for (var c = 0; c < components.length; c++) {
-        
-        var key = components[c];
-        var i = null;
-
-        // check for an array subscript
-        var subStart = key.indexOf('[');
-        var subEnd = key.indexOf(']');
-        if (subStart !== -1 && subEnd > subStart) {
-            var sub = key.substring(subStart + 1, subEnd);
-            var i = Number(sub);
-            if (!isNumber(i)) {
-                try {
-                    i = eval(sub);
-                } catch (e) {
-//                    this.log("Invalid Link: " + link);
-                    return "Invalid Link: " + link;
-                }
-            }
-            key = key.substring(0, subStart);
-        }
-        
-        if (object && object[key] !== undefined) {
-            object = object[key];
-            if (!isNumber(i)) continue;
-            
-            if (object instanceof ROMArray) {
-                // array entry
-                object = object.item(i);
-                continue;
-            } else if (object instanceof ROMStringTable) {
-                // string table entry
-                object = object.string[i];
-                continue;
-            }
-        } else {
-//            this.log("Invalid Link: " + link);
-            return "Invalid Link: " + link;
-        }
-    }
-    return object;
-}
-
-ROM.prototype.getEditor = function(name) {
-    if (this.editors[name]) return this.editors[name];
-    
-    var editorClass = window[name];
-    if (!editorClass) return null;
-    editor = new editorClass(this);
-    this.editors[name] = editor;
-    return editor;
-}
-
-ROM.prototype.showEditor = function(object) {
-    if (!object.editor) return;
-    var editor = this.getEditor(object.editor);
-    if (!editor) return;
-    
-    var editDiv = document.getElementById('edit-div');
-    if (!editDiv.contains(editor.div)) {
-        editDiv.innerHTML = "";
-        editDiv.appendChild(editor.div);
-    }
-
-    editor.selectObject(object);
-    
-    // TODO: come up with a way to select any object in the navigator pane
-    if (object.editor.includes("Map")) {
-        selectMap(object.i);
-    } else if (object.editor.includes("Battle")) {
-        selectBattle(object.i);
-    }
-}
-
-ROM.prototype.showProperties = function() {
-    
-    // stop observing eveything
-    this.observer.stopObservingAll();
-    
-    var properties = document.getElementById("properties");
-    properties.innerHTML = "";
-    
-    var object = this.selection.current;
-    if (!object) return;
-    
-    // start observing the selected object
-//    this.observer.startObserving(object, this.showProperties)
-
-    // show heading
-    if (object.name) {
-        var headingDiv = document.createElement('div');
-        properties.appendChild(headingDiv);
-        headingDiv.classList.add("property-heading");
-                
-        // array list
-        if (object.parent instanceof ROMArray) {
-            var array = object.parent;
-            var list = document.createElement('select');
-            headingDiv.appendChild(list);
-            var rom = this;
-            list.onchange = function() {
-                var i = Number(this.value);
-                rom.select(array.item(i))
-            };
-
-            // create an option for each valid string in the table
-            var stringTable = rom.stringTable[array.stringTable];
-            for (var i = 0; i < array.array.length; i++) {
-
-                var optionString = i.toString() + ": ";
-                if (stringTable && stringTable.string[i]) {
-                    optionString += stringTable.string[i].fString(40);
-                } else {
-                    optionString += array.name + " " + i;
-                }
-
-                var option = document.createElement('option');
-                option.value = i;
-                option.innerHTML = optionString;
-                list.appendChild(option);
-            }
-            list.value = object.i;
-        }
-
-        // object name
-        var heading = document.createElement('p');
-        headingDiv.appendChild(heading);
-        heading.innerHTML = object.name.replace("%i", object.i);
-    }
-    
-    // show object label (string table or script label)
-    if (object.labelHTML) {
-        this.observeLabel(object);
-//        this.observer.startObserving(object.labelString, this.showProperties);
-        var labelDiv = object.labelHTML();
-        if (labelDiv) properties.appendChild(labelDiv);
-    }
-
-    if (object instanceof ROMString && object.language) {
-        // strings with multiple languages
-        var language = object.language;
-        var keys = Object.keys(language);
-        for (var i = 0; i < keys.length; i++) {
-            var key = keys[i];
-            var linkString = language[key].link.replace("%i", object.i);
-            var link = this.parseLink(linkString)
-            if (!link.propertyHTML) continue;
-            this.observeAssembly(link);
-//            this.observer.startObserving(link, this.showProperties);
-            var propertyDiv = link.propertyHTML(language[key].name);
-            if (propertyDiv) properties.appendChild(propertyDiv);
-        }
-        
-    } else if (object.propertyHTML) {
-        // object with a single property
-        this.observeAssembly(object);
-//        this.observer.startObserving(object, this.showProperties);
-        var propertyDiv = object.propertyHTML();
-        if (propertyDiv) properties.appendChild(propertyDiv);
-
-    } else if (object instanceof ROMData || object instanceof ROMCommand) {
-        // object with sub-assemblies
-//        this.observer.startObserving(object, this.showProperties);
-        var keys = Object.keys(object.assembly);
-        for (var i = 0; i < keys.length; i++) {
-            var key = keys[i];
-            if (isString(object.assembly[key])) {
-                // category name
-                var categoryDiv = document.createElement('div');
-                categoryDiv.classList.add("property-category");
-                properties.appendChild(categoryDiv);
-                
-                var category = document.createElement('p');
-                category.innerHTML = object.assembly[key];
-                categoryDiv.appendChild(category);
-                continue;
-            }
-            if (object.assembly[key].invalid) continue;
-            var assembly = object[key];
-            if (!assembly) continue;
-            if (!assembly.propertyHTML) continue;
-            this.observeAssembly(assembly);
-//            this.observer.startObserving(assembly, this.showProperties);
-            var propertyDiv = assembly.propertyHTML(object.assembly[key].name);
-            if (propertyDiv) properties.appendChild(propertyDiv);
-        }
-    }
-    
-    this.updateLabels();
-}
-
-ROM.prototype.observeLabel = function(object) {
-    var rom = this;
-    
-    this.observer.startObserving(object.labelString, this.showProperties);
-    return;
-    
-//    this.observer.startObserving(object.labelString, function() {
+//ROM.prototype.parseLink = function(link, object) {
+//    var components = link.split(".");
+//    var object = object || this;
+//    for (var c = 0; c < components.length; c++) {
+//        
+//        var key = components[c];
+//        var i = null;
 //
-//        // return if the label doesn't exist
-//        var oldLabel = document.getElementById("label-" + object.key);
-//        if (!oldLabel) return;
-//        var parent = oldLabel.parentElement;
-//        if (!parent) return;
+//        // check for an array subscript
+//        var subStart = key.indexOf('[');
+//        var subEnd = key.indexOf(']');
+//        if (subStart !== -1 && subEnd > subStart) {
+//            var sub = key.substring(subStart + 1, subEnd);
+//            var i = Number(sub);
+//            if (!isNumber(i)) {
+//                try {
+//                    i = eval(sub);
+//                } catch (e) {
+////                    this.log("Invalid Link: " + link);
+//                    return "Invalid Link: " + link;
+//                }
+//            }
+//            key = key.substring(0, subStart);
+//        }
 //        
-//        var newLabel = object.labelHTML();
-//        parent.replaceChild(newLabel, oldLabel);
-//        rom.updateLabels();
-//
-//        var control = document.getElementById("label-control-" + object.key);
-//        if (control) control.focus();
-//    });
-}
-
-ROM.prototype.observeAssembly = function(assembly) {
-    var rom = this;
-    
-    this.observer.startObserving(assembly, this.showProperties);
-    return;
-        
-//    this.observer.startObserving(assembly, function() {
-//        
-//        // return if the property doesn't exist
-//        var oldProperty = document.getElementById("property-" + assembly.key);
-//        if (!oldProperty) return;
-//        var parent = oldProperty.parentElement;
-//        if (!parent) return;
-//        
-//        var newProperty = assembly.propertyHTML(assembly.name);
-//        parent.replaceChild(newProperty, oldProperty);
-//        rom.updateLabels();
-//        
-//        var control = document.getElementById("property-control-" + assembly.key);
-//        if (control) control.focus();
-//    });
-}
-
-ROM.prototype.updateLabels = function() {
-    var labels = document.getElementsByClassName("property-label");
-    var w = 0;
-    var l;
-
-    // reset all labels to their default size
-    for (l = 0; l < labels.length; l++) labels[l].style.width = "auto";
-
-    // find the widest label
-    for (l = 0; l < labels.length; l++) w = Math.max(w, labels[l].clientWidth);
-
-    // make all labels the same width
-    for (l = 0; l < labels.length; l++) labels[l].style.width = w + "px";
-    
-    // make all text controls the same height as the text
-    var text = document.getElementsByClassName("property-textarea");
-    for (t = 0; t < text.length; t++) {
-        var input = text[t];
-        var height = input.scrollHeight;
-        input.style.height = height + "px";
-    }
-}
-
-ROM.prototype.select = function(object) {
-
-    // if the object is a string, try to parse it as an object
-    if (isString(object)) {
-        object = this.parseLink(object);
-        // return if it's an invalid link
-        if (isString(object)) return;
-    }
-    
-    // update properties if the selection didn't change
-    if (this.selection.current === object) {
-        this.showProperties();
-        return;
-    }
-    
-    // deselect everything
-    this.deselectAll();
-
-    // select nothing
-    if (!object) {
-        this.selection.current = null;
-        this.showProperties();
-        return;
-    }
-    
-    // select a script (this might be redundant)
-    if (object instanceof ROMScript) {
-        scriptList.selectScript(object);
-        return;
-    }
-
-    // show the object's properties
-    this.selection.current = object;
-
-    // show the editor for this object
-    this.showEditor(object);
-    
-    // show properties for this object
-    this.showProperties();
-}
-
-ROM.prototype.selectPrevious = function() {
-    var current = this.selection.current;
-    var previous = this.selection.previous.pop();
-    if (!previous) return;
-    this.select(previous);
-    this.selection.next.push(current);
-}
-
-ROM.prototype.selectNext = function() {
-    var current = this.selection.current;
-    var next = this.selection.next.pop();
-    if (!next) return;
-    this.select(next);
-    this.selection.previous.push(current);
-}
-
-ROM.prototype.deselectAll = function() {
-    // stop observing the previous selection
-    if (this.selection.current) {
-//        this.observer.stopObserving(this.selection.current);
-        this.selection.previous.push(this.selection.current);
-        this.selection.next = [];
-    }
-    
-    this.selection.current = null;
-}
+//        if (object && object[key] !== undefined) {
+//            object = object[key];
+//            if (!isNumber(i)) continue;
+//            
+//            if (object instanceof ROMArray) {
+//                // array entry
+//                object = object.item(i);
+//                continue;
+//            } else if (object instanceof ROMStringTable) {
+//                // string table entry
+//                object = object.string[i];
+//                continue;
+//            }
+//        } else {
+////            this.log("Invalid Link: " + link);
+//            return "Invalid Link: " + link;
+//        }
+//    }
+//    return object;
+//}
 
 ROM.prototype.canUndo = function() { return this.undoStack.length > 0; }
 ROM.prototype.canRedo = function() { return this.redoStack.length > 0; }
@@ -2537,7 +2288,7 @@ ROMObserver.prototype.startObserving = function(object, callback, args) {
     if (!object) return;
 
     if (this.depth > 5) return;
-        
+
     this.depth++;
     
     // start observing the object and add it to the array of observees
@@ -2554,7 +2305,7 @@ ROMObserver.prototype.startObserving = function(object, callback, args) {
 
 ROMObserver.prototype.startObservingSub = function(object, callback, args) {
     // don't observe array prototypes
-    if (object.array || !object.assembly) return;
+    if (!(object instanceof ROMData)) return;
     
     var keys = Object.keys(object.assembly);
     for (var i = 0; i < keys.length; i++) {
@@ -2567,12 +2318,11 @@ ROMObserver.prototype.startObservingSub = function(object, callback, args) {
 
 ROMObserver.prototype.startObservingLink = function(object, callback, args) {
     if (!object.link) return;
-    var link = object.link.replace(/%i/g, object.value.toString());
-    this.startObserving(this.rom.parseLink(link), callback, args);
+    this.startObserving(object.parsePath(object.link), callback, args);
 }
 
 ROMObserver.prototype.startObservingArray = function(object, callback, args) {
-    if (!object.array) return;
+    if (!(object instanceof ROMArray)) return;
     
     for (var i = 0; i < object.array.length; i++) {
         this.startObserving(object.array[i], callback, args);
@@ -2606,7 +2356,7 @@ ROMObserver.prototype.stopObserving = function(object) {
 
 ROMObserver.prototype.stopObservingSub = function(object) {
     // don't observe array prototype assemblies
-    if (object.array || !object.assembly) return;
+    if (!(object instanceof ROMData)) return;
     
     var keys = Object.keys(object.assembly);
     for (var i = 0; i < keys.length; i++) {
@@ -2619,12 +2369,11 @@ ROMObserver.prototype.stopObservingSub = function(object) {
 
 ROMObserver.prototype.stopObservingLink = function(object) {
     if (!object.link) return;
-    var link = object.link.replace(/%i/g, object.value.toString());
-    this.stopObserving(this.rom.parseLink(link));
+    this.stopObserving(object.parsePath(object.link));
 }
 
 ROMObserver.prototype.stopObservingArray = function(object) {
-    if (!object.array) return;
+    if (!(object instanceof ROMArray)) return;
     
     for (var i = 0; i < object.array.length; i++) {
         this.stopObserving(object.array[i]);
@@ -2859,278 +2608,6 @@ ROMProperty.prototype.setValue = function(value) {
     this.rom.doAction(action);
 }
 
-ROMProperty.prototype.propertyHTML = function(name) {
-
-    if (this.hidden || this.invalid) return null;
-    var property = this;
-    
-    // create a div for the property
-    var propertyDiv = document.createElement('div');
-    propertyDiv.classList.add("property-div");
-    propertyDiv.id = "property-" + this.key;
-    var id = "property-control-" + this.key;
-    
-    // create a label
-    var label;
-    if (this.link) {
-        // create a label with a link
-        var link = this.link;
-        label = document.createElement('a');
-        link = link.replace("%i", this.value);
-        label.href = "javascript:rom.select(\"" + link + "\");";
-    } else if (this.script) {
-        // create a label with a script link
-        var script = this.rom[this.script];
-        var command = script.ref[this.value];
-        label = document.createElement('a');
-        label.href = "javascript:rom.select(\"" + this.script + "\"); scriptList.selectRef(" + command.ref + ");";
-    } else {
-        // create a normal label
-        label = document.createElement('label');
-        label.htmlFor = id;
-    }
-    label.classList.add("property-label");
-    name = name || this.name;
-    if (name) label.innerHTML = name + ":";
-    propertyDiv.appendChild(label);
-
-    // create a div for the control(s)
-    var controlDiv = document.createElement('div');
-    propertyDiv.appendChild(controlDiv);
-    controlDiv.classList.add("property-control-div");
-    
-    if (this.bool) {
-        // property with a single boolean checkbox
-        var input = document.createElement('input');
-        controlDiv.appendChild(input);
-        input.id = id;
-        input.type = "checkbox";
-        input.checked = this.value;
-        input.disabled = this.disabled;
-        input.classList.add("property-check");
-        input.onchange = function() {
-            var value = this.checked;
-            property.setValue(value);
-            document.getElementById(this.id).focus();
-        };
-        
-        // move the label to the right of the check box
-        label.innerHTML = "";
-        label = document.createElement('label');
-        label.classList.add("property-check-label");
-        label.htmlFor = input.id;
-        if (this.name) label.innerHTML = this.name;
-        controlDiv.appendChild(label);
-        
-    } else if (this.flag) {
-        // property with boolean flags
-        var flagChecks = [];
-        for (var i = 0, mask = 1; mask < (this.mask >> this.bit); i++, mask <<= 1) {
-            
-            // create the check box
-            var check = document.createElement('input');
-            check.classList.add("property-check");
-            check.value = mask;
-            check.type = "checkbox";
-            check.checked = this.value & mask;
-            check.disabled = this.disabled;
-            check.id = id + "-" + i;
-            check.onchange = function() {
-                var value = property.value;
-                if (this.checked) {
-                    // set bit
-                    value |= this.value;
-                } else {
-                    // clear bit
-                    value &= ~this.value;
-                }
-                property.setValue(value);
-                document.getElementById(this.id).focus();
-            }
-
-            // create a label for the check box
-            var label = document.createElement('label');
-            label.classList.add("property-check-label");
-            label.htmlFor = check.id;
-            if (this.stringTable) {
-                var stringTable = rom.stringTable[this.stringTable];
-                if (!stringTable.string[i]) continue;
-                label.innerHTML += stringTable.string[i].fString();
-            } else {
-                label.innerHTML = i;
-            }
-                        
-            // create a div to hold the label and control
-            var flagDiv = document.createElement('div');
-            flagDiv.classList.add("property-check-div");
-            flagDiv.appendChild(check);
-            flagDiv.appendChild(label);
-            flagChecks.push(check);
-            controlDiv.appendChild(flagDiv);
-        }
-        
-        // add check boxes for special values
-        var specialValues = Object.keys(this.special);
-        for (var i = 0; i < specialValues.length; i++) {
-            var special = document.createElement('input');
-            special.classList.add("property-check");
-            special.id = id + "-special" + i;
-            special.disabled = this.disabled;
-            special.type = "checkbox";
-            special.checked = false;
-
-            var key = specialValues[i];
-            var value = Number(key);
-            special.value = value;
-            if (Number(this.value) === value) {
-                flagChecks.forEach(function(div) {
-                    div.disabled = true;
-                });
-                special.checked = true;
-            }
-            special.onchange = function() {
-                if (this.checked) {
-                    property.setValue(Number(this.value));
-                } else {
-                    property.setValue(property.min);
-                }
-                document.getElementById(this.id).focus();
-            };
-
-            // create a label for the check box
-            var label = document.createElement('label');
-            label.classList.add("property-check-label");
-            label.htmlFor = special.id;
-            label.innerHTML = this.special[key];
-
-            // create a div to hold the label and control
-            var specialDiv = document.createElement('div');
-            specialDiv.classList.add("property-check-div");
-            specialDiv.appendChild(special);
-            specialDiv.appendChild(label);
-            controlDiv.appendChild(specialDiv);
-        }
-        
-    } else if (this.stringTable) {
-        // property with a drop down list of strings
-        var input = document.createElement('select');
-        controlDiv.appendChild(input);
-        input.id = id;
-        input.disabled = this.disabled;
-        input.classList.add("property-control");
-        input.onchange = function() {
-            var value = Number(input.value);
-            property.setValue(value);
-            document.getElementById(this.id).focus();
-        };
-
-        // create an option for each valid string in the table
-        var stringTable = rom.stringTable[this.stringTable];
-        var min = this.min + this.offset;
-        var max = this.max + this.offset;
-        for (var i = min; i <= max; i++) {
-            
-            var optionString = "";
-            if (!stringTable.hideIndex) {
-                optionString += i.toString() + ": ";
-            }
-            if (this.special[i]) {
-                optionString += this.special[i];
-            } else if (stringTable.string[i]) {
-                optionString += stringTable.string[i].fString(40);
-            } else {
-                continue;
-            }
-            
-            var option = document.createElement('option');
-            option.value = i;
-            option.innerHTML = optionString;
-            input.appendChild(option);
-        }
-        input.value = this.value;
-        
-    } else if (this.script) {
-        // property linked to a script
-        var script = this.rom[this.script];
-        var command = script.ref[this.value];
-        var input = document.createElement('input');
-        controlDiv.appendChild(input);
-        input.classList.add("property-control");
-        input.id = id;
-        input.disabled = this.disabled;
-        input.type = "text";
-        input.classList.add("property-control");
-        input.value = command.label;
-        input.onchange = function() {
-            var command = script.label[this.value];
-            if (!command) return;
-            property.setValue(command.ref);
-            document.getElementById(this.id).focus();
-        };
-        
-    } else {
-        // property with a number only
-        var input = document.createElement('input');
-        controlDiv.appendChild(input);
-        input.id = id;
-        input.disabled = this.disabled;
-        input.type = "number";
-        input.classList.add("property-control");
-        input.value = this.value.toString();
-        input.step = this.multiplier;
-        input.min = (this.min + this.offset) * this.multiplier;
-        input.max = (this.max + this.offset) * this.multiplier;
-        input.onchange = function() {
-            var value = Number(this.value);
-            value = Math.max(value, input.min);
-            value = Math.min(value, input.max);
-            value -= value % input.step;
-            property.setValue(value);
-            document.getElementById(this.id).focus();
-        };
-
-        // add check boxes for special values
-        var specialValues = Object.keys(this.special);
-        for (var i = 0; i < specialValues.length; i++) {
-            var specialDiv = document.createElement('div');
-            specialDiv.classList.add("property-check-div");
-            controlDiv.appendChild(specialDiv);
-            var special = document.createElement('input');
-            specialDiv.appendChild(special);
-            special.classList.add("property-check");
-            special.id = id + "-special" + i;
-            special.disabled = this.disabled;
-            special.type = "checkbox";
-            special.checked = false;
-
-            var key = specialValues[i];
-            var value = (Number(key) + this.offset) * input.step;
-            if (Number(this.value) === value) {
-                input.disabled = true;
-                special.checked = true;
-            }
-            special.onchange = function() {
-                if (this.checked) {
-                    property.setValue(value);
-                } else {
-                    property.setValue(property.min);
-                }
-                document.getElementById(this.id).focus();
-            };
-
-            // create a label for the check box
-            var label = document.createElement('label');
-            specialDiv.appendChild(label);
-            label.classList.add("property-check-label");
-            label.htmlFor = special.id;
-            label.innerHTML = this.special[key];
-        }
-    }
-
-    return propertyDiv;
-//    parent.appendChild(propertyDiv);
-}
-
 // ROMArray
 function ROMArray(rom, definition, parent) {
     ROMAssembly.call(this, rom, definition, parent);
@@ -3166,9 +2643,9 @@ function ROMArray(rom, definition, parent) {
         
     } else if (definition.pointerTable) {
         // pointer table definition
-        this.pointerTable = this.createPointerTable(definition.pointerTable);
         this.pointerOffset = definition.pointerTable.offset;
         this.pointerLength = Number(definition.pointerTable.pointerLength) || this.rom.pointerLength;
+        this.pointerTable = this.createPointerTable(definition.pointerTable);
     }
     
     this.isAbsolute = (this.pointerTable && this.parent === this.rom && !this.pointerOffset);
@@ -3204,13 +2681,12 @@ Object.defineProperty(ROMArray.prototype, "definition", { get: function() {
     
     if (!this.pointerTable) return definition;
 
-    if (!this.pointerTable.endsWith("PointerTable")) {
+    if (isString(this.pointerTable)) {
         // non-standard pointer table
         definition.pointerTable = this.pointerTable;
     } else {
         // standard pointer table
-        var pointerTable = this.rom.parseLink(this.pointerTable);
-        var pointerTableDefinition = pointerTable.definition;
+        var pointerTableDefinition = this.pointerTable.definition;
         delete pointerTableDefinition.key;
         delete pointerTableDefinition.name;
         delete pointerTableDefinition.type;
@@ -3244,7 +2720,7 @@ ROMArray.prototype.createPointerTable = function(definition) {
     definition.name = definition.name || (this.name + " Pointer Table");
     definition.key = definition.key || (this.key + "PointerTable");
     var pointerTable = this.parent.addAssembly(definition);
-    return pointerTable.path;
+    return pointerTable;
 }
 
 ROMArray.prototype.updateReferences = function() {
@@ -3338,6 +2814,9 @@ ROMArray.prototype.assemble = function(data) {
 ROMArray.prototype.disassemble = function(data) {
 
     ROMAssembly.prototype.disassemble.call(this, data);
+    
+    // disassemble the pointer table
+    if (this.pointerTable instanceof ROMAssembly) this.pointerTable.disassemble(data);
     
     // determine the range of each item in the array
     var itemRanges = [];
@@ -3469,7 +2948,7 @@ ROMArray.prototype.disassemble = function(data) {
 ROMArray.pointerMask = [0, 0xFF, 0xFFFF, 0xFFFFFF, 0x7FFFFFFF];
 
 ROMArray.prototype.createPointer = function(i) {
-    if (!isString(this.pointerTable)) return null;
+    if (!this.pointerTable) return null;
 
     var offset = Number(this.pointerOffset);
     if (!isNumber(offset) || offset === 0) {
@@ -3480,10 +2959,10 @@ ROMArray.prototype.createPointer = function(i) {
         offset = this.parent.mapAddress(offset);
     }
 
-    var target = this.rom.parseLink(this.pointerTable.replace(/%i/g, i.toString()));
-    
-    if (target.key !== this.key + "PointerTable") {
+    if (isString(this.pointerTable)) {
         // create a new reference
+        var target = this.parsePath(this.pointerTable, this.rom, i);
+        if (!target) return null;
         var definition = {
             target: target,
             offset: offset,
@@ -3494,7 +2973,7 @@ ROMArray.prototype.createPointer = function(i) {
         var definition = {
             begin: i * this.pointerLength,
             mask: ROMArray.pointerMask[this.pointerLength],
-            target: target,
+            target: this.pointerTable,
             offset: offset,
             relative: this
         }
@@ -3514,12 +2993,12 @@ ROMArray.prototype.updateArray = function() {
 }
 
 ROMArray.prototype.updatePointers = function() {
-    if (!isString(this.pointerTable)) return;
-    var pointerTable = this.rom.parseLink(this.pointerTable);
-    if (pointerTable.key !== this.key + "PointerTable") return;
+    if (!this.pointerTable || isString(this.pointerTable)) return;
+//    var pointerTable = this.parsePath(this.pointerTable);
+//    if (pointerTable.key !== this.key + "PointerTable") return;
     
     // adjust new pointers
-    var pointerTableLength = 0;
+    var length = 0;
     for (var i = 0; i < this.array.length; i++) {
         var assembly = this.array[i];
         var pointer = assembly.reference[0];
@@ -3530,22 +3009,22 @@ ROMArray.prototype.updatePointers = function() {
             pointer.parent = assembly;
             assembly.reference.push(pointer);
         }
-        pointer.options.begin = pointerTableLength;
-        pointerTableLength += this.pointerLength;
+        pointer.options.begin = length;
+        length += this.pointerLength;
     }
 
     // find and adjust the end pointer
     for (var r = 0; r < this.reference.length; r++) {
         var reference = this.reference[r];
         if (!reference.options || !reference.options.endPointer) continue;
-        reference.options.begin = pointerTableLength;
-        pointerTableLength += this.pointerLength;
+        reference.options.begin = length;
+        length += this.pointerLength;
         break;
     }
     
     // change the size of the pointer table
-    pointerTable.data = new Uint8Array(pointerTableLength);
-    pointerTable.markAsDirty();
+    this.pointerTable.data = new Uint8Array(length);
+    this.pointerTable.markAsDirty();
 }
 
 ROMArray.prototype.blankAssembly = function() {
@@ -3702,45 +3181,6 @@ Object.defineProperty(ROMCommand.prototype, "nextCommand", { get: function() {
     return this.parent.command[i + 1];
 }});
 
-ROMCommand.prototype.labelHTML = function() {
-    
-//    if (!this._label) return null;
-    
-    // create a div for the label
-    var labelDiv = document.createElement('div');
-    labelDiv.classList.add("property-div");
-    labelDiv.id = "label-" + this.key;
-    var id = "label-control-" + this.key;
-    
-    // create a label for the label
-    var label = document.createElement('label');
-    label.htmlFor = id;
-    label.classList.add("property-label");
-    label.innerHTML = "Label:";
-    labelDiv.appendChild(label);
-
-    // create a div for the control(s)
-    var controlDiv = document.createElement('div');
-    labelDiv.appendChild(controlDiv);
-    controlDiv.classList.add("property-control-div");
-        
-    // create a text box
-    var input = document.createElement('input');
-    controlDiv.appendChild(input);
-    input.id = id;
-    var defaultLabel = this.defaultLabel;
-    input.placeholder = defaultLabel;
-    var command = this;
-    if (command._label) input.value = command._label;
-    input.classList.add("property-control");
-    input.onchange = function() {
-        command.setLabel(this.value);
-        document.getElementById(this.id).focus();
-    };
-
-    return labelDiv;
-}
-
 ROMCommand.prototype.setLabel = function(label) {
         
     // return if the value didn't change
@@ -3841,7 +3281,7 @@ Object.defineProperty(ROMScript.prototype, "definition", { get: function() {
                 if (previousCommand && previousCommand.nextEncoding === command.encoding) {
                     definition.label[label] = hexString(offset, 6);
                 } else {
-                    definition.label[label] = {"offset": hexString(offset, 6), "encoding": command.encoding};
+                    definition.label[label] = { offset: hexString(offset, 6), encoding: command.encoding };
                 }
             } else {
                 // the script probably hasn't been disassembled
@@ -3916,9 +3356,9 @@ ROMScript.prototype.disassemble = function(data) {
         
         // create the new command and disassemble it
         var command = new ROMCommand(this.rom, definition, this);
-        definition.begin = null;
-        definition.ref = null;
-        definition.label = null;
+        delete definition.begin;
+        delete definition.ref;
+        delete definition.label;
         command.disassemble(this.data);
         this.command.push(command);
         this.ref[offset] = command;
@@ -4235,396 +3675,6 @@ ROMScriptEncoding.prototype.populateMenu = function(menu) {
     createSubMenu(menu, hierarchy);
 }
 
-// ROMScriptList
-function ROMScriptList(rom) {
-    this.rom = rom;
-    this.scriptList = document.getElementById("script-list");
-    this.scriptList.innerHTML = "";
-    this.container = this.scriptList.parentElement;
-    this.script = null;
-    this.selection = []; // selected commands
-    this.node = []; // command nodes by ref
-    
-    this.blockSize = 50; // number of commands per block
-    this.blockStart = 0; // starting location of first block
-    this.numBlocks = 3; // number of blocks visible at one time
-    this.rowHeight = 17;
-    
-    this.observer = new ROMObserver(rom, this, {sub: true});
-    
-    var self = this;
-    this.scriptList.parentElement.onscroll = function() { self.scroll(); };
-    this.menu = document.getElementById('menu');
-    this.scriptList.parentElement.oncontextmenu = function(e) { self.openMenu(e); return false; };
-    
-    var insertButton = document.getElementById("script-insert");
-    insertButton.onclick = function(e) { self.openMenu(e); };
-}
-
-ROMScriptList.prototype.scroll = function() {
-    
-    if (!this.script) return;
-    this.closeMenu();
-    
-    var topSpace = this.scriptList.firstChild;
-    var bottomSpace = this.scriptList.lastChild;
-    if (!topSpace || !bottomSpace) return;
-    
-    if (this.container.scrollTop < topSpace.offsetHeight) {
-        // scrolled off the top
-        var index = Math.floor(this.blockStart - (topSpace.offsetHeight - this.container.scrollTop) / this.rowHeight);
-        
-        // save the scroll position for the top command
-        var topCommand = this.script.command[this.blockStart];
-        var commandNode = this.node[topCommand.ref];
-        var oldOffset, newOffset;
-        if (commandNode) oldOffset = commandNode.offsetTop;
-        
-        // change blockStart so that the previous blocks are visible
-        index = index - index % this.blockSize - this.blockSize * (this.numBlocks - 2);
-        this.blockStart = Math.max(index, 0);
-        this.update();
-        
-        // recalculate the scroll position so that the first command stays in the same spot
-        commandNode = this.node[topCommand.ref];
-        if (commandNode && oldOffset) {
-            newOffset = commandNode.offsetTop;
-            this.scriptList.parentElement.scrollTop += newOffset - oldOffset;
-        }
-        
-    } else if ((this.container.scrollTop + this.container.offsetTop + this.container.offsetHeight) > bottomSpace.offsetTop) {
-        // scrolled off the bottom
-        var index = Math.floor(this.blockStart + (this.container.scrollTop + this.container.offsetTop + this.container.offsetHeight - bottomSpace.offsetTop) / this.rowHeight);
-        
-        // save the scroll position for the bottom command
-        var bottomIndex = Math.min(this.blockStart + this.blockSize * this.numBlocks - 1, this.script.command.length - 1);
-        var bottomCommand = this.script.command[bottomIndex];
-        var commandNode = this.node[bottomCommand.ref];
-        var oldOffset, newOffset;
-        if (commandNode) oldOffset = commandNode.offsetTop;
-        
-        // change blockStart so that the next blocks are visible
-        index = index - index % this.blockSize + this.blockSize * (this.numBlocks - 2);
-        var maxStart = this.script.command.length - this.blockSize * this.numBlocks;
-        maxStart = Math.max(maxStart + this.blockSize - (maxStart % this.blockSize), 0);
-        this.blockStart = Math.min(index, maxStart);
-        this.update();
-        
-        // recalculate the scroll position so that the first command stays in the same spot
-        commandNode = this.node[bottomCommand.ref];
-        if (commandNode && oldOffset) {
-            newOffset = commandNode.offsetTop;
-            this.scriptList.parentElement.scrollTop += newOffset - oldOffset;
-        }
-    }
-}
-
-ROMScriptList.prototype.selectScript = function(script) {
-    document.getElementById("edit-bottom").classList.remove("hidden");
-    
-    if (this.script === script) return;
-    this.deselectAll();
-    this.script = script;
-    
-    // populate the list
-    this.blockStart = 0;
-    this.update();
-}
-
-ROMScriptList.prototype.selectCommand = function(command) {
-    
-    this.closeMenu();
-
-    // clear the old selection
-    this.deselectAll();
-    
-    if (!command) {
-        this.selection = [];
-        return;
-    }
-    this.selection = [command];
-    
-    // select the command in the rom
-    this.rom.select(command);
-    
-    if (!this.node[command.ref]) {
-        // node is not in the current block
-        var index = this.script.command.indexOf(command);
-        this.blockStart = Math.max(index - index % this.blockSize - this.blockSize, 0);
-        this.update();
-    }
-    
-    var node = this.node[command.ref];
-    if (!node) return;
-    node.classList.add("selected");
-    
-    // center the node in the list
-    var nodeTop = node.offsetTop - this.container.offsetTop;
-    var nodeBottom = nodeTop + node.offsetHeight;
-    if ((this.scriptList.parentElement.scrollTop > nodeTop) || ((this.scriptList.parentElement.scrollTop + this.container.offsetHeight) < nodeBottom)) this.scriptList.parentElement.scrollTop = nodeTop - Math.floor(this.container.offsetHeight - node.offsetHeight) / 2;
-}
-
-ROMScriptList.prototype.selectRef = function(ref) {
-    this.selectCommand(this.script.ref[ref]);
-}
-
-ROMScriptList.prototype.deselectAll = function() {
-    for (var c = 0; c < this.selection.length; c++) {
-        var command = this.selection[c];
-        if (!command) continue;
-        var node = this.node[command.ref];
-        if (!node) continue;
-        node.classList.remove("selected");
-    }
-    this.selection = [];
-}
-
-ROMScriptList.prototype.insert = function(identifier) {
-    if (!this.script) return;
-    
-    this.closeMenu();
-    
-    var command = this.script.blankCommand(identifier);
-    
-    var firstCommand = this.selection[0];
-    var lastCommand = this.selection[this.selection.length - 1];
-    var end = this.script.command.indexOf(lastCommand);
-//    if (end === this.script.command.length - 1) return;
-    var nextCommand = this.script.command[end + 1];
-
-    this.rom.beginAction();
-    var self = this;
-    this.rom.pushAction(new ROMAction(this, function() {
-        this.script.updateOffsets();
-        this.selectCommand(lastCommand);
-        this.update();
-    }, null, "Update Script"));
-    this.script.insertCommand(command, nextCommand.ref);
-    this.rom.doAction(new ROMAction(this, null, function() {
-        this.script.updateOffsets();
-        this.selectCommand(command);
-        this.update();
-    }, "Update Script"));
-    this.rom.endAction();
-}
-
-ROMScriptList.prototype.delete = function() {
-    // return if nothing is selected
-    if (!this.script) return;
-    if (this.selection.length === 0) return;
-    this.closeMenu();
-    
-    var lastCommand = this.selection[this.selection.length - 1];
-    var i = this.script.command.indexOf(lastCommand);
-    var nextCommand = this.script.command[i + 1] || this.script.command[this.script.command.length - 2];
-
-    this.rom.beginAction();
-    var self = this;
-    this.rom.pushAction(new ROMAction(this, function() {
-        this.script.updateOffsets();
-        this.selectCommand(lastCommand);
-        this.update();
-    }, null, "Update Script"));
-    this.selection.forEach(function(command) {
-        self.script.removeCommand(command);
-    });
-    this.rom.doAction(new ROMAction(this, null, function() {
-        this.script.updateOffsets();
-        this.selectCommand(nextCommand);
-        this.update();
-    }, "Update Script"));
-    this.rom.endAction();
-}
-
-ROMScriptList.prototype.moveUp = function() {
-    // return if nothing is selected
-    if (!this.script) return;
-    if (this.selection.length === 0) return;
-    this.closeMenu();
-    
-    var firstCommand = this.selection[0];
-    var start = this.script.command.indexOf(firstCommand);
-    if (start === 0) return;
-    var previousCommand = this.script.command[start - 1];
-    var lastCommand = this.selection[this.selection.length - 1];
-    var end = this.script.command.indexOf(lastCommand);
-    if (end === this.script.command.length - 1) return;
-    var nextCommand = this.script.command[end + 1];
-
-    function updateScript() {
-        this.script.updateOffsets();
-        this.selectCommand(firstCommand);
-        this.update();
-    }
-
-    this.rom.beginAction();
-    var self = this;
-    this.rom.pushAction(new ROMAction(this, updateScript, null, "Update Script"));
-    this.script.removeCommand(previousCommand);
-    this.script.insertCommand(previousCommand, nextCommand.ref);
-    this.rom.doAction(new ROMAction(this, null, updateScript, "Update Script"));
-    this.rom.endAction();
-}
-
-ROMScriptList.prototype.moveDown = function() {
-    // return if nothing is selected
-    if (!this.script) return;
-    if (this.selection.length === 0) return;
-    this.closeMenu();
-    
-    var firstCommand = this.selection[0];
-    var start = this.script.command.indexOf(firstCommand);
-    if (start === 0) return;
-    var previousCommand = this.script.command[start - 1];
-    var lastCommand = this.selection[this.selection.length - 1];
-    var end = this.script.command.indexOf(lastCommand);
-    if (end === this.script.command.length - 1) return;
-    var nextCommand = this.script.command[end + 1];
-
-    function updateScript() {
-        this.script.updateOffsets();
-        this.selectCommand(firstCommand);
-        this.update();
-    }
-
-    this.rom.beginAction();
-    var self = this;
-    this.rom.pushAction(new ROMAction(this, updateScript, null, "Update Script"));
-    this.script.removeCommand(nextCommand);
-    this.script.insertCommand(nextCommand, firstCommand.ref);
-    this.rom.doAction(new ROMAction(this, null, updateScript, "Update Script"));
-    this.rom.endAction();
-}
-
-ROMScriptList.prototype.update = function() {
-        
-    if (!this.script) return;
-    
-    // recalculate top and bottom spacers
-    
-    // create a dummy li to determine the row height
-    var dummy = document.createElement("li");
-    dummy.innerHTML = "Dummy"
-    this.scriptList.appendChild(dummy);
-    this.rowHeight = dummy.scrollHeight;
-    this.scriptList.removeChild(dummy);
-    
-    var totalHeight = this.script.command.length * this.rowHeight;
-    var blockTop = this.blockStart * this.rowHeight;
-    var blockBottom = blockTop + this.blockSize * this.numBlocks * this.rowHeight;
-    
-    // stop observing current nodes
-    this.observer.stopObservingAll();
-    
-    // remove all nodes
-    this.node = [];
-    this.scriptList.innerHTML = "";
-    
-    // create top space
-    var topSpace = document.createElement('div');
-    topSpace.className = "script-spacer";
-    this.scriptList.appendChild(topSpace);
-
-    // create nodes
-    for (var c = 0; c < this.blockSize * this.numBlocks; c++) {
-        var command = this.script.command[c + this.blockStart];
-        if (!command) break;
-        var li = this.liForCommand(command);
-        this.node[command.ref] = li;
-        this.scriptList.appendChild(li);
-    }
-
-    // start observing new nodes
-    var self = this;
-    this.node.forEach(function(li) {
-        var command = self.script.ref[li.value];
-        if (!command) return;
-        self.observer.startObserving(command, self.update);
-    });
-
-    // create bottom space
-    var bottomSpace = document.createElement('div');
-    bottomSpace.className = "script-spacer";
-    this.scriptList.appendChild(bottomSpace);
-    
-    // set top space height
-    topSpace.style.height = blockTop + "px";
-    bottomSpace.style.height = Math.max(totalHeight - blockBottom, 0) + "px";
-    
-    // highlight selected commands
-    for (var c = 0; c < this.selection.length; c++) {
-        var command = this.selection[c];
-        var node = this.node[command.ref];
-        if (!node) continue;
-        node.className = "selected";
-    }
-}
-
-ROMScriptList.prototype.liForCommand = function(command) {
-    var li = document.createElement("li");
-    li.value = command.ref;
-    var list = this;
-    li.onclick = function() {
-        list.selectRef(this.value);
-    };
-    var span = document.createElement("span");
-    span.classList.add("script-offset");
-    if (command._label) span.classList.add("bold");
-    span.innerHTML = command.label;
-    li.appendChild(span);
-    var p = document.createElement('p');
-    p.innerHTML = command.description;
-    li.appendChild(p);
-    return li;
-}
-
-ROMScriptList.prototype.updateMenu = function() {
-    
-    this.menu.innerHTML = "";
-    
-    // build the menu for the appropriate script commands
-    if (isArray(this.script.encoding)) {
-        for (var i = 0; i < this.script.encoding.length; i++) {
-            var encodingName = this.script.encoding[i];
-            var encoding = this.rom.scriptEncoding[encodingName];
-            var subMenu = document.createElement("ul");
-            subMenu.classList.add("menu-submenu");
-            if (encoding) encoding.populateMenu(subMenu);
-            var encodingLabel = document.createElement("li");
-            encodingLabel.classList.add("menu-item");
-            encodingLabel.innerHTML = encoding.name;
-            encodingLabel.appendChild(subMenu);
-            this.menu.appendChild(encodingLabel);
-        }
-    } else {
-        var encoding = this.rom.scriptEncoding[this.script.encoding];
-        if (encoding) encoding.populateMenu(this.menu);
-    }
-}
-
-ROMScriptList.prototype.openMenu = function(e) {
-    this.updateMenu();
-    
-    this.menu.classList.add("menu-active");
-    this.menu.style.left = e.x + "px";
-    this.menu.style.height = "";
-    
-    var top = e.y;
-    var height = this.menu.clientHeight;
-    if (height + top > window.innerHeight) {
-        top = window.innerHeight - height;
-    }
-    if (top < 0) {
-        this.menu.style.height = window.innerHeight + "px";
-        top = 0;
-    }
-    this.menu.style.top = top + "px";
-}
-
-ROMScriptList.prototype.closeMenu = function() {
-    this.menu.classList.remove("menu-active");
-}
-
 // ROMText
 function ROMText(rom, definition, parent) {
     ROMAssembly.call(this, rom, definition, parent);
@@ -4665,52 +3715,52 @@ ROMText.prototype.disassemble = function(data) {
     }
 }
 
-ROMText.prototype.propertyHTML = function(name) {
-    
-    if (this.hidden || this.invalid) return null;
-    
-    // create a div for the property
-    var propertyDiv = document.createElement('div');
-    propertyDiv.classList.add("property-div");
-    propertyDiv.id = "property-" + this.key;
-    var id = "property-control-" + this.key;
-    
-    // create a label
-    var label = document.createElement('label');
-    label.htmlFor = id;
-    label.classList.add("property-label");
-    name = name || this.name;
-    if (name) label.innerHTML = name + ":";
-    propertyDiv.appendChild(label);
-
-    // create a div for the control(s)
-    var controlDiv = document.createElement('div');
-    propertyDiv.appendChild(controlDiv);
-    controlDiv.classList.add("property-control-div");
-        
-    // create a text box
-    var input = document.createElement(this.multiLine ? 'textarea' : 'input');
-    controlDiv.appendChild(input);
-    input.id = id;
-    input.value = this.text;
-    input.disabled = this.disabled;
-    input.classList.add("property-control");
-    input.classList.add(this.multiLine ? "property-textarea" : "property-text");
-    var text = this;
-    input.onchange = function() {
-        text.setText(this.value);
-        document.getElementById(this.id).focus();
-    };
-
-//    document.body.appendChild(propertyDiv);
-//    parent.appendChild(propertyDiv);
-
-    // calculate the required height
-//    var height = input.scrollHeight;
-//    input.style.height = height + "px";
-    
-    return propertyDiv;
-}
+//ROMText.prototype.propertyHTML = function(name) {
+//    
+//    if (this.hidden || this.invalid) return null;
+//    
+//    // create a div for the property
+//    var propertyDiv = document.createElement('div');
+//    propertyDiv.classList.add("property-div");
+//    propertyDiv.id = "property-" + this.key;
+//    var id = "property-control-" + this.key;
+//    
+//    // create a label
+//    var label = document.createElement('label');
+//    label.htmlFor = id;
+//    label.classList.add("property-label");
+//    name = name || this.name;
+//    if (name) label.innerHTML = name + ":";
+//    propertyDiv.appendChild(label);
+//
+//    // create a div for the control(s)
+//    var controlDiv = document.createElement('div');
+//    propertyDiv.appendChild(controlDiv);
+//    controlDiv.classList.add("property-control-div");
+//        
+//    // create a text box
+//    var input = document.createElement(this.multiLine ? 'textarea' : 'input');
+//    controlDiv.appendChild(input);
+//    input.id = id;
+//    input.value = this.text;
+//    input.disabled = this.disabled;
+//    input.classList.add("property-control");
+//    input.classList.add(this.multiLine ? "property-textarea" : "property-text");
+//    var text = this;
+//    input.onchange = function() {
+//        text.setText(this.value);
+//        document.getElementById(this.id).focus();
+//    };
+//
+////    document.body.appendChild(propertyDiv);
+////    parent.appendChild(propertyDiv);
+//
+//    // calculate the required height
+////    var height = input.scrollHeight;
+////    input.style.height = height + "px";
+//    
+//    return propertyDiv;
+//}
 
 ROMText.prototype.setText = function(text) {
     
@@ -5036,7 +4086,8 @@ ROMString.prototype.fString = function(maxLength) {
         if (!links) return s;
         for (var l = 0; l < links.length; l++) {
             var link = links[l];
-            var object = this.rom.parseLink(link.substring(1, link.length - 1));
+            var path = link.substring(1, link.length - 1);
+            var object = this.rom.parsePath(path);
             this.observer.startObserving(object, this.reset);
             if (object instanceof ROMText) {
                 s = s.replace(link, object.formattedText);
@@ -5090,126 +4141,43 @@ ROMString.prototype.reset = function() {
     this.notifyObservers();
 }
 
-ROMString.prototype.propertyHTML = function(name) {
-    
-    // create a div for the property
-    var propertyDiv = document.createElement('div');
-    propertyDiv.classList.add("property-div");
-    propertyDiv.id = "property-" + this.key;
-    var id = "property-control-" + this.key;
-    
-    // create a label
-    var label;
-    if (this.language) {
-        // create a label with a link to this string
-        label = document.createElement('a');
-        label.href = "javascript:rom.select(\"stringTable." + this.parent.key + "[" + this.i + "]\");";
-    } else {
-        // create a static label
-        label = document.createElement('label');
-    }
-    label.htmlFor = id;
-    label.classList.add("property-label");
-    name = name || this.name;
-    if (name) label.innerHTML = name + ":";
-    propertyDiv.appendChild(label);
-
-    // create a div for the string
-    var stringDiv = document.createElement('div');
-    stringDiv.classList.add("property-control-div");
-    stringDiv.innerHTML = this.fString();
-    stringDiv.id = id;
-    propertyDiv.appendChild(stringDiv);
-
-    return propertyDiv;
-}
-
-//ROMString.prototype.stringHTML = function() {
+//ROMString.prototype.propertyHTML = function(name) {
 //    
 //    // create a div for the property
 //    var propertyDiv = document.createElement('div');
 //    propertyDiv.classList.add("property-div");
-//    var id = "property-" + this.key;
+//    propertyDiv.id = "property-" + this.key;
+//    var id = "property-control-" + this.key;
 //    
 //    // create a label
-//    var label = document.createElement('label');
-//    label.htmlFor = id;
-//    label.classList.add("property-label");
-//    label.innerHTML = this.name + ":";
-//    propertyDiv.appendChild(label);
-//
-//    // create a div for the string
-//    var stringDiv = document.createElement('div');
-//    propertyDiv.appendChild(stringDiv);
-//    stringDiv.classList.add("property-control-div");
-//    stringDiv.id = id;
-//    stringDiv.innerHTML = this.fString();
-//
-//    var language = this.parent.language;
-//    if (!language) return propertyDiv;
-//    
-//    var keys = Object.keys(language);
-//    for (var k = 0; k < keys.length; k++) {
-//        // create a property for each language
-//        
-//    }
-//    
-//    return propertyDiv;
-//}
-
-Object.defineProperty(ROMString.prototype, "labelString", { get: function() {
-    return this;
-}});
-
-ROMString.prototype.labelHTML = function() {
-    return ROMAssembly.prototype.labelHTML.call(this);
-
-//    var string = this;
-//    
-//    // create a div for the label
-//    var labelDiv = document.createElement('div');
-//    labelDiv.classList.add("property-div");
-//    var id = "label-" + this.key;
-//    
-//    // create a label for the label
 //    var label;
-//    if (this.parent.language) {
+//    if (this.language) {
 //        // create a label with a link to this string
 //        label = document.createElement('a');
-//        label.href = "javascript:rom.select(\"" + this.path + "\");";
+//        label.href = "javascript:propertyList.select(\"stringTable." + this.parent.key + "[" + this.i + "]\");";
 //    } else {
 //        // create a static label
 //        label = document.createElement('label');
 //    }
 //    label.htmlFor = id;
 //    label.classList.add("property-label");
-//    label.innerHTML = "Label:";
-//    labelDiv.appendChild(label);
+//    name = name || this.name;
+//    if (name) label.innerHTML = name + ":";
+//    propertyDiv.appendChild(label);
 //
-//    // create a div for the control(s)
-//    var controlDiv = document.createElement('div');
-//    labelDiv.appendChild(controlDiv);
-//    controlDiv.classList.add("property-control-div");
-//        
-//    // create a text box
-//    var input = document.createElement('input');
-//    controlDiv.appendChild(input);
-//    input.id = id;
-//    var defaultString = string.parent.defaultString;
-//    input.placeholder = defaultString;
-//    if (string.value !== defaultString) input.value = string.value;
-//    input.classList.add("property-control");
-//    input.onchange = function() {
-//        if (this.value === "") {
-//            string.setValue(defaultString);
-//        } else {
-//            string.setValue(this.value);
-//        }
-//        document.getElementById(this.id).focus();
-//    };
+//    // create a div for the string
+//    var stringDiv = document.createElement('div');
+//    stringDiv.classList.add("property-control-div");
+//    stringDiv.innerHTML = this.fString();
+//    stringDiv.id = id;
+//    propertyDiv.appendChild(stringDiv);
 //
-//    return labelDiv;
-}
+//    return propertyDiv;
+//}
+
+Object.defineProperty(ROMString.prototype, "labelString", { get: function() {
+    return this;
+}});
 
 // ROMStringTable
 function ROMStringTable(rom, definition, parent) {

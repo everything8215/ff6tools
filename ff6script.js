@@ -194,7 +194,7 @@ FF6Script.didDisassemble = function(command, data) {
                     if (!language) break;
                     var firstLanguage = Object.keys(language)[0];
                     var link = language[firstLanguage].link;
-                    dialog = command.rom.parseLink(link.replace(/%i/g, d.toString()));
+                    dialog = command.parsePath(link.replace(/%i/g, d.toString()));
                 } else {
                     break;
                 }

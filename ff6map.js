@@ -177,8 +177,10 @@ FF6Map.prototype.fixGBATriggers = function(triggers, triggersGBA) {
     delete definition.assembly;
     delete definition.pointerTable;
     definition.name += " Placeholder";
-    var terminator = this.rom.addAssembly(definition);
-    terminator.disassemble(new Uint8Array(2));
+    var placeholder = this.rom.addAssembly(definition);
+    placeholder.disassemble(this.rom.data);
+    placeholder.data = new Uint8Array(2);
+    placeholder.markAsDirty();
 }
 
 FF6Map.prototype.changeZoom = function() {
@@ -251,7 +253,7 @@ FF6Map.prototype.mouseDown = function(e) {
         if (index !== -1) {
             // select the next trigger in a stack
             this.selectedTrigger = triggers[(index + 1) % triggers.length];
-            this.rom.select(this.selectedTrigger);
+            propertyList.select(this.selectedTrigger);
             this.isDragging = true;
             this.triggerPoint = {
                 x: this.selectedTrigger.x.value,
@@ -260,7 +262,7 @@ FF6Map.prototype.mouseDown = function(e) {
         } else if (triggers.length !== 0) {
             // select the first trigger
             this.selectedTrigger = triggers[0];
-            this.rom.select(this.selectedTrigger);
+            propertyList.select(this.selectedTrigger);
             this.isDragging = true;
             this.triggerPoint = {
                 x: this.selectedTrigger.x.value,
@@ -274,7 +276,7 @@ FF6Map.prototype.mouseDown = function(e) {
                 this.selectWorldBattle(this.clickPoint.x, this.clickPoint.y) 
             } else {
                 // select map properties
-                this.rom.select(this.mapProperties);
+                propertyList.select(this.mapProperties);
             }
             this.isDragging = false;
         }
@@ -489,7 +491,7 @@ FF6Map.prototype.selectTileProperties = function(t) {
         // return if layer 2
         return;
     }
-    this.rom.select(tileProperties.item(t));
+    propertyList.select(tileProperties.item(t));
 }
 
 FF6Map.prototype.selectLayer = function(l) {
@@ -515,7 +517,7 @@ FF6Map.prototype.selectWorldBattle = function(x, y) {
     
     var sector = x | (y << 3) | (this.m << 6);
     var battleGroup = this.rom.worldBattleGroup.item(sector);
-    this.rom.select(battleGroup);
+    propertyList.select(battleGroup);
 }
 
 FF6Map.prototype.changeLayer = function(id) {
@@ -640,7 +642,7 @@ FF6Map.prototype.loadMap = function(m) {
         this.observer.startObserving(this.mapProperties, this.loadMap);
         
         // set the default battle background
-        var battleEditor = this.rom.getEditor("FF6Battle");
+        var battleEditor = propertyList.getEditor("FF6Battle");
         if (battleEditor) battleEditor.bg = this.mapProperties.battleBackground.value;
     }
 
@@ -786,7 +788,7 @@ FF6Map.prototype.loadWorldMap = function(m) {
     layerButtons[2].disabled = true;
 
     this.mapProperties = null;
-    this.rom.select(null);
+    propertyList.select(null);
 
     // load graphics and layout
     var layout = this.rom["worldLayout" + (m + 1)];
@@ -1034,7 +1036,7 @@ FF6Map.prototype.insertTrigger = function(type) {
     this.endAction(this.reloadTriggers);
 
     this.selectedTrigger = trigger;
-    this.rom.select(trigger);
+    propertyList.select(trigger);
 }
 
 FF6Map.prototype.deleteTrigger = function() {
@@ -1051,7 +1053,7 @@ FF6Map.prototype.deleteTrigger = function() {
     this.endAction(this.reloadTriggers);
     
     this.selectedTrigger = null;
-    this.rom.select(null);
+    propertyList.select(null);
 }
 
 FF6Map.prototype.drawTriggers = function() {

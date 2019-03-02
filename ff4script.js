@@ -19,20 +19,9 @@ FF4Script.initScript = function(script) {
             script.addPlaceholder(null, i + 2, "npcDialog");
         }
         
-        // add references for npcs
-//        for (e = 0; e < script.rom.npcPointers.array.length; e++) {
-//            offset = script.rom.npcPointers.item(e).scriptPointer.value;
-//            label = script.rom.stringTable.npcSwitch.fString(e);
-//            script.addPlaceholder(script.rom.npcPointers.item(e).scriptPointer, offset, "npc", label);
-//        }
     } else if (script.key === "eventScript") {
         // add references for events
         script.addPlaceholder(null, 0, "event", script.rom.stringTable.eventScript.string[script.i].fString());
-//        for (e = 1; e < script.rom.eventPointers.array.length; e++) {
-//            offset = script.rom.eventPointers.item(e).scriptPointer.value;
-//            label = script.rom.stringTable.eventPointers.fString(e);
-//            script.addPlaceholder(script.rom.eventPointers.item(e).scriptPointer, offset, "event", label);
-//        }
     }
 }
 
@@ -57,7 +46,7 @@ FF4Script.description = function(command) {
         i = script.command.indexOf(command) - i;
         desc = "NPC Dialog " + i + ":<br/>"
         
-        var map = command.rom.editors["FF4Map"];
+        var map = propertyList.editors["FF4Map"];
         var dialog = command.rom.mapDialog.item(map.m).item(command.dialog.value);
         if (dialog) {
             return desc + dialog.htmlText;
@@ -91,7 +80,7 @@ FF4Script.description = function(command) {
             }
 
         case "mapDialog":
-            var map = command.rom.editors["FF4Map"];
+            var map = propertyList.editors["FF4Map"];
             var m = map.m;
             
             var dialog = command.rom.mapDialog.item(m).item(command.dialog.value);
@@ -140,7 +129,7 @@ FF4Script.description = function(command) {
                 // map dialog event
                 var d = command.event.value - 39;
                 desc = "Display Map Dialog " + d + ": <br/>";
-                var map = command.rom.editors["FF4Map"];
+                var map = propertyList.editors["FF4Map"];
                 var dialog = command.rom.mapDialog.item(map.m).item(d);
                 if (dialog) {
                     return desc + dialog.htmlText;
@@ -174,7 +163,7 @@ FF4Script.string = function(command, key, stringKey) {
 }
 
 FF4Script.fixSwitch = function(switchProperty) {
-    var map = switchProperty.rom.editors["FF4Map"];
+    var map = propertyList.editors["FF4Map"];
     if (map.m > 256 && switchProperty.offset !== 256) {
         switchProperty.offset = 256;
         switchProperty.value += 256;
@@ -297,7 +286,7 @@ var FF4MonsterActionScript = {
 
             case "target":
                 var t = command.target.value;
-                return "Change Target: " + command.rom.stringTable["monsterAction.monsterAction.target.target"].string[t].fString();
+                return "Change Target: " + command.rom.stringTable["monsterAction.target"].string[t].fString();
 
             case "variable":
                 var v = command.variable.value;

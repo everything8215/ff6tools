@@ -2456,19 +2456,19 @@
                         "type": "property",
                         "name": "Probability",
                         "external": "worldBattleProbability[%i].probability",
-                        "invalid": "this.rom.editors.FF4Map.m !== 251"
+                        "invalid": "propertyList.editors.FF4Map.m !== 251"
                     },
                     "undergroundProbability": {
                         "type": "property",
                         "name": "Probability",
                         "external": "worldBattleProbability[64].probability",
-                        "invalid": "this.rom.editors.FF4Map.m !== 252"
+                        "invalid": "propertyList.editors.FF4Map.m !== 252"
                     },
                     "moonProbability": {
                         "type": "property",
                         "name": "Probability",
                         "external": "worldBattleProbability[65].probability",
-                        "invalid": "this.rom.editors.FF4Map.m !== 253"
+                        "invalid": "propertyList.editors.FF4Map.m !== 253"
                     }
                 }
             }

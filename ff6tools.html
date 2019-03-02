@@ -2,7 +2,7 @@
 <html lang="en-US">
     <head>
         <meta charset="UTF-8">
-        <title>FF6 Tools</title>
+        <title>FF6Tools</title>
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
         <link rel="stylesheet" type="text/css" href="ff6tools.css" />
         
@@ -11,6 +11,7 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js"></script>
         <script type="text/javascript" src="gfx.js"></script>
         <script type="text/javascript" src="romtools.js"></script>
+        <script type="text/javascript" src="romgui.js"></script>
         <script type="text/javascript" src="ff1map.js"></script>
         <script type="text/javascript" src="ff1battle.js"></script>
         <script type="text/javascript" src="ff4map.js"></script>
@@ -24,7 +25,7 @@
         <script type="text/javascript" src="ff6script.js"></script>
         <script type="text/javascript">
             
-            var rom, definition, data, scriptList, modal, definitions;
+            var rom, definition, data, propertyList, scriptList, modal, definitions;
 
             window.onload = function() {
 
@@ -258,15 +259,16 @@
                 console.log("CRC32: " + hexString(ROM.crc32(data), 8));
                 if (rom.isSFC) console.log("SNES Checksum: " + hexString(ROM.checksum(data), 4));
 
+                // create gui objects
+                propertyList = new ROMPropertyList(rom);
+                scriptList = new ROMScriptList(rom);
+                
                 // update the map list
                 loadMapNames();
                 
                 // select the first map
-                rom.select(rom.mapProperties.item(0));
+                propertyList.select(rom.mapProperties.item(0));
 
-                // create the script list
-                scriptList = new ROMScriptList(rom);
-                
                 // output strings to the console
 //                var bigString = "";
 //                for (var d = 0; d < rom.dialog.array.length; d++) {
@@ -495,7 +497,7 @@
                 li.classList.add("nav-object")
                 li.onclick = function(e) {
                     e.stopPropagation();
-                    rom.select(rom.mapProperties.item(m));
+                    propertyList.select(rom.mapProperties.item(m));
                 }
                 var span = document.createElement("span");
                 span.innerHTML = m.toString();
@@ -510,7 +512,7 @@
                 li.classList.add("nav-object")
                 li.onclick = function(e) {
                     e.stopPropagation();
-                    rom.select(rom.battleProperties.item(b));
+                    propertyList.select(rom.battleProperties.item(b));
                 }
                 var span = document.createElement("span");
                 span.innerHTML = b.toString();
@@ -528,7 +530,7 @@
                 if (!rom.battleProperties) return defaultName;
                 var battleProperties = rom.battleProperties.item(b);
                 if (!battleProperties || !battleProperties.editor) return defaultName;
-                var editor = rom.getEditor(battleProperties.editor);
+                var editor = propertyList.getEditor(battleProperties.editor);
                 if (!editor || !editor.battleName) return defaultName;
                 var name = editor.battleName(b);
                 if (name === "") return defaultName;

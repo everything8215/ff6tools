@@ -211,7 +211,7 @@ var FF5Script = {
     },
 
     fixSwitch: function(switchProperty) {
-        var map = switchProperty.rom.editors["FF5Map"];
+        var map = propertyList.editors["FF5Map"];
         if (map.m > 256 && switchProperty.offset !== 256) {
             switchProperty.offset = 256;
             switchProperty.value += 256;

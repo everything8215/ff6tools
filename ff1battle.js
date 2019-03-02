@@ -79,9 +79,9 @@ FF1Battle.prototype.mouseDown = function(e) {
     this.selectedMonster = this.monsterAtPoint(x, y);
 
     if (this.selectedMonster) {        
-        this.rom.select(this.rom.monsterProperties.item(this.selectedMonster.monster));
+        propertyList.select(this.rom.monsterProperties.item(this.selectedMonster.monster));
     } else {
-        this.rom.select(this.battleProperties);
+        propertyList.select(this.battleProperties);
     }
     
     this.drawBattle();

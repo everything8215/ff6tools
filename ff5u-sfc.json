@@ -295,199 +295,352 @@
                 "length": 16,
                 "editor": "FF5Battle",
                 "assembly": {
+                    "abp": {
+                        "type": "property",
+                        "name": "ABP",
+                        "begin": 2
+                    },
+                    "runChance": {
+                        "type": "property",
+                        "name": "Escape %",
+                        "begin": 1,
+                        "max": 100,
+                        "special": {
+                            "0x80": "Can't Run"
+                        }
+                    },
+                    "flags": {
+                        "type": "property",
+                        "name": "Flags",
+                        "begin": 15,
+                        "mask": "0xFF",
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "7": "Force Back Attack",
+                                "6": "Time Magic Disabled",
+                                "5": "Boss Battle",
+                                "4": "Sandworm",
+                                "3": "???",
+                                "2": "Cast Void at Start",
+                                "1": "No Reward",
+                                "0": "Alt. Death"
+                            }
+                        }
+                    },
+                    "gfxFlags": {
+                        "type": "property",
+                        "name": "Graphics",
+                        "begin": 0,
+                        "mask": "0xF0",
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "3": "Credits",
+                                "2": "Underwater",
+                                "1": "Final Boss",
+                                "0": "Wall Barrier"
+                            }
+                        }
+                    },
+                    "monsterEntry": {
+                        "type": "property",
+                        "name": "Monster Entry",
+                        "begin": 0,
+                        "mask": "0x07",
+                        "stringTable": {
+                            "string": {
+                                "0": "Normal",
+                                "1": "Drop",
+                                "2": "Scroll Up",
+                                "3": "Fade In",
+                                "4": "Demo Battles",
+                                "5": "Scroll Right"
+                            }
+                        }
+                    },
+                    "song": {
+                        "type": "property",
+                        "name": "Song",
+                        "begin": 14,
+                        "mask": "0x38",
+                        "stringTable": {
+                            "string": {
+                                "0": "Battle",
+                                "1": "Boss Battle",
+                                "2": "Neo-Exdeath",
+                                "3": "Gilgamesh",
+                                "4": "Exdeath",
+                                "5": "Exdeath Battle",
+                                "6": "Gogo",
+                                "7": "Exdeath Destroyed"
+                            }
+                        }
+                    },
+                    "resumeSong": {
+                        "type": "property",
+                        "name": "Continue Previous Song",
+                        "begin": 14,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "disableFanfare": {
+                        "type": "property",
+                        "name": "Disable Fanfare",
+                        "begin": 14,
+                        "mask": "0x40",
+                        "bool": true
+                    },
                     "monsterPosition": {
                         "type": "assembly",
                         "external": "monsterPosition[%i]"
                     },
+                    "cat-monster1": "Monster 1",
                     "monster1": {
                         "type": "property",
-                        "name": "Monster 1",
+                        "name": "Monster",
                         "begin": 4,
                         "stringTable": "monsterName",
                         "link": "monsterProperties[%i]",
-                        "invalid": "this.parent.bossBattle.value",
+                        "invalid": "this.parent.flags.value & 0x20",
                         "special": {
                             "0xFF": "None"
                         }
                     },
                     "monster1Boss": {
                         "type": "property",
-                        "name": "Monster 1",
+                        "name": "Monster",
                         "begin": 4,
                         "offset": "256",
                         "stringTable": "monsterName",
                         "link": "monsterProperties[%i]",
-                        "invalid": "!this.parent.bossBattle.value",
+                        "invalid": "!(this.parent.flags.value & 0x20)",
                         "special": {
                             "0x01FF": "None"
                         }
                     },
+                    "monster1Present": {
+                        "type": "property",
+                        "name": "Present",
+                        "begin": 3,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "cat-monster2": "Monster 2",
                     "monster2": {
                         "type": "property",
-                        "name": "Monster 2",
+                        "name": "Monster",
                         "begin": 5,
                         "stringTable": "monsterName",
                         "link": "monsterProperties[%i]",
-                        "invalid": "this.parent.bossBattle.value",
+                        "invalid": "this.parent.flags.value & 0x20",
                         "special": {
                             "0xFF": "None"
                         }
                     },
                     "monster2Boss": {
                         "type": "property",
-                        "name": "Monster 2",
+                        "name": "Monster",
                         "begin": 5,
                         "offset": "256",
                         "stringTable": "monsterName",
                         "link": "monsterProperties[%i]",
-                        "invalid": "!this.parent.bossBattle.value",
+                        "invalid": "!(this.parent.flags.value & 0x20)",
                         "special": {
                             "0x01FF": "None"
                         }
                     },
+                    "monster2Present": {
+                        "type": "property",
+                        "name": "Present",
+                        "begin": 3,
+                        "mask": "0x40",
+                        "bool": true
+                    },
+                    "cat-monster3": "Monster 3",
                     "monster3": {
                         "type": "property",
-                        "name": "Monster 3",
+                        "name": "Monster",
                         "begin": 6,
                         "stringTable": "monsterName",
                         "link": "monsterProperties[%i]",
-                        "invalid": "this.parent.bossBattle.value",
+                        "invalid": "this.parent.flags.value & 0x20",
                         "special": {
                             "0xFF": "None"
                         }
                     },
                     "monster3Boss": {
                         "type": "property",
-                        "name": "Monster 3",
+                        "name": "Monster",
                         "begin": 6,
                         "offset": "256",
                         "stringTable": "monsterName",
                         "link": "monsterProperties[%i]",
-                        "invalid": "!this.parent.bossBattle.value",
+                        "invalid": "!(this.parent.flags.value & 0x20)",
                         "special": {
                             "0x01FF": "None"
                         }
                     },
+                    "monster3Present": {
+                        "type": "property",
+                        "name": "Present",
+                        "begin": 3,
+                        "mask": "0x20",
+                        "bool": true
+                    },
+                    "cat-monster4": "Monster 4",
                     "monster4": {
                         "type": "property",
-                        "name": "Monster 4",
+                        "name": "Monster",
                         "begin": 7,
                         "stringTable": "monsterName",
                         "link": "monsterProperties[%i]",
-                        "invalid": "this.parent.bossBattle.value",
+                        "invalid": "this.parent.flags.value & 0x20",
                         "special": {
                             "0xFF": "None"
                         }
                     },
                     "monster4Boss": {
                         "type": "property",
-                        "name": "Monster 4",
+                        "name": "Monster",
                         "begin": 7,
                         "offset": "256",
                         "stringTable": "monsterName",
                         "link": "monsterProperties[%i]",
-                        "invalid": "!this.parent.bossBattle.value",
+                        "invalid": "!(this.parent.flags.value & 0x20)",
                         "special": {
                             "0x01FF": "None"
                         }
                     },
+                    "monster4Present": {
+                        "type": "property",
+                        "name": "Present",
+                        "begin": 3,
+                        "mask": "0x10",
+                        "bool": true
+                    },
+                    "cat-monster5": "Monster 5",
                     "monster5": {
                         "type": "property",
-                        "name": "Monster 5",
+                        "name": "Monster",
                         "begin": 8,
                         "stringTable": "monsterName",
                         "link": "monsterProperties[%i]",
-                        "invalid": "this.parent.bossBattle.value",
+                        "invalid": "this.parent.flags.value & 0x20",
                         "special": {
                             "0xFF": "None"
                         }
                     },
                     "monster5Boss": {
                         "type": "property",
-                        "name": "Monster 5",
+                        "name": "Monster",
                         "begin": 8,
                         "offset": "256",
                         "stringTable": "monsterName",
                         "link": "monsterProperties[%i]",
-                        "invalid": "!this.parent.bossBattle.value",
+                        "invalid": "!(this.parent.flags.value & 0x20)",
                         "special": {
                             "0x01FF": "None"
                         }
                     },
+                    "monster5Present": {
+                        "type": "property",
+                        "name": "Present",
+                        "begin": 3,
+                        "mask": "0x08",
+                        "bool": true
+                    },
+                    "cat-monster6": "Monster 6",
                     "monster6": {
                         "type": "property",
-                        "name": "Monster 6",
+                        "name": "Monster",
                         "begin": 9,
                         "stringTable": "monsterName",
                         "link": "monsterProperties[%i]",
-                        "invalid": "this.parent.bossBattle.value",
+                        "invalid": "this.parent.flags.value & 0x20",
                         "special": {
                             "0xFF": "None"
                         }
                     },
                     "monster6Boss": {
                         "type": "property",
-                        "name": "Monster 6",
+                        "name": "Monster",
                         "begin": 9,
                         "offset": "256",
                         "stringTable": "monsterName",
                         "link": "monsterProperties[%i]",
-                        "invalid": "!this.parent.bossBattle.value",
+                        "invalid": "!(this.parent.flags.value & 0x20)",
                         "special": {
                             "0x01FF": "None"
                         }
                     },
+                    "monster6Present": {
+                        "type": "property",
+                        "name": "Present",
+                        "begin": 3,
+                        "mask": "0x04",
+                        "bool": true
+                    },
+                    "cat-monster7": "Monster 7",
                     "monster7": {
                         "type": "property",
-                        "name": "Monster 7",
+                        "name": "Monster",
                         "begin": 10,
                         "stringTable": "monsterName",
                         "link": "monsterProperties[%i]",
-                        "invalid": "this.parent.bossBattle.value",
+                        "invalid": "this.parent.flags.value & 0x20",
                         "special": {
                             "0xFF": "None"
                         }
                     },
                     "monster7Boss": {
                         "type": "property",
-                        "name": "Monster 7",
+                        "name": "Monster",
                         "begin": 10,
                         "offset": "256",
                         "stringTable": "monsterName",
                         "link": "monsterProperties[%i]",
-                        "invalid": "!this.parent.bossBattle.value",
+                        "invalid": "!(this.parent.flags.value & 0x20)",
                         "special": {
                             "0x01FF": "None"
                         }
                     },
+                    "monster7Present": {
+                        "type": "property",
+                        "name": "Present",
+                        "begin": 3,
+                        "mask": "0x02",
+                        "bool": true
+                    },
+                    "cat-monster8": "Monster 8",
                     "monster8": {
                         "type": "property",
-                        "name": "Monster 8",
+                        "name": "Monster",
                         "begin": 11,
                         "stringTable": "monsterName",
                         "link": "monsterProperties[%i]",
-                        "invalid": "this.parent.bossBattle.value",
+                        "invalid": "this.parent.flags.value & 0x20",
                         "special": {
                             "0xFF": "None"
                         }
                     },
                     "monster8Boss": {
                         "type": "property",
-                        "name": "Monster 8",
+                        "name": "Monster",
                         "begin": 11,
                         "offset": "256",
                         "stringTable": "monsterName",
                         "link": "monsterProperties[%i]",
-                        "invalid": "!this.parent.bossBattle.value",
+                        "invalid": "!(this.parent.flags.value & 0x20)",
                         "special": {
                             "0x01FF": "None"
                         }
                     },
-                    "bossBattle": {
+                    "monster8Present": {
                         "type": "property",
-                        "name": "Boss Battle",
-                        "begin": 15,
-                        "mask": "0x20",
+                        "name": "Present",
+                        "begin": 3,
+                        "mask": "0x01",
                         "bool": true
                     }
                 },
@@ -2863,6 +3016,23 @@
                         "begin": 1,
                         "hidden": true
                     },
+                    "isBattle": {
+                        "type": "property",
+                        "name": "Monster-in-a-box",
+                        "begin": 2,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "battle": {
+                        "type": "property",
+                        "name": "Battle",
+                        "begin": 2,
+                        "mask": "0x3F",
+                        "offset": "0x40",
+                        "link": "battleGroupEvent[%i]",
+                        "stringTable": "battleGroupEvent",
+                        "disabled": "!this.parent.isBattle.value"
+                    },
                     "contentsBattle": {
                         "type": "property",
                         "name": "Contents",
@@ -2958,23 +3128,6 @@
                         "begin": 3,
                         "multiplier": 10000,
                         "invalid": "this.parent.isBattle.value || this.parent.contents.value !== 0 || this.parent.multiplier.value !== 4"
-                    },
-                    "isBattle": {
-                        "type": "property",
-                        "name": "Battle",
-                        "begin": 2,
-                        "mask": "0x80",
-                        "bool": true
-                    },
-                    "battle": {
-                        "type": "property",
-                        "name": "Battle",
-                        "begin": 2,
-                        "mask": "0x3F",
-                        "offset": "0x40",
-                        "link": "battleGroupEvent[%i]",
-                        "stringTable": "battleGroupEvent",
-                        "disabled": "!this.parent.isBattle.value"
                     }
                 }
             },

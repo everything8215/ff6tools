@@ -215,7 +215,7 @@ FF4Map.prototype.mouseDown = function(e) {
                 this.selectWorldBattle(this.clickedCol, this.clickedRow);
             } else {
                 // select map properties
-                this.rom.select(this.mapProperties);
+                propertyList.select(this.mapProperties);
             }
             this.isDragging = false;
         }
@@ -384,21 +384,16 @@ FF4Map.prototype.setTiles = function() {
 
 FF4Map.prototype.selectTrigger = function(trigger) {
     this.selectedTrigger = trigger;
-    this.rom.select(trigger);
+    propertyList.select(trigger);
     if (!trigger) return;
     this.clickedCol = this.selectedTrigger.x.value;
     this.clickedRow = this.selectedTrigger.y.value;
 
     if (this.selectedTrigger.key === "npcProperties") {
         var script = this.rom.npcScript.item(trigger.switch.value);
-        this.rom.select(script);
-//        scriptList.selectRef(ref.scriptPointer.value);
-    } else if (this.selectedTrigger.key === "eventTriggers") {
-//        var ref = this.rom.triggerPointers.item(trigger.event.value);
-//        this.rom.select(this.rom.triggerScript);
-//        scriptList.selectRef(ref.scriptPointer.value);
+        propertyList.select(script);
     }
-    this.rom.select(trigger);
+    propertyList.select(trigger);
 }
 
 FF4Map.prototype.selectTiles = function() {
@@ -439,7 +434,7 @@ FF4Map.prototype.selectTileProperties = function(t) {
         // return if layer 2
         return;
     }
-    this.rom.select(tileProperties.item(t));
+    propertyList.select(tileProperties.item(t));
 }
 
 FF4Map.prototype.selectLayer = function(l) {
@@ -482,7 +477,7 @@ FF4Map.prototype.selectWorldBattle = function(x, y) {
     }
     
     var battleGroup = this.rom.worldBattle.item(sector);
-    this.rom.select(battleGroup);
+    propertyList.select(battleGroup);
 }
 
 FF4Map.prototype.changeLayer = function(id) {
@@ -607,7 +602,7 @@ FF4Map.prototype.loadMap = function(m) {
     if (!map) return;
     
     // set the map background
-    var battleEditor = this.rom.getEditor("FF4Battle");
+    var battleEditor = propertyList.getEditor("FF4Battle");
     battleEditor.bg = map.battleBackground.value;
     battleEditor.altPalette = map.battleBackgroundPalette.value;
 
@@ -729,10 +724,10 @@ FF4Map.prototype.loadWorldMap = function(m) {
     layerButtons[2].disabled = true;
 
     this.mapProperties = null;
-    this.rom.select(null);
+    propertyList.select(null);
 
     // set the map background
-    var battleEditor = this.rom.getEditor("FF4Battle");
+    var battleEditor = propertyList.getEditor("FF4Battle");
     if (this.m === 251) {
         battleEditor.bg = 0;
     } else if (this.m === 252) {
@@ -956,7 +951,7 @@ FF4Map.prototype.insertTrigger = function(type) {
     this.endAction(this.reloadTriggers);
     
     this.selectedTrigger = trigger;
-    this.rom.select(trigger);
+    propertyList.select(trigger);
 }
 
 FF4Map.prototype.updateTreasures = function() {
@@ -1004,7 +999,7 @@ FF4Map.prototype.insertNPC = function() {
     this.endAction(this.reloadTriggers);
     
     this.selectedTrigger = npc;
-    this.rom.select(npc);
+    propertyList.select(npc);
 }
 
 FF4Map.prototype.deleteTrigger = function() {
@@ -1021,7 +1016,7 @@ FF4Map.prototype.deleteTrigger = function() {
     this.endAction(this.reloadTriggers);
     
     this.selectedTrigger = null;
-    this.rom.select(null);
+    propertyList.select(null);
 }
 
 FF4Map.prototype.drawTriggers = function() {

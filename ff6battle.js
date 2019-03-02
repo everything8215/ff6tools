@@ -77,15 +77,15 @@ FF6Battle.prototype.mouseDown = function(e) {
         this.selectedCharacter = null;
         this.clickedPoint = {x: x, y: y};
         this.monsterPoint = { x: m.rect.l, y: m.rect.t };
-        this.rom.select(this.rom.monsterProperties.item(this.selectedMonster.monster));
+        propertyList.select(this.rom.monsterProperties.item(this.selectedMonster.monster));
     } else if (this.selectedCharacter) {
         var c = this.selectedCharacter;
         this.clickedPoint = {x: x, y: y};
         var characterAI = this.characterAI();
         this.characterPoint = { x: c.rect.l, y: c.rect.t };
-        this.rom.select(this.rom.monsterProperties.item(this.selectedCharacter.script) || this.characterAI());
+        propertyList.select(this.rom.monsterProperties.item(this.selectedCharacter.script) || this.characterAI());
     } else {
-        this.rom.select(this.battleProperties);
+        propertyList.select(this.battleProperties);
     }
     
     this.drawBattle();
@@ -246,6 +246,7 @@ FF6Battle.prototype.monsterInSlot = function(slot) {
         "slot": slot,
         "x": this.battleProperties["monster" + slot + "X"],
         "y": this.battleProperties["monster" + slot + "Y"],
+        "present": this.battleProperties["monster" + slot + "Present"],
         "monster": m,
         "graphics": g,
         "rect": new Rect(x, x + w * 8, y, y + h * 8),
@@ -437,6 +438,9 @@ FF6Battle.prototype.drawMonster = function(slot) {
     ppu.renderPPU(imageData.data);
     context.putImageData(imageData, 0, 0);
     
+    // make monster transparent if it is not present
+    if (!m.present.value) this.transparentMonster();
+    
     // tint the selected monster
     if (this.selectedMonster && this.selectedMonster.slot === slot) this.tintMonster();
     
@@ -524,6 +528,20 @@ FF6Battle.prototype.tintMonster = function() {
     ctx = this.monsterCanvas.getContext('2d');
     ctx.globalCompositeOperation = 'source-atop';
     ctx.drawImage(tintCanvas, 0, 0);
+}
+
+FF6Battle.prototype.transparentMonster = function() {
+    // create an offscreen canvas filled with the color
+    var transparentCanvas = document.createElement('canvas');
+    transparentCanvas.width = this.monsterCanvas.width;
+    transparentCanvas.height = this.monsterCanvas.height;
+    var ctx = transparentCanvas.getContext('2d');
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.fillRect(0, 0, this.monsterCanvas.width, this.monsterCanvas.height);
+    
+    ctx = this.monsterCanvas.getContext('2d');
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.drawImage(transparentCanvas, 0, 0);
 }
 
 FF6Battle.prototype.drawGhostTrain = function(slot) {

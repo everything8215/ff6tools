@@ -54,19 +54,16 @@ FF4Battle.prototype.battleName = function(b) {
     var battleName = "";
     if (m1 !== 0) {
         battleName += "<monsterName[" + monster1.toString() + "]>"
-//        battleName += this.rom.stringTable.monsterName.fString(monster1);
         if (m1 !== 1) battleName += " ×" + m1;
     }
     if (m2 !== 0) {
         if (battleName !== "") battleName += ", ";
         battleName += "<monsterName[" + monster2.toString() + "]>"
-//        battleName += this.rom.stringTable.monsterName.fString(monster2);
         if (m2 !== 1) battleName += " ×" + m2;
     }
     if (m3 !== 0) {
         if (battleName !== "") battleName += ", ";
         battleName += "<monsterName[" + monster3.toString() + "]>"
-//        battleName += this.rom.stringTable.monsterName.fString(monster3);
         if (m3 !== 1) battleName += " ×" + m3;
     }
     if (battleName === "") battleName = "Battle %i";
@@ -80,13 +77,11 @@ FF4Battle.prototype.mouseDown = function(e) {
 
     if (this.selectedMonster) {
         this.clickedPoint = {x: x, y: y};
-        var position = this.positionForMonster(this.selectedMonster);
-        this.monsterPoint = { x: position.x.value, y: position.y.value };
+        this.monsterPoint = { x: this.selectedMonster.x.value, y: this.selectedMonster.y.value };
         
-        var m = this.monsterInSlot(this.selectedMonster);
-        this.rom.select(this.rom.monsterProperties.item(m));
+        propertyList.select(this.rom.monsterProperties.item(this.selectedMonster.m));
     } else {
-        this.rom.select(this.battleProperties);
+        propertyList.select(this.battleProperties);
     }
     
     this.drawBattle();
@@ -101,10 +96,8 @@ FF4Battle.prototype.mouseMove = function(e) {
     var dx = x - this.clickedPoint.x;
     var dy = y - this.clickedPoint.y;
 
-    var m = this.monsterInSlot(this.selectedMonster);
-    var position = this.positionForMonster(this.selectedMonster);
-    var monsterX = position.x.value;
-    var monsterY = position.y.value;
+    var monsterX = this.selectedMonster.x.value;
+    var monsterY = this.selectedMonster.y.value;
     var newX = (this.monsterPoint.x + dx) & ~7;
     var newY = (this.monsterPoint.y + dy) & ~7;
     newX = Math.min(136, Math.max(16, newX));
@@ -113,8 +106,8 @@ FF4Battle.prototype.mouseMove = function(e) {
     if (newX === monsterX && newY === monsterY) return;
     
     this.observer.stopObserving(this.battleProperties);
-    position.x.value = newX;
-    position.y.value = newY;
+    this.selectedMonster.x.value = newX;
+    this.selectedMonster.y.value = newY;
     this.observer.startObserving(this.battleProperties, this.loadBattle);
     this.drawBattle();
 }
@@ -124,9 +117,7 @@ FF4Battle.prototype.mouseUp = function(e) {
     if (!this.selectedMonster || !this.monsterPoint) return;
 
     // get the new monster's position properties
-    var position = this.positionForMonster(this.selectedMonster);
-    
-    var newPoint = { x: position.x.value, y: position.y.value };
+    var newPoint = { x: this.selectedMonster.x.value, y: this.selectedMonster.y.value };
     var oldPoint = this.monsterPoint;
 
     this.clickedPoint = null;
@@ -136,13 +127,13 @@ FF4Battle.prototype.mouseUp = function(e) {
     if (oldPoint.x === newPoint.x && oldPoint.y === newPoint.y) return;
 
     // temporarily move the monster back to its original position
-    position.x.value = oldPoint.x;
-    position.y.value = oldPoint.y;
+    this.selectedMonster.x.value = oldPoint.x;
+    this.selectedMonster.y.value = oldPoint.y;
 
     this.observer.stopObserving(this.battleProperties);
     this.rom.beginAction();
-    position.x.setValue(newPoint.x);
-    position.y.setValue(newPoint.y);
+    this.selectedMonster.x.setValue(newPoint.x);
+    this.selectedMonster.y.setValue(newPoint.y);
     this.rom.endAction();
     this.observer.startObserving(this.battleProperties, this.loadBattle);
 }
@@ -194,62 +185,63 @@ FF4Battle.prototype.monsterInSlot = function(slot) {
     
     var m = this.battleProperties["monster" + type].value;
     if (m === 0xFF) return null; // slot is empty
-
-    return m;
-}
-
-FF4Battle.prototype.positionForMonster = function(slot) {
-
-    var m = this.monsterInSlot(slot);
-    if (m === null) return null; // return if slot is empty
-
-    var gfxProperties = this.rom.monsterGraphicsProperties.item(m);
     
+    var h = this.battleProperties.hiddenMonsters.value;
+    var hidden = false;
+    if (h === 1 && type === 2) {
+        hidden = true;
+    } else if (h === 2 && (type === 2 || type === 3)) {
+        hidden = true;
+    } else if (h === 3 && type === 3) {
+        hidden = true;
+    }
+
+    // get monster position and size
+    var gfxProperties = this.rom.monsterGraphicsProperties.item(m);
+    var size, bossProperties;
+    var x, y, w, h;
     if (gfxProperties.isBoss.value) {
         var bossProperties = this.rom.monsterBossProperties.item(gfxProperties.bossProperties.value);
-        return bossProperties;
-    } else {
-        // load monster position
-        var p = this.battleProperties.monsterPosition.value;
-        return this.rom.monsterPosition.item(p).item(slot - 1)
-    }
-}
-
-FF4Battle.prototype.rectForMonster = function(slot) {
-    
-    var m = this.monsterInSlot(slot);
-    if (m === null) return Rect.emptyRect; // return if slot is empty
-
-    // load monster position
-    var position = this.positionForMonster(slot);
-    var x = position.x.value;
-    var y = position.y.value;
-
-    // load monster size
-    var w, h;
-    var gfxProperties = this.rom.monsterGraphicsProperties.item(m);
-    if (gfxProperties.isCharacter.value) {
-        w = 16; h = 24;
-    } else if (gfxProperties.isBoss.value) {
-        var bossProperties = this.rom.monsterBossProperties.item(gfxProperties.bossProperties.value);
+        x = bossProperties.x;
+        y = bossProperties.y;
         var size = this.rom.monsterSize.item(bossProperties.size.value);
         w = size.width.value * 8;
         h = size.height.value * 8;
-        x = bossProperties.x.value;
-        y = bossProperties.y.value;
     } else {
+        // load monster position
+        var p = this.battleProperties.monsterPosition.value;
+        var monsterPosition = this.rom.monsterPosition.item(p).item(slot - 1);
+        x = monsterPosition.x;
+        y = monsterPosition.y;
         var size = this.rom.monsterSize.item(gfxProperties.size.value);
         w = size.width.value * 8;
         h = size.height.value * 8;
     }
-    
-    return new Rect(x, x + w, y, y + h);
+
+    if (gfxProperties.isCharacter.value) {
+        // characters are a fixed size
+        w = 16; h = 24;
+    }
+
+    return {
+        slot: slot,
+        m: m,
+        type: type,
+        x: x,
+        y: y,
+        rect: new Rect(x.value, x.value + w, y.value, y.value + h),
+        gfxProperties: gfxProperties,
+        bossProperties: bossProperties,
+        size: size,
+        hidden: hidden
+    };
 }
 
 FF4Battle.prototype.monsterAtPoint = function(x, y) {
     
     for (var slot = 8; slot > 0; slot--) {
-        if (this.rectForMonster(slot).containsPoint(x, y)) return slot;
+        var m = this.monsterInSlot(slot);
+        if (m && m.rect.containsPoint(x, y)) return m;
     }
     return null;
 }
@@ -278,7 +270,7 @@ FF4Battle.prototype.drawMonster = function(slot) {
     if (m === null) return; // return if slot is empty
     
     // load graphics properties
-    var gfxProperties = this.rom.monsterGraphicsProperties.item(m);
+    var gfxProperties = m.gfxProperties;
     var w, h, tiles, gfx, pal;
     
     if (gfxProperties.isCharacter.value) {
@@ -298,36 +290,32 @@ FF4Battle.prototype.drawMonster = function(slot) {
         }
         w = 2; h = 3;
         
-    } else if (gfxProperties.isBoss.value) {
-        var bossProperties = this.rom.monsterBossProperties.item(gfxProperties.bossProperties.value);
-        if (!bossProperties) return;
-
-        var size = this.rom.monsterSize.item(bossProperties.size.value);
-        w = size.width.value;
-        h = size.height.value;
+    } else if (gfxProperties.isBoss.value && m.bossProperties) {
+        var bossProperties = m.bossProperties;
+        w = m.size.width.value;
+        h = m.size.height.value;
         tiles = new Uint16Array(w * h);
         tiles.fill(0x0200);
         
-        var m = bossProperties.map.value;
-        if (gfxProperties.bossProperties.value === 63) m = 55; // zeromus map
-        var map = this.rom.monsterBossMap.item(m).data;
+        var mapIndex = bossProperties.map.value;
+        if (gfxProperties.bossProperties.value === 63) mapIndex = 55; // zeromus map
+        var map = this.rom.monsterBossMap.item(mapIndex).data;
         var p = bossProperties.palette.value;
 
         for (var t = 0, i = 0; i < map.length; i++) {
-            var m = map[i];
-            if (m === 0xFF) {
+            var mask = map[i];
+            if (mask === 0xFF) {
                 t++; continue;
-            } else if (m === 0xFE) {
+            } else if (mask === 0xFE) {
                 t += map[++i]; continue;
             }
 
-            tiles[t++] = m;
+            tiles[t++] = mask;
         }
     } else {
-        var size = this.rom.monsterSize.item(gfxProperties.size.value);
-        if (!size) return;
-        w = size.width.value;
-        h = size.height.value;
+        if (!m.size) return;
+        w = m.size.width.value;
+        h = m.size.height.value;
         tiles = new Uint16Array(w * h);
         for (var t = 0; t < tiles.length; t++) tiles[t] = t;
         var p = gfxProperties.palette.value;
@@ -373,13 +361,15 @@ FF4Battle.prototype.drawMonster = function(slot) {
     ppu.renderPPU(imageData.data);
     context.putImageData(imageData, 0, 0);
     
+    if (m.hidden) this.transparentMonster();
+    
     // tint the selected monster
-    if (this.selectedMonster === slot) this.tintMonster();
+    if (this.selectedMonster && this.selectedMonster.slot === slot) this.tintMonster();
     
     var ctx = this.battleCanvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
     ctx.webkitImageSmoothingEnabled = false;
-    monsterRect = this.rectForMonster(slot);
+    monsterRect = m.rect;
     ctx.drawImage(this.monsterCanvas, 0, 0, monsterRect.w, monsterRect.h, monsterRect.l, monsterRect.t, monsterRect.w, monsterRect.h);
 }
 
@@ -395,6 +385,20 @@ FF4Battle.prototype.tintMonster = function() {
     ctx = this.monsterCanvas.getContext('2d');
     ctx.globalCompositeOperation = 'source-atop';
     ctx.drawImage(tintCanvas, 0, 0);
+}
+
+FF4Battle.prototype.transparentMonster = function() {
+    // create an offscreen canvas filled with the color
+    var transparentCanvas = document.createElement('canvas');
+    transparentCanvas.width = this.monsterCanvas.width;
+    transparentCanvas.height = this.monsterCanvas.height;
+    var ctx = transparentCanvas.getContext('2d');
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.fillRect(0, 0, this.monsterCanvas.width, this.monsterCanvas.height);
+    
+    ctx = this.monsterCanvas.getContext('2d');
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.drawImage(transparentCanvas, 0, 0);
 }
 
 // from 03/F7BC

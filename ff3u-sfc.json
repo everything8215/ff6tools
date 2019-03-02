@@ -6,6 +6,22 @@
     "crc32": "0xA27F1C7A",
     "system": "sfc",
     "mode": "hiROM",
+    "hierarchy": {
+        "Maps": {
+            "Maps": "mapProperties",
+            "Map Titles": "mapTitles"
+        },
+        "Events": {
+            "Event Script": "eventScript",
+            "Dialog": "dialog"
+        },
+        "Battles": {
+            "Battles": "battleProperties"
+        },
+        "System": {
+            "SNES Header": "snesHeader"
+        }
+    },
     "assembly": {
         "attackName": {
             "type": "array",
@@ -4170,14 +4186,17 @@
                     "category-graphics": "Graphics",
                     "palette": {
                         "type": "property",
+                        "name": "Palette",
                         "external": "monsterGraphicsProperties[%i].palette"
                     },
                     "verticalOffset": {
                         "type": "assembly",
+                        "name": "Vertical Offset",
                         "external": "monsterVerticalOffset[%i]"
                     },
                     "colosseumType": {
                         "type": "assembly",
+                        "name": "Colosseum Type",
                         "external": "monsterColosseumType[%i]",
                         "invalid": "this.parent.i > 0xFF"
                     }
@@ -5396,7 +5415,7 @@
                             "name": "Background",
                             "begin": 1,
                             "mask": "0x07",
-                            "invalid": "this.rom.editors.FF6Map.m !== 0",
+                            "invalid": "propertyList.editors.FF6Map.m !== 0",
                             "stringTable": {
                                 "string": {
                                     "0": "Field (WoB)",
@@ -5415,7 +5434,7 @@
                             "name": "Background",
                             "begin": 1,
                             "mask": "0x07",
-                            "invalid": "this.rom.editors.FF6Map.m !== 1",
+                            "invalid": "propertyList.editors.FF6Map.m !== 1",
                             "stringTable": {
                                 "string": {
                                     "0": "Field (WoB)",
@@ -9902,7 +9921,7 @@
     "stringTable": {
         "battleBackground": {
             "name": "Battle Backgrounds",
-            "default": "Backrgound %i",
+            "default": "Background %i",
             "length": 56,
             "string": {
                 "0": "Field (WoB)",
