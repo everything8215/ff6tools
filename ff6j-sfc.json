@@ -6,6 +6,85 @@
     "crc32": "0x45EF5AC8",
     "system": "sfc",
     "mode": "hiROM",
+    "hierarchy": [
+        {
+            "name": "Map",
+            "list": [
+                {
+                    "name": "Maps",
+                    "path": "mapProperties"
+                }, {
+                    "name": "Map Titles",
+                    "path": "mapTitle"
+                }, {
+                    "name": "Parallax",
+                    "path": "mapParallax"
+                }, {
+                    "name": "Color Math",
+                    "path": "mapColorMath"
+                }
+            ]
+        }, {
+            "name": "Event",
+            "list": [
+                {
+                    "name": "Event Script",
+                    "path": "eventScript"
+                }, {
+                    "name": "Dialog",
+                    "path": "dialog"
+                }, {
+                    "name": "NPC Switches",
+                    "path": "stringTable.npcSwitches"
+                }, {
+                    "name": "Map Switches",
+                    "path": "stringTable.mapSwitches"
+                }
+            ]
+        }, {
+            "name": "Battle",
+            "list": [
+                {
+                    "name": "Battles",
+                    "path": "battleProperties"
+                }, {
+                    "name": "Battle Dialog",
+                    "path": "battleDialog"
+                }, {
+                    "name": "Monsters",
+                    "path": "monsterProperties"
+                }, {
+                    "name": "Monster A.I. Script",
+                    "path": "monsterScript"
+                }, {
+                    "name": "Monster Dialog",
+                    "path": "monsterDialog"
+                }, {
+                    "name": "Attack Message",
+                    "path": "attackMessage"
+                }
+            ]
+        }, {
+            "name": "Character",
+            "list": [
+                {
+                    "name": "Characters",
+                    "path": "characterProperties"
+                }, {
+                    "name": "Espers",
+                    "path": "esperProperties"
+                }
+            ]
+        }, {
+            "name": "System",
+            "list": [
+                {
+                    "name": "SNES Header",
+                    "path": "snesHeader"
+                }
+            ]
+        }
+    ],
     "assembly": {
         "attackName": {
             "type": "array",
@@ -29,6 +108,28 @@
                     "0x55-0x5D": "<swdTechNames[%i-0x55]>",
                     "0xFF": "Nothing"
                 }
+            }
+        },
+        "attackMessage": {
+            "type": "array",
+            "name": "Attack Message",
+            "range": "0xD1F000-0xD1F513",
+            "pointerAlign": "0x10000",
+            "array": {
+                "length": 256
+            },
+            "assembly": {
+                "type": "text",
+                "encoding": "nullTerminated",
+                "multiLine": true
+            },
+            "pointerTable": {
+                "range": "0xCF3940-0xCF3B40",
+                "offset": "0xD10000"
+            },
+            "stringTable": {
+                "length": 256,
+                "default": "<attackMessage[%i]>"
             }
         },
         "attackProperties": {
@@ -157,14 +258,14 @@
         "battleCommandName": {
             "type": "array",
             "name": "Battle Command Name",
-            "range": "0xD8CEA0-0xD8CF80",
+            "range": "0xECE300-0xECE3C0",
             "array": {
                 "length": 32
             },
             "assembly": {
                 "type": "text",
                 "encoding": "smallText",
-                "length": 7
+                "length": 6
             },
             "stringTable": {
                 "name": "Battle Command Name",
@@ -191,6 +292,28 @@
                     "0x30": "Misc. Effects",
                     "0xFF": "Nothing"
                 }
+            }
+        },
+        "battleDialog": {
+            "type": "array",
+            "name": "Battle Dialog",
+            "range": "0xD0D200-0xD0FC00",
+            "pointerAlign": "0x10000",
+            "array": {
+                "length": 256
+            },
+            "assembly": {
+                "type": "text",
+                "encoding": "nullTerminated",
+                "multiLine": true
+            },
+            "pointerTable": {
+                "range": "0xD0FC00-0xD0FE00",
+                "offset": "0xD00000"
+            },
+            "stringTable": {
+                "length": 256,
+                "default": "<battleDialog[%i]>"
             }
         },
         "battleGroupsEvent": {
@@ -996,6 +1119,177 @@
                 }
             }
         },
+        "characterProperties": {
+            "type": "array",
+            "name": "Character Properties",
+            "range": "0xED7CA0-0xED8220",
+            "array": {
+                "length": 64
+            },
+            "assembly": {
+                "type": "data",
+                "length": 22,
+                "assembly": {
+                    "characterName": {
+                        "type": "assembly",
+                        "external": "characterNames[%i]"
+                    },
+                    "hp": {
+                        "type": "property",
+                        "name": "HP",
+                        "begin": 0
+                    },
+                    "mp": {
+                        "type": "property",
+                        "name": "MP",
+                        "begin": 1
+                    },
+                    "command1": {
+                        "type": "property",
+                        "name": "Command 1",
+                        "begin": 2,
+                        "stringTable": "battleCommandName"
+                    },
+                    "command2": {
+                        "type": "property",
+                        "name": "Command 2",
+                        "begin": 3,
+                        "stringTable": "battleCommandName"
+                    },
+                    "command3": {
+                        "type": "property",
+                        "name": "Command 3",
+                        "begin": 4,
+                        "stringTable": "battleCommandName"
+                    },
+                    "command4": {
+                        "type": "property",
+                        "name": "Command 4",
+                        "begin": 5,
+                        "stringTable": "battleCommandName"
+                    },
+                    "vigor": {
+                        "type": "property",
+                        "name": "Vigor",
+                        "begin": 6
+                    },
+                    "speed": {
+                        "type": "property",
+                        "name": "Speed",
+                        "begin": 7
+                    },
+                    "stamina": {
+                        "type": "property",
+                        "name": "Stamina",
+                        "begin": 8
+                    },
+                    "magicPower": {
+                        "type": "property",
+                        "name": "Magic Power",
+                        "begin": 9
+                    },
+                    "battlePower": {
+                        "type": "property",
+                        "name": "Battle Power",
+                        "begin": 10
+                    },
+                    "defense": {
+                        "type": "property",
+                        "name": "Defense",
+                        "begin": 11
+                    },
+                    "magicDefense": {
+                        "type": "property",
+                        "name": "Magic Defense",
+                        "begin": 12
+                    },
+                    "evade": {
+                        "type": "property",
+                        "name": "Evade",
+                        "begin": 13
+                    },
+                    "magicBlock": {
+                        "type": "property",
+                        "name": "Magic Block",
+                        "begin": 14
+                    },
+                    "weapon": {
+                        "type": "property",
+                        "name": "Weapon",
+                        "begin": 15,
+                        "stringTable": "itemNames"
+                    },
+                    "shield": {
+                        "type": "property",
+                        "name": "Shield",
+                        "begin": 16,
+                        "stringTable": "itemNames"
+                    },
+                    "helmet": {
+                        "type": "property",
+                        "name": "Helmet",
+                        "begin": 17,
+                        "stringTable": "itemNames"
+                    },
+                    "armor": {
+                        "type": "property",
+                        "name": "Armor",
+                        "begin": 18,
+                        "stringTable": "itemNames"
+                    },
+                    "relic1": {
+                        "type": "property",
+                        "name": "Relic 1",
+                        "begin": 19,
+                        "stringTable": "itemNames"
+                    },
+                    "relic2": {
+                        "type": "property",
+                        "name": "Relic 2",
+                        "begin": 20,
+                        "stringTable": "itemNames"
+                    },
+                    "runFactor": {
+                        "type": "property",
+                        "name": "Run Factor",
+                        "begin": 21,
+                        "mask": "0x03",
+                        "stringTable": {
+                            "hideIndex": true,
+                            "string": {
+                                "0": "High",
+                                "1": "Normal",
+                                "2": "Low",
+                                "3": "Very Low"
+                            }
+                        }
+                    },
+                    "levelModifier": {
+                        "type": "property",
+                        "name": "Level Modifier",
+                        "begin": 21,
+                        "mask": "0x0C",
+                        "stringTable": {
+                            "hideIndex": true,
+                            "string": {
+                                "0": "None",
+                                "1": "+2",
+                                "2": "+5",
+                                "3": "-3"
+                            }
+                        }
+                    },
+                    "fixedEquipment": {
+                        "type": "property",
+                        "name": "Fixed Equipment",
+                        "begin": 21,
+                        "mask": "0x10",
+                        "bool": true
+                    }
+                }
+            },
+            "stringTable": "characterNames"
+        },
         "dialog": {
             "type": "array",
             "name": "Dialog",
@@ -1232,7 +1526,7 @@
                 "type": "text",
                 "name": "Attack Name",
                 "encoding": "bigText",
-                "length": 10
+                "length": 9
             },
             "stringTable": {
                 "name": "Esper Attack Names",
@@ -1312,7 +1606,7 @@
             "assembly": {
                 "type": "text",
                 "name": "Name",
-                "encoding": "smallText",
+                "encoding": "bigText",
                 "length": 8
             },
             "stringTable": {
@@ -1766,9 +2060,23 @@
             "assembly": {
                 "type": "data",
                 "assembly": {
+                    "half": {
+                        "type": "property",
+                        "name": "Half Add/Sub",
+                        "begin": 0,
+                        "mask": "0x40",
+                        "bool": true
+                    },
+                    "subtract": {
+                        "type": "property",
+                        "name": "Subtract",
+                        "begin": 0,
+                        "mask": "0x80",
+                        "bool": true
+                    },
                     "mathLayers": {
                         "type": "property",
-                        "name": "Math Layers",
+                        "name": "Color Math",
                         "begin": 0,
                         "mask": "0x3F",
                         "flag": true,
@@ -1785,7 +2093,7 @@
                     },
                     "mainscreen": {
                         "type": "property",
-                        "name": "Main Screen Layers",
+                        "name": "Main Screen",
                         "begin": 1,
                         "mask": "0x3F",
                         "flag": true,
@@ -1801,7 +2109,7 @@
                     },
                     "subscreen": {
                         "type": "property",
-                        "name": "Sub Screen Layers",
+                        "name": "Sub Screen",
                         "begin": 2,
                         "mask": "0x3F",
                         "flag": true,
@@ -1814,20 +2122,6 @@
                                 "4": "Sprites"
                             }
                         }
-                    },
-                    "half": {
-                        "type": "property",
-                        "name": "Half Add/Sub",
-                        "begin": 0,
-                        "mask": "0x40",
-                        "bool": true
-                    },
-                    "subtract": {
-                        "type": "property",
-                        "name": "Subtract",
-                        "begin": 0,
-                        "mask": "0x80",
-                        "bool": true
                     }
                 },
                 "length": 3
@@ -1938,52 +2232,58 @@
             "assembly": {
                 "type": "data",
                 "assembly": {
+                    "cat-layer2": "Layer 2",
                     "hSpeedLayer2": {
                         "type": "property",
-                        "name": "Layer 2 Horizontal Speed",
-                        "begin": 0
+                        "name": "Horizontal Speed",
+                        "begin": 0,
+                        "signed": true
                     },
                     "hMultiplierLayer2": {
                         "type": "property",
-                        "name": "Layer 2 Horizontal Multiplier",
+                        "name": "Horizontal Multiplier",
                         "begin": 4
                     },
                     "vSpeedLayer2": {
                         "type": "property",
-                        "name": "Layer 2 Vertical Speed",
-                        "begin": 1
+                        "name": "Vertical Speed",
+                        "begin": 1,
+                        "signed": true
                     },
                     "vMultiplierLayer2": {
                         "type": "property",
-                        "name": "Layer 2 Vertical Multiplier",
+                        "name": "Vertical Multiplier",
                         "begin": 5
                     },
+                    "cat-layer3": "Layer 3",
                     "hSpeedLayer3": {
                         "type": "property",
-                        "name": "Layer 3 Horizontal Speed",
-                        "begin": 2
+                        "name": "Horizontal Speed",
+                        "begin": 2,
+                        "signed": true
                     },
                     "hMultiplierLayer3": {
                         "type": "property",
-                        "name": "Layer 3 Horizontal Multiplier",
+                        "name": "Horizontal Multiplier",
                         "begin": 6
                     },
                     "vSpeedLayer3": {
                         "type": "property",
-                        "name": "Layer 3 Vertical Speed",
-                        "begin": 3
+                        "name": "Vertical Speed",
+                        "begin": 3,
+                        "signed": true
                     },
                     "vMultiplierLayer3": {
                         "type": "property",
-                        "name": "Layer 3 Vertical Multiplier",
+                        "name": "Vertical Multiplier",
                         "begin": 7
                     }
                 },
                 "length": 8
             },
             "stringTable": {
-                "name": "Map Parallax",
                 "default": "Parallax %i",
+                "length": 21,
                 "string": {
                     "0": "None",
                     "1": "Phantom Forest",
@@ -1998,8 +2298,8 @@
                     "11": "Fog (Moving Down)",
                     "12": "Airship (Breaking Apart)",
                     "13": "Slow Fog",
-                    "14": "Fanatics&apos; Tower",
-                    "15": "Kefka&apos;s Tower (Top)",
+                    "14": "Fanatics' Tower",
+                    "15": "Kefka's Tower (Top)",
                     "17": "Waterfall",
                     "18": "Kefka's Tower",
                     "20": "Fog"
@@ -4294,13 +4594,15 @@
                     "type": "property",
                     "name": "Checksum Inverse",
                     "begin": 28,
-                    "mask": "0xFFFF"
+                    "mask": "0xFFFF",
+                    "hidden": true
                 },
                 "checksum": {
                     "type": "property",
                     "name": "Checksum",
                     "begin": 30,
-                    "mask": "0xFFFF"
+                    "mask": "0xFFFF",
+                    "hidden": true
                 }
             }
         },
@@ -10355,6 +10657,7 @@
                 "battleEscapeSequences",
                 "kana",
                 "bigTextPunctuation",
+                "mte",
                 "kanji",
                 "fixedLength"
             ]

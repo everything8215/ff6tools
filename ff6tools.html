@@ -25,7 +25,7 @@
         <script type="text/javascript" src="ff6script.js"></script>
         <script type="text/javascript">
             
-            var rom, definition, data, propertyList, scriptList, modal, definitions;
+            var rom, definition, data, romNavigator, propertyList, scriptList, modal, definitions;
 
             window.onload = function() {
 
@@ -261,10 +261,9 @@
 
                 // create gui objects
                 propertyList = new ROMPropertyList(rom);
-                scriptList = new ROMScriptList(rom);
-                
-                // update the map list
                 loadMapNames();
+                romNavigator = new ROMNavigator(rom);
+                scriptList = new ROMScriptList(rom);
                 
                 // select the first map
                 propertyList.select(rom.mapProperties.item(0));
@@ -440,8 +439,8 @@
             }
             
             function loadMapNames() {
-                var navList = document.getElementById("navList");
-                navList.innerHTML = "";
+//                var navList = document.getElementById("navList");
+//                navList.innerHTML = "";
                 
                 // load maps
                 if (!rom.mapProperties) return;
@@ -451,7 +450,7 @@
                 mapCategory.onclick = function() {
                     this.classList.toggle("shown");
                 }
-                navList.appendChild(mapCategory);
+//                navList.appendChild(mapCategory);
                 
                 var p = document.createElement("p");
                 p.innerHTML = "Maps";
@@ -474,7 +473,7 @@
                 battleCategory.onclick = function() {
                     this.classList.toggle("shown");
                 }
-                navList.appendChild(battleCategory);
+//                navList.appendChild(battleCategory);
                 
                 var p = document.createElement("p");
                 p.innerHTML = "Battles";
@@ -488,7 +487,6 @@
                 for (var b = 0; b < rom.battleProperties.array.length; b++) {
                     battleList.appendChild(liForBattle(b));
                 }
-
             }
             
             function liForMap(m) {
@@ -501,7 +499,7 @@
                 }
                 var span = document.createElement("span");
                 span.innerHTML = m.toString();
-                span.classList.add("navListIndex");
+                span.classList.add("nav-object-index");
                 li.appendChild(span);
                 li.innerHTML += mapNames.string[m].fString();
                 return li;

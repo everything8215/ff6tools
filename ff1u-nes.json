@@ -7,10 +7,55 @@
     "system": "nes",
     "mode": "mmc1",
     "pad": "0x00",
+    "hierarchy": [
+        {
+            "name": "Map",
+            "list": [
+                {
+                    "name": "Maps",
+                    "path": "mapProperties"
+                }, {
+                    "name": "Dialog",
+                    "path": "dialog"
+                }
+            ]
+        }, {
+            "name": "Battle",
+            "list": [
+                {
+                    "name": "Battles",
+                    "path": "battleProperties"
+                }, {
+                    "name": "Battle Message",
+                    "path": "battleMessage"
+                }, {
+                    "name": "Monsters",
+                    "path": "monsterProperties"
+                }, {
+                    "name": "Monster A.I.",
+                    "path": "monsterAI"
+                }, {
+                    "name": "Battle Groups",
+                    "path": "battleGroup"
+                }
+            ]
+        }, {
+            "name": "Item",
+            "list": [
+                {
+                    "name": "Items/Spells",
+                    "path": "itemProperties"
+                }, {
+                    "name": "Shops",
+                    "path": "shop"
+                }
+            ]
+        }
+    ],
     "assembly": {
         "armorProperties": {
             "type": "array",
-            "name": "Weapon Properties",
+            "name": "Armor Properties",
             "range": "0x0C8140-0x0C81E0",
             "array": {
                 "length": 40
@@ -103,11 +148,8 @@
                 "offset": "0x0B0000"
             },
             "stringTable": {
-                "length": 26,
-                "default": "<battleMessage[%i-1]>",
-                "string": {
-                    "0": "None"
-                }
+                "length": 78,
+                "default": "<battleMessage[%i]>"
             }
         },
         "battleProperties": {
@@ -409,6 +451,15 @@
                         "link": "battleProperties[%i]",
                         "stringTable": "battleProperties"
                     }
+                }
+            },
+            "stringTable": {
+                "string": {
+                    "0-64": "Overworld %i",
+                    "64": "River (South)",
+                    "65": "River (North)",
+                    "66": "Ocean",
+                    "67-128": "<stringTable.mapProperties[%i-64]>"
                 }
             }
         },
@@ -992,157 +1043,6 @@
                         }
                     }
                 }
-            }
-        },
-        "mapTitle": {
-            "type": "array",
-            "name": "Map Title",
-            "range": "0x159620-0x159AEF",
-            "terminator": 0,
-            "array": {
-                "length": 121,
-                "max": 121
-            },
-            "assembly": {
-                "type": "text",
-                "encoding": "nullTerminated"
-            },
-            "stringTable": {
-                "name": "Map Title",
-                "length": 121,
-                "default": "<mapTitle[%i]>"
-            }
-        },
-        "mapTriggers": {
-            "type": "array",
-            "name": "Map Triggers",
-            "range": "0x158300-0x15961F",
-            "isSequential": true,
-            "array": {
-                "length": 384
-            },
-            "assembly": {
-                "type": "array",
-                "assembly": {
-                    "type": "data",
-                    "assembly": {
-                        "x": {
-                            "type": "property",
-                            "name": "X Position",
-                            "begin": 0,
-                            "hidden": true
-                        },
-                        "y": {
-                            "type": "property",
-                            "name": "Y Position",
-                            "begin": 1,
-                            "hidden": true
-                        },
-                        "map": {
-                            "type": "property",
-                            "name": "Map",
-                            "begin": 2,
-                            "max": 253,
-                            "stringTable": "mapProperties",
-                            "link": "mapProperties[%i]",
-                            "invalid": "(this.parent.map.value === 0xFE) || (this.parent.map.value === 0xFF)"
-                        },
-                        "xDest": {
-                            "type": "property",
-                            "name": "X Destination",
-                            "begin": 3,
-                            "invalid": "this.parent.map.invalid"
-                        },
-                        "yDest": {
-                            "type": "property",
-                            "name": "Y Destination",
-                            "begin": 4,
-                            "invalid": "this.parent.map.invalid"
-                        },
-                        "direction": {
-                            "type": "property",
-                            "name": "Facing Direction",
-                            "begin": 3,
-                            "mask": "0xC0",
-                            "invalid": "this.parent.map.invalid || (this.parent.map.value === 0xFB) || (this.parent.map.value === 0xFC) || (this.parent.map.value === 0x1FB) || (this.parent.map.value === 0x1FC)",
-                            "stringTable": "directions"
-                        },
-                        "event": {
-                            "type": "property",
-                            "name": "Trigger Event",
-                            "begin": 3,
-                            "invalid": "this.parent.map.value !== 0xFF",
-                            "link": "triggerScript[%i]",
-                            "stringTable": "triggerScript"
-                        },
-                        "treasureType": {
-                            "type": "property",
-                            "name": "Type",
-                            "begin": 3,
-                            "mask": "0xC0",
-                            "stringTable": {
-                                "string": {
-                                    "0": "GP",
-                                    "1": "Monsters",
-                                    "2": "Item",
-                                    "3": "Monsters"
-                                }
-                            },
-                            "invalid": "this.parent.map.value !== 0xFE"
-                        },
-                        "battle": {
-                            "type": "property",
-                            "name": "Battle",
-                            "begin": 3,
-                            "mask": "0x1F",
-                            "invalid": "(this.parent.map.value !== 0xFE) || !(this.parent.treasureType.value & 1)",
-                            "offset": "0x01C0",
-                            "link": "battleProperties[%i]",
-                            "stringTable": "battleProperties"
-                        },
-                        "item": {
-                            "type": "property",
-                            "name": "Item",
-                            "begin": 4,
-                            "stringTable": "itemNames",
-                            "invalid": "(this.parent.map.value !== 0xFE) || (this.parent.treasureType.value === 0)"
-                        },
-                        "gp10": {
-                            "type": "property",
-                            "name": "GP (×10)",
-                            "begin": 4,
-                            "mask": "0x7F",
-                            "multiplier": 10,
-                            "invalid": "(this.parent.map.value !== 0xFE) || (this.parent.treasureType.value !== 0) || (this.parent.gpMultiplier.value === 1)"
-                        },
-                        "gp1000": {
-                            "type": "property",
-                            "name": "GP (×1000)",
-                            "begin": 4,
-                            "mask": "0x7F",
-                            "multiplier": 1000,
-                            "invalid": "(this.parent.map.value !== 0xFE) || (this.parent.treasureType.value !== 0) || (this.parent.gpMultiplier.value === 0)"
-                        },
-                        "gpMultiplier": {
-                            "type": "property",
-                            "name": "Multiplier",
-                            "begin": 4,
-                            "mask": "0x80",
-                            "stringTable": {
-                                "string": {
-                                    "0": "×10",
-                                    "1": "×1000"
-                                }
-                            },
-                            "invalid": "(this.parent.map.value !== 0xFE) || (this.parent.treasureType.value !== 0)"
-                        }
-                    },
-                    "length": 5
-                }
-            },
-            "pointerTable": {
-                "range": "0x158000-0x158300",
-                "offset": "0x158300"
             }
         },
         "mapTileset": {
@@ -2203,7 +2103,13 @@
                     "message": {
                         "type": "property",
                         "name": "Message",
-                        "stringTable": "battleMessage"
+                        "stringTable": {
+                            "length": 79,
+                            "default": "<battleMessage[%i-1]>",
+                            "string": {
+                                "0": "None"
+                            }
+                        }
                     }
                 }
             }

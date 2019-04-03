@@ -85,89 +85,140 @@ body {
     min-width: 256px;
     flex: 0 0 auto;
     overflow: hidden;
-}
-
-#nav.hidden {
-    display: none;
-}
-
-#nav div {
-    margin: 4px;
-    width: 256px;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .nav-list {
-    display: none;
+    background-color: white;
     margin: 0px;
     padding: 0px;
-}
-
-.nav-category.shown ul {
-    display: block;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    height: 100%;
+    cursor: default;
 }
 
 .nav-category {
     padding: 0px;
     font-size: small;
     background-color: hsl(0, 0%, 95%);
-    border-bottom: 1px solid #ccc;
+    border-bottom: 1px solid hsl(0, 0%, 80%);
     color: black;
     font-weight: bold;
     overflow: hidden;
     white-space: nowrap;
+    cursor: default;
 }
 
-/*
-.nav-category p:after {
-    font-size: small;
+.nav-category > p {
     margin: 0px;
-    padding: 0px;
-    content: '\02795';
-    float: right;
+    padding: 0.5em 1em;
 }
 
-.nav-category.shown p:after {
-    content: "\2796";
-}
-*/
-
-.nav-category p {
-    margin: 0px;
-    padding: 8px 8px;
+.nav-category.shown > p {
+    border-bottom: 1px solid hsl(0, 0%, 80%);
 }
 
-.nav-category p:hover {
+.nav-category > p:hover {
     background-color: hsl(0, 0%, 90%);
 }
 
-.nav-object {
-    padding: 1px 0px;
+.nav-category > p:after {
+    font-size: small;
+    margin: 0px;
+    padding: 0px;
+    float: right;
+    content: "+";
+}
+
+.nav-category.shown > p:after {
+    content: "−";
+}
+
+.nav-category > ul {
+    list-style-type: none;
+    display: none;
+    margin-left: 0;
+}
+
+.nav-category.shown > ul {
+    display: block;
+}
+
+.nav-array {
+    padding: 0px;
     font-size: small;
     background-color: white;
     color: black;
     font-weight: normal;
     white-space: nowrap;
-}
-
-#navList {
-    background-color: white;
-    margin: 0px;
-    padding: 0px;
-    overflow-y: scroll;
-    height: 100%;
-}
-
-/*
-#navList li {
-    font-size: small;
-    list-style: none;
     cursor: default;
-    overflow-x: hidden;
-    white-space: nowrap;
+}
+
+.nav-array > ul {
+    list-style-type: none;
+    display: none;
+    margin-left: 0;
+}
+
+.nav-array.shown > ul {
+    display: block;
+}
+
+.nav-array p {
     padding-top: 1px;
     padding-bottom: 1px;
+    padding-left: 1em;
+    padding-right: 0px;
+    margin: 0px;
 }
-*/
+
+.nav-array > p:hover {
+    background-color: hsl(210, 100%, 90%);
+}
+
+.nav-array > p:active {
+    background-color: hsl(210, 100%, 40%);
+    color: hsl(0, 0%, 95%);
+    transition: 0.1s;
+}
+
+.nav-array > p.selected {
+    background-color: hsl(210, 100%, 50%);
+    color: white;
+    transition: 0.1s;
+}
+
+.nav-array > p:before {
+    display: inline-block;
+    font-size: small;
+    margin: 0px;
+    width: 1em;
+    content: "\25B8";
+}
+
+.nav-array.shown > p:before {
+    content: "\25BE";
+}
+
+.nav-object {
+    display: block;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    padding-left: 1em;
+    padding-right: 0px;
+    font-size: small;
+    background-color: white;
+    color: black;
+    font-weight: normal;
+    white-space: nowrap;
+    cursor: default;
+}
 
 .nav-object:hover {
     background-color: hsl(210, 100%, 90%);
@@ -185,10 +236,18 @@ body {
     transition: 0.1s;
 }
 
-.navListIndex {
-    width: 2.5em;
+.nav-object p {
+    display: block;
+    margin: 0px 1em;
+    padding: 0px;
+    overflow-x: hidden;
+}
+
+.nav-object-index {
+    display: block;
+    width: 2em;
+    height: 100%;
     float: left;
-    clear: left;
     text-align: right;
     padding-right: 0.5em;
 }

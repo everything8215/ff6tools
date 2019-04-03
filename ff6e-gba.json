@@ -8,6 +8,80 @@
     "mode": "gba",
     "pointerLength": 4,
     "pad": "0x00",
+    "hierarchy": [
+        {
+            "name": "Map",
+            "list": [
+                {
+                    "name": "Maps",
+                    "path": "mapProperties"
+                }, {
+                    "name": "Map Titles",
+                    "path": "stringTable.mapTitle"
+                }, {
+                    "name": "Parallax",
+                    "path": "mapParallax"
+                }, {
+                    "name": "Color Math",
+                    "path": "mapColorMath"
+                }
+            ]
+        }, {
+            "name": "Event",
+            "list": [
+                {
+                    "name": "Event Script",
+                    "path": "eventScript"
+                }, {
+                    "name": "Dialog",
+                    "path": "stringTable.dialog"
+                }, {
+                    "name": "NPC Switches",
+                    "path": "stringTable.npcSwitches"
+                }, {
+                    "name": "Map Switches",
+                    "path": "stringTable.mapSwitches"
+                }, {
+                    "name": "Event Switches (GBA)",
+                    "path": "stringTable.eventSwitchGBA"
+                }
+            ]
+        }, {
+            "name": "Battle",
+            "list": [
+                {
+                    "name": "Battles",
+                    "path": "battleProperties"
+                }, {
+                    "name": "Battle Dialog",
+                    "path": "stringTable.battleDialog"
+                }, {
+                    "name": "Monsters",
+                    "path": "monsterProperties"
+                }, {
+                    "name": "Monster A.I. Script",
+                    "path": "monsterScript"
+                }, {
+                    "name": "Monster Dialog",
+                    "path": "stringTable.monsterDialog"
+                }, {
+                    "name": "Attack Message",
+                    "path": "stringTable.attackMessage"
+                }
+            ]
+        }, {
+            "name": "Character",
+            "list": [
+                {
+                    "name": "Characters",
+                    "path": "characterProperties"
+                }, {
+                    "name": "Espers",
+                    "path": "esperProperties"
+                }
+            ]
+        }
+    ],
     "assembly": {
         "attackProperties": {
             "type": "array",
@@ -133,7 +207,7 @@
                 "length": 6
             }
         },
-        "battleCommandName": {
+        "_battleCommandName": {
             "type": "array",
             "name": "Battle Command Name",
             "range": "0x0816911C-0x081691DC",
@@ -960,6 +1034,178 @@
                 }
             }
         },
+        "characterProperties": {
+            "type": "array",
+            "name": "Character Properties",
+            "range": "0x0862ACAC-0x0862B22C",
+            "array": {
+                "length": 64
+            },
+            "assembly": {
+                "type": "data",
+                "length": 22,
+                "assembly": {
+                    "characterName": {
+                        "type": "assembly",
+                        "name": "Name",
+                        "external": "stringTable.characterNames[%i]"
+                    },
+                    "hp": {
+                        "type": "property",
+                        "name": "HP",
+                        "begin": 0
+                    },
+                    "mp": {
+                        "type": "property",
+                        "name": "MP",
+                        "begin": 1
+                    },
+                    "command1": {
+                        "type": "property",
+                        "name": "Command 1",
+                        "begin": 2,
+                        "stringTable": "battleCommandName"
+                    },
+                    "command2": {
+                        "type": "property",
+                        "name": "Command 2",
+                        "begin": 3,
+                        "stringTable": "battleCommandName"
+                    },
+                    "command3": {
+                        "type": "property",
+                        "name": "Command 3",
+                        "begin": 4,
+                        "stringTable": "battleCommandName"
+                    },
+                    "command4": {
+                        "type": "property",
+                        "name": "Command 4",
+                        "begin": 5,
+                        "stringTable": "battleCommandName"
+                    },
+                    "vigor": {
+                        "type": "property",
+                        "name": "Vigor",
+                        "begin": 6
+                    },
+                    "speed": {
+                        "type": "property",
+                        "name": "Speed",
+                        "begin": 7
+                    },
+                    "stamina": {
+                        "type": "property",
+                        "name": "Stamina",
+                        "begin": 8
+                    },
+                    "magicPower": {
+                        "type": "property",
+                        "name": "Magic Power",
+                        "begin": 9
+                    },
+                    "battlePower": {
+                        "type": "property",
+                        "name": "Battle Power",
+                        "begin": 10
+                    },
+                    "defense": {
+                        "type": "property",
+                        "name": "Defense",
+                        "begin": 11
+                    },
+                    "magicDefense": {
+                        "type": "property",
+                        "name": "Magic Defense",
+                        "begin": 12
+                    },
+                    "evade": {
+                        "type": "property",
+                        "name": "Evade",
+                        "begin": 13
+                    },
+                    "magicBlock": {
+                        "type": "property",
+                        "name": "Magic Block",
+                        "begin": 14
+                    },
+                    "weapon": {
+                        "type": "property",
+                        "name": "Weapon",
+                        "begin": 15,
+                        "stringTable": "itemNames"
+                    },
+                    "shield": {
+                        "type": "property",
+                        "name": "Shield",
+                        "begin": 16,
+                        "stringTable": "itemNames"
+                    },
+                    "helmet": {
+                        "type": "property",
+                        "name": "Helmet",
+                        "begin": 17,
+                        "stringTable": "itemNames"
+                    },
+                    "armor": {
+                        "type": "property",
+                        "name": "Armor",
+                        "begin": 18,
+                        "stringTable": "itemNames"
+                    },
+                    "relic1": {
+                        "type": "property",
+                        "name": "Relic 1",
+                        "begin": 19,
+                        "stringTable": "itemNames"
+                    },
+                    "relic2": {
+                        "type": "property",
+                        "name": "Relic 2",
+                        "begin": 20,
+                        "stringTable": "itemNames"
+                    },
+                    "runFactor": {
+                        "type": "property",
+                        "name": "Run Factor",
+                        "begin": 21,
+                        "mask": "0x03",
+                        "stringTable": {
+                            "hideIndex": true,
+                            "string": {
+                                "0": "High",
+                                "1": "Normal",
+                                "2": "Low",
+                                "3": "Very Low"
+                            }
+                        }
+                    },
+                    "levelModifier": {
+                        "type": "property",
+                        "name": "Level Modifier",
+                        "begin": 21,
+                        "mask": "0x0C",
+                        "stringTable": {
+                            "hideIndex": true,
+                            "string": {
+                                "0": "None",
+                                "1": "+2",
+                                "2": "+5",
+                                "3": "-3"
+                            }
+                        }
+                    },
+                    "fixedEquipment": {
+                        "type": "property",
+                        "name": "Fixed Equipment",
+                        "begin": 21,
+                        "mask": "0x10",
+                        "bool": true
+                    }
+                }
+            },
+            "stringTable": "characterNames"
+        },
         "entranceTriggersMulti": {
             "type": "array",
             "name": "Multi-Tile Entrance Triggers",
@@ -1331,7 +1577,10 @@
                             "0xFF": "None"
                         },
                         "stringTable": "spellName",
-                        "link": "attackProperties[%i]"
+                        "link": "attackProperties[%i]",
+                        "special": {
+                            "0xFF": "Nothing"
+                        }
                     },
                     "rate1": {
                         "type": "property",
@@ -1347,7 +1596,10 @@
                             "0xFF": "None"
                         },
                         "stringTable": "spellName",
-                        "link": "attackProperties[%i]"
+                        "link": "attackProperties[%i]",
+                        "special": {
+                            "0xFF": "Nothing"
+                        }
                     },
                     "rate2": {
                         "type": "property",
@@ -1363,7 +1615,10 @@
                             "0xFF": "None"
                         },
                         "stringTable": "spellName",
-                        "link": "attackProperties[%i]"
+                        "link": "attackProperties[%i]",
+                        "special": {
+                            "0xFF": "Nothing"
+                        }
                     },
                     "rate3": {
                         "type": "property",
@@ -1379,7 +1634,10 @@
                             "0xFF": "None"
                         },
                         "stringTable": "spellName",
-                        "link": "attackProperties[%i]"
+                        "link": "attackProperties[%i]",
+                        "special": {
+                            "0xFF": "Nothing"
+                        }
                     },
                     "rate4": {
                         "type": "property",
@@ -1395,7 +1653,10 @@
                             "0xFF": "None"
                         },
                         "stringTable": "spellName",
-                        "link": "attackProperties[%i]"
+                        "link": "attackProperties[%i]",
+                        "special": {
+                            "0xFF": "Nothing"
+                        }
                     },
                     "rate5": {
                         "type": "property",
@@ -1407,15 +1668,15 @@
                         "type": "property",
                         "name": "Bonus",
                         "begin": 10,
-                        "stringTable": "esperBonusName",
-                        "link": "stringTable.esperBonusName[%i]",
+                        "stringTable": "esperBonus",
+                        "link": "stringTable.esperBonus[%i]",
                         "special": {
                             "0xFF": "None"
                         }
                     }
                 }
             },
-            "stringTable": "esperNames"
+            "stringTable": "esperName"
         },
         "eventScript": {
             "type": "script",
@@ -1823,9 +2084,23 @@
             "assembly": {
                 "type": "data",
                 "assembly": {
+                    "half": {
+                        "type": "property",
+                        "name": "Half Add/Sub",
+                        "begin": 0,
+                        "mask": "0x40",
+                        "bool": true
+                    },
+                    "subtract": {
+                        "type": "property",
+                        "name": "Subtract",
+                        "begin": 0,
+                        "mask": "0x80",
+                        "bool": true
+                    },
                     "mathLayers": {
                         "type": "property",
-                        "name": "Math Layers",
+                        "name": "Color Math",
                         "begin": 0,
                         "mask": "0x3F",
                         "flag": true,
@@ -1871,20 +2146,6 @@
                                 "4": "Sprites"
                             }
                         }
-                    },
-                    "half": {
-                        "type": "property",
-                        "name": "Half Add/Sub",
-                        "begin": 0,
-                        "mask": "0x40",
-                        "bool": true
-                    },
-                    "subtract": {
-                        "type": "property",
-                        "name": "Subtract",
-                        "begin": 0,
-                        "mask": "0x80",
-                        "bool": true
                     }
                 },
                 "length": 3
@@ -2036,52 +2297,58 @@
             "assembly": {
                 "type": "data",
                 "assembly": {
+                    "cat-layer2": "Layer 2",
                     "hSpeedLayer2": {
                         "type": "property",
-                        "name": "Layer 2 Horizontal Speed",
-                        "begin": 0
+                        "name": "Horizontal Speed",
+                        "begin": 0,
+                        "signed": true
                     },
                     "hMultiplierLayer2": {
                         "type": "property",
-                        "name": "Layer 2 Horizontal Multiplier",
+                        "name": "Horizontal Multiplier",
                         "begin": 4
                     },
                     "vSpeedLayer2": {
                         "type": "property",
-                        "name": "Layer 2 Vertical Speed",
-                        "begin": 1
+                        "name": "Vertical Speed",
+                        "begin": 1,
+                        "signed": true
                     },
                     "vMultiplierLayer2": {
                         "type": "property",
-                        "name": "Layer 2 Vertical Multiplier",
+                        "name": "Vertical Multiplier",
                         "begin": 5
                     },
+                    "cat-layer3": "Layer 3",
                     "hSpeedLayer3": {
                         "type": "property",
-                        "name": "Layer 3 Horizontal Speed",
-                        "begin": 2
+                        "name": "Horizontal Speed",
+                        "begin": 2,
+                        "signed": true
                     },
                     "hMultiplierLayer3": {
                         "type": "property",
-                        "name": "Layer 3 Horizontal Multiplier",
+                        "name": "Horizontal Multiplier",
                         "begin": 6
                     },
                     "vSpeedLayer3": {
                         "type": "property",
-                        "name": "Layer 3 Vertical Speed",
-                        "begin": 3
+                        "name": "Vertical Speed",
+                        "begin": 3,
+                        "signed": true
                     },
                     "vMultiplierLayer3": {
                         "type": "property",
-                        "name": "Layer 3 Vertical Multiplier",
+                        "name": "Vertical Multiplier",
                         "begin": 7
                     }
                 },
                 "length": 8
             },
             "stringTable": {
-                "name": "Map Parallax",
                 "default": "Parallax %i",
+                "length": 21,
                 "string": {
                     "0": "None",
                     "1": "Phantom Forest",
@@ -2096,8 +2363,8 @@
                     "11": "Fog (Moving Down)",
                     "12": "Airship (Breaking Apart)",
                     "13": "Slow Fog",
-                    "14": "Fanatics&apos; Tower",
-                    "15": "Kefka&apos;s Tower (Top)",
+                    "14": "Fanatics' Tower",
+                    "15": "Kefka's Tower (Top)",
                     "17": "Waterfall",
                     "18": "Kefka's Tower",
                     "20": "Fog"
@@ -9725,6 +9992,35 @@
         }
     },
     "stringTable": {
+        "attackMessage": {
+            "name": "Attack Message",
+            "length": 256,
+            "default": {
+                "value": "<text2[%i*5+0x5366]>",
+                "language": {
+                    "en": {
+                        "name": "English",
+                        "link": "text2[%i*5+0x5366]"
+                    },
+                    "de": {
+                        "name": "German",
+                        "link": "text2[%i*5+0x5367]"
+                    },
+                    "fr": {
+                        "name": "French",
+                        "link": "text2[%i*5+0x5368]"
+                    },
+                    "it": {
+                        "name": "Italian",
+                        "link": "text2[%i*5+0x5369]"
+                    },
+                    "es": {
+                        "name": "Spanish",
+                        "link": "text2[%i*5+0x536A]"
+                    }
+                }
+            }
+        },
         "attackName": {
             "name": "Attack Name",
             "length": 256,
@@ -9797,6 +10093,85 @@
                 "55": "Tentacles",
                 "63": "Map Default",
                 "255": "No Background Override"
+            }
+        },
+        "battleCommandName": {
+            "name": "Battle Command Name",
+            "length": 49,
+            "default": {
+                "value": "<text2[%i*5+0x6D01]>",
+                "language": {
+                    "en": {
+                        "name": "English",
+                        "link": "text2[%i*5+0x6D01]"
+                    },
+                    "de": {
+                        "name": "German",
+                        "link": "text2[%i*5+0x6D02]"
+                    },
+                    "fr": {
+                        "name": "French",
+                        "link": "text2[%i*5+0x6D03]"
+                    },
+                    "it": {
+                        "name": "Italian",
+                        "link": "text2[%i*5+0x6D04]"
+                    },
+                    "es": {
+                        "name": "Spanish",
+                        "link": "text2[%i*5+0x6D05]"
+                    }
+                }
+            },
+            "string": {
+                "0x1E": "A.I. Command",
+                "0x1F": "Random Attack",
+                "0x20": "Change Battle",
+                "0x21": "Battle Dialog",
+                "0x22": "Enemy Roulette",
+                "0x23": "Battle Event",
+                "0x24": "Monster Entry/Exit",
+                "0x25": "Battle Message",
+                "0x26": "Attack w/o Attacker",
+                "0x27": "Scan Info",
+                "0x29": "Status Counter Expired",
+                "0x2A": "Run",
+                "0x2B": "Monster Animation",
+                "0x2C": "Reset Character Action",
+                "0x2D": "Seize Damage",
+                "0x2E": "Change Variable",
+                "0x2F": "Change Switch",
+                "0x30": "Misc. Effects",
+                "0xFF": "Nothing"
+            }
+        },
+        "battleDialog": {
+            "name": "Battle Dialog",
+            "length": 256,
+            "default": {
+                "value": "<text2[%i*5+0x4E66]>",
+                "language": {
+                    "en": {
+                        "name": "English",
+                        "link": "text2[%i*5+0x4E66]"
+                    },
+                    "de": {
+                        "name": "German",
+                        "link": "text2[%i*5+0x4E67]"
+                    },
+                    "fr": {
+                        "name": "French",
+                        "link": "text2[%i*5+0x4E68]"
+                    },
+                    "it": {
+                        "name": "Italian",
+                        "link": "text2[%i*5+0x4E69]"
+                    },
+                    "es": {
+                        "name": "Spanish",
+                        "link": "text2[%i*5+0x4E6A]"
+                    }
+                }
             }
         },
         "battleSwitch": {
@@ -9988,62 +10363,6 @@
                 "7": "Water"
             }
         },
-        "esperName": {
-            "name": "Esper Name",
-            "length": 31,
-            "default": {
-                "value": "<text1[%i*5+3690]>",
-                "language": {
-                    "en": {
-                        "name": "English",
-                        "link": "text1[%i*5+3690]"
-                    },
-                    "de": {
-                        "name": "German",
-                        "link": "text1[%i*5+3691]"
-                    },
-                    "fr": {
-                        "name": "French",
-                        "link": "text1[%i*5+3692]"
-                    },
-                    "it": {
-                        "name": "Italian",
-                        "link": "text1[%i*5+3693]"
-                    },
-                    "es": {
-                        "name": "Spanish",
-                        "link": "text1[%i*5+3694]"
-                    }
-                }
-            },
-            "string": {
-                "27-31": {
-                    "value": "<text1[(%i-27)*5+13340]>",
-                    "language": {
-                        "en": {
-                            "name": "English",
-                            "link": "text1[(%i-27)*5+13340]"
-                        },
-                        "de": {
-                            "name": "German",
-                            "link": "text1[(%i-27)*5+13341]"
-                        },
-                        "fr": {
-                            "name": "French",
-                            "link": "text1[(%i-27)*5+13342]"
-                        },
-                        "it": {
-                            "name": "Italian",
-                            "link": "text1[(%i-27)*5+13343]"
-                        },
-                        "es": {
-                            "name": "Spanish",
-                            "link": "text1[(%i-27)*5+13344]"
-                        }
-                    }
-                }
-            }
-        },
         "esperAttackName": {
             "name": "Esper Attack Name",
             "length": 35,
@@ -10196,8 +10515,8 @@
                 }
             }
         },
-        "esperBonusName": {
-            "name": "Esper Bonus Name",
+        "esperBonus": {
+            "name": "Esper Bonus",
             "length": 17,
             "default": {
                 "value": "<text1[%i*5+9865]>",
@@ -10241,6 +10560,62 @@
                     "description-es": {
                         "name": "Description (es)",
                         "link": "text1[%i*5+7494]"
+                    }
+                }
+            }
+        },
+        "esperName": {
+            "name": "Esper Name",
+            "length": 31,
+            "default": {
+                "value": "<text1[%i*5+3690]>",
+                "language": {
+                    "en": {
+                        "name": "English",
+                        "link": "text1[%i*5+3690]"
+                    },
+                    "de": {
+                        "name": "German",
+                        "link": "text1[%i*5+3691]"
+                    },
+                    "fr": {
+                        "name": "French",
+                        "link": "text1[%i*5+3692]"
+                    },
+                    "it": {
+                        "name": "Italian",
+                        "link": "text1[%i*5+3693]"
+                    },
+                    "es": {
+                        "name": "Spanish",
+                        "link": "text1[%i*5+3694]"
+                    }
+                }
+            },
+            "string": {
+                "27-31": {
+                    "value": "<text1[(%i-27)*5+13340]>",
+                    "language": {
+                        "en": {
+                            "name": "English",
+                            "link": "text1[(%i-27)*5+13340]"
+                        },
+                        "de": {
+                            "name": "German",
+                            "link": "text1[(%i-27)*5+13341]"
+                        },
+                        "fr": {
+                            "name": "French",
+                            "link": "text1[(%i-27)*5+13342]"
+                        },
+                        "it": {
+                            "name": "Italian",
+                            "link": "text1[(%i-27)*5+13343]"
+                        },
+                        "es": {
+                            "name": "Spanish",
+                            "link": "text1[(%i-27)*5+13344]"
+                        }
                     }
                 }
             }

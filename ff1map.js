@@ -530,7 +530,10 @@ FF1Map.prototype.loadMap = function(m) {
         this.isWorld = false;
         this.mapProperties = this.rom.mapProperties.item(this.m);
         this.observer.startObserving(this.mapProperties, this.loadMap);
-    }    
+    } else if (this.isWorld) {
+        this.loadWorldMap();
+        return;
+    }
 
     // get the tileset
     var t = this.mapProperties.tileset.value;

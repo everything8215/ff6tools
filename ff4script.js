@@ -286,7 +286,7 @@ var FF4MonsterActionScript = {
 
             case "target":
                 var t = command.target.value;
-                return "Change Target: " + command.rom.stringTable["monsterAction.target"].string[t].fString();
+                return "Change Target: " + command.rom.stringTable["scriptEncoding.monsterAction.target.target"].string[t].fString();
 
             case "variable":
                 var v = command.variable.value;

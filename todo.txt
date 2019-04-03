@@ -4,7 +4,6 @@
 
 general
 -------
- * make a better navigator
  * patch/asm support
  * make modules with require.js (maybe...)
  * add an option to switch between hex and decimal
@@ -15,12 +14,12 @@ general
  * copy and paste
  * paste-able script text
  * array insert/remove
- 
+
 gui
 ---
  * battle vram viewer
- * custom property controls (entrance trigger destination, rendered text)
- * grid check boxes (for element/status)
+ * custom property controls (entrance trigger destination, rendered text, colosseum battle)
+ * grid controls (for element/status, esper/natural magic)
  * tile mask layers for map editor
  * allow multiple selection, cut/copy/paste in script list
  * make tileset zoom in when sidebar is expanded
@@ -36,11 +35,10 @@ game specific
  * world of ruin gets corrupted in roms expanded by ff3usme
  * ff5 monster ai
  * ff5 advance
- * ff4 and ff5 - can't edit map dialog messages
 
 wish list
 ---------
- * music editor
  * battle animation editor
  * cinematic editor
  * graphics import/export
+ * music editor

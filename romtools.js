@@ -77,6 +77,74 @@ Object.defineProperty(ROMObject.prototype, "definition", { get: function() {
     return definition;
 }});
 
+Object.defineProperty(ROMObject.prototype, "path", { get: function() {
+    if (!this.parent || this.parent === this.rom) {
+        return this.key;
+    } else if (this.parent instanceof ROMArray) {
+        return this.parent.path;
+    } else if (this instanceof ROMCommand) {
+        return "scriptEncoding." + this.encoding + "." + this.key;
+    }
+    return this.parent.path + "." + this.key;
+}});
+
+
+ROMObject.prototype.parsePath = function(path, relative, index) {
+    if (!isNumber(index)) index = this.i;
+    if (!isNumber(index)) index = this.value;
+    if (isNumber(index)) path = path.replace(/%i/g, index.toString());
+
+    var components = path.split(".");
+    var object = relative || this.rom;
+    for (var c = 0; c < components.length; c++) {
+        
+        var key = components[c];
+
+        if (!object) return null;
+            
+        var subStart = key.indexOf('[');
+        var subEnd = key.indexOf(']');
+        var subString = "";
+        if (subStart !== -1) {
+            subString = key.substring(subStart);
+            key = key.substring(0, subStart);
+        }
+
+        object = object[key];
+        if (!object) return null;
+        
+        // parse array subscripts
+        while (true) {
+            subStart = subString.indexOf('[');
+            subEnd = subString.indexOf(']');
+            if (subStart === -1 || subEnd < subStart) break;
+            var sub = subString.substring(subStart + 1, subEnd);
+            subString = subString.substring(subEnd);
+            var i = Number(sub);
+            if (!isNumber(i)) {
+                try {
+                    i = eval(sub);
+                } catch (e) {
+                    return null;
+                }
+            }
+            if (object instanceof ROMArray) {
+                // ROMArray entry
+                object = object.item(i);
+            } else if (object instanceof ROMStringTable) {
+                // string table entry
+                object = object.string[i];
+            } else if (isArray(object)) {
+                // js array
+                object = object[i];
+            } else {
+                return null;
+            }
+        }
+    }
+    return object;
+}
+
 ROMObject.prototype.copy = function(parent) {
     return ROMObject.create(this.rom, this.definition, parent);
 }
@@ -204,17 +272,6 @@ Object.defineProperty(ROMAssembly.prototype, "assembledLength", { get: function(
     if (!this.lazyData) this.assemble();
     
     return this.lazyData.length;
-}});
-
-Object.defineProperty(ROMAssembly.prototype, "path", { get: function() {
-    if (!this.parent || this.parent === this.rom) {
-        return this.key;
-    } else if (this.parent instanceof ROMArray) {
-        return this.parent.path;
-    } else if (this instanceof ROMCommand) {
-        return "scriptEncoding." + this.encoding + "." + this.key;
-    }
-    return this.parent.path + "." + this.key;
 }});
 
 Object.defineProperty(ROMAssembly.prototype, "labelString", { get: function() {
@@ -432,72 +489,6 @@ ROMAssembly.prototype.setData = function(array, offset) {
     var description = "Set " + this.name + " data [" + offset.toString() + "-" + (offset + array.length).toString() + "]";
     var action = new ROMAction(this, undo, redo, description);
     this.rom.doAction(action);
-}
-
-ROMAssembly.prototype.parsePath = function(path, relative, index) {
-    if (!isNumber(index)) index = this.i || this.value;
-    if (isNumber(index)) path = path.replace(/%i/g, index.toString());
-
-    var components = path.split(".");
-    var object = relative || this.rom;
-    for (var c = 0; c < components.length; c++) {
-        
-        var key = components[c];
-
-        if (!object) return null;
-            
-        var subStart = key.indexOf('[');
-        var subEnd = key.indexOf(']');
-        var subString = "";
-        if (subStart !== -1) {
-            subString = key.substring(subStart);
-            key = key.substring(0, subStart);
-        }
-
-        object = object[key];
-        if (!object) return null;
-        
-//        while (true) {
-//            if (object[key]) {
-//                object = object[key];
-//                break;
-//            } else if (object.assembly) {
-//                object = object.assembly;
-//            } else {
-//                return null;
-//            }
-//        }
-
-        // parse array subscripts
-        while (true) {
-            subStart = subString.indexOf('[');
-            subEnd = subString.indexOf(']');
-            if (subStart === -1 || subEnd < subStart) break;
-            var sub = subString.substring(subStart + 1, subEnd);
-            subString = subString.substring(subEnd);
-            var i = Number(sub);
-            if (!isNumber(i)) {
-                try {
-                    i = eval(sub);
-                } catch (e) {
-                    return null;
-                }
-            }
-            if (object instanceof ROMArray) {
-                // ROMArray entry
-                object = object.item(i);
-            } else if (object instanceof ROMStringTable) {
-                // string table entry
-                object = object.string[i];
-            } else if (isArray(object)) {
-                // js array
-                object = object[i];
-            } else {
-                return null;
-            }
-        }
-    }
-    return object;
 }
 
 // ROMReference
@@ -990,6 +981,9 @@ function ROM(rom, definition) {
 
     var i, key, keys;
     
+    // create hierarchy
+    this.hierarchy = definition.hierarchy;
+    
     // copy character tables
     this.charTable = {};
     if (definition.charTable) {
@@ -1059,6 +1053,9 @@ Object.defineProperty(ROM.prototype, "definition", { get: function() {
 
     var keys, key;
     
+    // create hierarchy
+    definition.hierarchy = this.hierarchy;
+
     // create character table definitions
     definition.charTable = {};
     keys = Object.keys(this.charTable);
@@ -4027,27 +4024,39 @@ ROMTextEncoding.prototype.format = function(text, html) {
         if (!text.includes(key)) continue;
         
         if (key.endsWith("[")) {
-            var regex = new RegExp("\\" + key.slice(0, -1) + "\\\[([^\\\]]+)]", "g");
-            text = text.replace(regex, "");
+            var regex = new RegExp("\\" + key.slice(0, -1) + "\\\[(\\w+)]", "g");
+            if (key === "\\char[") {
+                // replace character names (index in brackets)
+                var match;
+                while ((match = regex.exec(text)) !== null) {
+                    var c = Number(match[1]);
+                    var characterName = this.rom.stringTable.characterNames.string[c].fString();
+                    text = text.replace(match[0], characterName);
+                    regex.lastIndex = 0; // reset the regex to the beginning of the string
+                }
+            } else {
+                // delete all other escape codes with brackets
+                text = text.replace(regex, "");
+            }
             continue;
         }
         
         var regex = new RegExp("\\" + key, "g");
         if (key === "\\n" || key === "\\page") {
+            // replace new line and page break
             text = text.replace(regex, (html ? "<br/>" : "\n"));
         } else if (key === "\\choice") {
+            // replace multiple choice indicator
             for (var c = 1; text.includes(key); c++) {
                 text = text.replace(key, c + ": ")
             }
-        } else if (key.startsWith("\\char")) {
-            var c = Number(key.slice(-2));
-            var characterName = this.rom.stringTable.characterNames.string[c].fString();
-            text = text.replace(regex, characterName);
-        } else if (key.startsWith("\\hchar")) {
+        } else if (key.startsWith("\\char") || key.startsWith("\\hchar")) {
+            // replace character name (no brackets)
             var c = Number(key.slice(-2));
             var characterName = this.rom.stringTable.characterNames.string[c].fString();
             text = text.replace(regex, characterName);
         } else {
+            // delete all other escape codes
             text = text.replace(regex, "");
         }
     }
@@ -4059,6 +4068,7 @@ function ROMString(rom, definition, parent) {
     ROMObject.call(this, rom, definition, parent);
     this.type = ROMObject.Type.string;
     this.value = definition.value || "";
+    this.link = definition.link;
     this.language = definition.language;
     this._fString = null;
     this.observer = new ROMObserver(rom, this, null);
@@ -4066,6 +4076,10 @@ function ROMString(rom, definition, parent) {
 
 ROMString.prototype = Object.create(ROMObject.prototype);
 ROMString.prototype.constructor = ROMString;
+
+Object.defineProperty(ROMString.prototype, "path", { get: function() {
+    return "stringTable." + this.parent.key;
+}});
 
 ROMString.prototype.fString = function(maxLength) {
     
@@ -4141,40 +4155,6 @@ ROMString.prototype.reset = function() {
     this.notifyObservers();
 }
 
-//ROMString.prototype.propertyHTML = function(name) {
-//    
-//    // create a div for the property
-//    var propertyDiv = document.createElement('div');
-//    propertyDiv.classList.add("property-div");
-//    propertyDiv.id = "property-" + this.key;
-//    var id = "property-control-" + this.key;
-//    
-//    // create a label
-//    var label;
-//    if (this.language) {
-//        // create a label with a link to this string
-//        label = document.createElement('a');
-//        label.href = "javascript:propertyList.select(\"stringTable." + this.parent.key + "[" + this.i + "]\");";
-//    } else {
-//        // create a static label
-//        label = document.createElement('label');
-//    }
-//    label.htmlFor = id;
-//    label.classList.add("property-label");
-//    name = name || this.name;
-//    if (name) label.innerHTML = name + ":";
-//    propertyDiv.appendChild(label);
-//
-//    // create a div for the string
-//    var stringDiv = document.createElement('div');
-//    stringDiv.classList.add("property-control-div");
-//    stringDiv.innerHTML = this.fString();
-//    stringDiv.id = id;
-//    propertyDiv.appendChild(stringDiv);
-//
-//    return propertyDiv;
-//}
-
 Object.defineProperty(ROMString.prototype, "labelString", { get: function() {
     return this;
 }});
@@ -4183,6 +4163,7 @@ Object.defineProperty(ROMString.prototype, "labelString", { get: function() {
 function ROMStringTable(rom, definition, parent) {
     ROMObject.call(this, rom, definition, parent);
     this.type = ROMObject.Type.stringTable;
+    this.link = definition.link;
     this.language = definition.language;
     this.hideIndex = definition.hideIndex;
     
@@ -4209,8 +4190,15 @@ function ROMStringTable(rom, definition, parent) {
     }
     
     // load default strings
-    this.defaultString = definition.default;
-    if (!this.defaultString) this.defaultString = "String %i";
+    if (this.link) {
+        this.defaultString = "<" + this.link + ">";
+    } else if (definition.default) {
+        this.defaultString = definition.default;
+    } else {
+        this.defaultString = "String %i";
+    }
+//    this.defaultString = definition.default;
+//    if (!this.defaultString) this.defaultString = "String %i";
     this.length = definition.length;
     if (this.length) {
         for (i = 0; i < this.length; i++) {
@@ -4230,6 +4218,7 @@ Object.defineProperty(ROMStringTable.prototype, "definition", { get: function() 
     var defaultString = this.defaultString;
     if (defaultString !== "String %i") definition.default = defaultString;
     if (this.length) definition.length = this.length;
+    if (this.link) definition.link = this.link;
     if (this.language) definition.language = this.language;
     if (this.hideIndex === true) definition.hideIndex = true;
     
@@ -4245,12 +4234,17 @@ Object.defineProperty(ROMStringTable.prototype, "definition", { get: function() 
     return definition;
 }});
 
+Object.defineProperty(ROMStringTable.prototype, "path", { get: function() {
+    return "stringTable." + this.key;
+}});
+
 ROMStringTable.prototype.createString = function(value) {
     if (isString(value)) {
-        return new ROMString(this.rom, {value: value, name: this.name}, this);
+        return new ROMString(this.rom, {value: value, name: this.name, link: this.link}, this);
     } else {
         var definition = value;
         definition.name = value.name || this.name;
+        definition.link = this.link;
         return new ROMString(this.rom, definition, this);
     }
     return null;

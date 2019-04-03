@@ -7,6 +7,71 @@
     "system": "sfc",
     "mode": "hiROM",
     "pad": "0x00",
+    "hierarchy": [
+        {
+            "name": "Map",
+            "list": [
+                {
+                    "name": "Maps",
+                    "path": "mapProperties"
+                }, {
+                    "name": "Map Titles",
+                    "path": "mapTitle"
+                }, {
+                    "name": "Color Math",
+                    "path": "mapColorMath"
+                }
+            ]
+        }, {
+            "name": "Event",
+            "list": [
+                {
+                    "name": "Event Script",
+                    "path": "eventScript"
+                }, {
+                    "name": "Dialog",
+                    "path": "dialog"
+                }, {
+                    "name": "NPC Script",
+                    "path": "npcScript"
+                }, {
+                    "name": "Trigger Script",
+                    "path": "triggerScript"
+                }, {
+                    "name": "NPC Switches",
+                    "path": "stringTable.npcSwitch"
+                }, {
+                    "name": "Event Switches",
+                    "path": "stringTable.eventSwitch"
+                }
+            ]
+        }, {
+            "name": "Battle",
+            "list": [
+                {
+                    "name": "Battles",
+                    "path": "battleProperties"
+                }, {
+                    "name": "Random Battle Groups",
+                    "path": "battleGroupRandom"
+                }, {
+                    "name": "Event Battle Groups",
+                    "path": "battleGroupEvent"
+                }, {
+                    "name": "Monsters",
+                    "path": "monsterProperties"
+                }
+            ]
+        }, {
+            "name": "System",
+            "list": [
+                {
+                    "name": "SNES Header",
+                    "path": "snesHeader"
+                }
+            ]
+        }
+    ],
     "assembly": {
         "attackName": {
             "type": "array",
@@ -167,6 +232,7 @@
                     "0": "Grass",
                     "1": "Forest",
                     "2": "Desert",
+                    "3": "Swamp",
                     "4": "Beach",
                     "5": "Ship Graveyard (Interior)",
                     "6": "Cave",
@@ -190,6 +256,7 @@
                     "24": "Ronka Ruins",
                     "25": "Ship Graveyard (Exterior)",
                     "26": "Karnak Castle (Interior)",
+                    "27": "Phoenix Tower (Wall)",
                     "28": "Final Battle",
                     "29": "Tower of Walse (Underwater)",
                     "30": "Desert w/ Holes",
@@ -643,11 +710,11 @@
                         "mask": "0x01",
                         "bool": true
                     }
-                },
-                "stringTable": {
-                    "length": 768,
-                    "default": "Battle %i"
                 }
+            },
+            "stringTable": {
+                "length": 512,
+                "default": "Battle %i"
             }
         },
         "characterNames": {
@@ -2226,7 +2293,10 @@
             },
             "stringTable": {
                 "length": 163,
-                "default": "<mapTitle[%i]>"
+                "default": "<mapTitle[%i]>",
+                "string": {
+                    "0": "No Title"
+                }
             }
         },
         "mapTreasures": {
@@ -2448,6 +2518,7 @@
             "array": {
                 "length": 384
             },
+            "stringTable": "monsterName",
             "assembly": {
                 "type": "data",
                 "length": 32,
@@ -2965,13 +3036,15 @@
                     "type": "property",
                     "name": "Checksum Inverse",
                     "begin": 28,
-                    "mask": "0xFFFF"
+                    "mask": "0xFFFF",
+                    "hidden": true
                 },
                 "checksum": {
                     "type": "property",
                     "name": "Checksum",
                     "begin": 30,
-                    "mask": "0xFFFF"
+                    "mask": "0xFFFF",
+                    "hidden": true
                 }
             }
         },

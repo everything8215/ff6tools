@@ -6,6 +6,103 @@
     "crc32": "0x65D0A825",
     "system": "sfc",
     "mode": "loROM",
+    "hierarchy": [
+        {
+            "name": "Map",
+            "list": [
+                {
+                    "name": "Maps",
+                    "path": "mapProperties"
+                }, {
+                    "name": "Map Dialog",
+                    "path": "mapDialog"
+                }, {
+                    "name": "Map Titles",
+                    "path": "mapTitle"
+                }
+            ]
+        }, {
+            "name": "Event",
+            "list": [
+                {
+                    "name": "Event Script",
+                    "path": "eventScript"
+                }, {
+                    "name": "NPC Script",
+                    "path": "npcScript"
+                }, {
+                    "name": "Trigger Script",
+                    "path": "triggerScript"
+                }, {
+                    "name": "Event Dialog 1",
+                    "path": "eventDialog1"
+                }, {
+                    "name": "Event Dialog 2",
+                    "path": "eventDialog2"
+                }
+            ]
+        }, {
+            "name": "Battle",
+            "list": [
+                {
+                    "name": "Battles",
+                    "path": "battleProperties"
+                }, {
+                    "name": "Battle Groups",
+                    "path": "battleGroup"
+                }, {
+                    "name": "World Map Battle Groups",
+                    "path": "battleGroupWorld"
+                }, {
+                    "name": "Battle Dialog",
+                    "path": "battleDialog"
+                }
+            ]
+        }, {
+            "name": "Monster",
+            "list": [
+                {
+                    "name": "Monsters",
+                    "path": "monsterProperties"
+                }, {
+                    "name": "Monster Agility Values",
+                    "path": "monsterAgility"
+                }, {
+                    "name": "Monster Attack/Defense Values",
+                    "path": "monsterAttackDefense"
+                }, {
+                    "name": "Monster A.I. Scripts",
+                    "path": "monsterScript"
+                }, {
+                    "name": "Monster Actions",
+                    "path": "monsterAction"
+                }, {
+                    "name": "Monster Actions (Moon)",
+                    "path": "monsterActionMoon"
+                }, {
+                    "name": "Monster Conditions",
+                    "path": "monsterCondition"
+                }, {
+                    "name": "Monster Condition Scripts",
+                    "path": "monsterConditionScript"
+                }, {
+                    "name": "Monster Dialog",
+                    "path": "monsterDialog"
+                }, {
+                    "name": "Attack Messages",
+                    "path": "attackMessage"
+                }
+            ]
+        }, {
+            "name": "System",
+            "list": [
+                {
+                    "name": "SNES Header",
+                    "path": "snesHeader"
+                }
+            ]
+        }
+    ],
     "assembly": {
         "attackNames": {
             "type": "array",
@@ -1021,7 +1118,8 @@
             "pointerTable": {
                 "range": "0x118000-0x118300",
                 "offset": "0x118300"
-            }
+            },
+            "stringTable": "mapProperties"
         },
         "mapGraphics0": {
             "type": "data",
@@ -2170,7 +2268,8 @@
                     "121": "Laser",
                     "122": "Fire, Fight, Fight, Fight, Fight",
                     "123": "Magnet",
-                    "124": "Fission"
+                    "124": "Fission",
+                    "125": "Tetsuya Takahashi"
                 }
             }
         },
@@ -2272,7 +2371,7 @@
         },
         "monsterAgility": {
             "type": "array",
-            "name": "Monster Agility Propeties",
+            "name": "Monster Agility Properties",
             "range": "0x0EA620-0x0EA6A0",
             "array": {
                 "length": 224
@@ -2360,13 +2459,14 @@
                     "60": "89",
                     "61": "53",
                     "62": "111",
-                    "63": "69"
+                    "63": "69",
+                    "64-224": "0"
                 }
             }
         },
         "monsterAttackDefense": {
             "type": "array",
-            "name": "Monster Attack/Defense Propeties",
+            "name": "Monster Attack/Defense Properties",
             "range": "0x0EA380-0x0EA620",
             "array": {
                 "length": 224
@@ -3316,7 +3416,16 @@
             "stringTable": {
                 "name": "Monster Name",
                 "length": 224,
-                "default": "<monsterName[%i]>"
+                "default": "<monsterName[%i]>",
+                "string": {
+                    "215": "Katsuhisa Higuchi",
+                    "217": "Hiroyuki Ito",
+                    "218": "Akihiko Matsui",
+                    "219": "Kazuhiko Aoki",
+                    "220": "Hiromi Nakada",
+                    "221": "Kiyoshi Yoshii",
+                    "222": "Tetsuya Takahashi"
+                }
             }
         },
         "monsterPalette": {
@@ -3793,6 +3902,8 @@
                     "215": "Zeromus 2 (Counter)",
                     "216": "TrapDoor",
                     "217": "TrapDoor (Counter)",
+                    "218": "Akihiko Matsui",
+                    "219": "Hiroyuki Ito",
                     "220": "Antlion",
                     "221": "Antlion (Counter)",
                     "222": "Zeromus 2",
@@ -3816,7 +3927,12 @@
                     "242": "Breath",
                     "243": "Breath (Counter)",
                     "245": "Behemoth",
-                    "251": "LastArm"
+                    "247": "Kazuhiko Aoki",
+                    "249": "Hiromi Nakada",
+                    "250": "Kiyoshi Yoshii",
+                    "251": "LastArm",
+                    "252": "Hiromi Nakada (Counter)",
+                    "253": "Tetsuya Takahashi"
                 }
             }
         },
@@ -4223,120 +4339,7 @@
                 "range": "0x139800-0x139C00",
                 "offset": "0x139C00"
             },
-            "stringTable": {
-                "name": "NPC Script",
-                "default": "NPC %i",
-                "length": 107,
-                "string": {
-                    "0x00": "Cecil (DkKnight)",
-                    "0x01": "Kain",
-                    "0x02": "Rydia (Girl)",
-                    "0x03": "Tellah",
-                    "0x04": "Edward",
-                    "0x05": "Rosa",
-                    "0x06": "Yang",
-                    "0x07": "Palom",
-                    "0x08": "Porom",
-                    "0x09": "Cecil (Paladin)",
-                    "0x0A": "Cid",
-                    "0x0B": "Rydia (Adult)",
-                    "0x0C": "Edge",
-                    "0x0D": "FuSoYa",
-                    "0x0E": "Tiny",
-                    "0x0F": "Frog",
-                    "0x10": "Pig",
-                    "0x11": "Man",
-                    "0x12": "Woman",
-                    "0x13": "Dancer",
-                    "0x14": "Old Man",
-                    "0x15": "Old Woman",
-                    "0x16": "Boy",
-                    "0x17": "Girl",
-                    "0x18": "Soldier",
-                    "0x19": "Merchant",
-                    "0x1A": "Scholar",
-                    "0x1B": "Black Mage",
-                    "0x1C": "White Mage",
-                    "0x1D": "Engineer",
-                    "0x1E": "Chocobo",
-                    "0x1F": "Monk",
-                    "0x20": "Officer",
-                    "0x21": "Bomb",
-                    "0x22": "Monster",
-                    "0x23": "Namingway",
-                    "0x24": "Golbez",
-                    "0x25": "King",
-                    "0x26": "Elder",
-                    "0x27": "Cleric",
-                    "0x28": "Dwarf",
-                    "0x29": "Calbrena",
-                    "0x2A": "King Giott",
-                    "0x2B": "Dr. Lugae",
-                    "0x2C": "Dwarf Girl (Luca)",
-                    "0x2D": "Golbez' Hand",
-                    "0x2E": "Cecil + Rosa",
-                    "0x2F": "Crystal",
-                    "0x30": "Heart",
-                    "0x31": "Flame",
-                    "0x32": "Zzz",
-                    "0x33": "Woman Waving",
-                    "0x34": "Woman Blinking",
-                    "0x35": "Edward w/ Harp",
-                    "0x36": "Water Splash",
-                    "0x37": "Murasame/Masamune",
-                    "0x38": "Dancer w/ Dress",
-                    "0x39": "Sword",
-                    "0x3A": "Rosa (Tied Up)",
-                    "0x3B": "Rubicant",
-                    "0x3C": "Sparkle",
-                    "0x3D": "Elder (Praying)",
-                    "0x3E": "Black Mage (Praying)",
-                    "0x3F": "Zemus (Dead)",
-                    "0x40": "White Mage (Praying)",
-                    "0x41": "Sylph",
-                    "0x42": "Zeromus",
-                    "0x43": "Kain w/o Helmet",
-                    "0x44": "Lightning Bolt",
-                    "0x45": "Smoke",
-                    "0x46": "Big Chocobo 1",
-                    "0x47": "Big Chocobo 2",
-                    "0x48": "Big Chocobo 3",
-                    "0x49": "Big Chocobo 4",
-                    "0x4A": "Big Namingway 1",
-                    "0x4B": "Big Namingway 2",
-                    "0x4C": "Big Namingway 3",
-                    "0x4D": "Big Namingway 4",
-                    "0x4E": "Valvalis",
-                    "0x4F": "Dancer's Foot",
-                    "0x50": "Asura",
-                    "0x51": "Zemus",
-                    "0x52": "Tentacles",
-                    "0x53": "Magus Sisters",
-                    "0x54": "Dark Elf",
-                    "0x55": "Bahamut",
-                    "0x56": "Kainazzo",
-                    "0x57": "Dress",
-                    "0x58": "Ice",
-                    "0x59": "White Lance",
-                    "0x5A": "Rydia's Mother",
-                    "0x5B": "Big Ball",
-                    "0x5C": "Tower of Bab-il Ground",
-                    "0x5D": "Door",
-                    "0x5E": "Dead Soldier",
-                    "0x5F": "Antlion 1",
-                    "0x60": "Antlion 2",
-                    "0x61": "Anna",
-                    "0x62": "Golbez (Dead)",
-                    "0x63": "Crystal Sword",
-                    "0x64": "Anna (Dead)",
-                    "0x65": "Nothing",
-                    "0x66": "Ice",
-                    "0x67": "Big Flame 1",
-                    "0x68": "Big Flame 2",
-                    "0x69": "Stone Palom",
-                    "0x6A": "Stone Porom"
-                }
-            }
+            "stringTable": "npcSwitch"
         },
         "shopProperties": {
             "type": "array",
@@ -4467,13 +4470,15 @@
                     "type": "property",
                     "name": "Checksum Inverse",
                     "begin": 28,
-                    "mask": "0xFFFF"
+                    "mask": "0xFFFF",
+                    "hidden": true
                 },
                 "checksum": {
                     "type": "property",
                     "name": "Checksum",
                     "begin": 30,
-                    "mask": "0xFFFF"
+                    "mask": "0xFFFF",
+                    "hidden": true
                 }
             }
         },

@@ -3,20 +3,295 @@
 // created 2/26/2019
 // 
 
-var navigator;
+var romNavigator;
 var propertyList;
 var scriptList;
 
 // ROMNavigator
 function ROMNavigator(rom) {
     this.rom = rom;
+    this.hierarchy = rom.hierarchy || ROMNavigator.defaultHierarchy;
+    this.observer = new ROMObserver(this.rom, this, { sub: true, link: true, label: true });
+    this.nav = document.getElementById("nav");
+    this.updateList();
+    this.node = {};
+    this.selectedNode = null;
+}
+
+ROMNavigator.prototype.selectObject = function(object) {
+    
+    var li = this.node[object.path];
+    if (!li) return;
+
+    var newSelection = null;
+    if (isNumber(object.i)) {
+        newSelection = li.childNodes[object.i];
+    } else {
+        newSelection = li;
+    }
+    
+    if (newSelection) {
+        if (this.selectedNode) this.selectedNode.classList.remove("selected");
+        this.selectedNode = newSelection;
+        this.selectedNode.classList.add("selected");
+    }
+}
+
+ROMNavigator.defaultHierarchy = [
+    {
+        "name": "Map",
+        "list": [
+            {
+                "name": "Maps",
+                "path": "mapProperties"
+            }, {
+                "name": "Map Titles",
+                "path": "mapTitle"
+            }, {
+                "name": "Parallax",
+                "path": "mapParallax"
+            }, {
+                "name": "Color Math",
+                "path": "mapColorMath"
+            }
+        ]
+    }, {
+        "name": "Event",
+        "list": [
+            {
+                "name": "Event Script",
+                "path": "eventScript"
+            }, {
+                "name": "Dialog",
+                "path": "dialog"
+            }, {
+                "name": "NPC Switches",
+                "path": "stringTable.npcSwitches"
+            }, {
+                "name": "Map Switches",
+                "path": "stringTable.mapSwitches"
+            }
+        ]
+    }, {
+        "name": "Battle",
+        "list": [
+            {
+                "name": "Battles",
+                "path": "battleProperties"
+            }, {
+                "name": "Monsters",
+                "path": "monsterProperties"
+            }
+        ]
+    }, {
+        "name": "System",
+        "list": [
+            {
+                "name": "SNES Header",
+                "path": "snesHeader"
+            }
+        ]
+    }
+];
+
+ROMNavigator.prototype.updateList = function() {
+    this.nav.innerHTML = null;
+    
+    // create the main nav list
+    var navList = document.createElement('ul');
+    navList.classList.add("nav-list");
+    this.nav.appendChild(navList);
+    
+    for (var i = 0; i < this.hierarchy.length; i++) {
+        var definition = this.hierarchy[i];
+        var category = this.liForCategory(definition);
+        if (!category) continue;
+        navList.appendChild(category);
+    }
+}
+
+ROMNavigator.prototype.liForCategory = function(definition) {
+    var self = this;
+    var isLoaded = false;
+    var category = document.createElement('li');
+    category.classList.add("nav-category");
+    category.onclick = function(e) {
+        e.stopPropagation();
+        this.classList.toggle("shown");
+        
+        if (isLoaded) return;
+        
+        var ul = document.createElement('ul');
+        ul.classList.add('nav-list');
+        category.appendChild(ul);
+
+        for (var i = 0; i < definition.list.length; i++) {
+            var options = definition.list[i] || {};
+
+            if (!options.path) continue;
+
+            var object = self.rom.parsePath(options.path);
+            if (!object) continue;
+            var li = self.liForObject(object, options);
+
+            if (!li) continue;
+            ul.appendChild(li);
+        }
+        isLoaded = true;
+    }
+
+    var p = document.createElement('p');
+    var name = definition.name;
+    if (!isString(name)) name = "Unnamed Category";
+    if (!/\S/.test(name)) name = "&nbsp;";
+    p.innerHTML = name;
+    category.appendChild(p);
+    
+    return category;
+}
+
+ROMNavigator.prototype.liForObject = function(object, options) {
+
+    if (object instanceof ROMArray) return this.liForArray(object, options);
+    if (object instanceof ROMStringTable) return this.liForStringTable(object, options);
+    
+    var li = document.createElement("li");
+    li.classList.add("nav-object")
+    li.onclick = function(e) {
+        e.stopPropagation();
+        propertyList.select(object);
+    }
+    if (!this.node[object.path]) this.node[object.path] = li;
+    
+    var p = document.createElement('p');
+    var name = options.name;
+    if (!isString(name)) name = object.name;
+//    if (!isString(name) && object instanceof ROMText) name = object.htmlText;
+    if (object instanceof ROMText) name = object.htmlText;
+    if (!isString(name)) name = "Unnamed Object";
+    if (!/\S/.test(name)) name = "&nbsp;";
+    p.innerHTML = name;
+    li.appendChild(p);
+        
+    return li;
+}
+
+ROMNavigator.prototype.liForArray = function(array, options) {
+    var li = document.createElement("li");
+    li.classList.add("nav-array")
+    li.onclick = function(e) {
+        e.stopPropagation();
+        this.classList.toggle("shown");
+    }
+    
+    var p = document.createElement('p');
+    var name = options.name;
+    if (!isString(name)) name = array.name;
+    if (!isString(name)) name = "Unnamed Array";
+    if (!/\S/.test(name)) name = "&nbsp;";
+    p.innerHTML = name;
+    li.appendChild(p);
+    
+    var ul = document.createElement('ul');
+    ul.classList.add("nav-list");
+    if (!this.node[array.path]) this.node[array.path] = ul;
+    
+    for (var i = 0; i < array.array.length; i++) {
+        var item = this.liForArrayItem(array, i);
+        if (!item) continue;
+        ul.appendChild(item);
+    }
+    li.appendChild(ul);
+
+    return li;
+}
+
+ROMNavigator.prototype.liForArrayItem = function(array, i) {
+
+    var object = array.item(i);
+    if (!object) return null;
+    
+    var options = {};
+    
+    options.name = array.name + " " + i.toString();
+    if (array.stringTable) {
+        var stringTable = this.rom.stringTable[array.stringTable];
+        if (stringTable && stringTable.string[i]) {
+            options.name = stringTable.string[i].fString(40);
+        }
+    }
+    
+    var li = this.liForObject(object, options);
+    
+    var span = document.createElement('span');
+    span.innerHTML = i.toString();
+    span.classList.add("nav-object-index");
+    li.insertBefore(span, li.firstChild);
+//    var p = li.getElementsByTagName('p')[0];
+//    p.insertBefore(span, p.firstChild);
+
+    return li;
+}
+
+ROMNavigator.prototype.liForStringTable = function(stringTable, options) {
+    var li = document.createElement("li");
+    li.classList.add("nav-array")
+    li.onclick = function(e) {
+        e.stopPropagation();
+        this.classList.toggle("shown");
+    }
+
+    var p = document.createElement('p');
+    var name = options.name;
+    if (!isString(name)) name = stringTable.name;
+    if (!isString(name)) name = "Unnamed String Table";
+    if (!/\S/.test(name)) name = "&nbsp;";
+    p.innerHTML = name;
+    li.appendChild(p);
+    
+    var ul = document.createElement('ul');
+    ul.classList.add("nav-list");
+    var path = "stringTable." + stringTable.key;
+    if (!this.node[path]) this.node[path] = ul;
+    
+    for (var i = 0; i < stringTable.string.length; i++) {
+        var item = this.liForString(stringTable, i);
+        if (!item) continue;
+        ul.appendChild(item);
+    }
+    li.appendChild(ul);
+
+    return li;
+}
+
+ROMNavigator.prototype.liForString = function(stringTable, i) {
+    
+    if (!stringTable.string[i]) return null;
+    
+    var li = document.createElement("li");
+    var span = document.createElement('span');
+    span.innerHTML = i.toString();
+    span.classList.add("nav-object-index");
+    li.appendChild(span);
+    
+    li.classList.add("nav-object")
+    li.onclick = function(e) {
+        e.stopPropagation();
+        propertyList.select(stringTable.string[i]);
+    }
+    
+    var p = document.createElement('p');
+    p.innerHTML = stringTable.string[i].htmlString();
+    li.appendChild(p);
+    
+    return li;
 }
 
 // ROMPropertyList
 function ROMPropertyList(rom) {
     this.rom = rom;
-    this.observer = new ROMObserver(this.rom, this, {sub: true, link: true, label: true});
-    this.selection = {current: null, previous: [], next: []};
+    this.observer = new ROMObserver(this.rom, this, { sub: true, link: true, label: true });
+    this.selection = { current: null, previous: [], next: [] };
     this.editors = {};
 }
 
@@ -44,6 +319,9 @@ ROMPropertyList.prototype.select = function(object) {
         this.showProperties();
         return;
     }
+    
+    // select the object in the navigator
+    romNavigator.selectObject(object);
     
     // select a script (this might be redundant)
     if (object instanceof ROMScript) {
@@ -154,12 +432,22 @@ ROMPropertyList.prototype.showProperties = function() {
             var key = keys[i];
             var linkString = language[key].link.replace("%i", object.i);
             var link = this.rom.parsePath(linkString);
-            if (!link) return;
+            if (!link) continue;
             var propertyHTML = this.propertyHTML(link, {key: key, name: language[key].name});
-            if (!propertyHTML) return;
+            if (!propertyHTML) continue;
             properties.appendChild(propertyHTML);
             this.observer.startObserving(link, this.showProperties);
         }
+        
+    } else if (object instanceof ROMString && object.link) {
+        // strings with only one languages
+        var linkString = object.link.replace("%i", object.i);
+        var link = this.rom.parsePath(linkString);
+        if (!link) return;
+        var propertyHTML = this.propertyHTML(link, {key: object.key, name: object.name});
+        if (!propertyHTML) return;
+        properties.appendChild(propertyHTML);
+        this.observer.startObserving(link, this.showProperties);
         
     } else if ((object instanceof ROMProperty) || (object instanceof ROMText) || (object instanceof ROMString)) {
         // object with a single property
