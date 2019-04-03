@@ -173,6 +173,8 @@ FF5Battle.prototype.monsterInSlot = function(slot) {
     }
     if ((m & 0xFF) === 0xFF) return null; // slot is empty
 
+    var pal = this.battleProperties["monster" + slot + "Palette"].value;
+    
     var monsterPosition = this.rom.monsterPosition.item(this.b).item(slot - 1);
     var x = monsterPosition.x.value;
     var y = monsterPosition.y.value;
@@ -198,6 +200,7 @@ FF5Battle.prototype.monsterInSlot = function(slot) {
         "x": x,
         "y": y,
         "position": monsterPosition,
+        "pal": pal,
         "monster": m,
         "id": id,
         "rect": new Rect(x, x + w * 8, y, y + h * 8)
@@ -298,8 +301,13 @@ FF5Battle.prototype.drawMonster = function(slot) {
     // load palette
     var p = gfxProperties.palette.value;
     var pal = new Uint32Array(16);
-    pal.set(this.rom.monsterPalette.item(p).data);
-    if (this.rom.isGBA || !gfxProperties.is3bpp.value) pal.set(this.rom.monsterPalette.item(p + 1).data, 8);
+    if (this.battleProperties.gfxFlags.value & 4) {
+        // use underwater palette
+        pal.set(this.rom.monsterPaletteUnderwater.data);
+    } else {
+        pal.set(this.rom.monsterPalette.item(p).data);
+        if (this.rom.isGBA || !gfxProperties.is3bpp.value) pal.set(this.rom.monsterPalette.item(p + 1).data, 8);
+    }
     
     // set up the ppu
     var ppu = new GFX.PPU();

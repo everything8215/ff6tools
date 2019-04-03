@@ -486,6 +486,20 @@
                             "0x01FF": "None"
                         }
                     },
+                    "monster1Palette": {
+                        "type": "property",
+                        "name": "Palette",
+                        "begin": 12,
+                        "mask": "0xC0",
+                        "stringTable": {
+                            "hideIndex": true,
+                            "string": {
+                                "0": "Palette 1",
+                                "1": "Palette 2",
+                                "2": "Palette 3"
+                            }
+                        }
+                    },
                     "monster1Present": {
                         "type": "property",
                         "name": "Present",
@@ -516,6 +530,13 @@
                         "special": {
                             "0x01FF": "None"
                         }
+                    },
+                    "monster2Palette": {
+                        "type": "property",
+                        "name": "Palette",
+                        "begin": 12,
+                        "mask": "0x30",
+                        "stringTable": "battleProperties.monster1Palette"
                     },
                     "monster2Present": {
                         "type": "property",
@@ -548,6 +569,13 @@
                             "0x01FF": "None"
                         }
                     },
+                    "monster3Palette": {
+                        "type": "property",
+                        "name": "Palette",
+                        "begin": 12,
+                        "mask": "0x0C",
+                        "stringTable": "battleProperties.monster1Palette"
+                    },
                     "monster3Present": {
                         "type": "property",
                         "name": "Present",
@@ -578,6 +606,13 @@
                         "special": {
                             "0x01FF": "None"
                         }
+                    },
+                    "monster4Palette": {
+                        "type": "property",
+                        "name": "Palette",
+                        "begin": 12,
+                        "mask": "0x03",
+                        "stringTable": "battleProperties.monster1Palette"
                     },
                     "monster4Present": {
                         "type": "property",
@@ -610,6 +645,13 @@
                             "0x01FF": "None"
                         }
                     },
+                    "monster5Palette": {
+                        "type": "property",
+                        "name": "Palette",
+                        "begin": 13,
+                        "mask": "0xC0",
+                        "stringTable": "battleProperties.monster1Palette"
+                    },
                     "monster5Present": {
                         "type": "property",
                         "name": "Present",
@@ -640,6 +682,13 @@
                         "special": {
                             "0x01FF": "None"
                         }
+                    },
+                    "monster6Palette": {
+                        "type": "property",
+                        "name": "Palette",
+                        "begin": 13,
+                        "mask": "0x30",
+                        "stringTable": "battleProperties.monster1Palette"
                     },
                     "monster6Present": {
                         "type": "property",
@@ -672,6 +721,13 @@
                             "0x01FF": "None"
                         }
                     },
+                    "monster7Palette": {
+                        "type": "property",
+                        "name": "Palette",
+                        "begin": 13,
+                        "mask": "0x0C",
+                        "stringTable": "battleProperties.monster1Palette"
+                    },
                     "monster7Present": {
                         "type": "property",
                         "name": "Present",
@@ -702,6 +758,13 @@
                         "special": {
                             "0x01FF": "None"
                         }
+                    },
+                    "monster8Palette": {
+                        "type": "property",
+                        "name": "Palette",
+                        "begin": 13,
+                        "mask": "0x03",
+                        "stringTable": "battleProperties.monster1Palette"
                     },
                     "monster8Present": {
                         "type": "property",
@@ -2477,6 +2540,12 @@
                 "length": 16,
                 "format": "bgr555"
             }
+        },
+        "monsterPaletteUnderwater": {
+            "type": "assembly",
+            "name": "Monster Palette (Underwater)",
+            "range": "0xD99755-0xD99775",
+            "format": "bgr555"
         },
         "monsterPosition": {
             "type": "array",
