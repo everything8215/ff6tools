@@ -5998,9 +5998,9 @@
                         }
                     }
                 },
-                "gameCode": {
+                "makerCode": {
                     "type": "property",
-                    "name": "Game Code",
+                    "name": "Maker Code",
                     "begin": 26
                 },
                 "romVersion": {

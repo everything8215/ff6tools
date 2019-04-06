@@ -6468,14 +6468,14 @@
             "name": "SNES Header",
             "range": "0xC0FFB0-0xC0FFE0",
             "assembly": {
-                "gameCode": {
-                    "type": "text",
-                    "name": "Game Code",
-                    "length": 2
-                },
                 "makerCode": {
                     "type": "text",
                     "name": "Maker Code",
+                    "length": 2
+                },
+                "gameCode": {
+                    "type": "text",
+                    "name": "Game Code",
                     "begin": 2,
                     "length": 4
                 },

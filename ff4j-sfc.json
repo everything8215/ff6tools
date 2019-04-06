@@ -4187,6 +4187,66 @@
                     "begin": 0,
                     "length": 21
                 },
+                "mapMode": {
+                    "type": "property",
+                    "name": "Map Mode",
+                    "begin": 21,
+                    "mask": "0x0F",
+                    "stringTable": {
+                        "string": {
+                            "0": "Mode 20",
+                            "1": "Mode 21",
+                            "3": "Mode 23 (SA-1)",
+                            "5": "Mode 25"
+                        }
+                    }
+                },
+                "cpuSpeed": {
+                    "type": "property",
+                    "name": "CPU Speed",
+                    "begin": 21,
+                    "mask": "0xF0",
+                    "stringTable": {
+                        "string": {
+                            "2": "2.68 MHz (normal speed)",
+                            "3": "3.58 MHz (high speed)"
+                        }
+                    }
+                },
+                "cartridgeType": {
+                    "type": "property",
+                    "name": "Cartridge Type",
+                    "begin": 22,
+                    "mask": "0x0F",
+                    "stringTable": {
+                        "string": {
+                            "0": "ROM Only",
+                            "1": "ROM + RAM",
+                            "2": "ROM + RAM + Battery",
+                            "3": "ROM + Co-processor",
+                            "4": "ROM + Co-processor + RAM",
+                            "5": "ROM + Co-processor + RAM + Battery",
+                            "6": "ROM + Co-processor + Battery"
+                        }
+                    }
+                },
+                "coprocessorType": {
+                    "type": "property",
+                    "name": "Co-processor Type",
+                    "begin": 22,
+                    "mask": "0xF0",
+                    "hidden": "this.parent.cartridgeType.value < 3",
+                    "stringTable": {
+                        "string": {
+                            "0": "DSP",
+                            "1": "Super FX",
+                            "2": "OBC1",
+                            "3": "SA-1",
+                            "14": "Other",
+                            "15": "Custom Chip"
+                        }
+                    }
+                },
                 "romSize": {
                     "type": "property",
                     "name": "ROM Size",
@@ -4200,6 +4260,55 @@
                             "13": "33-64 MBit"
                         }
                     }
+                },
+                "ramSize": {
+                    "type": "property",
+                    "name": "RAM Size",
+                    "begin": 24,
+                    "stringTable": {
+                        "string": {
+                            "0": "None",
+                            "1": "16 KBit",
+                            "3": "64 KBit",
+                            "5": "256 KBit",
+                            "6": "512 KBit",
+                            "7": "1 MBit"
+                        }
+                    }
+                },
+                "destinationCode": {
+                    "type": "property",
+                    "name": "Destination Code",
+                    "begin": 25,
+                    "stringTable": {
+                        "string": {
+                            "0": "Japan",
+                            "1": "North America",
+                            "2": "Europe",
+                            "3": "Scandinavia",
+                            "6": "French",
+                            "7": "Dutch",
+                            "8": "Spanish",
+                            "9": "German",
+                            "10": "Italian",
+                            "11": "Chinese",
+                            "13": "Korean",
+                            "14": "Common",
+                            "15": "Canada",
+                            "16": "Brazil",
+                            "17": "Australia"
+                        }
+                    }
+                },
+                "makerCode": {
+                    "type": "property",
+                    "name": "Maker Code",
+                    "begin": 26
+                },
+                "romVersion": {
+                    "type": "property",
+                    "name": "ROM Version",
+                    "begin": 27
                 },
                 "checksumInverse": {
                     "type": "property",
