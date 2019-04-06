@@ -332,7 +332,7 @@ ROMAssembly.prototype.assemble = function(data) {
         data.set(this.lazyData, this.range.begin);
     }
 
-//    this.updateReferences();
+    this.updateReferences();
     return success;
 }
 
@@ -392,6 +392,7 @@ ROMAssembly.prototype.relocate = function(begin, end) {
     }
     
     // update references if the assembly moved
+    // (this might be redundant since references get updated during assembly)
     this.updateReferences();
 }
 
@@ -2793,8 +2794,10 @@ ROMArray.prototype.assemble = function(data) {
             // relocate the assembly
             assembly.relocate(pointer);
 
-            // for auto-bank arrays, don't allow duplicates to span multiple banks
-            if (this.autoBank && Math.floor(pointer / this.rom.bankSize()) !== Math.floor(length / this.rom.bankSize())) duplicates = {};
+            // for auto-bank arrays, duplicates must be sequential
+            if (this.autoBank && Object.keys(duplicates).length > 1) duplicates = {};
+            
+//            if (this.autoBank && Math.floor(pointer / this.rom.bankSize()) !== Math.floor(length / this.rom.bankSize())) duplicates = {};
         }
     }
     

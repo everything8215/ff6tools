@@ -689,9 +689,9 @@
                         "begin": 23
                     },
                     "category-battle": "Battle",
-                    "battleBG": {
+                    "battleBackground": {
                         "type": "property",
-                        "name": "Battle BG",
+                        "name": "Battle Background",
                         "begin": 24
                     }
                 }

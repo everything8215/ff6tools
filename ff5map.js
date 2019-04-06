@@ -1469,13 +1469,7 @@ FF5MapLayer.prototype.decodeLayout = function(x, y, w, h) {
     h = h || this.h;
     w = Math.min(w, this.w - x);
     h = Math.min(h, this.h - y);
-    
-//    // layout 0 is always blank
-//    if (this.layout.data && this.layout.data.length !== 0x1000) {
-//        this.tiles.fill(1);
-//        return;
-//    }
-//    
+
     switch (this.type) {
         case FF5MapLayer.Type.layer1:
         case FF5MapLayer.Type.layer2:
