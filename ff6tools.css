@@ -126,6 +126,10 @@ body {
     background-color: hsl(0, 0%, 90%);
 }
 
+.nav-category > p:active {
+    background-color: hsl(0, 0%, 85%);
+}
+
 .nav-category > p:after {
     font-size: small;
     margin: 0px;

@@ -1481,15 +1481,12 @@ ROM.dataFormat = {
     "terminated": {
         encode: function(data, terminator) {
             terminator = terminator || 0;
-//            if (data[data.length - 1] === terminator) return data;
             var newData = new Uint8Array(data.length + 1);
             newData.set(data);
             newData[newData.length - 1] = terminator;
             return newData;
         },
         decode: function(data, terminator) {
-//            terminator = terminator || 0;
-//            if (data[data.length - 1] !== terminator) return data;
             return data.subarray(0, data.length - 1);
         }
     },

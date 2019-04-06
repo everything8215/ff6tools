@@ -48,6 +48,12 @@
                     "name": "Battles",
                     "path": "battleProperties"
                 }, {
+                    "name": "Random Battle Groups",
+                    "path": "battleGroupsRandom"
+                }, {
+                    "name": "Event Battle Groups",
+                    "path": "battleGroupsEvent"
+                }, {
                     "name": "Battle Dialog",
                     "path": "battleDialog"
                 }, {
@@ -1440,37 +1446,43 @@
                         "type": "property",
                         "name": "Weapon",
                         "begin": 15,
-                        "stringTable": "itemNames"
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
                     },
                     "shield": {
                         "type": "property",
                         "name": "Shield",
                         "begin": 16,
-                        "stringTable": "itemNames"
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
                     },
                     "helmet": {
                         "type": "property",
                         "name": "Helmet",
                         "begin": 17,
-                        "stringTable": "itemNames"
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
                     },
                     "armor": {
                         "type": "property",
                         "name": "Armor",
                         "begin": 18,
-                        "stringTable": "itemNames"
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
                     },
                     "relic1": {
                         "type": "property",
                         "name": "Relic 1",
                         "begin": 19,
-                        "stringTable": "itemNames"
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
                     },
                     "relic2": {
                         "type": "property",
                         "name": "Relic 2",
                         "begin": 20,
-                        "stringTable": "itemNames"
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
                     },
                     "runFactor": {
                         "type": "property",
@@ -2551,61 +2563,71 @@
                     "type": "property",
                     "name": "Item 1",
                     "begin": 0,
-                    "stringTable": "itemNames"
+                    "stringTable": "itemNames",
+                    "link": "itemProperties[%i]"
                 },
                 "item2": {
                     "type": "property",
                     "name": "Item 2",
                     "begin": 1,
-                    "stringTable": "itemNames"
+                    "stringTable": "itemNames",
+                    "link": "itemProperties[%i]"
                 },
                 "item3": {
                     "type": "property",
                     "name": "Item 3",
                     "begin": 2,
-                    "stringTable": "itemNames"
+                    "stringTable": "itemNames",
+                    "link": "itemProperties[%i]"
                 },
                 "item4": {
                     "type": "property",
                     "name": "Item 4",
                     "begin": 3,
-                    "stringTable": "itemNames"
+                    "stringTable": "itemNames",
+                    "link": "itemProperties[%i]"
                 },
                 "item5": {
                     "type": "property",
                     "name": "Item 5",
                     "begin": 4,
-                    "stringTable": "itemNames"
+                    "stringTable": "itemNames",
+                    "link": "itemProperties[%i]"
                 },
                 "item6": {
                     "type": "property",
                     "name": "Item 6",
                     "begin": 5,
-                    "stringTable": "itemNames"
+                    "stringTable": "itemNames",
+                    "link": "itemProperties[%i]"
                 },
                 "item7": {
                     "type": "property",
                     "name": "Item 7",
                     "begin": 6,
-                    "stringTable": "itemNames"
+                    "stringTable": "itemNames",
+                    "link": "itemProperties[%i]"
                 },
                 "item8": {
                     "type": "property",
                     "name": "Item 8",
                     "begin": 7,
-                    "stringTable": "itemNames"
+                    "stringTable": "itemNames",
+                    "link": "itemProperties[%i]"
                 },
                 "item9": {
                     "type": "property",
                     "name": "Item 9",
                     "begin": 8,
-                    "stringTable": "itemNames"
+                    "stringTable": "itemNames",
+                    "link": "itemProperties[%i]"
                 },
                 "item10": {
                     "type": "property",
                     "name": "Item 10",
                     "begin": 9,
-                    "stringTable": "itemNames"
+                    "stringTable": "itemNames",
+                    "link": "itemProperties[%i]"
                 }
             }
         },
@@ -2624,25 +2646,29 @@
                         "type": "property",
                         "name": "Item 1",
                         "begin": 0,
-                        "stringTable": "itemNames"
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
                     },
                     "item2": {
                         "type": "property",
                         "name": "Item 2",
                         "begin": 1,
-                        "stringTable": "itemNames"
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
                     },
                     "item3": {
                         "type": "property",
                         "name": "Item 3",
                         "begin": 2,
-                        "stringTable": "itemNames"
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
                     },
                     "item4": {
                         "type": "property",
                         "name": "Item 4",
                         "begin": 3,
-                        "stringTable": "itemNames"
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
                     }
                 }
             },
@@ -2795,30 +2821,21 @@
                         "begin": 3,
                         "invalid": "(this.parent.itemType.value < 2) || (this.parent.itemType.value === 6)"
                     },
-                    "equip": {
+                    "canEquip": {
                         "type": "property",
-                        "name": "Equip",
+                        "name": "Can Equip",
                         "begin": 1,
-                        "mask": "0x3FFF",
+                        "mask": "0xFFFF",
                         "flag": true,
-                        "stringTable": "characterNames",
-                        "invalid": "(this.parent.itemType.value === 0) || (this.parent.itemType.value > 5)"
-                    },
-                    "imp": {
-                        "type": "property",
-                        "name": "Imp Item",
-                        "begin": 2,
-                        "mask": "0x40",
-                        "bool": true,
-                        "invalid": "(this.parent.itemType.value === 0) || (this.parent.itemType.value === 6)"
-                    },
-                    "heavy": {
-                        "type": "property",
-                        "name": "Heavy",
-                        "begin": 2,
-                        "mask": "0x80",
-                        "bool": true,
-                        "invalid": "(this.parent.itemType.value === 0) || (this.parent.itemType.value === 6)"
+                        "invalid": "(this.parent.itemType.value === 0) || (this.parent.itemType.value === 6)",
+                        "stringTable": {
+                            "length": 16,
+                            "default": "<characterNames[%i]>",
+                            "string": {
+                                "14": "Imp Item",
+                                "15": "Heavy Item"
+                            }
+                        }
                     },
                     "attackPower": {
                         "type": "property",
@@ -3243,234 +3260,6 @@
             "pointerTable": {
                 "range": "0xED7A70-0xED7AA0",
                 "offset": "0xED77A0"
-            }
-        },
-        "naturalMagic": {
-            "type": "array",
-            "name": "Natural Magic",
-            "range": "0xECE3C0-0xECE400",
-            "array": {
-                "length": 2
-            },
-            "assembly": {
-                "type": "data",
-                "length": 32,
-                "assembly": {
-                    "cat-spell1": "Spell 1",
-                    "spell1": {
-                        "type": "property",
-                        "name": "Spell",
-                        "begin": 0,
-                        "stringTable": "spellNames"
-                    },
-                    "level1": {
-                        "type": "property",
-                        "name": "Level",
-                        "begin": 1,
-                        "max": 99
-                    },
-                    "cat-spell2": "Spell 2",
-                    "spell2": {
-                        "type": "property",
-                        "name": "Spell",
-                        "begin": 2,
-                        "stringTable": "spellNames"
-                    },
-                    "level2": {
-                        "type": "property",
-                        "name": "Level",
-                        "begin": 3,
-                        "max": 99
-                    },
-                    "cat-spell3": "Spell 3",
-                    "spell3": {
-                        "type": "property",
-                        "name": "Spell",
-                        "begin": 4,
-                        "stringTable": "spellNames"
-                    },
-                    "level3": {
-                        "type": "property",
-                        "name": "Level",
-                        "begin": 5,
-                        "max": 99
-                    },
-                    "cat-spell4": "Spell 4",
-                    "spell4": {
-                        "type": "property",
-                        "name": "Spell",
-                        "begin": 6,
-                        "stringTable": "spellNames"
-                    },
-                    "level4": {
-                        "type": "property",
-                        "name": "Level",
-                        "begin": 7,
-                        "max": 99
-                    },
-                    "cat-spell5": "Spell 5",
-                    "spell5": {
-                        "type": "property",
-                        "name": "Spell",
-                        "begin": 8,
-                        "stringTable": "spellNames"
-                    },
-                    "level5": {
-                        "type": "property",
-                        "name": "Level",
-                        "begin": 9,
-                        "max": 99
-                    },
-                    "cat-spell6": "Spell 6",
-                    "spell6": {
-                        "type": "property",
-                        "name": "Spell",
-                        "begin": 10,
-                        "stringTable": "spellNames"
-                    },
-                    "level6": {
-                        "type": "property",
-                        "name": "Level",
-                        "begin": 11,
-                        "max": 99
-                    },
-                    "cat-spell7": "Spell 7",
-                    "spell7": {
-                        "type": "property",
-                        "name": "Spell",
-                        "begin": 12,
-                        "stringTable": "spellNames"
-                    },
-                    "level7": {
-                        "type": "property",
-                        "name": "Level",
-                        "begin": 13,
-                        "max": 99
-                    },
-                    "cat-spell8": "Spell 8",
-                    "spell8": {
-                        "type": "property",
-                        "name": "Spell",
-                        "begin": 14,
-                        "stringTable": "spellNames"
-                    },
-                    "level8": {
-                        "type": "property",
-                        "name": "Level",
-                        "begin": 15,
-                        "max": 99
-                    },
-                    "cat-spell9": "Spell 9",
-                    "spell9": {
-                        "type": "property",
-                        "name": "Spell",
-                        "begin": 16,
-                        "stringTable": "spellNames"
-                    },
-                    "level9": {
-                        "type": "property",
-                        "name": "Level",
-                        "begin": 17,
-                        "max": 99
-                    },
-                    "cat-spell10": "Spell 10",
-                    "spell10": {
-                        "type": "property",
-                        "name": "Spell",
-                        "begin": 18,
-                        "stringTable": "spellNames"
-                    },
-                    "level10": {
-                        "type": "property",
-                        "name": "Level",
-                        "begin": 19,
-                        "max": 99
-                    },
-                    "cat-spell11": "Spell 11",
-                    "spell11": {
-                        "type": "property",
-                        "name": "Spell",
-                        "begin": 20,
-                        "stringTable": "spellNames"
-                    },
-                    "level11": {
-                        "type": "property",
-                        "name": "Level",
-                        "begin": 21,
-                        "max": 99
-                    },
-                    "cat-spell12": "Spell 12",
-                    "spell12": {
-                        "type": "property",
-                        "name": "Spell",
-                        "begin": 22,
-                        "stringTable": "spellNames"
-                    },
-                    "level12": {
-                        "type": "property",
-                        "name": "Level",
-                        "begin": 23,
-                        "max": 99
-                    },
-                    "cat-spell13": "Spell 13",
-                    "spell13": {
-                        "type": "property",
-                        "name": "Spell",
-                        "begin": 24,
-                        "stringTable": "spellNames"
-                    },
-                    "level13": {
-                        "type": "property",
-                        "name": "Level",
-                        "begin": 25,
-                        "max": 99
-                    },
-                    "cat-spell14": "Spell 14",
-                    "spell14": {
-                        "type": "property",
-                        "name": "Spell",
-                        "begin": 26,
-                        "stringTable": "spellNames"
-                    },
-                    "level14": {
-                        "type": "property",
-                        "name": "Level",
-                        "begin": 27,
-                        "max": 99
-                    },
-                    "cat-spell15": "Spell 15",
-                    "spell15": {
-                        "type": "property",
-                        "name": "Spell",
-                        "begin": 28,
-                        "stringTable": "spellNames"
-                    },
-                    "level15": {
-                        "type": "property",
-                        "name": "Level",
-                        "begin": 29,
-                        "max": 99
-                    },
-                    "cat-spell16": "Spell 16",
-                    "spell16": {
-                        "type": "property",
-                        "name": "Spell",
-                        "begin": 30,
-                        "stringTable": "spellNames"
-                    },
-                    "level16": {
-                        "type": "property",
-                        "name": "Level",
-                        "begin": 31,
-                        "max": 99
-                    }
-                }
-            },
-            "stringTable": {
-                "string": {
-                    "0": "<characterNames[0]>",
-                    "1": "<characterNames[6]>"
-                }
             }
         },
         "mapAnimationGraphics": {
@@ -5358,25 +5147,29 @@
                         "type": "property",
                         "name": "Rare Steal",
                         "begin": 0,
-                        "stringTable": "itemNames"
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
                     },
                     "commonSteal": {
                         "type": "property",
                         "name": "Common Steal",
                         "begin": 1,
-                        "stringTable": "itemNames"
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
                     },
                     "rareDrop": {
                         "type": "property",
                         "name": "Rare Drop",
                         "begin": 2,
-                        "stringTable": "itemNames"
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
                     },
                     "commonDrop": {
                         "type": "property",
                         "name": "Common Drop",
                         "begin": 3,
-                        "stringTable": "itemNames"
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
                     }
                 }
             }
@@ -5799,6 +5592,234 @@
                 "type": "property",
                 "name": "Vertical Offset",
                 "length": 1
+            }
+        },
+        "naturalMagic": {
+            "type": "array",
+            "name": "Natural Magic",
+            "range": "0xECE3C0-0xECE400",
+            "array": {
+                "length": 2
+            },
+            "assembly": {
+                "type": "data",
+                "length": 32,
+                "assembly": {
+                    "cat-spell1": "Spell 1",
+                    "spell1": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 0,
+                        "stringTable": "spellNames"
+                    },
+                    "level1": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 1,
+                        "max": 99
+                    },
+                    "cat-spell2": "Spell 2",
+                    "spell2": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 2,
+                        "stringTable": "spellNames"
+                    },
+                    "level2": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 3,
+                        "max": 99
+                    },
+                    "cat-spell3": "Spell 3",
+                    "spell3": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 4,
+                        "stringTable": "spellNames"
+                    },
+                    "level3": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 5,
+                        "max": 99
+                    },
+                    "cat-spell4": "Spell 4",
+                    "spell4": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 6,
+                        "stringTable": "spellNames"
+                    },
+                    "level4": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 7,
+                        "max": 99
+                    },
+                    "cat-spell5": "Spell 5",
+                    "spell5": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 8,
+                        "stringTable": "spellNames"
+                    },
+                    "level5": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 9,
+                        "max": 99
+                    },
+                    "cat-spell6": "Spell 6",
+                    "spell6": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 10,
+                        "stringTable": "spellNames"
+                    },
+                    "level6": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 11,
+                        "max": 99
+                    },
+                    "cat-spell7": "Spell 7",
+                    "spell7": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 12,
+                        "stringTable": "spellNames"
+                    },
+                    "level7": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 13,
+                        "max": 99
+                    },
+                    "cat-spell8": "Spell 8",
+                    "spell8": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 14,
+                        "stringTable": "spellNames"
+                    },
+                    "level8": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 15,
+                        "max": 99
+                    },
+                    "cat-spell9": "Spell 9",
+                    "spell9": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 16,
+                        "stringTable": "spellNames"
+                    },
+                    "level9": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 17,
+                        "max": 99
+                    },
+                    "cat-spell10": "Spell 10",
+                    "spell10": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 18,
+                        "stringTable": "spellNames"
+                    },
+                    "level10": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 19,
+                        "max": 99
+                    },
+                    "cat-spell11": "Spell 11",
+                    "spell11": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 20,
+                        "stringTable": "spellNames"
+                    },
+                    "level11": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 21,
+                        "max": 99
+                    },
+                    "cat-spell12": "Spell 12",
+                    "spell12": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 22,
+                        "stringTable": "spellNames"
+                    },
+                    "level12": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 23,
+                        "max": 99
+                    },
+                    "cat-spell13": "Spell 13",
+                    "spell13": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 24,
+                        "stringTable": "spellNames"
+                    },
+                    "level13": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 25,
+                        "max": 99
+                    },
+                    "cat-spell14": "Spell 14",
+                    "spell14": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 26,
+                        "stringTable": "spellNames"
+                    },
+                    "level14": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 27,
+                        "max": 99
+                    },
+                    "cat-spell15": "Spell 15",
+                    "spell15": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 28,
+                        "stringTable": "spellNames"
+                    },
+                    "level15": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 29,
+                        "max": 99
+                    },
+                    "cat-spell16": "Spell 16",
+                    "spell16": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 30,
+                        "stringTable": "spellNames"
+                    },
+                    "level16": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 31,
+                        "max": 99
+                    }
+                }
+            },
+            "stringTable": {
+                "string": {
+                    "0": "<characterNames[0]>",
+                    "1": "<characterNames[6]>"
+                }
             }
         },
         "npcProperties": {
@@ -6240,28 +6261,9 @@
             },
             "stringTable": {
                 "length": 20,
-                "default": "Rare Item %i",
+                "default": "<rareItemName[%i].itemName>",
                 "string": {
-                    "0": "<rareItemName[%i].itemName>",
-                    "1": "<rareItemName[%i].itemName>",
-                    "2": "<rareItemDescription[%i]>",
-                    "3": "<rareItemDescription[%i]>",
-                    "4": "<rareItemDescription[%i]>",
-                    "5": "<rareItemDescription[%i]>",
-                    "6": "<rareItemName[%i].itemName>",
-                    "7": "<rareItemName[%i].itemName>",
-                    "8": "<rareItemName[%i].itemName>",
-                    "9": "<rareItemName[%i].itemName>",
-                    "10": "<rareItemName[%i].itemName>",
-                    "11": "<rareItemName[%i].itemName>",
-                    "12": "<rareItemName[%i].itemName>",
-                    "13": "<rareItemName[%i].itemName>",
-                    "14": "<rareItemName[%i].itemName>",
-                    "15": "<rareItemName[%i].itemName>",
-                    "16": "<rareItemName[%i].itemName>",
-                    "17": "<rareItemName[%i].itemName>",
-                    "18": "<rareItemName[%i].itemName>",
-                    "19": "<rareItemName[%i].itemName>"
+                    "2-6": "<rareItemDescription[%i]>"
                 }
             }
         },
@@ -6313,49 +6315,57 @@
                         "type": "property",
                         "name": "Item 1",
                         "begin": 1,
-                        "stringTable": "itemNames"
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
                     },
                     "item2": {
                         "type": "property",
                         "name": "Item 2",
                         "begin": 2,
-                        "stringTable": "itemNames"
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
                     },
                     "item3": {
                         "type": "property",
                         "name": "Item 3",
                         "begin": 3,
-                        "stringTable": "itemNames"
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
                     },
                     "item4": {
                         "type": "property",
                         "name": "Item 4",
                         "begin": 4,
-                        "stringTable": "itemNames"
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
                     },
                     "item5": {
                         "type": "property",
                         "name": "Item 5",
                         "begin": 5,
-                        "stringTable": "itemNames"
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
                     },
                     "item6": {
                         "type": "property",
                         "name": "Item 6",
                         "begin": 6,
-                        "stringTable": "itemNames"
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
                     },
                     "item7": {
                         "type": "property",
                         "name": "Item 7",
                         "begin": 7,
-                        "stringTable": "itemNames"
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
                     },
                     "item8": {
                         "type": "property",
                         "name": "Item 8",
                         "begin": 8,
-                        "stringTable": "itemNames"
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
                     }
                 }
             },
@@ -6814,6 +6824,7 @@
                             "name": "Item",
                             "begin": 4,
                             "stringTable": "itemNames",
+                            "link": "itemProperties[%i]",
                             "invalid": "this.parent.treasureType.value !== 4"
                         },
                         "gp": {
@@ -7665,7 +7676,8 @@
                             "type": "property",
                             "name": "Item",
                             "begin": 1,
-                            "stringTable": "itemNames"
+                            "stringTable": "itemNames",
+                            "link": "itemProperties[%i]"
                         }
                     }
                 },
@@ -9475,14 +9487,16 @@
                             "name": "Item 1",
                             "begin": 2,
                             "invalid": "(this.parent.condition.value !== 3)",
-                            "stringTable": "itemNames"
+                            "stringTable": "itemNames",
+                            "link": "itemProperties[%i]"
                         },
                         "item2": {
                             "type": "property",
                             "name": "Item 2",
                             "begin": 3,
                             "invalid": "(this.parent.condition.value !== 3)",
-                            "stringTable": "itemNames"
+                            "stringTable": "itemNames",
+                            "link": "itemProperties[%i]"
                         },
                         "element": {
                             "type": "property",
@@ -9650,13 +9664,15 @@
                             "type": "property",
                             "name": "2/3 Chance",
                             "begin": 2,
-                            "stringTable": "itemNames"
+                            "stringTable": "itemNames",
+                            "link": "itemProperties[%i]"
                         },
                         "item2": {
                             "type": "property",
                             "name": "1/3 Chance",
                             "begin": 3,
-                            "stringTable": "itemNames"
+                            "stringTable": "itemNames",
+                            "link": "itemProperties[%i]"
                         }
                     }
                 },
