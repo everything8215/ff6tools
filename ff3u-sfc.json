@@ -5494,7 +5494,7 @@
                     },
                     "morphItems": {
                         "type": "property",
-                        "name": "Metamorphosis Items",
+                        "name": "Metamorphosis",
                         "begin": 17,
                         "mask": "0x1F",
                         "link": "itemMetamorphosis[%i]",

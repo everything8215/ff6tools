@@ -4057,7 +4057,7 @@
                     },
                     "morphItems": {
                         "type": "property",
-                        "name": "Morph Items",
+                        "name": "Metamorphosis",
                         "begin": 17,
                         "mask": "0x1F"
                     },
