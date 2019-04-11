@@ -2528,7 +2528,7 @@
                         "invalid": "this.parent.itemType.value !== 1",
                         "stringTable": {
                             "string": {
-                                "1": "SwdTech",
+                                "1": "Bushido",
                                 "5": "No Back Row Penalty",
                                 "6": "Two-Handed",
                                 "7": "Enable Runic"
@@ -6082,7 +6082,42 @@
             },
             "pointerTable": {
                 "range": "0x08165508-0x08167F20",
-                "offset": "0x081654F8"
+                "offset": "0x081654F8",
+                "reference": [
+                    {
+                        "begin": "0x08108A7C",
+                        "mask": "0x7FFFFFFF",
+                        "offset": 16
+                    }, {
+                        "begin": "0x08109F58",
+                        "mask": "0x7FFFFFFF",
+                        "offset": 16
+                    }, {
+                        "begin": "0x0812FFB4",
+                        "mask": "0x7FFFFFFF",
+                        "offset": 16
+                    }, {
+                        "begin": "0x0813100C",
+                        "mask": "0x7FFFFFFF",
+                        "offset": 16
+                    }, {
+                        "begin": "0x08150BE4",
+                        "mask": "0x7FFFFFFF",
+                        "offset": 16
+                    }, {
+                        "begin": "0x08151E60",
+                        "mask": "0x7FFFFFFF",
+                        "offset": 16
+                    }, {
+                        "begin": "0x08151F20",
+                        "mask": "0x7FFFFFFF",
+                        "offset": 16
+                    }, {
+                        "begin": "0x08151F9C",
+                        "mask": "0x7FFFFFFF",
+                        "offset": 16
+                    }
+                ]
             },
             "stringTable": {
                 "name": "Small Text",
@@ -6105,7 +6140,22 @@
             },
             "pointerTable": {
                 "range": "0x08174464-0x0817A3EC",
-                "offset": "0x08174454"
+                "offset": "0x08174454",
+                "reference": [
+                    {
+                        "begin": "0x08108A88",
+                        "mask": "0x7FFFFFFF",
+                        "offset": 16
+                    }, {
+                        "begin": "0x0810A0C8",
+                        "mask": "0x7FFFFFFF",
+                        "offset": 16
+                    }, {
+                        "begin": "0x08150B00",
+                        "mask": "0x7FFFFFFF",
+                        "offset": 16
+                    }
+                ]
             },
             "stringTable": {
                 "name": "Large Text",
@@ -12079,6 +12129,14 @@
                 "483": "<stringTable.rareItem[19]>",
                 "484": "<stringTable.rareItem[20]>",
                 "485": "<stringTable.rareItem[21]>",
+                "486": "Unused Rare Item 23",
+                "487": "Unused Rare Item 24",
+                "488": "Unused Rare Item 25",
+                "489": "Unused Rare Item 26",
+                "490": "Unused Rare Item 27",
+                "491": "Unused Rare Item 28",
+                "494": "Selected a Valid Colosseum Item",
+                "495": "Fighting Shadow in the Colosseum",
                 "496": "Local Control 1",
                 "497": "Local Control 2",
                 "498": "Local Control 3",

@@ -78,6 +78,47 @@
                 }, {
                     "name": "Espers",
                     "path": "esperProperties"
+                }, {
+                    "name": "Esper Bonuses",
+                    "path": "stringTable.esperBonus"
+                }, {
+                    "name": "Natural Magic",
+                    "path": "naturalMagic"
+                }, {
+                    "name": "Blitz",
+                    "path": "blitzCode"
+                }, {
+                    "name": "Bushido",
+                    "path": "bushidoLevel"
+                }, {
+                    "name": "Dance",
+                    "path": "danceAttacks"
+                }, {
+                    "name": "Lore",
+                    "path": "initialLore"
+                }
+            ]
+        }, {
+            "name": "Item",
+            "list": [
+                {
+                    "name": "Items",
+                    "path": "itemProperties"
+                }, {
+                    "name": "Rare Items",
+                    "path": "stringTable.rareItem"
+                }, {
+                    "name": "Shops",
+                    "path": "shopProperties"
+                }, {
+                    "name": "Colosseum Items",
+                    "path": "itemColosseum"
+                }, {
+                    "name": "Metamorphosis Items",
+                    "path": "itemMetamorphosis"
+                }, {
+                    "name": "Manual Equip Items",
+                    "path": "itemManualEquip"
                 }
             ]
         }
@@ -205,49 +246,6 @@
                     }
                 },
                 "length": 6
-            }
-        },
-        "_battleCommandName": {
-            "type": "array",
-            "name": "Battle Command Name",
-            "range": "0x0816911C-0x081691DC",
-            "array": {
-                "length": 30,
-                "max": 30
-            },
-            "assembly": {
-                "type": "text",
-                "encoding": "menu"
-            },
-            "pointerTable": {
-                "range": "0x08165A70-0x08165AF0",
-                "offset": "0x081654F8"
-            },
-            "stringTable": {
-                "name": "Battle Command Name",
-                "default": "Battle Command %i",
-                "string": {
-                    "0x00-0x1F": "<battleCommandName[%i]>",
-                    "0x1E": "A.I. Command",
-                    "0x1F": "Random Attack",
-                    "0x20": "Change Battle",
-                    "0x21": "Battle Dialog",
-                    "0x22": "Enemy Roulette",
-                    "0x23": "Battle Event",
-                    "0x24": "Monster Entry/Exit",
-                    "0x25": "Battle Message",
-                    "0x26": "Attack w/o Attacker",
-                    "0x27": "Scan Info",
-                    "0x29": "Status Counter Expired",
-                    "0x2A": "Run",
-                    "0x2B": "Monster Animation",
-                    "0x2C": "Reset Character Action",
-                    "0x2D": "Seize Damage",
-                    "0x2E": "Change Variable",
-                    "0x2F": "Change Switch",
-                    "0x30": "Misc. Effects",
-                    "0xFF": "Nothing"
-                }
             }
         },
         "battleGroupsEvent": {
@@ -793,6 +791,174 @@
                 }
             }
         },
+        "blitzCode": {
+            "type": "array",
+            "name": "Blitz Code",
+            "range": "0x0862AB3C-0x0862AB9C",
+            "array": {
+                "length": 8
+            },
+            "assembly": {
+                "type": "data",
+                "length": 12,
+                "assembly": {
+                    "blitzName": {
+                        "type": "assembly",
+                        "name": "Name",
+                        "external": "stringTable.blitzName[%i]"
+                    },
+                    "level": {
+                        "type": "assembly",
+                        "external": "blitzLevel[%i]"
+                    },
+                    "cat-code": "Input Code",
+                    "length": {
+                        "type": "property",
+                        "name": "Length",
+                        "begin": 11,
+                        "stringTable": {
+                            "hideIndex": true,
+                            "string": {
+                                "2": "1 Button",
+                                "4": "2 Buttons",
+                                "6": "3 Buttons",
+                                "8": "4 Buttons",
+                                "10": "5 Buttons",
+                                "12": "6 Buttons",
+                                "14": "7 Buttons",
+                                "16": "8 Buttons",
+                                "18": "9 Buttons",
+                                "20": "10 Buttons",
+                                "22": "11 Buttons"
+                            }
+                        }
+                    },
+                    "button1": {
+                        "type": "property",
+                        "name": "Button 1",
+                        "begin": 0,
+                        "stringTable": {
+                            "hideIndex": true,
+                            "string": {
+                                "0": "No Button",
+                                "1": "A Button",
+                                "3": "X Button",
+                                "4": "Y Button",
+                                "5": "L Button",
+                                "6": "R Button",
+                                "7": "Down/Left",
+                                "8": "Down",
+                                "9": "Down/Right",
+                                "10": "Right",
+                                "11": "Up/Right",
+                                "12": "Up",
+                                "13": "Up/Left",
+                                "14": "Left"
+                            }
+                        }
+                    },
+                    "button2": {
+                        "type": "property",
+                        "name": "Button 2",
+                        "begin": 1,
+                        "stringTable": "blitzCode.button1"
+                    },
+                    "button3": {
+                        "type": "property",
+                        "name": "Button 3",
+                        "begin": 2,
+                        "stringTable": "blitzCode.button1"
+                    },
+                    "button4": {
+                        "type": "property",
+                        "name": "Button 4",
+                        "begin": 3,
+                        "stringTable": "blitzCode.button1"
+                    },
+                    "button5": {
+                        "type": "property",
+                        "name": "Button 5",
+                        "begin": 4,
+                        "stringTable": "blitzCode.button1"
+                    },
+                    "button6": {
+                        "type": "property",
+                        "name": "Button 6",
+                        "begin": 5,
+                        "stringTable": "blitzCode.button1"
+                    },
+                    "button7": {
+                        "type": "property",
+                        "name": "Button 7",
+                        "begin": 6,
+                        "stringTable": "blitzCode.button1"
+                    },
+                    "button8": {
+                        "type": "property",
+                        "name": "Button 8",
+                        "begin": 7,
+                        "stringTable": "blitzCode.button1"
+                    },
+                    "button9": {
+                        "type": "property",
+                        "name": "Button 9",
+                        "begin": 8,
+                        "stringTable": "blitzCode.button1"
+                    },
+                    "button10": {
+                        "type": "property",
+                        "name": "Button 10",
+                        "begin": 9,
+                        "stringTable": "blitzCode.button1"
+                    },
+                    "button11": {
+                        "type": "property",
+                        "name": "Button 11",
+                        "begin": 10,
+                        "stringTable": "blitzCode.button1"
+                    }
+                }
+            },
+            "stringTable": "blitzName"
+        },
+        "blitzLevel": {
+            "type": "array",
+            "name": "Blitz Level",
+            "range": "0x0862ABC0-0x0862ABC8",
+            "array": {
+                "length": 8
+            },
+            "assembly": {
+                "type": "property",
+                "name": "Level",
+                "max": 99
+            }
+        },
+        "bushidoLevel": {
+            "type": "array",
+            "name": "Bushido Level",
+            "range": "0x0862ABB8-0x0862ABC0",
+            "array": {
+                "length": 8
+            },
+            "stringTable": "bushidoName",
+            "assembly": {
+                "type": "data",
+                "length": 1,
+                "assembly": {
+                    "swdTechName": {
+                        "type": "assembly",
+                        "name": "Name",
+                        "external": "stringTable.bushidoName[%i]"
+                    },
+                    "level": {
+                        "type": "property",
+                        "name": "Level",
+                        "max": 99
+                    }
+                }
+            }
+        },
         "characterAI": {
             "type": "array",
             "name": "Character A.I. Properties",
@@ -1133,37 +1299,43 @@
                         "type": "property",
                         "name": "Weapon",
                         "begin": 15,
-                        "stringTable": "itemNames"
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
                     },
                     "shield": {
                         "type": "property",
                         "name": "Shield",
                         "begin": 16,
-                        "stringTable": "itemNames"
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
                     },
                     "helmet": {
                         "type": "property",
                         "name": "Helmet",
                         "begin": 17,
-                        "stringTable": "itemNames"
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
                     },
                     "armor": {
                         "type": "property",
                         "name": "Armor",
                         "begin": 18,
-                        "stringTable": "itemNames"
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
                     },
                     "relic1": {
                         "type": "property",
                         "name": "Relic 1",
                         "begin": 19,
-                        "stringTable": "itemNames"
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
                     },
                     "relic2": {
                         "type": "property",
                         "name": "Relic 2",
                         "begin": 20,
-                        "stringTable": "itemNames"
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
                     },
                     "runFactor": {
                         "type": "property",
@@ -1205,6 +1377,67 @@
                 }
             },
             "stringTable": "characterNames"
+        },
+        "danceAttacks": {
+            "type": "array",
+            "name": "Dance Attacks",
+            "range": "0x0862CC20-0x0862CC40",
+            "array": {
+                "length": 8
+            },
+            "assembly": {
+                "type": "data",
+                "length": 4,
+                "assembly": {
+                    "danceName": {
+                        "type": "assembly",
+                        "name": "Name",
+                        "external": "stringTable.danceName[%i]"
+                    },
+                    "background": {
+                        "type": "assembly",
+                        "external": "danceBackground[%i]"
+                    },
+                    "attack1": {
+                        "type": "property",
+                        "name": "Attack 1",
+                        "begin": 0,
+                        "stringTable": "attackName"
+                    },
+                    "attack2": {
+                        "type": "property",
+                        "name": "Attack 2",
+                        "begin": 1,
+                        "stringTable": "attackName"
+                    },
+                    "attack3": {
+                        "type": "property",
+                        "name": "Attack 3",
+                        "begin": 2,
+                        "stringTable": "attackName"
+                    },
+                    "attack4": {
+                        "type": "property",
+                        "name": "Attack 4",
+                        "begin": 3,
+                        "stringTable": "attackName"
+                    }
+                }
+            },
+            "stringTable": "danceName"
+        },
+        "danceBackground": {
+            "type": "array",
+            "name": "Dance Background",
+            "range": "0x0862ABB0-0x0862ABB8",
+            "array": {
+                "length": 8
+            },
+            "assembly": {
+                "type": "property",
+                "name": "Background",
+                "stringTable": "battleBackground"
+            }
         },
         "entranceTriggersMulti": {
             "type": "array",
@@ -1833,6 +2066,33 @@
                 }
             }
         },
+        "initialLore": {
+            "type": "array",
+            "name": "Initial Lore",
+            "range": "0x0862AAF8-0x0862AAFB",
+            "format": "linear1bpp",
+            "array": {
+                "length": 24
+            },
+            "stringTable": "loreName",
+            "assembly": {
+                "type": "data",
+                "length": 1,
+                "assembly": {
+                    "loreName": {
+                        "type": "assembly",
+                        "name": "Name",
+                        "external": "stringTable.loreName[%i]"
+                    },
+                    "initialLore": {
+                        "type": "property",
+                        "name": "Known Initially",
+                        "mask": "0x01",
+                        "bool": true
+                    }
+                }
+            }
+        },
         "initialRage": {
             "type": "array",
             "name": "Initial Rage",
@@ -1849,37 +2109,712 @@
                 "bool": true
             }
         },
-        "itemDescriptions": {
+        "itemColosseum": {
             "type": "array",
-            "name": "Item Descriptions",
-            "range": "0x0816C881-0x0816FFE0",
+            "name": "Colosseum Items",
+            "range": "0x0862A618-0x0862AA54",
             "array": {
                 "length": 271
             },
+            "stringTable": "itemNames",
             "assembly": {
-                "type": "text",
-                "encoding": "menu"
+                "type": "data",
+                "length": 4,
+                "assembly": {
+                    "monster": {
+                        "type": "property",
+                        "name": "Monster",
+                        "begin": 0,
+                        "stringTable": "monsterName",
+                        "link": "monsterProperties[%i]"
+                    },
+                    "prize": {
+                        "type": "property",
+                        "name": "Prize Item",
+                        "begin": 2,
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
+                    },
+                    "hidePrize": {
+                        "type": "property",
+                        "name": "Prize Name",
+                        "begin": 3,
+                        "stringTable": {
+                            "hideIndex": true,
+                            "string": {
+                                "0": "Shown",
+                                "255": "Hidden"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "itemManualEquip": {
+            "type": "data",
+            "name": "Manual Equip Items",
+            "range": "0x0862AB9C-0x0862ABAC",
+            "assembly": {
+                "item1": {
+                    "type": "property",
+                    "name": "Item 1",
+                    "begin": 0,
+                    "stringTable": "itemNames",
+                    "link": "itemProperties[%i]"
+                },
+                "item2": {
+                    "type": "property",
+                    "name": "Item 2",
+                    "begin": 1,
+                    "stringTable": "itemNames",
+                    "link": "itemProperties[%i]"
+                },
+                "item3": {
+                    "type": "property",
+                    "name": "Item 3",
+                    "begin": 2,
+                    "stringTable": "itemNames",
+                    "link": "itemProperties[%i]"
+                },
+                "item4": {
+                    "type": "property",
+                    "name": "Item 4",
+                    "begin": 3,
+                    "stringTable": "itemNames",
+                    "link": "itemProperties[%i]"
+                },
+                "item5": {
+                    "type": "property",
+                    "name": "Item 5",
+                    "begin": 4,
+                    "stringTable": "itemNames",
+                    "link": "itemProperties[%i]"
+                },
+                "item6": {
+                    "type": "property",
+                    "name": "Item 6",
+                    "begin": 5,
+                    "stringTable": "itemNames",
+                    "link": "itemProperties[%i]"
+                },
+                "item7": {
+                    "type": "property",
+                    "name": "Item 7",
+                    "begin": 6,
+                    "stringTable": "itemNames",
+                    "link": "itemProperties[%i]"
+                },
+                "item8": {
+                    "type": "property",
+                    "name": "Item 8",
+                    "begin": 7,
+                    "stringTable": "itemNames",
+                    "link": "itemProperties[%i]"
+                },
+                "item9": {
+                    "type": "property",
+                    "name": "Item 9",
+                    "begin": 8,
+                    "stringTable": "itemNames",
+                    "link": "itemProperties[%i]"
+                },
+                "item10": {
+                    "type": "property",
+                    "name": "Item 10",
+                    "begin": 9,
+                    "stringTable": "itemNames",
+                    "link": "itemProperties[%i]"
+                }
+            }
+        },
+        "itemMetamorphosis": {
+            "type": "array",
+            "name": "Metamorphosis Items",
+            "range": "0x0862B23C-0x0862B2A4",
+            "array": {
+                "length": 26
             },
-            "pointerTable": {
-                "range": "0x08166CEC-0x08167128",
-                "offset": "0x081654F8"
+            "assembly": {
+                "type": "data",
+                "length": 4,
+                "assembly": {
+                    "item1": {
+                        "type": "property",
+                        "name": "Item 1",
+                        "begin": 0,
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
+                    },
+                    "item2": {
+                        "type": "property",
+                        "name": "Item 2",
+                        "begin": 1,
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
+                    },
+                    "item3": {
+                        "type": "property",
+                        "name": "Item 3",
+                        "begin": 2,
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
+                    },
+                    "item4": {
+                        "type": "property",
+                        "name": "Item 4",
+                        "begin": 3,
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
+                    }
+                }
+            },
+            "stringTable": {
+                "default": "Metamorphosis Items %i",
+                "length": 26,
+                "string": {
+                    "0": "Antidote, Green Cherry, Eyedrop, Soft",
+                    "1": "Tent, Fenix Down, Warp Stone, Revivify",
+                    "2": "Dried Meat",
+                    "3": "Remedy",
+                    "4": "Mithril",
+                    "5": "Gold",
+                    "6": "Crystal",
+                    "7": "Imp",
+                    "8": "Ogre Nix",
+                    "9": "Marvel Shoes",
+                    "10": "Tintinabar",
+                    "11": "Megalixir",
+                    "12": "X-Potion",
+                    "13": "X-Ether",
+                    "14": "Elixir",
+                    "15": "Gauntlet",
+                    "16": "Genji Glove",
+                    "17": "Safety Bit",
+                    "18": "Exp. Egg",
+                    "19": "Ribbon",
+                    "20": "Flame Shield",
+                    "21": "Ice Shield",
+                    "22": "Thunder Shield",
+                    "23": "Cursed Ring, Thornlet, Relic Ring",
+                    "24": "Cure Ring, Safety Bit, Pod Bracelet",
+                    "25": "Trump, Assassin, Striker"
+                }
             }
         },
         "itemProperties": {
             "type": "array",
             "name": "Item Properties",
             "range": "0x0862CC64-0x0862EC26",
-            "stringTable": "itemNames",
             "array": {
                 "length": 271
             },
+            "stringTable": "itemNames",
             "assembly": {
                 "type": "data",
                 "length": 30,
                 "assembly": {
                     "itemName": {
                         "type": "assembly",
+                        "name": "Name",
                         "external": "stringTable.itemNames[%i]"
+                    },
+                    "itemDescription": {
+                        "type": "assembly",
+                        "name": "Description",
+                        "external": "stringTable.itemDescription[%i]"
+                    },
+                    "itemType": {
+                        "type": "property",
+                        "name": "Type",
+                        "begin": 0,
+                        "mask": "0x0F",
+                        "stringTable": {
+                            "string": {
+                                "0": "Tool",
+                                "1": "Weapon",
+                                "2": "Armor",
+                                "3": "Shield",
+                                "4": "Helmet",
+                                "5": "Relic",
+                                "6": "Item"
+                            }
+                        }
+                    },
+                    "cost": {
+                        "type": "property",
+                        "name": "Cost",
+                        "begin": 28,
+                        "mask": "0xFFFF"
+                    },
+                    "usage": {
+                        "type": "property",
+                        "name": "Usage",
+                        "begin": 0,
+                        "mask": "0x70",
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "0": "Throw",
+                                "1": "Battle",
+                                "2": "Menu"
+                            }
+                        }
+                    },
+                    "targeting": {
+                        "type": "property",
+                        "name": "Targeting",
+                        "begin": 14,
+                        "flag": true,
+                        "stringTable": "targetingFlags"
+                    },
+                    "spellCast": {
+                        "type": "property",
+                        "name": "Spell Cast",
+                        "begin": 18,
+                        "mask": "0x3F",
+                        "stringTable": "spellName",
+                        "invalid": "(this.parent.itemType.value === 0) || (this.parent.itemType.value > 5)"
+                    },
+                    "randomSpellCast": {
+                        "type": "property",
+                        "name": "Random Spell Cast",
+                        "begin": 18,
+                        "mask": "0x40",
+                        "bool": true,
+                        "invalid": "(this.parent.itemType.value === 0) || (this.parent.itemType.value > 5)"
+                    },
+                    "spellLearned": {
+                        "type": "property",
+                        "name": "Spell Learned",
+                        "begin": 4,
+                        "stringTable": "spellName",
+                        "invalid": "(this.parent.itemType.value < 2) || (this.parent.itemType.value === 6)"
+                    },
+                    "spellRate": {
+                        "type": "property",
+                        "name": "Learn Rate",
+                        "begin": 3,
+                        "invalid": "(this.parent.itemType.value < 2) || (this.parent.itemType.value === 6)"
+                    },
+                    "canEquip": {
+                        "type": "property",
+                        "name": "Can Equip",
+                        "begin": 1,
+                        "mask": "0xFFFF",
+                        "flag": true,
+                        "invalid": "(this.parent.itemType.value === 0) || (this.parent.itemType.value === 6)",
+                        "stringTable": {
+                            "length": 16,
+                            "default": "<stringTable.characterNames[%i]>",
+                            "string": {
+                                "14": "Imp Item",
+                                "15": "Heavy Item"
+                            }
+                        }
+                    },
+                    "attackPower": {
+                        "type": "property",
+                        "name": "Attack Power",
+                        "begin": 20,
+                        "invalid": "this.parent.itemType.value >= 2"
+                    },
+                    "hitRate": {
+                        "type": "property",
+                        "name": "Hit Rate",
+                        "begin": 21,
+                        "invalid": "this.parent.itemType.value >= 2"
+                    },
+                    "defense": {
+                        "type": "property",
+                        "name": "Defense",
+                        "begin": 20,
+                        "invalid": "(this.parent.itemType.value < 2) || (this.parent.itemType.value === 6)"
+                    },
+                    "magicDefense": {
+                        "type": "property",
+                        "name": "Magic Defense",
+                        "begin": 21,
+                        "invalid": "(this.parent.itemType.value < 2) || (this.parent.itemType.value === 6)"
+                    },
+                    "itemPower": {
+                        "type": "property",
+                        "name": "Item Power",
+                        "begin": 20,
+                        "invalid": "this.parent.itemType.value !== 6"
+                    },
+                    "vigor": {
+                        "type": "property",
+                        "name": "Vigor",
+                        "begin": 16,
+                        "mask": "0x0F",
+                        "invalid": "(this.parent.itemType.value === 0) || (this.parent.itemType.value === 6)",
+                        "stringTable": {
+                            "hideIndex": true,
+                            "string": {
+                                "0": "+0",
+                                "1": "+1",
+                                "2": "+2",
+                                "3": "+3",
+                                "4": "+4",
+                                "5": "+5",
+                                "6": "+6",
+                                "7": "+7",
+                                "9": "-1",
+                                "10": "-2",
+                                "11": "-3",
+                                "12": "-4",
+                                "13": "-5",
+                                "14": "-6",
+                                "15": "-7"
+                            }
+                        }
+                    },
+                    "speed": {
+                        "type": "property",
+                        "name": "Speed",
+                        "begin": 16,
+                        "mask": "0xF0",
+                        "stringTable": "itemProperties.vigor",
+                        "invalid": "(this.parent.itemType.value === 0) || (this.parent.itemType.value === 6)"
+                    },
+                    "stamina": {
+                        "type": "property",
+                        "name": "Stamina",
+                        "begin": 17,
+                        "mask": "0x0F",
+                        "stringTable": "itemProperties.vigor",
+                        "invalid": "(this.parent.itemType.value === 0) || (this.parent.itemType.value === 6)"
+                    },
+                    "magicPower": {
+                        "type": "property",
+                        "name": "Magic Power",
+                        "begin": 17,
+                        "mask": "0xF0",
+                        "stringTable": "itemProperties.vigor",
+                        "invalid": "(this.parent.itemType.value === 0) || (this.parent.itemType.value === 6)"
+                    },
+                    "evade": {
+                        "type": "property",
+                        "name": "Evade",
+                        "begin": 26,
+                        "mask": "0x0F",
+                        "invalid": "(this.parent.itemType.value === 0) || (this.parent.itemType.value === 6)",
+                        "stringTable": {
+                            "hideIndex": true,
+                            "string": {
+                                "0": "+0",
+                                "1": "+10%",
+                                "2": "+20%",
+                                "3": "+30%",
+                                "4": "+40%",
+                                "5": "+50%",
+                                "6": "-10%",
+                                "7": "-20%",
+                                "8": "-30%",
+                                "9": "-40%",
+                                "10": "-50%"
+                            }
+                        }
+                    },
+                    "magicBlock": {
+                        "type": "property",
+                        "name": "Magic Block",
+                        "begin": 26,
+                        "mask": "0xF0",
+                        "invalid": "(this.parent.itemType.value === 0) || (this.parent.itemType.value === 6)",
+                        "stringTable": "itemProperties.evade"
+                    },
+                    "weaponFlags": {
+                        "type": "property",
+                        "name": "Weapon Flags",
+                        "begin": 19,
+                        "flag": true,
+                        "invalid": "this.parent.itemType.value !== 1",
+                        "stringTable": {
+                            "string": {
+                                "1": "Bushido",
+                                "5": "No Back Row Penalty",
+                                "6": "Two-Handed",
+                                "7": "Enable Runic"
+                            }
+                        }
+                    },
+                    "weaponSpecialEffect": {
+                        "type": "property",
+                        "name": "Special Effect",
+                        "begin": 27,
+                        "mask": "0xF0",
+                        "invalid": "this.parent.itemType.value !== 1",
+                        "stringTable": {
+                            "hideIndex": true,
+                            "string": {
+                                "0": "None",
+                                "1": "<stringTable.itemNames[4]>",
+                                "2": "<stringTable.itemNames[28]>",
+                                "3": "<stringTable.itemNames[5]>, <stringTable.itemNames[41]>, <stringTable.itemNames[76]>, <stringTable.itemNames[80]>",
+                                "4": "<stringTable.itemNames[6]>",
+                                "5": "<stringTable.itemNames[18]>",
+                                "6": "<stringTable.itemNames[22]>",
+                                "7": "MP Critical",
+                                "8": "<stringTable.itemNames[73]>, <stringTable.itemNames[75]>",
+                                "9": "<stringTable.itemNames[81]>, <stringTable.itemNames[82]>",
+                                "10": "<stringTable.itemNames[9]>",
+                                "11": "<stringTable.itemNames[46]>",
+                                "12": "<stringTable.itemNames[51]>",
+                                "13": "<stringTable.itemNames[25]>",
+                                "14": "<stringTable.itemNames[23]>",
+                                "15": "MP Critical (More)"
+                            }
+                        }
+                    },
+                    "itemFlags": {
+                        "type": "property",
+                        "name": "Item Flags",
+                        "begin": 19,
+                        "flag": true,
+                        "invalid": "this.parent.itemType.value !== 6",
+                        "stringTable": {
+                            "string": {
+                                "1": "Damage Undead",
+                                "3": "Restore HP",
+                                "4": "Restore MP",
+                                "5": "Remove Status",
+                                "6": "Cause Damage",
+                                "7": "Fractional Power (1/16s)"
+                            }
+                        }
+                    },
+                    "itemSpecialEffect": {
+                        "type": "property",
+                        "name": "Special Effect",
+                        "begin": 27,
+                        "invalid": "this.parent.itemType.value !== 6",
+                        "stringTable": {
+                            "hideIndex": true,
+                            "string": {
+                                "0": "None",
+                                "1": "<stringTable.itemNames[249]>",
+                                "2": "<stringTable.itemNames[250]>",
+                                "3": "<stringTable.itemNames[252]>",
+                                "4": "<stringTable.itemNames[238]>, <stringTable.itemNames[239]>",
+                                "5": "<stringTable.itemNames[253]>",
+                                "6": "<stringTable.itemNames[254]>",
+                                "8": "<stringTable.battleCommandName[28]>",
+                                "9": "<stringTable.battleCommandName[24]>",
+                                "10": "<stringTable.battleCommandName[5]>",
+                                "11": "<stringTable.battleCommandName[14]>",
+                                "12": "<stringTable.battleCommandName[17]>",
+                                "13": "<stringTable.battleCommandName[13]>",
+                                "14": "<stringTable.itemNames[167]>",
+                                "15": "<stringTable.itemNames[169]>",
+                                "255": "None"
+                            }
+                        }
+                    },
+                    "blockGraphics": {
+                        "type": "property",
+                        "name": "Block Graphics",
+                        "begin": 27,
+                        "mask": "0x03",
+                        "invalid": "(this.parent.itemType.value === 0) || (this.parent.itemType.value === 6)",
+                        "stringTable": {
+                            "string": {
+                                "0": "Dagger Parry",
+                                "1": "Sword Parry",
+                                "2": "Shield Block",
+                                "3": "Cape Dodge"
+                            }
+                        }
+                    },
+                    "blockType": {
+                        "type": "property",
+                        "name": "Block Type",
+                        "begin": 27,
+                        "mask": "0x0C",
+                        "flag": true,
+                        "invalid": "(this.parent.itemType.value === 0) || (this.parent.itemType.value === 6)",
+                        "stringTable": {
+                            "string": {
+                                "0": "Physical Attacks",
+                                "1": "Magic Attacks"
+                            }
+                        }
+                    },
+                    "elementWeapon": {
+                        "type": "property",
+                        "name": "Element",
+                        "begin": 15,
+                        "flag": true,
+                        "stringTable": "element",
+                        "invalid": "this.parent.itemType.value !== 1"
+                    },
+                    "elementHalf": {
+                        "type": "property",
+                        "name": "50% Element",
+                        "begin": 16,
+                        "flag": true,
+                        "stringTable": "element",
+                        "invalid": "(this.parent.itemType.value < 2) || (this.parent.itemType.value === 6)"
+                    },
+                    "elementAbsorb": {
+                        "type": "property",
+                        "name": "Absorb Element",
+                        "begin": 22,
+                        "flag": true,
+                        "stringTable": "element",
+                        "invalid": "(this.parent.itemType.value < 2) || (this.parent.itemType.value === 6)"
+                    },
+                    "elementNull": {
+                        "type": "property",
+                        "name": "Null Element",
+                        "begin": 23,
+                        "flag": true,
+                        "stringTable": "element",
+                        "invalid": "(this.parent.itemType.value < 2) || (this.parent.itemType.value === 6)"
+                    },
+                    "elementWeak": {
+                        "type": "property",
+                        "name": "Weak Element",
+                        "begin": 24,
+                        "flag": true,
+                        "stringTable": "element",
+                        "invalid": "(this.parent.itemType.value < 2) || (this.parent.itemType.value === 6)"
+                    },
+                    "statusImmunity": {
+                        "type": "property",
+                        "name": "Immune",
+                        "begin": 6,
+                        "mask": "0xFFFF",
+                        "flag": true,
+                        "invalid": "(this.parent.itemType.value === 0) || (this.parent.itemType.value === 6)",
+                        "stringTable": {
+                            "length": 16,
+                            "default": "<stringTable.statusNamesReversed[%i]>"
+                        }
+                    },
+                    "statusHelpful": {
+                        "type": "property",
+                        "name": "Helpful Status",
+                        "begin": 8,
+                        "flag": true,
+                        "invalid": "(this.parent.itemType.value === 0) || (this.parent.itemType.value === 6)",
+                        "stringTable": {
+                            "length": 8,
+                            "default": "<stringTable.statusNamesReversed[%i+16]>",
+                            "string": {
+                                "0": "Float"
+                            }
+                        }
+                    },
+                    "statusHarmful": {
+                        "type": "property",
+                        "name": "Harmful Status",
+                        "begin": 25,
+                        "flag": true,
+                        "invalid": "(this.parent.itemType.value < 2) || (this.parent.itemType.value === 6)",
+                        "stringTable": {
+                            "length": 8,
+                            "default": "<stringTable.statusNamesReversed[%i+8]>"
+                        }
+                    },
+                    "statusItem1": {
+                        "type": "property",
+                        "name": "Status Effect",
+                        "begin": 21,
+                        "mask": "0xFFFF",
+                        "flag": true,
+                        "invalid": "this.parent.itemType.value !== 6",
+                        "stringTable": {
+                            "length": 16,
+                            "default": "<stringTable.statusNamesReversed[%i]>"
+                        }
+                    },
+                    "statusItem2": {
+                        "type": "property",
+                        "begin": 23,
+                        "mask": "0xFFFF",
+                        "flag": true,
+                        "invalid": "this.parent.itemType.value !== 6",
+                        "stringTable": {
+                            "length": 16,
+                            "default": "<stringTable.statusNamesReversed[%i+16]>"
+                        }
+                    },
+                    "fieldEffects": {
+                        "type": "property",
+                        "name": "Field Effects",
+                        "begin": 5,
+                        "mask": "0xFF",
+                        "flag": true,
+                        "invalid": "(this.parent.itemType.value === 0) || (this.parent.itemType.value === 6)",
+                        "stringTable": {
+                            "string": {
+                                "0": "Charm Bangle",
+                                "1": "Moogle Charm",
+                                "5": "Sprint Shoes",
+                                "7": "Tintinabar (no effect)"
+                            }
+                        }
+                    },
+                    "relicEffects1": {
+                        "type": "property",
+                        "name": "Relic Effects",
+                        "begin": 9,
+                        "mask": "0xFFFFFF",
+                        "flag": true,
+                        "invalid": "(this.parent.itemType.value === 0) || (this.parent.itemType.value === 6)",
+                        "stringTable": {
+                            "string": {
+                                "0": "Raise Fight Damage",
+                                "1": "Raise Magic Damage",
+                                "2": "HP +25%",
+                                "3": "HP +50%",
+                                "4": "HP +12.5%",
+                                "5": "MP +25%",
+                                "6": "MP +50%",
+                                "7": "MP +12.5%",
+                                "8": "Gale Hairpin",
+                                "9": "Back Guard",
+                                "10": "Fight → Jump",
+                                "11": "Magic → X-Magic",
+                                "12": "Sketch → Control",
+                                "13": "Slot → GP Rain",
+                                "14": "Steal → Capture",
+                                "15": "Jump Continuously",
+                                "16": "Increase Steal Rate",
+                                "17": "Raise Magic Damage",
+                                "18": "Increase Sketch Rate",
+                                "19": "Increase Control Rate",
+                                "20": "100% Hit Rate",
+                                "21": "Spells Cost 50% Less",
+                                "22": "Spells Cost 1 MP",
+                                "23": "Vigor +50%"
+                            }
+                        }
+                    },
+                    "relicEffects2": {
+                        "type": "property",
+                        "begin": 12,
+                        "mask": "0xFFFF",
+                        "flag": true,
+                        "invalid": "(this.parent.itemType.value === 0) || (this.parent.itemType.value === 6)",
+                        "stringTable": {
+                            "string": {
+                                "0": "Fight → X-Fight",
+                                "1": "Randomly Counterattack",
+                                "2": "Randomly Evade",
+                                "3": "Gauntlet",
+                                "4": "Genji Glove",
+                                "5": "Can Equip Heavy Items",
+                                "6": "Protect Weak Allies",
+                                "8": "Shell When HP is Low",
+                                "9": "Safe When HP is Low",
+                                "10": "Reflect When HP is Low",
+                                "11": "Double Experience",
+                                "12": "Double GP",
+                                "15": "Make Character Undead"
+                            }
+                        }
                     }
                 }
             }
@@ -4068,6 +5003,234 @@
                 "mask": "0xFF"
             }
         },
+        "naturalMagic": {
+            "type": "array",
+            "name": "Natural Magic",
+            "range": "0x0862AAFC-0x0862AB3C",
+            "array": {
+                "length": 2
+            },
+            "assembly": {
+                "type": "data",
+                "length": 32,
+                "assembly": {
+                    "cat-spell1": "Spell 1",
+                    "spell1": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 0,
+                        "stringTable": "spellName"
+                    },
+                    "level1": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 1,
+                        "max": 99
+                    },
+                    "cat-spell2": "Spell 2",
+                    "spell2": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 2,
+                        "stringTable": "spellName"
+                    },
+                    "level2": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 3,
+                        "max": 99
+                    },
+                    "cat-spell3": "Spell 3",
+                    "spell3": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 4,
+                        "stringTable": "spellName"
+                    },
+                    "level3": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 5,
+                        "max": 99
+                    },
+                    "cat-spell4": "Spell 4",
+                    "spell4": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 6,
+                        "stringTable": "spellName"
+                    },
+                    "level4": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 7,
+                        "max": 99
+                    },
+                    "cat-spell5": "Spell 5",
+                    "spell5": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 8,
+                        "stringTable": "spellName"
+                    },
+                    "level5": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 9,
+                        "max": 99
+                    },
+                    "cat-spell6": "Spell 6",
+                    "spell6": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 10,
+                        "stringTable": "spellName"
+                    },
+                    "level6": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 11,
+                        "max": 99
+                    },
+                    "cat-spell7": "Spell 7",
+                    "spell7": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 12,
+                        "stringTable": "spellName"
+                    },
+                    "level7": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 13,
+                        "max": 99
+                    },
+                    "cat-spell8": "Spell 8",
+                    "spell8": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 14,
+                        "stringTable": "spellName"
+                    },
+                    "level8": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 15,
+                        "max": 99
+                    },
+                    "cat-spell9": "Spell 9",
+                    "spell9": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 16,
+                        "stringTable": "spellName"
+                    },
+                    "level9": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 17,
+                        "max": 99
+                    },
+                    "cat-spell10": "Spell 10",
+                    "spell10": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 18,
+                        "stringTable": "spellName"
+                    },
+                    "level10": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 19,
+                        "max": 99
+                    },
+                    "cat-spell11": "Spell 11",
+                    "spell11": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 20,
+                        "stringTable": "spellName"
+                    },
+                    "level11": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 21,
+                        "max": 99
+                    },
+                    "cat-spell12": "Spell 12",
+                    "spell12": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 22,
+                        "stringTable": "spellName"
+                    },
+                    "level12": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 23,
+                        "max": 99
+                    },
+                    "cat-spell13": "Spell 13",
+                    "spell13": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 24,
+                        "stringTable": "spellName"
+                    },
+                    "level13": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 25,
+                        "max": 99
+                    },
+                    "cat-spell14": "Spell 14",
+                    "spell14": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 26,
+                        "stringTable": "spellName"
+                    },
+                    "level14": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 27,
+                        "max": 99
+                    },
+                    "cat-spell15": "Spell 15",
+                    "spell15": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 28,
+                        "stringTable": "spellName"
+                    },
+                    "level15": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 29,
+                        "max": 99
+                    },
+                    "cat-spell16": "Spell 16",
+                    "spell16": {
+                        "type": "property",
+                        "name": "Spell",
+                        "begin": 30,
+                        "stringTable": "spellName"
+                    },
+                    "level16": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 31,
+                        "max": 99
+                    }
+                }
+            },
+            "stringTable": {
+                "string": {
+                    "0": "<stringTable.characterNames[0]>",
+                    "1": "<stringTable.characterNames[6]>"
+                }
+            }
+        },
         "npcProperties": {
             "type": "array",
             "name": "NPC Properties",
@@ -4711,43 +5874,6 @@
                 }
             }
         },
-        "rareItemDescriptions": {
-            "type": "array",
-            "name": "Rare Item Descriptions",
-            "range": "0x08170BF4-0x08170F1E",
-            "array": {
-                "length": 22
-            },
-            "assembly": {
-                "type": "text",
-                "encoding": "nullTerminated"
-            },
-            "pointerTable": {
-                "range": "0x08167240-0x08167298",
-                "offset": "0x081654F8"
-            }
-        },
-        "rareItemNames": {
-            "type": "array",
-            "name": "Rare Item Names",
-            "range": "0x0816BFD6-0x0816C0AE",
-            "array": {
-                "length": 19
-            },
-            "assembly": {
-                "type": "text",
-                "encoding": "menu"
-            },
-            "stringTable": {
-                "name": "Rare Item Names",
-                "length": 20,
-                "default": "<rareItemNames[%i]>"
-            },
-            "pointerTable": {
-                "range": "0x08166BE0-0x08166C2C",
-                "offset": "0x081654F8"
-            }
-        },
         "shopProperties": {
             "type": "array",
             "name": "Shop Properties",
@@ -4942,28 +6068,6 @@
                     "84": "Figaro Castle: Tools (WoR)",
                     "85": "Phantom Train: Items"
                 }
-            }
-        },
-        "swdTechNames": {
-            "type": "array",
-            "name": "Bushido Names",
-            "range": "0x081E2203-0x081E22D3",
-            "array": {
-                "length": 16
-            },
-            "assembly": {
-                "type": "text",
-                "name": "Name",
-                "encoding": "dialog"
-            },
-            "pointerTable": {
-                "range": "0x08188450-0x08188490",
-                "offset": "0x0817E518"
-            },
-            "stringTable": {
-                "name": "Bushido Names",
-                "length": 8,
-                "default": "<swdTechNames[%i]>"
             }
         },
         "text1": {
@@ -10283,6 +11387,144 @@
                 "12": "Cursed Shield Counter"
             }
         },
+        "blitzName": {
+            "name": "Blitz Name",
+            "length": 8,
+            "default": {
+                "value": "<text1[%i*5+0x0F2D]>",
+                "language": {
+                    "name1-en": {
+                        "name": "Name 1 (en)",
+                        "link": "text1[%i*5+0x0F2D]"
+                    },
+                    "name2-en": {
+                        "name": "Name 2 (en)",
+                        "link": "text1[%i*5+0x347B]"
+                    },
+                    "description-en": {
+                        "name": "Description (en)",
+                        "link": "text1[%i*5+0x24B3]"
+                    },
+                    "name1-de": {
+                        "name": "Name 1 (de)",
+                        "link": "text1[%i*5+0x0F2E]"
+                    },
+                    "name2-de": {
+                        "name": "Name 2 (de)",
+                        "link": "text1[%i*5+0x347C]"
+                    },
+                    "description-de": {
+                        "name": "Description (de)",
+                        "link": "text1[%i*5+0x24B4]"
+                    },
+                    "name1-fr": {
+                        "name": "Name 1 (fr)",
+                        "link": "text1[%i*5+0x0F2F]"
+                    },
+                    "name2-fr": {
+                        "name": "Name 2 (fr)",
+                        "link": "text1[%i*5+0x347D]"
+                    },
+                    "description-fr": {
+                        "name": "Description (fr)",
+                        "link": "text1[%i*5+0x24B5]"
+                    },
+                    "name1-it": {
+                        "name": "Name 1 (it)",
+                        "link": "text1[%i*5+0x0F30]"
+                    },
+                    "name2-it": {
+                        "name": "Name 2 (it)",
+                        "link": "text1[%i*5+0x347E]"
+                    },
+                    "description-it": {
+                        "name": "Description (it)",
+                        "link": "text1[%i*5+0x24B6]"
+                    },
+                    "name1-es": {
+                        "name": "Name 1 (es)",
+                        "link": "text1[%i*5+0x0F31]"
+                    },
+                    "name2-es": {
+                        "name": "Name 2 (es)",
+                        "link": "text1[%i*5+0x347F]"
+                    },
+                    "description-es": {
+                        "name": "Description (es)",
+                        "link": "text1[%i*5+0x24B7]"
+                    }
+                }
+            }
+        },
+        "bushidoName": {
+            "name": "Bushido Name",
+            "length": 8,
+            "default": {
+                "value": "<text1[%i*5+0x34A3]>",
+                "language": {
+                    "name1-en": {
+                        "name": "Name 1 (en)",
+                        "link": "text1[%i*5+0x34A3]"
+                    },
+                    "name2-en": {
+                        "name": "Name 2 (en)",
+                        "link": "text2[%i*5+0x6379]"
+                    },
+                    "description-en": {
+                        "name": "Description (en)",
+                        "link": "text1[%i*5+0x248B]"
+                    },
+                    "name1-de": {
+                        "name": "Name 1 (de)",
+                        "link": "text1[%i*5+0x34A4]"
+                    },
+                    "name2-de": {
+                        "name": "Name 2 (de)",
+                        "link": "text2[%i*5+0x637A]"
+                    },
+                    "description-de": {
+                        "name": "Description (de)",
+                        "link": "text1[%i*5+0x248C]"
+                    },
+                    "name1-fr": {
+                        "name": "Name 1 (fr)",
+                        "link": "text1[%i*5+0x34A5]"
+                    },
+                    "name2-fr": {
+                        "name": "Name 2 (fr)",
+                        "link": "text2[%i*5+0x637B]"
+                    },
+                    "description-fr": {
+                        "name": "Description (fr)",
+                        "link": "text1[%i*5+0x248D]"
+                    },
+                    "name1-it": {
+                        "name": "Name 1 (it)",
+                        "link": "text1[%i*5+0x34A6]"
+                    },
+                    "name2-it": {
+                        "name": "Name 2 (it)",
+                        "link": "text2[%i*5+0x637C]"
+                    },
+                    "description-it": {
+                        "name": "Description (it)",
+                        "link": "text1[%i*5+0x248E]"
+                    },
+                    "name1-es": {
+                        "name": "Name 1 (es)",
+                        "link": "text1[%i*5+0x34A7]"
+                    },
+                    "name2-es": {
+                        "name": "Name 2 (es)",
+                        "link": "text2[%i*5+0x637D]"
+                    },
+                    "description-es": {
+                        "name": "Description (es)",
+                        "link": "text1[%i*5+0x248F]"
+                    }
+                }
+            }
+        },
         "characterNames": {
             "name": "Character Names",
             "length": 64,
@@ -10308,6 +11550,95 @@
                     "es": {
                         "name": "Spanish",
                         "link": "text1[%i*5+0x05DB]"
+                    }
+                }
+            }
+        },
+        "danceName": {
+            "name": "Dance Name",
+            "length": 8,
+            "default": {
+                "value": "<text1[%i*5+0x12E3]>",
+                "language": {
+                    "name1-en": {
+                        "name": "Name 1 (en)",
+                        "link": "text1[%i*5+0x12E3]"
+                    },
+                    "name2-en": {
+                        "name": "Name 2 (en)",
+                        "link": "text1[%i*5+0x276F]"
+                    },
+                    "name3-en": {
+                        "name": "Name 3 (en)",
+                        "link": "text2[%i*5+0x6928]"
+                    },
+                    "description-en": {
+                        "name": "Description (en)",
+                        "link": "text1[%i*5+0x3453]"
+                    },
+                    "name1-de": {
+                        "name": "Name 1 (de)",
+                        "link": "text1[%i*5+0x12E4]"
+                    },
+                    "name2-de": {
+                        "name": "Name 2 (de)",
+                        "link": "text1[%i*5+0x2770]"
+                    },
+                    "name3-de": {
+                        "name": "Name 3 (de)",
+                        "link": "text2[%i*5+0x6929]"
+                    },
+                    "description-de": {
+                        "name": "Description (de)",
+                        "link": "text1[%i*5+0x3454]"
+                    },
+                    "name1-fr": {
+                        "name": "Name 1 (fr)",
+                        "link": "text1[%i*5+0x12E5]"
+                    },
+                    "name2-fr": {
+                        "name": "Name 2 (fr)",
+                        "link": "text1[%i*5+0x2771]"
+                    },
+                    "name3-fr": {
+                        "name": "Name 3 (fr)",
+                        "link": "text2[%i*5+0x692A]"
+                    },
+                    "description-fr": {
+                        "name": "Description (fr)",
+                        "link": "text1[%i*5+0x3455]"
+                    },
+                    "name1-it": {
+                        "name": "Name 1 (it)",
+                        "link": "text1[%i*5+0x12E6]"
+                    },
+                    "name2-it": {
+                        "name": "Name 2 (it)",
+                        "link": "text1[%i*5+0x2772]"
+                    },
+                    "name3-it": {
+                        "name": "Name 3 (it)",
+                        "link": "text2[%i*5+0x692B]"
+                    },
+                    "description-it": {
+                        "name": "Description (it)",
+                        "link": "text1[%i*5+0x3456]"
+                    },
+                    "name1-es": {
+                        "name": "Name 1 (es)",
+                        "link": "text1[%i*5+0x12E7]"
+                    },
+                    "name2-es": {
+                        "name": "Name 2 (es)",
+                        "link": "text1[%i*5+0x2773]"
+                    },
+                    "name3-es": {
+                        "name": "Name 3 (es)",
+                        "link": "text2[%i*5+0x692C]"
+                    },
+                    "description-es": {
+                        "name": "Description (es)",
+                        "link": "text1[%i*5+0x3457]"
                     }
                 }
             }
@@ -10733,6 +12064,124 @@
             },
             "string": {
                 "0xFF": "Empty"
+            }
+        },
+        "itemDescription": {
+            "name": "Item Description",
+            "length": 271,
+            "default": {
+                "value": "<text1[%i*5+0x1E32]>",
+                "language": {
+                    "en": {
+                        "name": "English",
+                        "link": "text1[%i*5+0x1E32]"
+                    },
+                    "de": {
+                        "name": "German",
+                        "link": "text1[%i*5+0x1E33]"
+                    },
+                    "fr": {
+                        "name": "French",
+                        "link": "text1[%i*5+0x1E34]"
+                    },
+                    "it": {
+                        "name": "Italian",
+                        "link": "text1[%i*5+0x1E35]"
+                    },
+                    "es": {
+                        "name": "Spanish",
+                        "link": "text1[%i*5+0x1E36]"
+                    }
+                }
+            }
+        },
+        "loreName": {
+            "name": "Lore Name",
+            "length": 24,
+            "default": {
+                "value": "<text1[%i*5+0x1013]>",
+                "language": {
+                    "name1-en": {
+                        "name": "Name 1 (en)",
+                        "link": "text1[%i*5+0x1013]"
+                    },
+                    "name2-en": {
+                        "name": "Name 2 (en)",
+                        "link": "text1[%i*5+0x2797]"
+                    },
+                    "name3-en": {
+                        "name": "Name 3 (en)",
+                        "link": "text2[%i*5+0x6658]"
+                    },
+                    "description-en": {
+                        "name": "Description (en)",
+                        "link": "text1[%i*5+0x1DBA]"
+                    },
+                    "name1-de": {
+                        "name": "Name 1 (de)",
+                        "link": "text1[%i*5+0x1014]"
+                    },
+                    "name2-de": {
+                        "name": "Name 2 (de)",
+                        "link": "text1[%i*5+0x2798]"
+                    },
+                    "name3-de": {
+                        "name": "Name 3 (de)",
+                        "link": "text2[%i*5+0x6659]"
+                    },
+                    "description-de": {
+                        "name": "Description (de)",
+                        "link": "text1[%i*5+0x1DBB]"
+                    },
+                    "name1-fr": {
+                        "name": "Name 1 (fr)",
+                        "link": "text1[%i*5+0x1015]"
+                    },
+                    "name2-fr": {
+                        "name": "Name 2 (fr)",
+                        "link": "text1[%i*5+0x2799]"
+                    },
+                    "name3-fr": {
+                        "name": "Name 3 (fr)",
+                        "link": "text2[%i*5+0x665A]"
+                    },
+                    "description-fr": {
+                        "name": "Description (fr)",
+                        "link": "text1[%i*5+0x1DBC]"
+                    },
+                    "name1-it": {
+                        "name": "Name 1 (it)",
+                        "link": "text1[%i*5+0x1016]"
+                    },
+                    "name2-it": {
+                        "name": "Name 2 (it)",
+                        "link": "text1[%i*5+0x279A]"
+                    },
+                    "name3-it": {
+                        "name": "Name 3 (it)",
+                        "link": "text2[%i*5+0x665B]"
+                    },
+                    "description-it": {
+                        "name": "Description (it)",
+                        "link": "text1[%i*5+0x1DBD]"
+                    },
+                    "name1-es": {
+                        "name": "Name 1 (es)",
+                        "link": "text1[%i*5+0x1017]"
+                    },
+                    "name2-es": {
+                        "name": "Name 2 (es)",
+                        "link": "text1[%i*5+0x279B]"
+                    },
+                    "name3-es": {
+                        "name": "Name 3 (es)",
+                        "link": "text2[%i*5+0x665C]"
+                    },
+                    "description-es": {
+                        "name": "Description (es)",
+                        "link": "text1[%i*5+0x1DBE]"
+                    }
+                }
             }
         },
         "mapSpriteActions": {
@@ -11216,26 +12665,36 @@
                 "461": "Disable Random Battles",
                 "462": "Enable Party Switching",
                 "463": "Map Event is Running",
-                "464": "<rareItemNames[0]>",
-                "465": "<rareItemNames[1]>",
-                "466": "<rareItemDescriptions[2]>",
-                "467": "<rareItemDescriptions[3]>",
-                "468": "<rareItemDescriptions[4]>",
-                "469": "<rareItemDescriptions[5]>",
-                "470": "<rareItemNames[6]>",
-                "471": "<rareItemNames[7]>",
-                "472": "<rareItemNames[8]>",
-                "473": "<rareItemNames[9]>",
-                "474": "<rareItemNames[10]>",
-                "475": "<rareItemNames[11]>",
-                "476": "<rareItemNames[12]>",
-                "477": "<rareItemNames[13]>",
-                "478": "<rareItemNames[14]>",
-                "479": "<rareItemNames[15]>",
-                "480": "<rareItemNames[16]>",
-                "481": "<rareItemNames[17]>",
-                "482": "<rareItemNames[18]>",
-                "483": "<rareItemNames[19]>",
+                "464": "<stringTable.rareItem[0]>",
+                "465": "<stringTable.rareItem[1]>",
+                "466": "<stringTable.rareItem[2]>",
+                "467": "<stringTable.rareItem[3]>",
+                "468": "<stringTable.rareItem[4]>",
+                "469": "<stringTable.rareItem[5]>",
+                "470": "<stringTable.rareItem[6]>",
+                "471": "<stringTable.rareItem[7]>",
+                "472": "<stringTable.rareItem[8]>",
+                "473": "<stringTable.rareItem[9]>",
+                "474": "<stringTable.rareItem[10]>",
+                "475": "<stringTable.rareItem[11]>",
+                "476": "<stringTable.rareItem[12]>",
+                "477": "<stringTable.rareItem[13]>",
+                "478": "<stringTable.rareItem[14]>",
+                "479": "<stringTable.rareItem[15]>",
+                "480": "<stringTable.rareItem[16]>",
+                "481": "<stringTable.rareItem[17]>",
+                "482": "<stringTable.rareItem[18]>",
+                "483": "<stringTable.rareItem[19]>",
+                "484": "<stringTable.rareItem[20]>",
+                "485": "<stringTable.rareItem[21]>",
+                "486": "Unused Rare Item 23",
+                "487": "Unused Rare Item 24",
+                "488": "Unused Rare Item 25",
+                "489": "Unused Rare Item 26",
+                "490": "Unused Rare Item 27",
+                "491": "Unused Rare Item 28",
+                "494": "Selected a Valid Colosseum Item",
+                "495": "Fighting Shadow in the Colosseum",
                 "496": "Local Control 1",
                 "497": "Local Control 2",
                 "498": "Local Control 3",
@@ -11923,6 +13382,147 @@
                 "965": "Narshe: Locked Weapon Shop"
             }
         },
+        "rareItem": {
+            "name": "Rare Item",
+            "length": 22,
+            "string": {
+                "0-2": {
+                    "value": "<text1[%i*5+0x1CE3]>",
+                    "language": {
+                        "name-en": {
+                            "name": "Name (en)",
+                            "link": "text1[%i*5+0x1CE3]"
+                        },
+                        "description-en": {
+                            "name": "Description (en)",
+                            "link": "text1[%i*5+0x24DB]"
+                        },
+                        "name-de": {
+                            "name": "Name (de)",
+                            "link": "text1[%i*5+0x1CE4]"
+                        },
+                        "description-de": {
+                            "name": "Description (de)",
+                            "link": "text1[%i*5+0x24DC]"
+                        },
+                        "name-fr": {
+                            "name": "Name (fr)",
+                            "link": "text1[%i*5+0x1CE5]"
+                        },
+                        "description-fr": {
+                            "name": "Description (fr)",
+                            "link": "text1[%i*5+0x24DD]"
+                        },
+                        "name-it": {
+                            "name": "Name (it)",
+                            "link": "text1[%i*5+0x1CE6]"
+                        },
+                        "description-it": {
+                            "name": "Description (it)",
+                            "link": "text1[%i*5+0x24DE]"
+                        },
+                        "name-es": {
+                            "name": "Name (es)",
+                            "link": "text1[%i*5+0x1CE7]"
+                        },
+                        "description-es": {
+                            "name": "Description (es)",
+                            "link": "text1[%i*5+0x24DF]"
+                        }
+                    }
+                },
+                "2-6": {
+                    "value": "<text1[%i*5+0x24DB]>",
+                    "language": {
+                        "name-en": {
+                            "name": "Name (en)",
+                            "link": "text1[0x1CED]"
+                        },
+                        "description-en": {
+                            "name": "Description (en)",
+                            "link": "text1[%i*5+0x24DB]"
+                        },
+                        "name-de": {
+                            "name": "Name (de)",
+                            "link": "text1[0x1CEE]"
+                        },
+                        "description-de": {
+                            "name": "Description (de)",
+                            "link": "text1[%i*5+0x24DC]"
+                        },
+                        "name-fr": {
+                            "name": "Name (fr)",
+                            "link": "text1[0x1CEF]"
+                        },
+                        "description-fr": {
+                            "name": "Description (fr)",
+                            "link": "text1[%i*5+0x24DD]"
+                        },
+                        "name-it": {
+                            "name": "Name (it)",
+                            "link": "text1[0x1CF0]"
+                        },
+                        "description-it": {
+                            "name": "Description (it)",
+                            "link": "text1[%i*5+0x24DE]"
+                        },
+                        "name-es": {
+                            "name": "Name (es)",
+                            "link": "text1[0x1CF1]"
+                        },
+                        "description-es": {
+                            "name": "Description (es)",
+                            "link": "text1[%i*5+0x24DF]"
+                        }
+                    }
+                },
+                "6-22": {
+                    "value": "<text1[%i*5+0x1CD4]>",
+                    "language": {
+                        "name-en": {
+                            "name": "Name (en)",
+                            "link": "text1[%i*5+0x1CD4]"
+                        },
+                        "description-en": {
+                            "name": "Description (en)",
+                            "link": "text1[%i*5+0x24DB]"
+                        },
+                        "name-de": {
+                            "name": "Name (de)",
+                            "link": "text1[%i*5+0x1CD5]"
+                        },
+                        "description-de": {
+                            "name": "Description (de)",
+                            "link": "text1[%i*5+0x24DC]"
+                        },
+                        "name-fr": {
+                            "name": "Name (fr)",
+                            "link": "text1[%i*5+0x1CD6]"
+                        },
+                        "description-fr": {
+                            "name": "Description (fr)",
+                            "link": "text1[%i*5+0x24DD]"
+                        },
+                        "name-it": {
+                            "name": "Name (it)",
+                            "link": "text1[%i*5+0x1CD7]"
+                        },
+                        "description-it": {
+                            "name": "Description (it)",
+                            "link": "text1[%i*5+0x24DE]"
+                        },
+                        "name-es": {
+                            "name": "Name (es)",
+                            "link": "text1[%i*5+0x1CD8]"
+                        },
+                        "description-es": {
+                            "name": "Description (es)",
+                            "link": "text1[%i*5+0x24DF]"
+                        }
+                    }
+                }
+            }
+        },
         "song": {
             "name": "Songs",
             "default": "Song %i",
@@ -12159,6 +13759,19 @@
                 "8-16": "<stringTable.statusNames[23-%i]>",
                 "16-24": "<stringTable.statusNames[39-%i]>",
                 "24-32": "<stringTable.statusNames[55-%i]>"
+            }
+        },
+        "targetingFlags": {
+            "name": "Targeting Flags",
+            "string": {
+                "0": "Can Move Cursor",
+                "1": "One Side Only",
+                "2": "Auto-Select All",
+                "3": "Auto-Select One Side",
+                "4": "Auto-Confirm",
+                "5": "Manual Party Select",
+                "6": "Enemy Default",
+                "7": "Random Target"
             }
         },
         "treasureSwitches": {

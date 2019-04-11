@@ -37,6 +37,7 @@ game specific
  * world of ruin gets corrupted in roms expanded by ff3usme
  * ff5 monster ai
  * ff5 advance
+ * can't expand/relocate ff6 advance text
 
 wish list
 ---------
