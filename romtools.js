@@ -854,6 +854,7 @@ ROMData.prototype.addAssembly = function(definition) {
                 return this.parsePath(assembly.external);
             } else if (!assembly.isLoaded && assembly.disassemble) {
                 // disassemble this assembly if it hasn't been loaded yet
+                if (this.isSequential && assembly.range.length === 1) assembly.range.end = this.range.length;
                 assembly.disassemble(this.data);
             }
             return assembly;
@@ -2005,6 +2006,328 @@ ROM.dataFormat = {
             return dest.slice(0, d);
         }
     },
+    "ff5a-70": {
+        "encode": function(data) {
+            return data;
+        },
+        "decode": function(data) {
+            var src = new Uint32Array(data.buffer, data.byteOffset, data.byteLength >> 2);
+            var s = 0; // source pointer
+            
+            // get the decompressed length
+            var length = src[s++] >> 8; // skip the first byte
+            var dest = new Uint8Array(length);
+            var d = 0;
+            
+            // initialize the bitstream buffer
+            var bitstream = src[s++];
+            var b = 32;
+            
+            function getBits(n) {
+                var value = 0;
+                if (n === 0) {
+                    return 0;
+                } else if (n > b) {
+                    // we need more bits than what's left in the buffer
+                    if (b !== 0) {
+                        // empty the bitstream buffer
+                        value = bitstream >>> (32 - b);
+                        n -= b;
+                        value <<= n;
+                    }
+                    
+                    // load the next 32-bit word in the buffer
+                    bitstream = src[s++];
+                    b = 32;
+                }
+                
+                value |= bitstream >>> (32 - n);
+                bitstream <<= n;
+                b -= n;
+                return value;
+            }
+            
+            function getByte() {
+                return getBits(8);
+            }
+
+            function getVar(w) {
+                // get a variable length number
+                var value;
+                while (true) {
+                    value |= getBits(w);
+                    if (!getBits(1)) return value;
+                    value <<= w;
+                }
+            }
+            
+            var root = [];
+            function initHuffman(size) {
+                for (var d = 0, code = 0; d < (size * 2); d++, code <<= 1) {
+                    // get the number of values at this depth
+                    var count = getBits(size);
+                    for (var v = 0; v < count; v++) {
+                        var node = root;
+                        var c = code;
+                        for (var d1 = d; d1 !== 0; d1--) {
+                            var c = (code >> d1) & 1;
+                            if (!node[c]) node[c] = [];
+                            node = node[c];
+                            if (isNumber(node)) return;
+                        }
+                        var c = (code >> d1) & 1;
+                        node[c] = getBits(size);
+                        code++;
+                    }
+                }
+            }
+
+            function getHuffman(node) {
+                node = node || root;
+                node = node[getBits(1)];
+                if (isNumber(node)) return node;
+                if (!node) return null;
+                return getHuffman(node);
+            }
+
+            function getHuffman4() {
+                var v1 = getHuffman();
+                var v2 = getHuffman();
+                return (v1 << 4) | v2;
+            }
+            
+            var treeByte = new Uint8Array(8);
+            var treeFactor = new Uint16Array(8);
+            function initTree(t) {
+                var f = 1;
+                var e = 0;
+                for (var i = 0; i < t; i++) {
+                    e = getBits(4) + 1;
+                    treeByte[i] = e;
+                    treeFactor[i] = f;
+                    f += 1 << e;
+                }
+            }
+
+            function getLine0() {
+                
+                var t = getBits(2);
+                if (t === 3) {
+                    // repeat a raw 8-bit value
+                    var run = getBits(6) + 2;
+                    var value = getBits(8);
+                    for (var i = 0; i < run; i++) {
+                        if (d > length) break;
+                        dest[d++] = value;
+                    }
+                } else if (t === 2) {
+                    // copy a string of encoded values from bitstream
+                    var run = getBits(6) + 1;
+                    for (var i = 0; i < run; i++) {
+                        if (d > length) break;
+                        var value = getValue();
+                        dest[d++] = value;
+                    }
+                } else {
+                    // repeat run from buffer (lz77)
+                    var e = treeByte[t];
+                    var offset = getBits(e) + treeFactor[t];
+                    var run = getBits(6) + 3;
+                    for (var i = 0; i < run; i++) {
+                        if (d > length) break;
+                        if (d - offset < 0) break;
+                        var byte = dest[d - offset]
+                        dest[d++] = byte;
+                    }
+                }
+            }
+
+            function getLine1() {
+                if (!getBits(1)) {
+                    // not compressed
+                    dest[d++] = getValue();
+                    return;
+                }
+                
+                // repeat run from buffer (short)
+                var t = getBits(2);
+                var e = treeByte[t];
+                var offset = getBits(e) + treeFactor[t];
+                var run = getBits(4) + 3;
+                
+                for (var i = 0; i < run; i++) {
+                    if (d > length) break;
+                    if (d - offset < 0) break;
+                    var byte = dest[d - offset]
+                    dest[d++] = byte;
+                }
+            }
+
+            function getLine2() {
+                if (!getBits(1)) {
+                    // not compressed
+                    dest[d++] = getValue();
+                    return;
+                }
+                
+                // compressed
+                var run, offset, e, byte;
+                var t = getBits(3);
+                if (t === 7) {
+                    run = getVar(3);
+                    if (!getBits(1)) {
+                        // copy a string of bytes from bitstream
+                        run++;
+                        for (var i = 0; i < run; i++) {
+                            if (d > length) break;
+                            dest[d++] = getValue();
+                        }
+                        return;
+                    }
+                    // repeat run from buffer (long)
+                    t = getBits(3);
+                    e = treeByte[t];
+                    offset = getBits(e) + treeFactor[t];
+                    run <<= 4;
+                    run += getBits(4) + 3;
+                } else {
+                    // repeat run from buffer (short)
+                    e = treeByte[t];
+                    offset = getBits(e) + treeFactor[t];
+                    run = getBits(4) + 3;
+                }
+                for (var i = 0; i < run; i++) {
+                    if (d > length) break;
+                    if (d - offset < 0) break;
+                    byte = dest[d - offset];
+                    dest[d++] = byte;
+                }
+            }
+
+            function getLine3() {
+                if (!getBits(1)) {
+                    // not compressed
+                    dest[d++] = getValue();
+                    dest[d++] = getValue();
+                    return;
+                }
+                
+                // compressed
+                var t = getBits(2);
+                if (t === 3) {
+                    run = getVar(2);
+                    if (!getBits(1)) {
+                        // copy a string of bytes from bitstream
+                        run++;
+                        for (var i = 0; i < run; i++) {
+                            if (d > length) break;
+                            dest[d++] = getValue();
+                            dest[d++] = getValue();
+                        }
+                        return;
+                    }
+                    // repeat run from buffer (long)
+                    t = getBits(2);
+                    e = treeByte[t];
+                    offset = getBits(e) + treeFactor[t];
+                    offset <<= 1;
+                    run <<= 3;
+                    run += getBits(3) + 2;
+                } else {
+                    // repeat run from buffer (short)
+                    e = treeByte[t];
+                    offset = getBits(e) + treeFactor[t];
+                    offset <<= 1;
+                    run = getBits(3) + 2;
+                }
+                for (var i = 0; i < run; i++) {
+                    if (d > length) break;
+                    if (d - offset < 0) break;
+                    byte = dest[d - offset];
+                    dest[d++] = byte;
+                    byte = dest[d - offset];
+                    dest[d++] = byte;
+                }
+            }
+
+            function getLine4() {
+                dest[d++] = getValue();
+            }
+
+            // get the compression mode
+            var mode = getBits(8);
+            var m1 = mode & 0x07;
+            var m2 = (mode & 0x18) >> 3;
+            var m3 = (mode & 0xE0) >> 5;
+            
+            var getValue;
+            if (m2 === 0) {
+                // no huffman encoding
+                getValue = getByte;
+            } else if (m2 === 1) {
+                // initialize the huffman table
+                initHuffman(4);
+                getValue = getHuffman4;
+            } else {
+                initHuffman(8);
+                getValue = getHuffman;
+            }
+            
+            // initialize the tree factors
+            var getLine;
+            if (m1 === 0) {
+                initTree(2);
+                getLine = getLine0;
+            } else if (m1 === 1) {
+                initTree(4);
+                getLine = getLine1;
+            } else if (m1 === 2) {
+                initTree(7);
+                getLine = getLine2;
+            } else if (m1 === 3) {
+                initTree(3);
+                getLine = getLine3;
+            } else if (m1 === 4) {
+                getLine = getLine4;
+            }
+
+            while (d < length) getLine();
+            
+            return dest;
+        }
+    },
+    "ff5a-world": {
+        encode: function(data) {
+            var src = data;
+            var s = 0; // source pointer
+            var dest = new Uint8Array(256);
+            var d = 0;
+            var b;
+
+            while (s < 256) {
+                b = src[s++];
+                while (b === src[s]) s++;
+                dest[d++] = b;
+                dest[d++] = s;
+            }
+
+            return dest.slice(0, d);
+        },
+        decode: function(data) {
+            var src = data;
+            var s = 0; // source pointer
+            var dest = new Uint8Array(256);
+            var d = 0; // destination pointer
+            var b, l;
+
+            while (s < src.length) {
+                b = src[s++];
+                l = src[s++];
+                while (d <= l) dest[d++] = b;
+            }
+            return dest;
+        }
+    },
     "ff6-lzss": {
         encode: function(data) {
     
@@ -2139,6 +2462,149 @@ ROM.dataFormat = {
 
                     // reached end of compressed data
                     if (s >= length) break;
+                }
+            }
+
+            return dest.slice(0, d);
+        }
+    },
+    "gba-lzss": {
+        encode: function(data) {
+    
+            // create a source buffer preceded by 2K of empty space (this increases compression for some data)
+            var src = new Uint8Array(0x1000 + data.length);
+            src.set(data, 0x1000);
+            var s = 0x1000; // start at 0x0800 to ignore the 2K of empty space
+
+            var dest = new Uint8Array(0x10000);
+            var d = 2; // start at 2 so we can fill in the length at the end
+
+            var header = 0;
+            var line = new Uint8Array(17);
+
+            var l = 1; // start at 1 so we can fill in the header at the end
+            var b = 0; // buffer position
+            var p = 0;
+            var pMax, len, lenMax;
+
+            var w;
+            var mask = 0x80;
+
+            while (s < src.length) {
+                // find the longest sequence that matches the decompression buffer
+                lenMax = 0;
+                pMax = 0;
+                for (p = 1; p <= 0x1000; p++) {
+                    len = 0;
+
+                    while ((len < 18) && (s + len < src.length) && (src[s + len - p] == src[s + len]))
+                        len++;
+
+                    if (len > lenMax) {
+                        // this sequence is longer than any others that have been found so far
+                        lenMax = len;
+                        pMax = (b - p) & 0x0FFF;
+                    }
+                }
+
+                // check if the longest sequence is compressible
+                if (lenMax >= 3) {
+                    // sequence is compressible - add compressed data to line buffer
+                    w = ((lenMax - 3) << 11) | pMax;
+                    line[l++] = w & 0xFF;
+                    w >>= 8;
+                    line[l++] = w & 0xFF;
+                    s += lenMax;
+                    b += lenMax;
+                } else {
+                    // sequence is not compressible - update header byte and add byte to line buffer
+                    header |= mask;
+                    line[l++] = src[s];
+                    s++;
+                    b++;
+                }
+
+                b &= 0x0FFF;
+                mask >>= 1;
+
+                if (!mask) {
+                    // finished a line, copy it to the destination
+                    line[0] = header;
+
+                    dest.set(line.subarray(0, l), d);
+                    d += l;
+                    header = 0;
+                    l = 1;
+                    mask = 0x80;
+                }
+            }
+
+            if (mask != 1) {
+                // we're done with all the data but we're still in the middle of a line
+                line[0] = header;
+                dest.set(line.subarray(0, l), d);
+                d += l;
+            }
+
+            // fill in the length
+            dest[0] = d & 0xFF;
+            dest[1] = (d >> 8) & 0xFF;
+
+            return dest.slice(0, d);
+        },
+        decode: function(data) {
+            var src = data;
+            var s = 0; // source pointer
+            var dest = new Uint8Array(0x10000);
+            var d = 0; // destination pointer
+            var buffer = new Uint8Array(0x1000);
+            var b = 0;
+            var line = new Uint8Array(18);
+            var header, pass, r, w, c, i, l;
+
+            if (src[s++] !== 0x10) return new Uint8Array(0);
+            
+            var length = src[s++] | (src[s++] << 8) | (src[s++] << 16);
+            while (d < length) {
+
+                // read header
+                header = src[s++];
+
+                for (pass = 0; pass < 8; pass++, header <<= 1) {
+                    l = 0;
+                    if (header & 0x80) {
+                        // 2-bytes (compressed)
+                        w = (src[s++] << 8);
+                        w |= src[s++];
+                        r = (w >> 12) + 3;
+                        w &= 0x0FFF;
+                        w++;
+
+                        for (i = 0; i < r; i++) {
+                            c = buffer[(b - w) & 0x0FFF];
+                            line[l++] = c;
+                            buffer[b++] = c;
+                            b &= 0x0FFF;
+                        }
+                    } else {
+                        // single byte (uncompressed)
+                        c = src[s++];
+                        line[l++] = c;
+                        buffer[b++] = c;
+                        b &= 0x0FFF;
+                    }
+                    if ((d + l) > dest.length) {
+                        // maximum buffer length exceeded
+                        dest.set(line.subarray(0, dest.length - d), d)
+                        return dest;
+                    } else {
+                        // copy this pass to the destination buffer
+                        dest.set(line.subarray(0, l), d)
+                        d += l;
+                    }
+
+                    // reached end of compressed data
+                    if (d >= length) break;
                 }
             }
 

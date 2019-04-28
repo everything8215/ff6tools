@@ -547,7 +547,8 @@
                         "name": "Map Animation",
                         "begin": 4,
                         "mask": "0x80",
-                        "bool": true
+                        "bool": true,
+                        "invert": true
                     },
                     "category-layer1": "Layer 1",
                     "layout1": {
@@ -1618,28 +1619,218 @@
         "treasureProperties": {
             "type": "array",
             "name": "Treasure Properties",
-            "range": "0xD13210-0xD13610",
+            "range": "0xD13210-0xD13600",
+            "isSequential": true,
+            "canRelocate": true,
             "array": {
-                "length": 256
+                "length": 528
+            },
+            "pointerTable": "treasurePointers[%i].pointer",
+            "assembly": {
+                "type": "array",
+                "assembly": {
+                    "type": "data",
+                    "length": 4,
+                    "assembly": {
+                        "x": {
+                            "type": "property",
+                            "name": "X Position",
+                            "begin": 0,
+                            "hidden": true
+                        },
+                        "y": {
+                            "type": "property",
+                            "name": "Y Position",
+                            "begin": 1,
+                            "hidden": true
+                        },
+                        "isBattle": {
+                            "type": "property",
+                            "name": "Monster-in-a-box",
+                            "begin": 2,
+                            "mask": "0x80",
+                            "bool": true
+                        },
+                        "battle": {
+                            "type": "property",
+                            "name": "Battle",
+                            "begin": 2,
+                            "mask": "0x3F",
+                            "offset": "0x40",
+                            "link": "battleGroupEvent[%i]",
+                            "stringTable": "battleGroupEvent",
+                            "disabled": "!this.parent.isBattle.value"
+                        },
+                        "contentsBattle": {
+                            "type": "property",
+                            "name": "Contents",
+                            "begin": 2,
+                            "mask": "0x40",
+                            "invalid": "!this.parent.isBattle.value",
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0": "Item",
+                                    "1": "Spell"
+                                }
+                            }
+                        },
+                        "contents": {
+                            "type": "property",
+                            "name": "Contents",
+                            "begin": 2,
+                            "mask": "0x60",
+                            "invalid": "this.parent.isBattle.value",
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0": "GP",
+                                    "1": "Spell",
+                                    "2": "Item",
+                                    "3": "Item"
+                                }
+                            }
+                        },
+                        "item": {
+                            "type": "property",
+                            "name": "Item",
+                            "begin": 3,
+                            "stringTable": "itemNames",
+                            "invalid": "(this.parent.isBattle.value && this.parent.contentsBattle.value !== 0) || (!this.parent.isBattle.value && this.parent.contents.value < 2)"
+                        },
+                        "spell": {
+                            "type": "property",
+                            "name": "Spell",
+                            "begin": 3,
+                            "stringTable": "spellName",
+                            "invalid": "(this.parent.isBattle.value && this.parent.contentsBattle.value !== 1) || (!this.parent.isBattle.value && this.parent.contents.value !== 1)"
+                        },
+                        "multiplier": {
+                            "type": "property",
+                            "name": "Multiplier",
+                            "begin": 2,
+                            "mask": "0x07",
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0": "1",
+                                    "1": "10",
+                                    "2": "100",
+                                    "3": "1000",
+                                    "4": "10000"
+                                }
+                            },
+                            "invalid": "this.parent.isBattle.value || this.parent.contents.value !== 0"
+                        },
+                        "gp1": {
+                            "type": "property",
+                            "name": "GP",
+                            "begin": 3,
+                            "multiplier": 1,
+                            "invalid": "this.parent.isBattle.value || this.parent.contents.value !== 0 || this.parent.multiplier.value !== 0"
+                        },
+                        "gp10": {
+                            "type": "property",
+                            "name": "GP",
+                            "begin": 3,
+                            "multiplier": 10,
+                            "invalid": "this.parent.isBattle.value || this.parent.contents.value !== 0 || this.parent.multiplier.value !== 1"
+                        },
+                        "gp100": {
+                            "type": "property",
+                            "name": "GP",
+                            "begin": 3,
+                            "multiplier": 100,
+                            "invalid": "this.parent.isBattle.value || this.parent.contents.value !== 0 || this.parent.multiplier.value !== 2"
+                        },
+                        "gp1000": {
+                            "type": "property",
+                            "name": "GP",
+                            "begin": 3,
+                            "multiplier": 1000,
+                            "invalid": "this.parent.isBattle.value || this.parent.contents.value !== 0 || this.parent.multiplier.value !== 3"
+                        },
+                        "gp10000": {
+                            "type": "property",
+                            "name": "GP",
+                            "begin": 3,
+                            "multiplier": 10000,
+                            "invalid": "this.parent.isBattle.value || this.parent.contents.value !== 0 || this.parent.multiplier.value !== 4"
+                        }
+                    }
+                }
+            },
+            "reference": [
+                {
+                    "begin": "0xC00DB9",
+                    "mask": "0xFFFFFF"
+                }, {
+                    "begin": "0xC00DC1",
+                    "mask": "0xFFFFFF",
+                    "offset": -1
+                }, {
+                    "begin": "0xC00DF2",
+                    "mask": "0xFFFFFF",
+                    "offset": -1
+                }, {
+                    "begin": "0xC00E00",
+                    "mask": "0xFFFFFF"
+                }, {
+                    "begin": "0xC00E35",
+                    "mask": "0xFFFFFF",
+                    "offset": -2
+                }, {
+                    "begin": "0xC00E3B",
+                    "mask": "0xFFFFFF",
+                    "offset": -3
+                }, {
+                    "begin": "0xC05CFB",
+                    "mask": "0xFFFFFF",
+                    "offset": -1
+                }, {
+                    "begin": "0xC05D09",
+                    "mask": "0xFFFFFF"
+                }
+            ]
+        },
+        "treasurePointers": {
+            "type": "array",
+            "name": "Map Treasures",
+            "range": "0xD13000-0xD13210",
+            "canRelocate": true,
+            "array": {
+                "length": 528
             },
             "assembly": {
                 "type": "data",
                 "assembly": {
-                    "x": {
+                    "pointer": {
                         "type": "property",
-                        "name": "X Position",
+                        "name": "Treasure",
                         "begin": 0,
-                        "hidden": true
-                    },
-                    "y": {
-                        "type": "property",
-                        "name": "Y Position",
-                        "begin": 1,
-                        "hidden": true
+                        "offset": "0xD13210",
+                        "multiplier": 4
                     }
                 },
-                "length": 4
-            }
+                "length": 1
+            },
+            "reference": [
+                {
+                    "begin": "0xC00D7B",
+                    "mask": "0xFFFFFF"
+                }, {
+                    "begin": "0xC00D86",
+                    "mask": "0xFFFFFF",
+                    "offset": -1
+                }, {
+                    "begin": "0xC05CC4",
+                    "mask": "0xFFFFFF"
+                }, {
+                    "begin": "0xC05CCF",
+                    "mask": "0xFFFFFF",
+                    "offset": -1
+                }
+            ]
         },
         "worldGraphics": {
             "type": "array",

@@ -1,11 +1,12 @@
 {
     "type": "rom",
-    "key": "ff5u-sfc",
-    "name": "Final Fantasy V 1.10 (RPGe)",
-    "length": "0x280000",
-    "crc32": "0x892E44BE",
-    "system": "sfc",
-    "mode": "hiROM",
+    "key": "ff5u-gba",
+    "name": "Final Fantasy V Advance (U)",
+    "length": "0x800000",
+    "crc32": "0x7A24AB0C",
+    "system": "gba",
+    "pointerLength": 4,
+    "mode": "gba",
     "pad": "0x00",
     "hierarchy": [
         {
@@ -16,7 +17,7 @@
                     "path": "mapProperties"
                 }, {
                     "name": "Map Titles",
-                    "path": "mapTitle"
+                    "path": "stringTable.mapTitle"
                 }, {
                     "name": "Color Math",
                     "path": "mapColorMath"
@@ -30,7 +31,7 @@
                     "path": "eventScript"
                 }, {
                     "name": "Dialog",
-                    "path": "dialog"
+                    "path": "stringTable.dialog"
                 }, {
                     "name": "NPC Script",
                     "path": "npcScript"
@@ -62,39 +63,9 @@
                     "path": "monsterProperties"
                 }
             ]
-        }, {
-            "name": "System",
-            "list": [
-                {
-                    "name": "SNES Header",
-                    "path": "snesHeader"
-                }
-            ]
         }
     ],
     "assembly": {
-        "attackName": {
-            "type": "array",
-            "name": "Attack Name",
-            "range": "0xE70F90-0xE717DC",
-            "array": {
-                "length": 177,
-                "max": 177
-            },
-            "assembly": {
-                "type": "text",
-                "length": 12,
-                "encoding": "text"
-            },
-            "stringTable": {
-                "length": 256,
-                "default": "Attack %i",
-                "string": {
-                    "0-87": "<spellName[%i]>",
-                    "87-256": "<attackName[%i-87]>"
-                }
-            }
-        },
         "battleBackgroundGraphics": {
             "type": "array",
             "name": "Battle Background Graphics",
@@ -353,13 +324,13 @@
         "battleProperties": {
             "type": "array",
             "name": "Battle Properties",
-            "range": "0xD03000-0xD05000",
+            "range": "0x0814FAA8-0x081532A8",
             "array": {
                 "length": 512
             },
             "assembly": {
                 "type": "data",
-                "length": 16,
+                "length": 24,
                 "editor": "FF5Battle",
                 "assembly": {
                     "abp": {
@@ -780,54 +751,13 @@
                 "default": "Battle %i"
             }
         },
-        "characterNames": {
-            "type": "array",
-            "name": "Character Names",
-            "range": "0xD15500-0xD1551E",
-            "array": {
-                "length": 5
-            },
-            "assembly": {
-                "type": "text",
-                "length": 6,
-                "encoding": "text"
-            },
-            "stringTable": {
-                "name": "Character Names",
-                "length": 5,
-                "default": "<characterNames[%i]>"
-            }
-        },
-        "dialog": {
-            "type": "array",
-            "name": "Dialog",
-            "range": "0xE10000-0xE36B3D",
-            "array": {
-                "length": 2160
-            },
-            "assembly": {
-                "type": "text",
-                "encoding": "text",
-                "multiLine": true
-            },
-            "pointerTable": {
-                "range": "0xE013F0-0xE02D40",
-                "pointerLength": 3
-            },
-            "stringTable": {
-                "length": 2160,
-                "default": "<dialog[%i]>"
-            }
-        },
         "entranceTriggers": {
             "type": "array",
             "name": "Entrance Triggers",
-            "range": "0xCE3AC0-0xCE58D2",
+            "range": "0x0813CECC-0x08140FB8",
             "isSequential": true,
-            "endPointer": true,
-            "canRelocate": true,
             "array": {
-                "length": 511
+                "length": 547
             },
             "assembly": {
                 "type": "array",
@@ -850,96 +780,66 @@
                             "type": "property",
                             "name": "Map",
                             "begin": 2,
-                            "mask": "0x03FF",
+                            "mask": "0xFFFF",
                             "stringTable": "mapProperties",
                             "link": "mapProperties[%i]"
                         },
                         "xDest": {
                             "type": "property",
                             "name": "X Destination",
-                            "begin": 4
+                            "begin": 7
                         },
                         "yDest": {
                             "type": "property",
                             "name": "Y Destination",
-                            "begin": 5
+                            "begin": 8
                         }
                     },
-                    "length": 6
+                    "length": 12
                 }
             },
-            "pointerTable": {
-                "range": "0xCE36C0-0xCE3AC0",
-                "offset": "0xCE36C0",
-                "canRelocate": true,
-                "reference": [
-                    {
-                        "begin": "0xC00691",
-                        "mask": "0xFFFFFF",
-                        "offset": -2
-                    }, {
-                        "begin": "0xC00697",
-                        "mask": "0xFFFFFF"
+            "pointerTable": "entranceTriggerPointers[%i].pointer"
+        },
+        "entranceTriggerPointers": {
+            "type": "array",
+            "name": "Entrance Trigger Pointers",
+            "range": "0x0813CA84-0x0813CECC",
+            "array": {
+                "length": 547
+            },
+            "assembly": {
+                "type": "data",
+                "assembly": {
+                    "pointer": {
+                        "type": "property",
+                        "name": "Treasure",
+                        "begin": 0,
+                        "mask": "0xFFFF",
+                        "multiplier": 12,
+                        "offset": "0x0813CECC"
                     }
-                ]
-            },
-            "reference": [
-                {
-                    "begin": "0xC006A6",
-                    "mask": "0xFFFFFF"
-                }, {
-                    "begin": "0xC006D3",
-                    "mask": "0xFFFFFF",
-                    "offset": -2
-                }, {
-                    "begin": "0xC006E9",
-                    "mask": "0xFFFFFF",
-                    "offset": -4
-                }, {
-                    "begin": "0xC006F0",
-                    "mask": "0xFFFFFF",
-                    "offset": -5
-                }, {
-                    "begin": "0xC006FD",
-                    "mask": "0xFFFFFF",
-                    "offset": -3
-                }, {
-                    "begin": "0xC00708",
-                    "mask": "0xFFFFFF",
-                    "offset": -3
-                }, {
-                    "begin": "0xC00713",
-                    "mask": "0xFFFFFF",
-                    "offset": -4
-                }, {
-                    "begin": "0xC00726",
-                    "mask": "0xFFFFFF",
-                    "offset": -4
-                }, {
-                    "begin": "0xC0072F",
-                    "mask": "0xFFFFFF",
-                    "offset": -5
-                }
-            ]
+                },
+                "length": 2
+            }
         },
         "eventScript": {
             "type": "array",
             "name": "Event Script",
-            "range": "0xC849DC-0xCA0000",
+            "range": "0x083C2B58-0x083E4838",
             "array": {
-                "length": 1940
+                "length": 2208
             },
             "assembly": {
                 "type": "script",
                 "encoding": "event"
             },
             "pointerTable": {
-                "range": "0xC83320-0xC849DC",
-                "pointerLength": 3
+                "range": "0x083C08D8-0x083C2B58",
+                "offset": "0x083C2B58"
             },
             "stringTable": {
                 "name": "Event Script",
-                "length": 2910,
+                "length": 2208,
                 "default": "Event %i",
                 "string": {
                     "0": "No Event",
@@ -968,15 +868,38 @@
                 }
             }
         },
+        "eventSFC": {
+            "type": "array",
+            "name": "SFC Event",
+            "range": "0x08142C58-0x08143D98",
+            "array": {
+                "length": 2208
+            },
+            "assembly": {
+                "type": "property",
+                "name": "Event",
+                "length": 2,
+                "mask": "0xFFFF",
+                "offset": -1,
+                "stringTable": "eventScript",
+                "link": "eventScript[%i]",
+                "special": {
+                    "0": "No Event"
+                }
+            },
+            "stringTable": {
+                "length": 2208,
+                "default": "SFC Event %i"
+            }
+        },
         "eventTriggers": {
             "type": "array",
             "name": "Event Triggers",
-            "range": "0xCE2800-0xCE36C0",
+            "range": "0x083BD254-0x83BE268",
             "isSequential": true,
             "endPointer": true,
-            "canRelocate": true,
             "array": {
-                "length": 511
+                "length": 547
             },
             "assembly": {
                 "type": "array",
@@ -1008,92 +931,31 @@
                 }
             },
             "pointerTable": {
-                "range": "0xCE2400-0xCE2800",
-                "offset": "0xCE2400",
-                "canRelocate": true,
-                "reference": [
-                    {
-                        "begin": "0xC0064A",
-                        "mask": "0xFFFFFF",
-                        "offset": -2
-                    }, {
-                        "begin": "0xC00650",
-                        "mask": "0xFFFFFF"
-                    }
-                ]
-            },
-            "reference": [
-                {
-                    "begin": "0xC0065C",
-                    "mask": "0xFFFFFF"
-                }, {
-                    "begin": "0xC00675",
-                    "mask": "0xFFFFFF",
-                    "offset": -2
-                }
-            ]
-        },
-        "itemNames": {
-            "type": "array",
-            "name": "Item Names",
-            "range": "0xD11380-0xD11C80",
-            "array": {
-                "length": 256,
-                "max": 256
-            },
-            "assembly": {
-                "type": "text",
-                "length": 9,
-                "encoding": "text"
-            },
-            "stringTable": {
-                "name": "Item Names",
-                "length": 256,
-                "default": "<itemNames[%i]>"
-            }
-        },
-        "jobName": {
-            "type": "array",
-            "name": "Job Name",
-            "range": "0xD15600-0xD156B0",
-            "array": {
-                "length": 22,
-                "max": 22
-            },
-            "assembly": {
-                "type": "text",
-                "length": 8,
-                "encoding": "text"
-            },
-            "stringTable": {
-                "string": {
-                    "0-8": "<jobName[7-%i]>",
-                    "8-16": "<jobName[23-%i]>",
-                    "18": "Freelancer",
-                    "19-24": "<jobName[39-%i]>"
-                }
+                "range": "0x083BCE0C-0x083BD254",
+                "pointerLength": 2,
+                "offset": "0x083BCE0C"
             }
         },
         "mapAnimationGraphics": {
             "type": "assembly",
             "name": "Map Animation Graphics",
-            "range": "0xDF9B00-0xDFFC00"
+            "range": "0x082992E8-0x0829FAE8"
         },
         "mapAnimationGraphics2": {
             "type": "assembly",
             "name": "Map Animation Graphics",
             "range": "0xDF0000-0xDFFC00"
         },
-        "mapAnimationProperties": {
+        "mapAnimationFlags": {
             "type": "array",
-            "name": "Map Animation Properties",
-            "range": "0xC09D9B-0xC0A18B",
+            "name": "Map Animation Flags",
+            "range": "0x0811D5A8-0x0811D6F8",
             "array": {
                 "length": 28
             },
             "assembly": {
                 "type": "data",
-                "length": 36,
+                "length": 12,
                 "assembly": {
                     "flag1": {
                         "type": "property",
@@ -1178,77 +1040,91 @@
                         "begin": 11,
                         "mask": "0x80",
                         "bool": true
-                    },
+                    }
+                }
+            }
+        },
+        "mapAnimationProperties": {
+            "type": "array",
+            "name": "Map Animation Properties",
+            "range": "0x0811D6F8-0x0811D998",
+            "array": {
+                "length": 28
+            },
+            "assembly": {
+                "type": "data",
+                "length": 24,
+                "assembly": {
                     "tile1": {
                         "type": "property",
                         "name": "Tile 1",
-                        "begin": 12,
+                        "begin": 0,
                         "mask": "0xFFFF"
                     },
                     "tile2": {
                         "type": "property",
                         "name": "Tile 2",
-                        "begin": 14,
+                        "begin": 2,
                         "mask": "0xFFFF"
                     },
                     "tile3": {
                         "type": "property",
                         "name": "Tile 3",
-                        "begin": 16,
+                        "begin": 4,
                         "mask": "0xFFFF"
                     },
                     "tile4": {
                         "type": "property",
                         "name": "Tile 4",
-                        "begin": 18,
+                        "begin": 6,
                         "mask": "0xFFFF"
                     },
                     "tile5": {
                         "type": "property",
                         "name": "Tile 5",
-                        "begin": 20,
+                        "begin": 8,
                         "mask": "0xFFFF"
                     },
                     "tile6": {
                         "type": "property",
                         "name": "Tile 6",
-                        "begin": 22,
+                        "begin": 10,
                         "mask": "0xFFFF"
                     },
                     "tile7": {
                         "type": "property",
                         "name": "Tile 7",
-                        "begin": 24,
+                        "begin": 12,
                         "mask": "0xFFFF"
                     },
                     "tile8": {
                         "type": "property",
                         "name": "Tile 8",
-                        "begin": 26,
+                        "begin": 14,
                         "mask": "0xFFFF"
                     },
                     "tile1Layer3": {
                         "type": "property",
                         "name": "Tile 1 (Layer 3)",
-                        "begin": 28,
+                        "begin": 16,
                         "mask": "0xFFFF"
                     },
                     "tile2Layer3": {
                         "type": "property",
                         "name": "Tile 2 (Layer 3)",
-                        "begin": 30,
+                        "begin": 18,
                         "mask": "0xFFFF"
                     },
                     "tile3Layer3": {
                         "type": "property",
                         "name": "Tile 3 (Layer 3)",
-                        "begin": 32,
+                        "begin": 20,
                         "mask": "0xFFFF"
                     },
                     "tile4Layer3": {
                         "type": "property",
                         "name": "Tile 4 (Layer 3)",
-                        "begin": 34,
+                        "begin": 22,
                         "mask": "0xFFFF"
                     }
                 }
@@ -1296,7 +1172,7 @@
         "mapColorMath": {
             "type": "array",
             "name": "Map Color Math Properties",
-            "range": "0xC05BB8-0xC05BF4",
+            "range": "0x0813C038-0x0813C074",
             "array": {
                 "length": 20
             },
@@ -1436,95 +1312,70 @@
         "mapGraphics": {
             "type": "array",
             "name": "Map Graphics",
-            "range": "0xDC2E24-0xDF9B00",
+            "range": "0x082C8818-0x082F5F40",
             "array": {
-                "length": 40
+                "length": 39
             },
             "assembly": {
-                "format": "snes4bpp"
+                "format": ["linear4bpp", "gba-lzss"]
             },
             "pointerTable": {
-                "range": "0xDC2D84-0xDC2E24",
-                "pointerLength": 4,
-                "offset": "0xDC2E24"
+                "range": "0x08708D0C-0x08708DA8"
             }
         },
         "mapGraphicsLayer3": {
             "type": "array",
             "name": "Map Graphics (Layer 3)",
-            "range": "0xDC0024-0xDC2D84",
+            "range": "0x082F5F40-0x082F89F0",
             "array": {
-                "length": 18
+                "length": 17
             },
             "assembly": {
-                "format": "snes2bpp"
+                "format": ["linear4bpp", "gba-lzss"]
             },
             "pointerTable": {
-                "range": "0xDC0000-0xDC0024",
-                "offset": "0xDC0024"
+                "range": "0x08708DA8-0x08708DEC"
             }
         },
         "mapLayouts": {
             "type": "array",
             "name": "Map Layouts",
-            "range": "0xCB0290-0xCDF9FF",
-            "autoBank": true,
-            "canRelocate": true,
-            "pointerAlign": "0x010000",
+            "range": "0x0829FF6C-0x082C8818",
             "array": {
-                "length": 324
+                "length": 380
             },
             "assembly": {
-                "format": "ff5-lzss"
+                "format": "ff5a-70"
             },
             "pointerTable": {
-                "range": "0xCB0000-0xCB0290",
-                "offset": "0xCB0000",
-                "canRelocate": true,
-                "reference": [
-                    {
-                        "begin": "0xC06AE1",
-                        "mask": "0xFFFFFF"
-                    }, {
-                        "begin": "0xC06AE7",
-                        "mask": "0xFFFFFF"
-                    }, {
-                        "begin": "0xC06AF4",
-                        "mask": "0xFFFFFF"
-                    }
-                ]
-            },
-            "reference": [
-                {
-                    "begin": "0xC06ACD",
-                    "mask": "0xFF",
-                    "bankByte": true
-                }
-            ]
+                "range": "0x0870871C-0x08708D0C"
+            }
         },
         "mapPalettes": {
             "type": "array",
             "name": "Map Palettes",
-            "range": "0xC3BB00-0xC3E700",
+            "range": "0x082F89F0-0x082FB750",
             "array": {
                 "length": 44
             },
             "assembly": {
-                "length": 256,
                 "format": "bgr555"
+            },
+            "pointerTable": {
+                "range": "0x08708DEC-0x08708E9C"
             }
         },
         "mapProperties": {
             "type": "array",
             "name": "Map Properties",
-            "range": "0xCE9C00-0xCED000",
+            "range": "0x08136760-0x0813A334",
             "array": {
-                "length": 512
+                "length": 547
             },
             "assembly": {
                 "type": "data",
                 "editor": "FF5Map",
-                "length": 26,
+                "length": 28,
                 "assembly": {
                     "mapID": {
                         "type": "property",
@@ -1752,7 +1603,7 @@
             },
             "stringTable": {
                 "default": "Map %i",
-                "length": 512,
+                "length": 547,
                 "string": {
                      "0x0000": "World Map (World 1)",
                      "0x0001": "World Map (World 2)",
@@ -2272,9 +2123,10 @@
         "mapSpriteFrame": {
             "type": "array",
             "name": "Map Sprite Frame",
-            "range": "0xC02A95-0xC02F95",
+            "range": "0x08125800-0x08125D00",
             "array": {
                 "length": 80
+                
             },
             "assembly": {
                 "type": "data",
@@ -2307,16 +2159,28 @@
                 }
             }
         },
-        "mapSpriteGraphics": {
+        "mapSpriteGraphics1": {
             "type": "assembly",
-            "name": "Map Sprite Graphics",
-            "range": "0xDA0000-0xDB3A00",
-            "format": "snes4bpp"
+            "name": "Map Sprite Graphics 1",
+            "range": "0x083098A0-0x0830E694",
+            "format": ["linear4bpp", "gba-lzss"]
+        },
+        "mapSpriteGraphics2": {
+            "type": "assembly",
+            "name": "Map Sprite Graphics 2",
+            "range": "0x0830E694-0x08313048",
+            "format": ["linear4bpp", "gba-lzss"]
+        },
+        "mapSpriteGraphics3": {
+            "type": "assembly",
+            "name": "Map Sprite Graphics 3",
+            "range": "0x08313048-0x08315D64",
+            "format": ["linear4bpp", "gba-lzss"]
         },
         "mapSpritePalettes": {
             "type": "array",
             "name": "Map Sprite Palettes",
-            "range": "0xDFFC00-0xDFFC80",
+            "range": "0x08315F74-0x08315FF4",
             "array": {
                 "length": 4
             },
@@ -2325,51 +2189,35 @@
                 "format": "bgr555"
             }
         },
+        "mapTilePriority": {
+            "type": "array",
+            "name": "Map Tile Priority",
+            "range": "0x0811E400-0x08125800",
+            "array": {
+                "length": 29
+            },
+            "assembly": {
+                "type": "assembly",
+                "length": 1024
+            }
+        },
         "mapTilesets": {
             "type": "array",
             "name": "Map Tilesets",
-            "range": "0xCF0038-0xCFC540",
+            "range": "0x082FB750-0x083098A0",
             "array": {
                 "length": 28
             },
-            "assembly": {
-                "format": "ff5-lzss"
-            },
             "pointerTable": {
-                "range": "0xCF0000-0xCF0038",
-                "offset": "0xCF0000"
-            }
-        },
-        "mapTitle": {
-            "type": "array",
-            "name": "Map Title",
-            "range": "0xE70000-0xE707D6",
-            "array": {
-                "length": 163
-            },
-            "assembly": {
-                "type": "text",
-                "encoding": "text"
-            },
-            "pointerTable": {
-                "range": "0xD07000-0xD070146",
-                "offset": "0xE70000"
-            },
-            "stringTable": {
-                "length": 163,
-                "default": "<mapTitle[%i]>",
-                "string": {
-                    "0": "No Title"
-                }
+                "range": "0x08708E9C-0x08708F0C"
             }
         },
         "mapTreasures": {
             "type": "array",
             "name": "Map Treasures",
-            "range": "0xD13000-0xD13210",
-            "canRelocate": true,
+            "range": "0x08141BB8-0x08142000",
             "array": {
-                "length": 528
+                "length": 547
             },
             "assembly": {
                 "type": "data",
@@ -2377,28 +2225,12 @@
                     "treasure": {
                         "type": "property",
                         "name": "Treasure",
-                        "begin": 0
+                        "begin": 0,
+                        "mask": "0xFFFF"
                     }
                 },
-                "length": 1
-            },
-            "reference": [
-                {
-                    "begin": "0xC00D7B",
-                    "mask": "0xFFFFFF"
-                }, {
-                    "begin": "0xC00D86",
-                    "mask": "0xFFFFFF",
-                    "offset": -1
-                }, {
-                    "begin": "0xC05CC4",
-                    "mask": "0xFFFFFF"
-                }, {
-                    "begin": "0xC05CCF",
-                    "mask": "0xFFFFFF",
-                    "offset": -1
-                }
-            ]
+                "length": 2
+            }
         },
         "monsterGraphics": {
             "type": "array",
@@ -2513,23 +2345,6 @@
                 }
             }
         },
-        "monsterName": {
-            "type": "array",
-            "name": "Monster Name",
-            "range": "0xE00050-0xE00F50",
-            "array": {
-                "length": 384
-            },
-            "assembly": {
-                "type": "text",
-                "encoding": "text",
-                "length": 10
-            },
-            "stringTable": {
-                "length": 384,
-                "default": "<monsterName[%i]>"
-            }
-        },
         "monsterPalette": {
             "type": "array",
             "name": "Monster Palette",
@@ -2584,14 +2399,14 @@
         "monsterProperties": {
             "type": "array",
             "name": "Monster Properties",
-            "range": "0xD00000-0xD03000",
+            "range": "0x0814B2A8-0x0814FAA8",
             "array": {
-                "length": 384
+                "length": 512
             },
             "stringTable": "monsterName",
             "assembly": {
                 "type": "data",
-                "length": 32,
+                "length": 36,
                 "assembly": {
                     "monsterName": {
                         "type": "assembly",
@@ -2685,10 +2500,11 @@
         "npcProperties": {
             "type": "array",
             "name": "NPC Properties",
-            "range": "0xCE5DC2-0xCE9BFE",
+            "range": "0x083B695C-0x083BAA9C",
             "isSequential": true,
+            "endPointer": true,
             "array": {
-                "length": 512
+                "length": 547
             },
             "assembly": {
                 "type": "array",
@@ -2840,37 +2656,39 @@
                 }
             },
             "pointerTable": {
-                "range": "0xCE59C0-0xCE5DC2",
-                "offset": "0xCE59C0"
+                "range": "0x083B6514-0x083B695C",
+                "pointerLength": 2,
+                "offset": "0x083B6514"
             }
         },
         "npcScript": {
             "type": "array",
             "name": "NPC Script",
-            "range": "0xCE0740-0xCE2400",
+            "range": "0x083BEB68-0x083C08D4",
             "array": {
-                "length": 922
+                "length": 1152
             },
             "assembly": {
                 "type": "script",
                 "encoding": "trigger"
             },
             "pointerTable": {
-                "range": "0xCE0000-0xCE0740",
-                "offset": "0xCE0000"
+                "range": "0x083BE268-0x083BEB68",
+                "pointerLength": 2,
+                "offset": "0x083BE268"
             },
             "stringTable": "npcSwitch"
         },
         "shopProperties": {
             "type": "array",
             "name": "Shop Properties",
-            "range": "0xD12D40-0xD12F80",
+            "range": "0x081572FC-0x081577FC",
             "array": {
                 "length": 64
             },
             "assembly": {
                 "type": "data",
-                "length": 9,
+                "length": 20,
                 "assembly": {
                     "shopType": {
                         "type": "property",
@@ -3077,189 +2895,43 @@
                 }
             }
         },
-        "snesHeader": {
-            "type": "data",
-            "name": "SNES Header",
-            "range": "0xC0FFC0-0xC0FFE0",
-            "assembly": {
-                "gameTitle": {
-                    "type": "text",
-                    "name": "Game Title",
-                    "begin": 0,
-                    "length": 21
-                },
-                "mapMode": {
-                    "type": "property",
-                    "name": "Map Mode",
-                    "begin": 21,
-                    "mask": "0x0F",
-                    "stringTable": {
-                        "string": {
-                            "0": "Mode 20",
-                            "1": "Mode 21",
-                            "3": "Mode 23 (SA-1)",
-                            "5": "Mode 25"
-                        }
-                    }
-                },
-                "cpuSpeed": {
-                    "type": "property",
-                    "name": "CPU Speed",
-                    "begin": 21,
-                    "mask": "0xF0",
-                    "stringTable": {
-                        "string": {
-                            "2": "2.68 MHz (normal speed)",
-                            "3": "3.58 MHz (high speed)"
-                        }
-                    }
-                },
-                "cartridgeType": {
-                    "type": "property",
-                    "name": "Cartridge Type",
-                    "begin": 22,
-                    "mask": "0x0F",
-                    "stringTable": {
-                        "string": {
-                            "0": "ROM Only",
-                            "1": "ROM + RAM",
-                            "2": "ROM + RAM + Battery",
-                            "3": "ROM + Co-processor",
-                            "4": "ROM + Co-processor + RAM",
-                            "5": "ROM + Co-processor + RAM + Battery",
-                            "6": "ROM + Co-processor + Battery"
-                        }
-                    }
-                },
-                "coprocessorType": {
-                    "type": "property",
-                    "name": "Co-processor Type",
-                    "begin": 22,
-                    "mask": "0xF0",
-                    "hidden": "this.parent.cartridgeType.value < 3",
-                    "stringTable": {
-                        "string": {
-                            "0": "DSP",
-                            "1": "Super FX",
-                            "2": "OBC1",
-                            "3": "SA-1",
-                            "14": "Other",
-                            "15": "Custom Chip"
-                        }
-                    }
-                },
-                "romSize": {
-                    "type": "property",
-                    "name": "ROM Size",
-                    "begin": 23,
-                    "stringTable": {
-                        "string": {
-                            "9": "3-4 MBit",
-                            "10": "5-8 MBit",
-                            "11": "9-16 MBit",
-                            "12": "17-32 MBit",
-                            "13": "33-64 MBit"
-                        }
-                    }
-                },
-                "ramSize": {
-                    "type": "property",
-                    "name": "RAM Size",
-                    "begin": 24,
-                    "stringTable": {
-                        "string": {
-                            "0": "None",
-                            "1": "16 KBit",
-                            "3": "64 KBit",
-                            "5": "256 KBit",
-                            "6": "512 KBit",
-                            "7": "1 MBit"
-                        }
-                    }
-                },
-                "destinationCode": {
-                    "type": "property",
-                    "name": "Destination Code",
-                    "begin": 25,
-                    "stringTable": {
-                        "string": {
-                            "0": "Japan",
-                            "1": "North America",
-                            "2": "Europe",
-                            "3": "Scandinavia",
-                            "6": "French",
-                            "7": "Dutch",
-                            "8": "Spanish",
-                            "9": "German",
-                            "10": "Italian",
-                            "11": "Chinese",
-                            "13": "Korean",
-                            "14": "Common",
-                            "15": "Canada",
-                            "16": "Brazil",
-                            "17": "Australia"
-                        }
-                    }
-                },
-                "makerCode": {
-                    "type": "property",
-                    "name": "Maker Code",
-                    "begin": 26
-                },
-                "romVersion": {
-                    "type": "property",
-                    "name": "ROM Version",
-                    "begin": 27
-                },
-                "checksumInverse": {
-                    "type": "property",
-                    "name": "Checksum Inverse",
-                    "begin": 28,
-                    "mask": "0xFFFF",
-                    "hidden": true
-                },
-                "checksum": {
-                    "type": "property",
-                    "name": "Checksum",
-                    "begin": 30,
-                    "mask": "0xFFFF",
-                    "hidden": true
-                }
-            }
-        },
-        "spellName": {
+        "text": {
             "type": "array",
-            "name": "Spell Name",
-            "range": "0xD11C80-0xD11E8A",
+            "name": "Text",
+            "range": "0x08373B48-0x083B6058",
+            "isSequential": true,
             "array": {
-                "length": 87,
-                "max": 87
+                "length": 6009
             },
             "assembly": {
                 "type": "text",
-                "length": 6,
-                "encoding": "text"
+                "encoding": "text",
+                "multiLine": true
+            },
+            "pointerTable": {
+                "range": "0x0836DD64-0x08373B48",
+                "offset": "0x0836DD54"
             },
             "stringTable": {
-                "length": 87,
-                "default": "<spellName[%i]>"
+                "name": "Text",
+                "length": 6009,
+                "default": "<text[%i]>"
             }
         },
         "treasureProperties": {
             "type": "array",
             "name": "Treasure Properties",
-            "range": "0xD13210-0xD13600",
-            "canRelocate": true,
+            "range": "0x08142000-0x08142A88",
             "isSequential": true,
             "array": {
-                "length": 528
+                "length": 547
             },
             "pointerTable": "treasurePointers[%i].pointer",
             "assembly": {
                 "type": "array",
                 "assembly": {
                     "type": "data",
-                    "length": 4,
+                    "length": 8,
                     "assembly": {
                         "x": {
                             "type": "property",
@@ -3323,14 +2995,15 @@
                         "item": {
                             "type": "property",
                             "name": "Item",
-                            "begin": 3,
+                            "begin": 4,
+                            "mask": "0xFFFF",
                             "stringTable": "itemNames",
                             "invalid": "(this.parent.isBattle.value && this.parent.contentsBattle.value !== 0) || (!this.parent.isBattle.value && this.parent.contents.value < 2)"
                         },
                         "spell": {
                             "type": "property",
                             "name": "Spell",
-                            "begin": 3,
+                            "begin": 4,
                             "stringTable": "spellName",
                             "invalid": "(this.parent.isBattle.value && this.parent.contentsBattle.value !== 1) || (!this.parent.isBattle.value && this.parent.contents.value !== 1)"
                         },
@@ -3354,127 +3027,79 @@
                         "gp1": {
                             "type": "property",
                             "name": "GP",
-                            "begin": 3,
+                            "begin": 4,
                             "multiplier": 1,
                             "invalid": "this.parent.isBattle.value || this.parent.contents.value !== 0 || this.parent.multiplier.value !== 0"
                         },
                         "gp10": {
                             "type": "property",
                             "name": "GP",
-                            "begin": 3,
+                            "begin": 4,
                             "multiplier": 10,
                             "invalid": "this.parent.isBattle.value || this.parent.contents.value !== 0 || this.parent.multiplier.value !== 1"
                         },
                         "gp100": {
                             "type": "property",
                             "name": "GP",
-                            "begin": 3,
+                            "begin": 4,
                             "multiplier": 100,
                             "invalid": "this.parent.isBattle.value || this.parent.contents.value !== 0 || this.parent.multiplier.value !== 2"
                         },
                         "gp1000": {
                             "type": "property",
                             "name": "GP",
-                            "begin": 3,
+                            "begin": 4,
                             "multiplier": 1000,
                             "invalid": "this.parent.isBattle.value || this.parent.contents.value !== 0 || this.parent.multiplier.value !== 3"
                         },
                         "gp10000": {
                             "type": "property",
                             "name": "GP",
-                            "begin": 3,
+                            "begin": 4,
                             "multiplier": 10000,
                             "invalid": "this.parent.isBattle.value || this.parent.contents.value !== 0 || this.parent.multiplier.value !== 4"
                         }
                     }
                 }
-            },
-            "reference": [
-                {
-                    "begin": "0xC00DB9",
-                    "mask": "0xFFFFFF"
-                }, {
-                    "begin": "0xC00DC1",
-                    "mask": "0xFFFFFF",
-                    "offset": -1
-                }, {
-                    "begin": "0xC00DF2",
-                    "mask": "0xFFFFFF",
-                    "offset": -1
-                }, {
-                    "begin": "0xC00E00",
-                    "mask": "0xFFFFFF"
-                }, {
-                    "begin": "0xC00E35",
-                    "mask": "0xFFFFFF",
-                    "offset": -2
-                }, {
-                    "begin": "0xC00E3B",
-                    "mask": "0xFFFFFF",
-                    "offset": -3
-                }, {
-                    "begin": "0xC05CFB",
-                    "mask": "0xFFFFFF",
-                    "offset": -1
-                }, {
-                    "begin": "0xC05D09",
-                    "mask": "0xFFFFFF"
-                }
-            ]
+            }
         },
         "treasurePointers": {
             "type": "array",
-            "name": "Map Treasures",
-            "range": "0xD13000-0xD13210",
-            "canRelocate": true,
+            "name": "Treasure Pointers",
+            "range": "0x08141BB8-0x08142000",
             "array": {
-                "length": 528
+                "length": 547
             },
             "assembly": {
                 "type": "data",
+                "length": 2,
                 "assembly": {
                     "pointer": {
                         "type": "property",
                         "name": "Treasure",
                         "begin": 0,
-                        "offset": "0xD13210",
-                        "multiplier": 4
+                        "mask": "0xFFFF",
+                        "multiplier": 8,
+                        "offset": "0x08142000"
                     }
-                },
-                "length": 1
-            },
-            "reference": [
-                {
-                    "begin": "0xC00D7B",
-                    "mask": "0xFFFFFF"
-                }, {
-                    "begin": "0xC00D86",
-                    "mask": "0xFFFFFF",
-                    "offset": -1
-                }, {
-                    "begin": "0xC05CC4",
-                    "mask": "0xFFFFFF"
-                }, {
-                    "begin": "0xC05CCF",
-                    "mask": "0xFFFFFF",
-                    "offset": -1
                 }
-            ]
+            }
         },
         "triggerScript": {
             "type": "array",
             "name": "Trigger Script",
-            "range": "0xD8E600-0xD90000",
+            "range": "0x083BB0FC-0x083BCE0C",
             "array": {
-                "length": 704
+                "length": 815
             },
             "assembly": {
                 "type": "script",
                 "encoding": "trigger"
             },
             "pointerTable": {
-                "range": "0xD8E080-0xD8E600",
-                "offset": "0xD8E080"
+                "range": "0x083BAA9C-0x083BB0FC",
+                "pointerLength": 2,
+                "offset": "0x083BAA9C"
             },
             "stringTable": {
                 "name": "Trigger Script",
@@ -3595,82 +3220,83 @@
         "worldGraphics": {
             "type": "array",
             "name": "World Graphics",
-            "range": "0xDB8000-0xDBE000",
+            "range": "0x0827082C-0x0827697B",
             "array": {
                 "length": 3
             },
             "assembly": {
-                "length": "0x2000",
-                "format": "linear4bpp"
+                "format": ["linear8bpp", "gba-lzss"]
+            },
+            "pointerTable": {
+                "range": "0x08708F0C-0x08708F18"
             }
         },
         "worldLayouts": {
             "type": "array",
             "name": "World Layouts",
-            "range": "0xC70000-0xC82220",
-            "autoBank": true,
-            "canRelocate": true,
-            "pointerAlign": "0x010000",
+            "range": "0x08279BAC-0x082977C8",
             "array": {
-                "length": "0x0500"
+                "length": 5
             },
             "assembly": {
-                "format": "ff5-world"
+                "type": "data",
+                "isSequential": true,
+                "assembly": {
+                    "layout": {
+                        "type": "array",
+                        "begin": "0x0202",
+                        "endPointer": true,
+                        "array": {
+                            "length": "0x0100"
+                        },
+                        "assembly": {
+                            "format": "ff5a-world"
+                        },
+                        "pointerTable": {
+                            "range": "0x0000-0x0202",
+                            "pointerLength": 2
+                        }
+                    }
+                }
             },
             "pointerTable": {
-                "range": "0xCFE000-0xCFEA00",
-                "offset": "0xC70000",
-                "canRelocate": true,
-                "reference": [
-                    {
-                        "begin": "0xC069CF",
-                        "mask": "0xFFFFFF"
-                    }, {
-                        "begin": "0xC069DA",
-                        "mask": "0xFFFFFF"
-                    }
-                ]
-            },
-            "reference": [
-                {
-                    "begin": "0xC069A2",
-                    "mask": "0xFF",
-                    "bankByte": true
-                }
-            ]
+                "range": "0x0812E808-0x0812E81C"
+            }
         },
         "worldPalettes": {
             "type": "array",
             "name": "World Palettes",
-            "range": "0xCFFCC0-0xCFFFC0",
+            "range": "0x0827714C-0x08277764",
             "array": {
                 "length": 3
             },
             "assembly": {
-                "length": "0x0100",
                 "format": "bgr555"
+            },
+            "pointerTable": {
+                "range": "0x08708F1C-0x08708F28"
             }
         },
-        "worldPaletteAssignments": {
+        "worldTilesets16": {
             "type": "array",
-            "name": "World Palette Assignments",
-            "range": "0xCFF9C0-0xCFFCC0",
+            "name": "World Tilesets (16-bit)",
+            "range": "0x08277764-0x08278F88",
             "array": {
                 "length": 3
             },
-            "assembly": {
-                "length": "0x0100"
+            "pointerTable": {
+                "range": "0x08708F28-0x08708F34"
             }
         },
         "worldTilesets": {
             "type": "array",
             "name": "World Tilesets",
-            "range": "0xCFF0C0-0xCFF9C0",
+            "range": "0x08278F88-0x08279BAC",
             "array": {
                 "length": 3
             },
-            "assembly": {
-                "length": "0x0300"
+            "pointerTable": {
+                "range": "0x08708F34-0x08708F40"
             }
         }
     },
@@ -3681,47 +3307,42 @@
             "command": {
                 "action": {
                     "name": "Action",
-                    "opcode": "0x80-0xA0",
+                    "opcode": "0xA6-0xF3",
                     "length": 2,
                     "assembly": {
                         "object": {
                             "type": "property",
                             "name": "Object",
-                            "begin": 0,
+                            "begin": 1,
                             "mask": "0x7F",
                             "stringTable": "object"
                         },
                         "action": {
                             "type": "property",
                             "name": "Action",
-                            "begin": 1,
+                            "begin": 0,
+                            "offset": "0xA6",
                             "stringTable": "objectAction"
                         }
                     }
                 },
                 "actionParty": {
                     "name": "Action (Party)",
-                    "opcode": "0x00-0x70",
+                    "opcode": "0x78-0x9D",
                     "length": 1,
                     "assembly": {
                         "action": {
                             "type": "property",
                             "name": "Action",
                             "begin": 0,
-                            "stringTable": {
-                                "string": {
-                                    "0-11": "<stringTable.objectAction[%i]>",
-                                    "11": "Enable Walking Animation",
-                                    "12": "Disable Walking Animation",
-                                    "0x10-0x60": "<stringTable.objectAction[%i+16]>"
-                                }
-                            }
+                            "offset": "0x78",
+                            "stringTable": "objectAction"
                         }
                     }
                 },
                 "battle": {
                     "name": "Battle",
-                    "opcode": ["0xBD", "0xE2", "0xE8"],
+                    "opcode": ["0x51", "0xA5"],
                     "length": 3,
                     "assembly": {
                         "battleType": {
@@ -3731,9 +3352,8 @@
                             "stringTable": {
                                 "hideIndex": true,
                                 "string": {
-                                    "0xBD": "Normal",
-                                    "0xE2": "Can Lose",
-                                    "0xE8": "Character Stats (Ending)"
+                                    "0x51": "Normal",
+                                    "0xA5": "Can Lose"
                                 }
                             }
                         },
@@ -3763,39 +3383,45 @@
                         }
                     }
                 },
-                "battleSwitch": {
-                    "name": "Change Battle Switch",
-                    "opcode": "0xA6-0xA7",
-                    "length": 2,
+                "battleStats": {
+                    "name": "Battle (Character Stats)",
+                    "opcode": "0x6F",
+                    "length": 4,
                     "assembly": {
-                        "onOff": {
+                        "battle": {
                             "type": "property",
-                            "name": "On/Off",
-                            "begin": 0,
-                            "stringTable": {
-                                "hideIndex": true,
-                                "string": {
-                                    "0xA6": "On",
-                                    "0xA7": "Off"
-                                }
-                            }
-                        },
-                        "switch": {
-                            "type": "property",
-                            "name": "Switch",
+                            "name": "Battle",
                             "begin": 1,
-                            "stringTable": "battleSwitch"
+                            "mask": "0x7F",
+                            "link": "battleGroupEvent[%i]",
+                            "stringTable": "battleGroupEvent"
+                        },
+                        "noFadeIn": {
+                            "type": "property",
+                            "name": "Fade In Manually",
+                            "begin": 1,
+                            "mask": "0x80",
+                            "bool": true
+                        },
+                        "background": {
+                            "type": "property",
+                            "name": "Background",
+                            "begin": 3,
+                            "stringTable": "battleBackgroundProperties",
+                            "special": {
+                                "0xFF": "Map Default"
+                            }
                         }
                     }
                 },
                 "branchCharacters": {
                     "name": "Branch Based on Characters Present",
-                    "opcode": "0xE7",
-                    "length": 1
+                    "opcode": "0xFA",
+                    "length": 2
                 },
                 "branchRandom": {
                     "name": "Branch Forward (Random)",
-                    "opcode": "0xF1",
+                    "opcode": "0x74",
                     "length": 2,
                     "assembly": {
                         "count": {
@@ -3808,8 +3434,8 @@
                 },
                 "character": {
                     "name": "Add/Remove Character",
-                    "opcode": "0xB7",
-                    "length": 2,
+                    "opcode": ["0x4A", "0x4B"],
+                    "length": 3,
                     "assembly": {
                         "character": {
                             "type": "property",
@@ -3821,7 +3447,7 @@
                 },
                 "characterHP": {
                     "name": "Change Character HP",
-                    "opcode": "0xA8",
+                    "opcode": "0x37",
                     "length": 2,
                     "assembly": {
                         "subtract": {
@@ -3868,7 +3494,7 @@
                 },
                 "characterMP": {
                     "name": "Change Character MP",
-                    "opcode": "0xA9",
+                    "opcode": "0x38",
                     "length": 2,
                     "assembly": {
                         "subtract": {
@@ -3914,7 +3540,7 @@
                 },
                 "characterStatus": {
                     "name": "Change Character Status",
-                    "opcode": "0xBA-0xBC",
+                    "opcode": "0x4E-0x51",
                     "length": 3,
                     "assembly": {
                         "operation": {
@@ -3924,9 +3550,9 @@
                             "stringTable": {
                                 "hideIndex": true,
                                 "string": {
-                                    "0xBA": "AND",
-                                    "0xBB": "OR",
-                                    "0xBC": "XOR"
+                                    "0x4E": "AND",
+                                    "0x4F": "OR",
+                                    "0x50": "XOR"
                                 }
                             }
                         },
@@ -3957,25 +3583,25 @@
                         }
                     }
                 },
-                "command_7B": {
-                    "name": "Command $7B",
-                    "opcode": "0x7B",
+                "command_28": {
+                    "name": "Command $28",
+                    "opcode": "0x28",
                     "length": 1
                 },
-                "command_7D": {
-                    "name": "Command $7D",
-                    "opcode": "0x7D",
+                "command_2A": {
+                    "name": "Command $2A",
+                    "opcode": "0x2A",
                     "length": 1
                 },
-                "command_7F": {
-                    "name": "Command $7F",
-                    "opcode": "0x7F",
+                "command_2C": {
+                    "name": "Command $2C",
+                    "opcode": "0x2C",
                     "length": 1
                 },
-                "command_DA": {
-                    "name": "Command $DA",
-                    "opcode": "0xDA",
-                    "length": 4,
+                "command_A4": {
+                    "name": "Command $A4",
+                    "opcode": "0xA4",
+                    "length": 6,
                     "assembly": {
                         "parameter1": {
                             "type": "property",
@@ -3991,17 +3617,22 @@
                             "type": "property",
                             "name": "Parameter 3",
                             "begin": 3
+                        },
+                        "parameter4": {
+                            "type": "property",
+                            "name": "Parameter 4",
+                            "begin": 4
+                        },
+                        "parameter5": {
+                            "type": "property",
+                            "name": "Parameter 5",
+                            "begin": 5
                         }
                     }
                 },
-                "command_EB": {
-                    "name": "Command $EB",
-                    "opcode": "0xEB",
-                    "length": 1
-                },
                 "cutscene": {
                     "name": "Show Cutscene",
-                    "opcode": "0xB6",
+                    "opcode": "0x49",
                     "length": 2,
                     "assembly": {
                         "cutscene": {
@@ -4025,7 +3656,7 @@
                 },
                 "dialog": {
                     "name": "Dialog",
-                    "opcode": "0xC8",
+                    "opcode": "0x5C",
                     "length": 3,
                     "assembly": {
                         "dialog": {
@@ -4033,15 +3664,15 @@
                             "name": "Dialog",
                             "begin": 1,
                             "mask": "0x7FFF",
-                            "link": "dialog[%i]",
+                            "link": "stringTable.dialog[%i]",
                             "stringTable": "dialog"
                         }
                     }
                 },
                 "dialogYesNo": {
                     "name": "Dialog (Yes/No)",
-                    "opcode": "0xF0",
-                    "length": 3,
+                    "opcode": "0x72",
+                    "length": 7,
                     "assembly": {
                         "dialog": {
                             "type": "property",
@@ -4050,17 +3681,33 @@
                             "mask": "0x7FFF",
                             "link": "dialog[%i]",
                             "stringTable": "dialog"
+                        },
+                        "eventYes": {
+                            "type": "property",
+                            "name": "Event (Yes)",
+                            "begin": 3,
+                            "mask": "0xFFFF",
+                            "link": "eventScript[%i]",
+                            "stringTable": "eventScript"
+                        },
+                        "eventNo": {
+                            "type": "property",
+                            "name": "Event (No)",
+                            "begin": 5,
+                            "mask": "0xFFFF",
+                            "link": "eventScript[%i]",
+                            "stringTable": "eventScript"
                         }
                     }
                 },
                 "end": {
                     "name": "End of Script",
-                    "opcode": "0xFF",
+                    "opcode": "0x77",
                     "length": 1
                 },
                 "fade": {
                     "name": "Fade In/Out",
-                    "opcode": "0xC3-0xC5",
+                    "opcode": "0x58-0x5A",
                     "length": 2,
                     "assembly": {
                         "inOut": {
@@ -4070,8 +3717,8 @@
                             "stringTable": {
                                 "hideIndex": true,
                                 "string": {
-                                    "0xC3": "Fade In",
-                                    "0xC4": "Fade Out"
+                                    "0x58": "Fade In",
+                                    "0x59": "Fade Out"
                                 }
                             }
                         },
@@ -4084,12 +3731,12 @@
                 },
                 "fadeStop": {
                     "name": "Stop Fade",
-                    "opcode": "0x7E",
+                    "opcode": "0x2B",
                     "length": 1
                 },
                 "inn": {
                     "name": "Inn",
-                    "opcode": "0xAD",
+                    "opcode": "0x5E",
                     "length": 2,
                     "assembly": {
                         "price": {
@@ -4113,7 +3760,7 @@
                 },
                 "inventoryGP": {
                     "name": "Give/Take GP",
-                    "opcode": ["0xAF", "0xB0"],
+                    "opcode": ["0x3D", "0x3E"],
                     "length": 2,
                     "assembly": {
                         "giveTake": {
@@ -4123,8 +3770,8 @@
                             "stringTable": {
                                 "hideIndex": true,
                                 "string": {
-                                    "0xAF": "Give",
-                                    "0xB0": "Take"
+                                    "0x3D": "Give",
+                                    "0x3E": "Take"
                                 }
                             }
                         },
@@ -4138,7 +3785,7 @@
                 },
                 "inventoryItem": {
                     "name": "Give/Take Item",
-                    "opcode": ["0xAA", "0xAB"],
+                    "opcode": ["0x39", "0x3A"],
                     "length": 2,
                     "assembly": {
                         "giveTake": {
@@ -4148,8 +3795,8 @@
                             "stringTable": {
                                 "hideIndex": true,
                                 "string": {
-                                    "0xAA": "Give",
-                                    "0xAB": "Take"
+                                    "0x39": "Give",
+                                    "0x3A": "Take"
                                 }
                             }
                         },
@@ -4157,13 +3804,14 @@
                             "type": "property",
                             "name": "Item",
                             "begin": 1,
+                            "mask": "0xFFFF",
                             "stringTable": "itemNames"
                         }
                     }
                 },
                 "inventoryJob": {
                     "name": "Give Job",
-                    "opcode": "0xC6",
+                    "opcode": "0x5B",
                     "length": 2,
                     "assembly": {
                         "job": {
@@ -4176,7 +3824,7 @@
                 },
                 "inventoryMagic": {
                     "name": "Give Spell",
-                    "opcode": "0xAC",
+                    "opcode": "0x3B",
                     "length": 2,
                     "assembly": {
                         "magic": {
@@ -4189,7 +3837,7 @@
                 },
                 "jump": {
                     "name": "Jump to Subroutine",
-                    "opcode": "0xCD",
+                    "opcode": "0x61",
                     "length": 3,
                     "assembly": {
                         "event": {
@@ -4204,7 +3852,7 @@
                 },
                 "map": {
                     "name": "Load Map",
-                    "opcode": ["0xE0", "0xE1", "0xE3"],
+                    "opcode": ["0x69", "0x6A", "0x6B"],
                     "length": 6,
                     "assembly": {
                         "map": {
@@ -4222,9 +3870,9 @@
                             "stringTable": {
                                 "hideIndex": true,
                                 "string": {
-                                    "0xE0": "Fade Out/In",
-                                    "0xE1": "No Fade",
-                                    "0xE3": "Fade Out Only"
+                                    "0x69": "Fade Out/In",
+                                    "0x6A": "No Fade",
+                                    "0x6B": "Fade Out Only"
                                 }
                             }
                         }
@@ -4232,7 +3880,7 @@
                 },
                 "mapBackground": {
                     "name": "Change Map Background",
-                    "opcode": ["0xF3", "0xF4"],
+                    "opcode": ["0x75", "0x76"],
                     "length": 4,
                     "assembly": {
                         "layer": {
@@ -4256,29 +3904,29 @@
                             "stringTable": {
                                 "hideIndex": true,
                                 "string": {
-                                    "0xF3": "Absolute",
-                                    "0xF4": "Relative to Party"
+                                    "0x75": "Absolute",
+                                    "0x76": "Relative to Party"
                                 }
                             }
                         },
                         "xAbs": {
                             "type": "property",
                             "name": "X Position",
-                            "begin": 1,
+                            "begin": 2,
                             "mask": "0x3F",
                             "invalid": "this.parent.position.value !== 0xF3"
                         },
                         "yAbs": {
                             "type": "property",
                             "name": "Y Position",
-                            "begin": 2,
+                            "begin": 3,
                             "mask": "0x3F",
                             "invalid": "this.parent.position.value !== 0xF3"
                         },
                         "xRel": {
                             "type": "property",
                             "name": "X Position",
-                            "begin": 1,
+                            "begin": 2,
                             "mask": "0x3F",
                             "signed": true,
                             "invalid": "this.parent.position.value !== 0xF4"
@@ -4286,7 +3934,7 @@
                         "yRel": {
                             "type": "property",
                             "name": "Y Position",
-                            "begin": 2,
+                            "begin": 3,
                             "mask": "0x3F",
                             "signed": true,
                             "invalid": "this.parent.position.value !== 0xF4"
@@ -4294,14 +3942,14 @@
                         "w": {
                             "type": "property",
                             "name": "Width",
-                            "begin": 3,
+                            "begin": 4,
                             "mask": "0x0F",
                             "offset": 1
                         },
                         "h": {
                             "type": "property",
                             "name": "Height",
-                            "begin": 3,
+                            "begin": 5,
                             "mask": "0xF0",
                             "offset": 1
                         }
@@ -4309,22 +3957,22 @@
                 },
                 "mapTitle": {
                     "name": "Show Map Title",
-                    "opcode": "0xEA",
+                    "opcode": "0x71",
                     "length": 1
                 },
                 "miniMap": {
                     "name": "Show Mini-Map",
-                    "opcode": "0x79",
+                    "opcode": "0x26",
                     "length": 1
                 },
                 "nameChange": {
                     "name": "Show Name Change Menu",
-                    "opcode": "0x7A",
+                    "opcode": "0x27",
                     "length": 1
                 },
                 "npcDialog": {
                     "name": "NPC Dialog",
-                    "opcode": "0xA0",
+                    "opcode": "0x2D",
                     "length": 2,
                     "assembly": {
                         "dialog": {
@@ -4337,7 +3985,7 @@
                 },
                 "npcSwitch": {
                     "name": "Change NPC Switch",
-                    "opcode": ["0xCA", "0xCB"],
+                    "opcode": ["0x5F", "0x60"],
                     "length": 3,
                     "assembly": {
                         "onOff": {
@@ -4347,8 +3995,8 @@
                             "stringTable": {
                                 "hideIndex": true,
                                 "string": {
-                                    "0xCA": "On",
-                                    "0xCB": "Off"
+                                    "0x5F": "On",
+                                    "0x60": "Off"
                                 }
                             }
                         },
@@ -4363,8 +4011,8 @@
                 },
                 "objectPositionAbs": {
                     "name": "Change Object Position (Absolute)",
-                    "opcode": "0xD3",
-                    "length": 4,
+                    "opcode": "0x9D",
+                    "length": 5,
                     "assembly": {
                         "object": {
                             "type": "property",
@@ -4376,20 +4024,17 @@
                         "x": {
                             "type": "property",
                             "name": "X Position",
-                            "begin": 2,
-                            "mask": "0x3F"
+                            "begin": 2
                         },
                         "y": {
                             "type": "property",
                             "name": "Y Position",
-                            "begin": 3,
-                            "mask": "0xFF"
+                            "begin": 3
                         },
                         "direction": {
                             "type": "property",
                             "name": "Direction",
-                            "begin": 2,
-                            "mask": "0xC0",
+                            "begin": 4,
                             "stringTable": {
                                 "string": {
                                     "0": "Up",
@@ -4403,8 +4048,8 @@
                 },
                 "objectPositionRel": {
                     "name": "Change Object Position (Relative)",
-                    "opcode": "0xD8",
-                    "length": 3,
+                    "opcode": "0xA2",
+                    "length": 5,
                     "assembly": {
                         "object": {
                             "type": "property",
@@ -4416,22 +4061,31 @@
                         "x": {
                             "type": "property",
                             "name": "X Position",
-                            "begin": 2,
-                            "mask": "0xF0",
-                            "signed": true
+                            "begin": 2
                         },
                         "y": {
                             "type": "property",
                             "name": "Y Position",
-                            "begin": 2,
-                            "mask": "0x0F",
-                            "signed": true
+                            "begin": 3
+                        },
+                        "direction": {
+                            "type": "property",
+                            "name": "Direction",
+                            "begin": 4,
+                            "stringTable": {
+                                "string": {
+                                    "0": "Up",
+                                    "1": "Right",
+                                    "2": "Down",
+                                    "3": "Left"
+                                }
+                            }
                         }
                     }
                 },
                 "palette": {
                     "name": "Change Palette",
-                    "opcode": "0xD9",
+                    "opcode": "0xA2",
                     "length": 3,
                     "assembly": {
                         "romPalette": {
@@ -4448,19 +4102,26 @@
                 },
                 "parallel": {
                     "name": "Parallel Commands",
-                    "opcode": "0xC7",
-                    "length": 2,
+                    "opcode": "0x64",
+                    "length": 5,
                     "assembly": {
-                        "bytes": {
+                        "start": {
                             "type": "property",
-                            "name": "Bytes",
-                            "begin": 1
+                            "name": "Start",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        },
+                        "end": {
+                            "type": "property",
+                            "name": "End",
+                            "begin": 1,
+                            "mask": "0xFFFF"
                         }
                     }
                 },
                 "partyGraphic": {
                     "name": "Change Party Graphics",
-                    "opcode": "0xB1",
+                    "opcode": "0x3F",
                     "length": 2,
                     "assembly": {
                         "graphics": {
@@ -4489,7 +4150,7 @@
                 },
                 "partyGraphicAlt": {
                     "name": "Change Party Graphics (Alt.)",
-                    "opcode": "0xC1",
+                    "opcode": "0x56",
                     "length": 2,
                     "assembly": {
                         "graphics": {
@@ -4518,19 +4179,28 @@
                 },
                 "partyUpdate": {
                     "name": "Update Party Graphic",
-                    "opcode": "0xDB",
+                    "opcode": "0x67",
                     "length": 1
                 },
                 "ram": {
-                    "name": "Change RAM",
-                    "opcode": "0xDD",
+                    "name": "Change Magic Lamp/Caught Monster",
+                    "opcode": "0x68",
                     "length": 3,
                     "assembly": {
-                        "offset": {
+                        "type": {
                             "type": "property",
-                            "name": "offset (+$0500)",
+                            "name": "Type",
                             "begin": 1,
-                            "mask": "0xFFFF"
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0": "Magic Lamp",
+                                    "1": "Monster Caught (Character 1)",
+                                    "2": "Monster Caught (Character 2)",
+                                    "3": "Monster Caught (Character 3)",
+                                    "4": "Monster Caught (Character 4)"
+                                }
+                            }
                         },
                         "value": {
                             "type": "property",
@@ -4541,8 +4211,8 @@
                 },
                 "repeat": {
                     "name": "Repeat",
-                    "opcode": ["0xCE", "0xCF"],
-                    "length": 3,
+                    "opcode": ["0x62", "0x63"],
+                    "length": 6,
                     "assembly": {
                         "repeatType": {
                             "type": "property",
@@ -4551,8 +4221,8 @@
                             "stringTable": {
                                 "hideIndex": true,
                                 "string": {
-                                    "0xCE": "Sequential",
-                                    "0xCF": "Parallel"
+                                    "0x62": "Sequential",
+                                    "0x63": "Parallel"
                                 }
                             }
                         },
@@ -4561,16 +4231,23 @@
                             "name": "Count",
                             "begin": 1
                         },
-                        "bytes": {
+                        "start": {
                             "type": "property",
-                            "name": "Bytes",
-                            "begin": 2
+                            "name": "Start",
+                            "begin": 2,
+                            "mask": "0xFFFF"
+                        },
+                        "end": {
+                            "type": "property",
+                            "name": "End",
+                            "begin": 4,
+                            "mask": "0xFFFF"
                         }
                     }
                 },
                 "scrollSpeed": {
                     "name": "Change Scroll Speed",
-                    "opcode": "0x76-0x79",
+                    "opcode": "0x23-0x26",
                     "length": 1,
                     "assembly": {
                         "speed": {
@@ -4580,9 +4257,9 @@
                             "stringTable": {
                                 "hideIndex": true,
                                 "string": {
-                                    "0x76": "Normal (1×)",
-                                    "0x77": "Fast (2×)",
-                                    "0x78": "Slow (½×)"
+                                    "0x23": "Normal (1×)",
+                                    "0x24": "Fast (2×)",
+                                    "0x25": "Slow (½×)"
                                 }
                             }
                         }
@@ -4590,8 +4267,8 @@
                 },
                 "screenColor": {
                     "name": "Change Fixed Color Math",
-                    "opcode": "0xB8-0xBA",
-                    "length": 2,
+                    "opcode": "0x4C-0x4D",
+                    "length": 4,
                     "assembly": {
                         "math": {
                             "type": "property",
@@ -4622,25 +4299,25 @@
                         "speed": {
                             "type": "property",
                             "name": "Speed",
-                            "begin": 1,
-                            "mask": "0x18"
+                            "begin": 2,
+                            "mask": "0x03"
                         },
                         "intensity": {
                             "type": "property",
                             "name": "Amplitude",
-                            "begin": 1,
+                            "begin": 3,
                             "mask": "0x07"
                         }
                     }
                 },
                 "screenGrayscale": {
                     "name": "Change Color Palette to Grayscale",
-                    "opcode": "0xE6",
+                    "opcode": "0x6E",
                     "length": 1
                 },
                 "screenFlash": {
                     "name": "Flash the Screen",
-                    "opcode": "0xC5",
+                    "opcode": "0x5A",
                     "length": 2,
                     "assembly": {
                         "color": {
@@ -4661,7 +4338,7 @@
                 },
                 "screenMask": {
                     "name": "Change Window Mask",
-                    "opcode": "0xC0",
+                    "opcode": "0x55",
                     "length": 2,
                     "assembly": {
                         "mask": {
@@ -4673,7 +4350,7 @@
                 },
                 "screenPixelate": {
                     "name": "Pixelate the Screen",
-                    "opcode": "0xAE",
+                    "opcode": "0x3C",
                     "length": 2,
                     "assembly": {
                         "speed": {
@@ -4685,8 +4362,8 @@
                 },
                 "screenShake": {
                     "name": "Shake the Screen",
-                    "opcode": "0xBE",
-                    "length": 2,
+                    "opcode": "0x53",
+                    "length": 5,
                     "assembly": {
                         "amplitude": {
                             "type": "property",
@@ -4697,7 +4374,7 @@
                 },
                 "shop": {
                     "name": "Shop",
-                    "opcode": "0xA1",
+                    "opcode": "0x2E",
                     "length": 2,
                     "assembly": {
                         "shop": {
@@ -4712,7 +4389,7 @@
                 },
                 "song": {
                     "name": "Play Song",
-                    "opcode": "0xB4",
+                    "opcode": "0x43",
                     "length": 2,
                     "assembly": {
                         "song": {
@@ -4725,7 +4402,7 @@
                 },
                 "soundEffect": {
                     "name": "Play Sound Effect",
-                    "opcode": "0xB5",
+                    "opcode": "0x48",
                     "length": 2,
                     "assembly": {
                         "song": {
@@ -4738,9 +4415,14 @@
                 },
                 "spcCommand": {
                     "name": "SPC Command",
-                    "opcode": "0xD0",
+                    "opcode": "0x06-0x08",
                     "length": 3,
                     "assembly": {
+                        "parameter0": {
+                            "type": "property",
+                            "name": "Parameter 0",
+                            "begin": 0
+                        },
                         "parameter1": {
                             "type": "property",
                             "name": "Parameter 1",
@@ -4753,10 +4435,10 @@
                         }
                     }
                 },
-                "spcUnknown_C9": {
+                "spcUnknown_5D": {
                     "name": "Unknown (SPC)",
-                    "opcode": "0xC9",
-                    "length": 3,
+                    "opcode": "0x5D",
+                    "length": 5,
                     "assembly": {
                         "parameter1": {
                             "type": "property",
@@ -4767,13 +4449,23 @@
                             "type": "property",
                             "name": "Parameter 2",
                             "begin": 2
+                        },
+                        "parameter3": {
+                            "type": "property",
+                            "name": "Parameter 3",
+                            "begin": 3
+                        },
+                        "parameter4": {
+                            "type": "property",
+                            "name": "Parameter 4",
+                            "begin": 4
                         }
                     }
                 },
-                "spcUnknown_D4": {
+                "spcUnknown_9E": {
                     "name": "Unknown (SPC)",
-                    "opcode": "0xD4",
-                    "length": 4,
+                    "opcode": "0x9E",
+                    "length": 6,
                     "assembly": {
                         "parameter1": {
                             "type": "property",
@@ -4792,10 +4484,10 @@
                         }
                     }
                 },
-                "spcUnknown_D5": {
+                "spcUnknown_9F": {
                     "name": "Unknown (SPC)",
-                    "opcode": "0xD5",
-                    "length": 4,
+                    "opcode": "0x9F",
+                    "length": 6,
                     "assembly": {
                         "parameter1": {
                             "type": "property",
@@ -4816,7 +4508,7 @@
                 },
                 "spcWait": {
                     "name": "Wait for SPC",
-                    "opcode": "0xE4-0xE6",
+                    "opcode": "0x6C-0x6E",
                     "length": 1,
                     "assembly": {
                         "channel": {
@@ -4826,8 +4518,8 @@
                             "stringTable": {
                                 "hideIndex": true,
                                 "string": {
-                                    "0xE4": "Channel 2",
-                                    "0xE5": "Channel 3"
+                                    "0x6C": "Channel 2",
+                                    "0x6D": "Channel 3"
                                 }
                             }
                         }
@@ -4835,7 +4527,7 @@
                 },
                 "special": {
                     "name": "Special Command",
-                    "opcode": "0xBF",
+                    "opcode": "0x54",
                     "length": 2,
                     "assembly": {
                         "command": {
@@ -4856,7 +4548,7 @@
                 },
                 "switch": {
                     "name": "Change Event Switch",
-                    "opcode": "0xA2-0xA6",
+                    "opcode": "0x2F-0x33",
                     "length": 2,
                     "assembly": {
                         "onOff": {
@@ -4880,7 +4572,7 @@
                 },
                 "timerStart": {
                     "name": "Start Timer",
-                    "opcode": ["0xD1", "0xD7"],
+                    "opcode": ["0x65", "0xA1", "0xFC"],
                     "length": 4,
                     "assembly": {
                         "music": {
@@ -4890,8 +4582,9 @@
                             "stringTable": {
                                 "hideIndex": true,
                                 "string": {
-                                    "0xD1": "No Effect",
-                                    "0xD7": "Speed Up Music"
+                                    "0x65": "No Effect",
+                                    "0xA1": "Speed Up Music",
+                                    "0xFC": "???"
                                 }
                             }
                         },
@@ -4912,12 +4605,12 @@
                 },
                 "timerStop": {
                     "name": "Stop Timer",
-                    "opcode": "0x7C",
+                    "opcode": "0x29",
                     "length": 1
                 },
                 "tutorial": {
                     "name": "Tutorial Menu",
-                    "opcode": "0xDC",
+                    "opcode": "0xF9",
                     "length": 2,
                     "assembly": {
                         "tutorial": {
@@ -4940,7 +4633,7 @@
                 },
                 "vehicleHide": {
                     "name": "Hide Vehicle",
-                    "opcode": "0xC2",
+                    "opcode": "0x57",
                     "length": 2,
                     "assembly": {
                         "vehicle": {
@@ -4953,7 +4646,7 @@
                 },
                 "vehicleShow": {
                     "name": "Show Vehicle",
-                    "opcode": "0xD2",
+                    "opcode": ["0x66", "0xF3"],
                     "length": 5,
                     "assembly": {
                         "vehicle": {
@@ -4990,22 +4683,22 @@
                 },
                 "wait": {
                     "name": "Wait (15, 30, 45, 60, 90, 120 frames)",
-                    "opcode": "0x70-0x76",
+                    "opcode": "0x1D-0x23",
                     "length": 1,
                     "assembly": {
                         "duration": {
                             "type": "property",
                             "name": "Duration",
                             "begin": 0,
-                            "mask": "0x0F",
                             "stringTable": {
+                                "hideIndex": true,
                                 "string": {
-                                    "0": "15 Frames",
-                                    "1": "30 Frames",
-                                    "2": "45 Frames",
-                                    "3": "60 Frames",
-                                    "4": "90 Frames",
-                                    "5": "120 Frames"
+                                    "0x1D": "15 Frames",
+                                    "0x1E": "30 Frames",
+                                    "0x1F": "45 Frames",
+                                    "0x20": "60 Frames",
+                                    "0x21": "90 Frames",
+                                    "0x22": "120 Frames"
                                 }
                             }
                         }
@@ -5013,7 +4706,7 @@
                 },
                 "waitAny": {
                     "name": "Wait (Any Duration)",
-                    "opcode": ["0xB2", "0xB3"],
+                    "opcode": ["0x41", "0x42"],
                     "length": 2,
                     "assembly": {
                         "multiplier": {
@@ -5023,8 +4716,8 @@
                             "stringTable": {
                                 "hideIndex": true,
                                 "string": {
-                                    "0xB2": "×1",
-                                    "0xB3": "×15"
+                                    "0x41": "×1",
+                                    "0x42": "×15"
                                 }
                             }
                         },
@@ -5032,14 +4725,14 @@
                             "type": "property",
                             "name": "Duration",
                             "begin": 1,
-                            "invalid": "this.parent.multiplier.value === 0xB3"
+                            "invalid": "this.parent.multiplier.value !== 0x41"
                         },
                         "duration15": {
                             "type": "property",
                             "name": "Duration",
                             "begin": 1,
                             "multiplier": 15,
-                            "invalid": "this.parent.multiplier.value === 0xB2"
+                            "invalid": "this.parent.multiplier.value !== 0x42"
                         }
                     }
                 }
@@ -5205,8 +4898,8 @@
                             "name": "Event",
                             "begin": 1,
                             "mask": "0xFFFF",
-                            "link": "eventScript[%i]",
-                            "stringTable": "eventScript"
+                            "link": "eventSFC[%i]",
+                            "stringTable": "eventSFC"
                         }
                     }
                 },
@@ -5244,130 +4937,154 @@
     },
     "charTable": {
         "text": {
-            "name": "Text",
+            "name": "Menu",
             "char": {
-                "0x00": "\\0",
-                "0x01": "\\n",
-                "0x02": "\\char00",
-                "0x03": "\\char01",
-                "0x04": "\\char02",
-                "0x05": "\\char03",
-                "0x06": "\\char04",
-                "0x0C": "\\wait",
-                "0x0F": "\\page",
-                "0x10": "\\gp",
-                "0x11": "\\item",
-                "0x12": "\\spell",
-                "0x17": "\\wait[",
-                "0x53": "0",
-                "0x54": "1",
-                "0x55": "2",
-                "0x56": "3",
-                "0x57": "4",
-                "0x58": "5",
-                "0x59": "6",
-                "0x5A": "7",
-                "0x5B": "8",
-                "0x5C": "9",
-                "0x60": "A",
-                "0x61": "B",
-                "0x62": "C",
-                "0x63": "D",
-                "0x64": "E",
-                "0x65": "F",
-                "0x66": "G",
-                "0x67": "H",
-                "0x68": "I",
-                "0x69": "J",
-                "0x6A": "K",
-                "0x6B": "L",
-                "0x6C": "M",
-                "0x6D": "N",
-                "0x6E": "O",
-                "0x6F": "P",
-                "0x70": "Q",
-                "0x71": "R",
-                "0x72": "S",
-                "0x73": "T",
-                "0x74": "U",
-                "0x75": "V",
-                "0x76": "W",
-                "0x77": "X",
-                "0x78": "Y",
-                "0x79": "Z",
-                "0x7A": "a",
-                "0x7B": "b",
-                "0x7C": "c",
-                "0x7D": "d",
-                "0x7E": "e",
-                "0x7F": "f",
-                "0x80": "g",
-                "0x81": "h",
-                "0x82": "i",
-                "0x83": "j",
-                "0x84": "k",
-                "0x85": "l",
-                "0x86": "m",
-                "0x87": "n",
-                "0x88": "o",
-                "0x89": "p",
-                "0x8A": "q",
-                "0x8B": "r",
-                "0x8C": "s",
-                "0x8D": "t",
-                "0x8E": "u",
-                "0x8F": "v",
-                "0x90": "w",
-                "0x91": "x",
-                "0x92": "y",
-                "0x93": "z",
-                "0x94": "il",
-                "0x95": "it",
-                "0x96": " ",
-                "0x97": "li",
-                "0x98": "ll",
-                "0x99": "'",
-                "0x9A": "\"",
-                "0x9B": ":",
-                "0x9C": ";",
-                "0x9D": ",",
-                "0x9E": "(",
-                "0x9F": ")",
-                "0xA0": "/",
-                "0xA1": "!",
-                "0xA2": "?",
-                "0xA3": ".",
-                "0xA4": "ti",
-                "0xA5": "fi",
-                "0xA6": "Bla",
-                "0xA8": "pel",
-                "0xAC": "if",
-                "0xAD": "It",
-                "0xAE": "tl",
-                "0xAF": "ir",
-                "0xB0": "tt",
-                "0xC2": "\\potion",
-                "0xC3": "\\robe",
-                "0xC5": "-",
-                "0xE3": "\\sword",
-                "0xE4": "\\white",
-                "0xE5": "\\black",
-                "0xE6": "\\time",
-                "0xE7": "\\dagger",
-                "0xE8": "\\spear",
-                "0xE9": "\\hammer",
-                "0xEA": "\\katana",
-                "0xEB": "\\rod",
-                "0xEC": "\\staff",
-                "0xED": "\\bow",
-                "0xEE": "\\harp",
-                "0xEF": "\\whip",
-                "0xF0": "\\bell",
-                "0xF1": "\\shield",
-                "0xF2": "\\cap",
-                "0xF3": "\\armor",
-                "0xF4": "\\relic",
-                "0xFF": " "
+                "0x00": " ",
+                "0x01": "e",
+                "0x02": "t",
+                "0x03": "a",
+                "0x04": "o",
+                "0x05": "n",
+                "0x06": "s",
+                "0x07": "r",
+                "0x08": "i",
+                "0x09": "h",
+                "0x0A": "l",
+                "0x0B": ".",
+                "0x0C": "d",
+                "0x0D": "\\0",
+                "0x0E": "u",
+                "0x0F": "m",
+                "0x10": "g",
+                "0x11": "y",
+                "0x12": "c",
+                "0x13": "w",
+                "0x14": "f",
+                "0x15": "p",
+                "0x16": "!",
+                "0x17": "b",
+                "0x18": ":",
+                "0x19": "k",
+                "0x1A": "'",
+                "0x1B": ",",
+                "0x1C": "v",
+                "0x1D": "T",
+                "0x1E": "I",
+                "0x1F": "S",
+                "0x20": "C",
+                "0x21": "G",
+                "0x22": "W",
+                "0x23": "?",
+                "0x24": "F",
+                "0x25": "L",
+                "0x26": "-",
+                "0x27": "B",
+                "0x28": "P",
+                "0x29": "M",
+                "0x2A": "K",
+                "0x2B": "H",
+                "0x2C": "A",
+                "0x2D": "D",
+                "0x2E": "E",
+                "0x2F": "R",
+                "0x30": "x",
+                "0x31": "O",
+                "0x32": "Y",
+                "0x33": "N",
+                "0x34": "z",
+                "0x35": "j",
+                "0x36": "q",
+                "0x37": "1",
+                "0x38": "V",
+                "0x39": "U",
+                "0x3A": "2",
+                "0x3B": "X",
+                "0x3C": "J",
+                "0x3D": "*",
+                "0x3E": "\"",
+                "0x3F": "0",
+                "0x40": "3",
+                "0x41": "Z",
+                "0x42": "4",
+                "0x43": "5",
+                "0x44": "Q",
+                "0x45": "6",
+                "0x46": "8",
+                "0x47": "7",
+                "0x48": "%",
+                "0x49": "9",
+                "0x4A": "+",
+                "0x4B": ";",
+                "0x4C": "/",
+                "0x4E": "&",
+                "0x4F": "(",
+                "0x50": ")",
+                "0x51": "=",
+                "0x55": "—",
+                "0x56": "\\d-pad",
+                "0x57": "\\up-button",
+                "0x58": "\\right-button",
+                "0x59": "\\down-button",
+                "0x5A": "\\left-button",
+                "0x5B": "↑",
+                "0x5C": "→",
+                "0x5D": "↓",
+                "0x5E": "←",
+                "0x5F": "\\claw",
+                "0x60": "\\rod",
+                "0x61": "\\staff",
+                "0x62": "\\knife",
+                "0x63": "\\sword1",
+                "0x64": "\\sword2",
+                "0x65": "\\lance",
+                "0x66": "\\kunai",
+                "0x67": "\\katana",
+                "0x68": "\\shuriken",
+                "0x69": "\\boomerang",
+                "0x6A": "\\axe",
+                "0x6B": "\\tool",
+                "0x6C": "\\music",
+                "0x6D": "\\bow",
+                "0x6E": "\\arrow",
+                "0x6F": "\\hammer",
+                "0x70": "\\whip",
+                "0x71": "\\shield",
+                "0x72": "\\helmet",
+                "0x73": "\\armor",
+                "0x74": "\\glove",
+                "0x75": "\\white",
+                "0x76": "\\black",
+                "0x77": "\\time",
+                "0xC2": "\\xC2[",
+                "0xC28E": "\\n",
+                "0xC2B7": "\\key",
+                "0xC2A5": "\\portrait00",
+                "0xC2A6": "\\portrait01",
+                "0xC2A7": "\\portrait03",
+                "0xC2A8": "\\portrait04",
+                "0xC2A9": "\\portrait05",
+                "0xC2AA": "\\portrait06",
+                "0xC2AB": "\\portrait07",
+                "0xC2AC": "\\portrait08",
+                "0xC2AD": "\\portrait09",
+                "0xC2AE": "\\portrait10",
+                "0xC2AF": "\\portrait11",
+                "0xC2B0": "\\portrait12",
+                "0xC2B1": "\\portrait13",
+                "0xC2B2": "\\portrait14",
+                "0xC2B3": "\\char00",
+                "0xC2B4": "\\item",
+                "0xC2B5": "\\gil",
+                "0xC2B6": "\\spell",
+                "0xC2B8": "\\wait",
+                "0xC2B9": "\\pause1",
+                "0xC2BA": "\\pause2",
+                "0xC2BB": "\\pause3",
+                "0xC2BC": "\\pause4",
+                "0xC2BD": "\\pause5",
+                "0xC3": "\\xC3[",
+                "0xC391": "\\clear",
+                "0xC4": "\\xC4["
             }
         }
     },
@@ -5384,6 +5101,16 @@
             "name": "Battle Switch",
             "length": 256,
             "default": "Battle Switch %i"
+        },
+        "characterNames": {
+            "name": "Dialog",
+            "length": 1,
+            "link": "text[0x0B76]"
+        },
+        "dialog": {
+            "name": "Dialog",
+            "length": 2404,
+            "link": "text[%i]"
         },
         "eventCharacter": {
             "name": "Event Character",
@@ -5406,6 +5133,19 @@
                 "507": "Enable Mini-Map",
                 "509": "Enable Tent/Save",
                 "511": "Disable Random Battles"
+            }
+        },
+        "itemNames": {
+            "name": "Item Names",
+            "length": 260,
+            "link": "text[%i+0x0CEF]"
+        },
+        "mapTitle": {
+            "name": "Map Title",
+            "length": 197,
+            "link": "text[%i+0x16B3]",
+            "string": {
+                "0": "No Title"
             }
         },
         "npcSwitch": {
@@ -5804,6 +5544,11 @@
             "length": 256,
             "default": "Sound Effect %i"
         },
+        "spellName": {
+            "name": "Spell Names",
+            "length": 94,
+            "link": "text[%i+0x11E3]"
+        },
         "vehicle": {
             "name": "Vehicle",
             "string": {
@@ -5818,9 +5563,5 @@
         }
     },
     "freeSpace": [
-        "0xCDF9FF-0xCDFA40",
-        "0xD13600-0xD13840",
-        "0xE36B3D-0xE70000",
-        "0xE75900-0xE7F800"
     ]
 }

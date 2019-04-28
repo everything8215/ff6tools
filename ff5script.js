@@ -105,9 +105,9 @@ var FF5Script = {
             case "dialog":
             case "dialogYesNo":
                 var d = command.dialog.value;
-                var dialog = command.rom.dialog.item(d);
+                var dialog = command.rom.stringTable.dialog.string[d];
                 var dialogText = command.name + ":<br/>";
-                return dialogText + (dialog ? dialog.htmlText : "Invalid Dialog Message");
+                return dialogText + (dialog ? dialog.htmlString() : "Invalid Dialog Message");
                 
             case "event":
             case "jump":
@@ -158,9 +158,9 @@ var FF5Script = {
                 i = command.i - i;
                 
                 var d = command.dialog.value;
-                var dialog = command.rom.dialog.item(d);
+                var dialog = command.rom.stringTable.dialog.string[d];
                 var dialogText = "NPC Dialog " + i + ":<br/>";
-                return dialogText + (dialog ? dialog.htmlText : "Invalid Dialog Message");
+                return dialogText + (dialog ? dialog.htmlString() : "Invalid Dialog Message");
                 
             case "parallel":
                 return "Execute the Next  " + command.bytes.value + " Byte(s) in Parallel";

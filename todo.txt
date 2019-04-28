@@ -36,7 +36,7 @@ game specific
  * add english string tables for ff6 steam version
  * world of ruin gets corrupted in roms expanded by ff3usme
  * ff5 monster ai
- * ff5 advance
+ * ff5 advance (battles, ff5j, ff5e)
  * can't expand/relocate ff6 advance text
 
 wish list

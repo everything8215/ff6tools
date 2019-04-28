@@ -54,7 +54,7 @@ GFX.TileFormat = {
 GFX.Z = {
     bottom: 0, // force to bottom
     snesBk: 0, // snes back area
-    snew4L: 2, // snes layer 4, low priority
+    snes4L: 2, // snes layer 4, low priority
     snes3L: 3, // snes layer 3, low priority
     snesS0: 4, // snes sprites, priority 0
     snes4H: 6, // snes layer 4, high priority

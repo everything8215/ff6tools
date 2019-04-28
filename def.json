@@ -19,6 +19,10 @@
         "name": "Final Fantasy V (RPGe)",
         "crc32": ["0x892E44BE", "0x17444605", "0xD19F6CB5"]
     },
+    "ff5u-gba.json": {
+        "name": "Final Fantasy V Advance (U)",
+        "crc32": ["0x7A24AB0C"]
+    },
     "ff3u-sfc.json": {
         "name": "Final Fantasy III (U)",
         "crc32": ["0xA27F1C7A", "0xC0FA0464"]
