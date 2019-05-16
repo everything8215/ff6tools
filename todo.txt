@@ -14,6 +14,8 @@ general
  * copy and paste
  * paste-able script text
  * array insert/remove
+ * disable automatic snes header update
+ * import/export binary data
 
 gui
 ---

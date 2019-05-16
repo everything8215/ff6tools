@@ -159,7 +159,9 @@ FF5Map.prototype.mouseDown = function(e) {
     
     this.closeMenu();
     this.clickedCol = ((e.offsetX / this.zoom + this.ppu.layers[this.l].x) % this.ppu.width) >> 4;
+    if (this.clickedCol < 0) this.clickedCol += 64;
     this.clickedRow = ((e.offsetY / this.zoom + this.ppu.layers[this.l].y) % this.ppu.height) >> 4;
+    if (this.clickedRow < 0) this.clickedRow += 64;
     this.clickButton = e.button;
     
     // update the selection position
@@ -235,7 +237,9 @@ FF5Map.prototype.mouseUp = function(e) {
 FF5Map.prototype.mouseMove = function(e) {
     
     var col = ((e.offsetX / this.zoom + this.ppu.layers[this.l].x) % this.ppu.width) >> 4;
+    if (col < 0) col += 64;
     var row = ((e.offsetY / this.zoom + this.ppu.layers[this.l].y) % this.ppu.height) >> 4;
+    if (row < 0) row += 64;
 
     // update the displayed coordinates
     var coordinates = document.getElementById("coordinates");
@@ -601,7 +605,7 @@ FF5Map.prototype.loadMap = function(m) {
     // load and de-interlace tile layouts
     if (map.layout1.value) {
         layout = this.rom.mapLayouts.item(map.layout1.value - 1);
-        if (layout.lazyData.length === 1) {
+        if (layout.lazyData && layout.lazyData.length === 1) {
             var fill = layout.lazyData[0];
             layout = new Uint16Array(0x1000);
             layout.fill(fill);
@@ -610,11 +614,12 @@ FF5Map.prototype.loadMap = function(m) {
         layout = new Uint8Array(0x1000);
         layout.fill(1);
     }
-    this.layer[0].loadLayout({layout: layout, tileset: tileset, w: 64, h: 64, tilePriority: tilePriority});
+    var w = 64; var h = 64;
+    this.layer[0].loadLayout({layout: layout, tileset: tileset, w: w, h: h, tilePriority: tilePriority});
 
     if (map.layout2.value) {
         layout = this.rom.mapLayouts.item(map.layout2.value - 1);
-        if (layout.lazyData.length === 1) {
+        if (layout.lazyData && layout.lazyData.length === 1) {
             var fill = layout.lazyData[0];
             layout = new Uint16Array(0x1000);
             layout.fill(fill);
@@ -623,11 +628,13 @@ FF5Map.prototype.loadMap = function(m) {
         layout = new Uint8Array(0x1000);
         layout.fill(1);
     }
-    this.layer[1].loadLayout({layout: layout, tileset: tileset, w: 64, h: 64, tilePriority: tilePriority});
+    w = map.tiledLayer2.value ? 32 : 64;
+    h = map.tiledLayer2.value ? 16 : 64;
+    this.layer[1].loadLayout({layout: layout, tileset: tileset, w: w, h: h, tilePriority: tilePriority});
 
     if (map.layout3.value) {
         layout = this.rom.mapLayouts.item(map.layout3.value - 1);
-        if (layout.lazyData.length === 1) {
+        if (layout.lazyData && layout.lazyData.length === 1) {
             var fill = layout.lazyData[0];
             layout = new Uint16Array(0x1000);
             layout.fill(fill);
@@ -636,7 +643,9 @@ FF5Map.prototype.loadMap = function(m) {
         layout = new Uint8Array(0x1000);
         layout.fill(1);
     }
-    this.layer[2].loadLayout({layout: layout, tileset: tileset, w: 64, h: 64, tilePriority: tilePriority});
+    w = map.tiledLayer3.value ? 32 : 64;
+    h = map.tiledLayer3.value ? 16 : 64;
+    this.layer[2].loadLayout({layout: layout, tileset: tileset, w: w, h: h, tilePriority: tilePriority});
 
     // get color math properties
     var colorMath = this.rom.mapColorMath.item(map.colorMath.value);
@@ -1371,12 +1380,6 @@ FF5MapTileset.prototype.drawCursor = function() {
 
 FF5MapTileset.prototype.loadMap = function(m) {
 
-    // create a sequential tile layout
-    var layout = new Uint8Array(256);
-    for (var i = 0; i < 256; i++) {
-        layout[i] = i;
-    }
-    
     // set up the ppu
     this.ppu = new GFX.PPU();
     this.ppu.pal = this.map.ppu.pal;
@@ -1385,6 +1388,10 @@ FF5MapTileset.prototype.loadMap = function(m) {
     this.ppu.back = true;
 
     if (this.map.m < 5) {
+        // create a sequential tile layout
+        var layout = new Uint8Array(256);
+        for (var i = 0; i < 256; i++) layout[i] = i;
+
         this.ppu.height = 192;
         this.worldLayer.loadLayout({layout: layout, tileset: this.map.worldLayer.tileset, w: 16, h: 12, paletteAssignment: this.map.worldLayer.paletteAssignment})
         
@@ -1398,9 +1405,17 @@ FF5MapTileset.prototype.loadMap = function(m) {
         this.ppu.layers[0].tiles = this.worldLayer.tiles;
         
     } else {
+        // create a sequential tile layout
+        var layout = new Uint8Array(1024);
+        for (var y = 0; y < 16; y++) {
+            for (var x = 0; x < 16; x++) {
+                layout[y * 64 + x] = y * 16 + x;
+            }
+        }
+
         this.layer[0].loadLayout({layout: layout, tileset: this.map.layer[0].tileset, w: 16, h: 16, tilePriority: this.map.layer[0].tilePriority});
-        this.layer[1].loadLayout({layout: layout, tileset: this.map.layer[1].tileset, w: 16, h: 16, tilePriority: this.map.layer[0].tilePriority});
-        this.layer[2].loadLayout({layout: layout, tileset: this.map.layer[2].tileset, w: 16, h: 16, tilePriority: this.map.layer[0].tilePriority});
+        this.layer[1].loadLayout({layout: layout, tileset: this.map.layer[1].tileset, w: 16, h: 16, tilePriority: this.map.layer[1].tilePriority});
+        this.layer[2].loadLayout({layout: layout, tileset: this.map.layer[2].tileset, w: 16, h: 16, tilePriority: this.map.layer[2].tilePriority});
         
         // layer 1
         this.ppu.layers[0].format = this.rom.isSFC ? GFX.TileFormat.snes4bppTile : GFX.TileFormat.gba4bppTile;
@@ -1453,7 +1468,6 @@ FF5MapLayer.prototype.loadLayout = function(definition) {
     this.tileset = definition.tileset;
     this.w = definition.w;
     this.h = definition.h;
-    this.isTiled = definition.isTiled;
     this.paletteAssignment = definition.paletteAssignment; // world map only
     this.tilePriority = definition.tilePriority; // gba only
 
@@ -1479,11 +1493,11 @@ FF5MapLayer.prototype.setLayout = function(layout) {
     
     for (var row = 0; row < clippedH; row++) {
         var ls = 5 + row * w;
-        var ld = x + (y + row) * this.w;
         if (this.type === "world") {
             if (y + row > 256) break;
             this.layout[y + row].setData(layout.slice(ls, ls + clippedW), x);
         } else {
+            var ld = x + (y + row) * 64;
             if (ld + clippedW > this.layout.data.length) break;
             this.layout.setData(layout.slice(ls, ls + clippedW), ld);
         }
@@ -1508,7 +1522,7 @@ FF5MapLayer.prototype.getLayout = function(col, row, cols, rows) {
             if (this.type === "world") {
                 selection[5 + x + y * cols] = layout[y + clippedRow].data[x + clippedCol];
             } else {
-                selection[5 + x + y * cols] = layout[x + clippedCol + (y + clippedRow) * this.w];
+                selection[5 + x + y * cols] = layout[x + clippedCol + (y + clippedRow) * 64];
             }
         }
     }
@@ -1543,7 +1557,7 @@ FF5MapLayer.prototype.decodeLayout = function(x, y, w, h) {
 FF5MapLayer.prototype.decodeMapLayout = function(x, y, w, h) {
     
     var layout = this.layout.data || this.layout;
-    var l = x + y * this.w;
+    var l = x + y * 64;
     var t = x * 2 + y * this.w * 4;
     var row, col, tile, i, t1;
 
@@ -1560,7 +1574,7 @@ FF5MapLayer.prototype.decodeMapLayout = function(x, y, w, h) {
                 this.tiles[i + 1] = this.tileset[tile + 0x0600] | (this.tileset[tile + 0x0601] << 8);
             }
             t += this.w * 4;
-            l += this.w;
+            l += 64;
         }
     } else {
         
@@ -1585,7 +1599,7 @@ FF5MapLayer.prototype.decodeMapLayout = function(x, y, w, h) {
                 this.tiles[i + 1] = tileset[t1 + 0x0042] | (tileset[t1 + 0x0043] << 8);
             }
             t += this.w * 4;
-            l += this.w;
+            l += 64;
         }
     }
 }
@@ -1646,4 +1660,909 @@ FF5MapLayer.prototype.decodeWorldLayout = function(x, y, w, h) {
             l += this.w;
         }
     }
+}
+
+function FF5AdvanceEncoder() {}
+
+FF5AdvanceEncoder.prototype.encode = function(data) {
+
+    var bestComp;
+    // try all 5 encoding modes and choose the one with the smallest compressed size
+    for (var m1 = 0; m1 < 5; m1++) {
+        var comp = this.compress(data, m1);
+        if (!bestComp || comp.length < bestComp.length) bestComp = comp;
+    }
+
+    return bestComp;
+}
+
+FF5AdvanceEncoder.prototype.compress = function(data, m1) {
+    this.src = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+    this.s = 0; // source pointer
+
+    // read the data line-by-line
+    this.huffman = {node8: {}, tree8: [], node4: {}, tree4: []};
+    this.stringValues = [];
+    this.stringOffset = 0;
+    this.golomb = {values: []};
+    this.lines = [];
+    
+    if (m1 === 0) {
+        this.getLine = this.getLine0;
+        this.putLine = this.putLine0;
+        this.golomb.n = 2;
+        this.golomb.w = 2;
+        this.minString = 1;
+    } else if (m1 === 1) {
+        this.getLine = this.getLine1;
+        this.putLine = this.putLine1;
+        this.golomb.n = 4;
+        this.golomb.w = 2;
+        this.minString = 1;
+    } else if (m1 === 2) {
+        this.getLine = this.getLine2;
+        this.putLine = this.putLine2;
+        this.golomb.n = 7;
+        this.golomb.w = 3;
+        this.minString = 13; // 163920
+    } else if (m1 === 3) {
+        // if the length of the data is an odd number, this will truncate the last byte
+        this.src = new Uint16Array(data.buffer, data.byteOffset, data.byteLength >> 1);
+        this.getLine = this.getLine3;
+        this.putLine = this.putLine3;
+        this.golomb.n = 3;
+        this.golomb.w = 2;
+        this.minString = 10;
+    } else {
+        this.getLine = this.getLine4;
+        this.putLine = this.putLine4;
+        this.golomb.n = 0;
+        this.minString = 1;
+    }
+    
+    // read the source data
+    while (this.s < this.src.length) this.getLine();
+    this.pushStringBuffer();
+    
+    // destination buffer twice as long as source (should cover anything)
+    this.dest = new Uint32Array(data.byteLength >> 1);
+    this.d = 1; // skip 32 bits for the header
+
+    // initialize the bitstream buffer
+    this.bitstream = this.src[this.s++];
+    this.b = 24; // skip 8 bits for the compression mode
+    
+    // initialize the huffman tree
+    this.initHuffman();
+    
+    // calculate the golomb parameters
+    this.initGolomb();
+    
+    // write the compressed data to the bitstream
+    for (var l = 0; l < this.lines.length; l++) this.putLine(this.lines[l]);
+
+    // write any leftover bits in the bitstream
+    this.dest[this.d++] = this.bitstream;
+
+    // write the header and compression mode
+    this.dest[0] = (data.length << 8) | 0x70;
+    this.dest[1] |= (m1 << 24) | (this.m2 << 27);
+    
+    return new Uint8Array(this.dest.buffer, this.dest.byteOffset, this.d * 4);
+}
+
+FF5AdvanceEncoder.prototype.getLZ77 = function(maxRun) {
+    // find the longest sequence that matches the decompression buffer
+    var run = 0;
+    var offset = 0;
+    var s = this.s;
+    maxRun = maxRun || this.src.length;
+    for (var o = 1; o <= s; o++) {
+        var r = 0;
+
+        while ((r < maxRun) && (s + r < this.src.length) && (s + r - o >= 0) && (this.src[s + r - o] === this.src[s + r])) r++;
+
+        if (r > run) {
+            // this sequence is longer than any others that have been found so far
+            run = r;
+            offset = o;
+        }
+    }
+    return {type: "lz77", run: run, offset: offset};
+}
+
+FF5AdvanceEncoder.prototype.pushStringBuffer = function() {
+    
+    if (this.stringValues.length >= this.minString) {
+        this.lines.push({type: "string", string: this.stringValues, run: this.stringValues.length, offset: this.stringOffset});
+    } else if (this.stringValues.length !== 0) {
+        for (var i = 0; i < this.stringValues.length; i++) this.lines.push({type: "raw", value: this.stringValues[i]});
+    }
+    this.stringOffset = this.s;
+    this.stringValues = [];
+}
+
+FF5AdvanceEncoder.prototype.getLine0 = function() {
+
+    // try to do rle first
+    var value = this.src[this.s];
+    var l = 0;
+    while (value === this.src[this.s + l] && (l < 65)) l++;
+    
+    // use rle if the same byte is repeated more than twice
+    if (l >= 2) {
+        this.s += l;
+        this.pushStringBuffer();
+        this.lines.push({type: "rle", run: l, value: value});
+        return;
+    }
+    
+    var lz77 = this.getLZ77(66);
+    if (lz77.run >= 3) {
+        // use lz77
+        this.s += lz77.run;
+        this.pushStringBuffer();
+        this.golomb.values.push(lz77.offset);
+        this.lines.push(lz77);
+    } else {
+        this.s++;
+        this.pushHuffmanValue(value);
+        this.stringValues.push(value);
+    }
+}
+
+FF5AdvanceEncoder.prototype.putLine0 = function(line) {
+    
+    if (line.type === "rle") {
+        this.putBits(3, 2);
+        this.putBits(line.run - 2, 6);
+        this.putByte(line.value);
+        
+    } else if (line.type === "raw") {
+        this.putBits(2, 2);
+        this.putBits(0, 6);
+        this.putValue(line.value);
+
+    } else if (line.type === "string") {
+        this.putBits(2, 2);
+        this.putBits(line.run - 1, 6);
+        this.putString(line.string);
+        
+    } else if (line.type === "lz77") {
+        this.putGolomb(line.offset);
+        this.putBits(line.run - 3, 6);
+    }
+}
+
+FF5AdvanceEncoder.prototype.getLine1 = function() {
+
+    var lz77 = this.getLZ77(18);
+    if (lz77.run >= 3) {
+        // use lz77
+        this.s += lz77.run;
+        this.golomb.values.push(lz77.offset);
+        this.lines.push(lz77);
+    } else {
+        // no compression
+        var value = this.src[this.s++];
+        this.pushHuffmanValue(value);
+        this.lines.push({type: "raw", value: value});
+    }
+}
+
+FF5AdvanceEncoder.prototype.putLine1 = function(line) {
+
+    if (line.type === "raw") {
+        this.putBits(0, 1);
+        this.putValue(line.value);
+        
+    } else if (line.type === "lz77") {
+        this.putBits(1, 1);
+        this.putGolomb(line.offset);
+        this.putBits(line.run - 3, 4);
+    }
+}
+
+FF5AdvanceEncoder.prototype.getLine2 = function() {
+
+    var lz77 = this.getLZ77();
+    if (lz77.run >= 3) {
+        // use lz77
+        this.s += lz77.run;
+        this.pushStringBuffer();
+        this.golomb.values.push(lz77.offset);
+        this.lines.push(lz77);
+    } else {
+        var value = this.src[this.s++];
+        this.pushHuffmanValue(value);
+        this.stringValues.push(value);
+    }
+}
+
+FF5AdvanceEncoder.prototype.putLine2 = function(line) {
+    
+    if (line.type === "raw") {
+        this.putBits(0, 1);
+        this.putValue(line.value);
+        
+    } else if (line.type === "string") {
+        this.putBits(1, 1);
+        this.putBits(7, 3);
+        this.putVar(line.run - 1, 3);
+        this.putBits(0, 1);
+        this.putString(line.string);
+        
+    } else if (line.type === "lz77") {
+        this.putBits(1, 1);
+        if (line.run <= 18) {
+            // short lz77
+            this.putGolomb(line.offset);
+            this.putBits(line.run - 3, 4);
+            
+        } else {
+            // long lz77
+            this.putBits(7, 3);
+            this.putVar((line.run - 3) >> 4, 3);
+            this.putBits(1, 1);
+            this.putGolomb(line.offset);
+            this.putBits((line.run - 3) & 0x0F, 4);
+        }
+    }
+}
+
+FF5AdvanceEncoder.prototype.getLine3 = function() {
+
+    var lz77 = this.getLZ77();
+    if (lz77.run >= 2) {
+        // use lz77
+        this.s += lz77.run;
+        this.pushStringBuffer();
+        this.golomb.values.push(lz77.offset);
+        this.lines.push(lz77);
+    } else {
+        // no compression
+        var value = this.src[this.s++];
+        var v1 = value & 0xFF;
+        var v2 = value >> 8;
+        this.pushHuffmanValue(v1);
+        this.pushHuffmanValue(v2);
+        this.stringValues.push(value);
+    }
+}
+
+FF5AdvanceEncoder.prototype.putLine3 = function(line) {
+    
+    if (line.type === "raw") {
+        this.putBits(0, 1);
+        this.putValue(line.value & 0xFF);
+        this.putValue(line.value >> 8);
+        
+    } else if (line.type === "string") {
+        this.putBits(1, 1);
+        this.putBits(3, 2);
+        this.putVar(line.run - 1, 2);
+        this.putBits(0, 1);
+        for (var i = 0; i < line.string.length; i++) {
+            this.putValue(line.string[i] & 0xFF);
+            this.putValue(line.string[i] >> 8);
+        }
+        
+    } else if (line.type === "lz77") {
+        if (line.run > 9) {
+            // long lz77
+            this.putBits(1, 1);
+            this.putBits(3, 2);
+            this.putVar((line.run - 2) >> 3, 2);
+            this.putBits(1, 1);
+            this.putGolomb(line.offset);
+            this.putBits((line.run - 2) & 0x07, 3);
+            
+        } else {
+            // short lz77
+            this.putBits(1, 1);
+            this.putGolomb(line.offset);
+            this.putBits(line.run - 2, 3);
+        }
+    }
+}
+
+FF5AdvanceEncoder.prototype.getLine4 = function() {
+
+    // no compression
+    var value = this.src[this.s++];
+    this.pushHuffmanValue(value);
+    this.lines.push({type: "raw", value: value});
+}
+
+FF5AdvanceEncoder.prototype.putLine4 = function(line) {
+    this.putValue(line.value);
+}
+
+FF5AdvanceEncoder.prototype.pushHuffmanValue = function(v) {
+
+    var node;
+
+    // add the value to the 8-bit huffman node
+    node = this.huffman.node8[v];
+    if (!node) {
+        node = {count: 0, value: v, depth: 1};
+        this.huffman.node8[v] = node;
+        this.huffman.tree8.push(node);
+    }
+    node.count++;
+
+    // add the high nybble to the 4-bit huffman node
+    var v1 = v >> 4;
+    node = this.huffman.node4[v1];
+    if (!node) {
+        node = {count: 0, value: v1, depth: 1};
+        this.huffman.node4[v1] = node;
+        this.huffman.tree4.push(node);
+    }
+    node.count++;
+
+    // add the low nybble to the 4-bit huffman node
+    var v2 = v & 0x0F;
+    node = this.huffman.node4[v2];
+    if (!node) {
+        node = {count: 0, value: v2, depth: 1};
+        this.huffman.node4[v2] = node;
+        this.huffman.tree4.push(node);
+    }
+    node.count++;
+}
+
+FF5AdvanceEncoder.prototype.initHuffman = function() {
+
+    this.initHuffmanTree(this.huffman.tree8);
+    this.initHuffmanTree(this.huffman.tree4);
+    
+    // calculate the size of the huffman tree for each mode
+    var length0 = 0;
+    var length4 = 32;
+    var length8 = 128;
+    
+    var keys, k, node;
+    keys = Object.keys(this.huffman.node8);
+    length8 += keys.length * 8;
+    for (k = 0; k < keys.length; k++) {
+        node = this.huffman.node8[keys[k]];
+        length0 += node.count * 8;
+        length8 += node.count * node.depth;
+    }
+
+    keys = Object.keys(this.huffman.node4);
+    length4 += keys.length * 4;
+    for (k = 0; k < keys.length; k++) {
+        node = this.huffman.node4[keys[k]];
+        length4 += node.count * node.depth;
+    }
+    
+    if ((length0 <= length4) && (length0 <= length8)) {
+        this.m2 = 0;
+        this.huffman.size = 0;
+        this.huffman.tree = null;
+        this.huffman.node = null;
+        this.putValue = this.putByte;
+    } else if (length4 <= length8) {
+        this.m2 = 1;
+        this.huffman.size = 4;
+        this.huffman.tree = this.huffman.tree4;
+        this.huffman.node = this.huffman.node4;
+        this.putValue = this.putHuffman4;
+    } else {
+        this.m2 = 2;
+        this.huffman.size = 8;
+        this.huffman.tree = this.huffman.tree8;
+        this.huffman.node = this.huffman.node8;
+        this.putValue = this.putHuffman;
+    }
+    
+    this.putHuffmanTree();
+}
+
+FF5AdvanceEncoder.prototype.initHuffmanTree = function(tree) {
+    
+    if (tree.length < 2) return;
+    
+    while (tree.length > 2) {
+        // sort the nodes from lowest to highest occurence
+        tree = tree.sort(function(a, b) { return a.count - b.count; })
+    
+        // combine the two lowest occuring nodes into a new node
+        var left = tree.shift();
+        var right = tree.shift();
+        tree.push({count: left.count + right.count, value: [left, right]});
+    }
+    
+    this.initHuffmanNode(tree);
+}
+
+FF5AdvanceEncoder.prototype.initHuffmanNode = function(node, depth) {
+    depth = depth || 0;
+    depth++;
+    
+    // left node (0)
+    if (isNumber(node[0].value)) {
+        node[0].depth = depth;
+    } else {
+        this.initHuffmanNode(node[0].value, depth);
+    }
+
+    // right node (1)
+    if (!node[1]) return;
+    if (isNumber(node[1].value)) {
+        node[1].depth = depth;
+    } else {
+        this.initHuffmanNode(node[1].value, depth);
+    }
+}
+
+FF5AdvanceEncoder.prototype.putHuffmanTree = function() {
+    if (this.huffman.size === 0) return;
+    
+    // make an array of nodes
+    var allNodes = [];
+    var keys = Object.keys(this.huffman.node);
+    for (var k = 0; k < keys.length; k++) allNodes.push(this.huffman.node[keys[k]]);
+    
+    var code = 0;
+    var size = this.huffman.size;
+    
+    // sort the nodes by depth
+    for (var d = 1; d <= (size * 2); d++) {
+        // get the subset of nodes at this depth, sorted by Huffman code
+        var subNodes = allNodes.filter(function(node) { return node.depth === d; });
+        this.putBits(subNodes.length, size);
+        subNodes = subNodes.sort(function (a, b) { return a.code - b.code; });
+        for (var n = 0; n < subNodes.length; n++) {
+            var node = subNodes[n];
+            node.code = code;
+//            console.log(code.toString(2).padStart(node.depth, '0') + ": " + node.value);
+            this.putBits(node.value, size);
+            code++;
+        }
+        code <<= 1;
+    }
+}
+
+FF5AdvanceEncoder.prototype.putHuffman = function(value) {
+    if (this.huffman.size === 0) return;
+    var node = this.huffman.node[value];
+    if (!node) return;
+    this.putBits(node.code, node.depth);
+}
+
+FF5AdvanceEncoder.prototype.putHuffman4 = function(value) {
+    this.putHuffman(value >> 4);
+    this.putHuffman(value & 0x0F);
+}
+
+FF5AdvanceEncoder.prototype.initGolomb = function() {
+
+    if (this.golomb.n === 0) return;
+    
+    // sort the golomb values in ascending order
+    this.golomb.values = this.golomb.values.sort(function(a, b) { return a - b; });
+
+    // start with an even distribution of golomb cutoffs
+    this.golomb.cutoffs = [];
+    for (var i = 0; i < this.golomb.n; i++) {
+        this.golomb.cutoffs[i] = Math.max(Math.ceil((i + 1) / this.golomb.n * this.golomb.values.length) - 1, 0);
+    }
+    
+    // optimize the parameters 6 times (this seems to be optimimum)
+    this.optimizeGolomb();
+    this.optimizeGolomb();
+    this.optimizeGolomb();
+    this.optimizeGolomb();
+    this.optimizeGolomb();
+    this.optimizeGolomb();
+    
+    // write the optimized golomb exponents
+    for (var i = 0; i < this.golomb.n; i++) this.putBits(this.golomb.exponents[i] - 1, 4);
+}
+
+FF5AdvanceEncoder.prototype.optimizeGolomb = function() {
+    
+    // optimize each parameter
+    for (var i = 0; i < (this.golomb.n - 1); i++) {
+        
+        var bestCutoff = this.golomb.cutoffs[i];
+        var bestLength = 0;
+        for (var c = this.golomb.cutoffs[i - 1] || 0; c < this.golomb.cutoffs[i + 1]; c++) {
+            this.golomb.cutoffs[i] = c;
+            var l = this.golombLength();
+            if (bestLength === 0 || l < bestLength) {
+                bestLength = l;
+                bestCutoff = c;
+            }
+        }
+        this.golomb.cutoffs[i] = bestCutoff;
+    }
+    return this.golombLength();
+}
+
+FF5AdvanceEncoder.prototype.golombLength = function() {
+    this.golomb.parameters = [];
+    this.golomb.exponents = [];
+    var p = 1;
+    var value, i;
+    for (i = 0; i < this.golomb.n; i++) {
+        value = this.golomb.values[this.golomb.cutoffs[i]] - p;
+        var e = 1;
+        while ((value > 1) && (e < 16)) {
+            e++;
+            value >>= 1;
+        }
+        this.golomb.parameters.push(p);
+        this.golomb.exponents.push(e);
+        p += 1 << e;
+    }
+
+    var sum = 0;
+    for (i = 0; i < this.golomb.values.length; i++) {
+        value = this.golomb.values[i];
+        var j = this.golomb.n - 1;
+        while (value < this.golomb.parameters[j]) j--;
+        sum += this.golomb.exponents[j] + this.golomb.w;
+    }
+    return sum;
+}
+
+FF5AdvanceEncoder.prototype.putGolomb = function(value) {
+    
+    // find the largest golomb parameter that is less than the value
+    var i = this.golomb.n - 1;
+    while (value < this.golomb.parameters[i]) i--;
+    var p = this.golomb.parameters[i];
+    var e = this.golomb.exponents[i];
+    this.putBits(i, this.golomb.w);
+    this.putBits(value - p, e);
+}
+
+FF5AdvanceEncoder.prototype.putBits = function(value, n) {
+    if (!n) {
+        return;
+    } else if (n > this.b) {
+        n -= this.b;
+        this.bitstream |= value >> n;
+        value &= (~0 >>> (32 - n));
+        this.dest[this.d++] = this.bitstream;
+        this.bitstream = 0;
+        this.b = 32;
+    }
+    this.b -= n;
+    this.bitstream |= (value << this.b);
+}
+
+FF5AdvanceEncoder.prototype.putByte = function(value) {
+    this.putBits(value, 8);
+}
+
+FF5AdvanceEncoder.prototype.putVar = function(value, w) {
+    // put a variable length number in the bitstream
+    var mask = ~0;
+    var n = 0;
+    while (value & mask) {
+        mask <<= w;
+        n += w;
+    }
+    
+    while (n) {
+        n -= w;
+        this.putBits((value & ~mask) >> n, w);
+        this.putBits((n === 0) ? 0 : 1, 1);
+        mask >>= w;
+    }
+}
+
+FF5AdvanceEncoder.prototype.putString = function(string) {
+    for (var i = 0; i < string.length; i++) this.putValue(string[i]);
+}
+
+function FF5AdvanceDecoder() {}
+
+FF5AdvanceDecoder.prototype.decode = function(data) {
+    this.src = new Uint32Array(data.buffer, data.byteOffset, data.byteLength >> 2);
+    this.s = 0; // source pointer
+    
+    // get the decompressed length
+    this.length = this.src[this.s++] >> 8; // skip the first byte
+    this.dest = new Uint8Array(this.length);
+    this.d = 0;
+
+    // initialize the bitstream buffer
+    this.bitstream = this.src[this.s++];
+    this.b = 32;
+
+    this.miscBits = 0;
+    this.golombBits = 0;
+    this.huffmanBits = 0;
+    this.tBits = 0;
+    this.varBits = 0;
+    
+    // get the compression mode
+    var mode = this.getByte();
+    var m1 = mode & 0x07;
+    var m2 = (mode & 0x18) >> 3;
+    var m3 = (mode & 0xE0) >> 5;
+
+    // initialize the Huffman tree
+    if (m2 === 0) {
+        // no huffman encoding
+        this.getValue = this.getByte;
+    } else if (m2 === 1) {
+        // initialize the huffman table
+        this.initHuffman(4);
+        this.getValue = this.getHuffman4;
+    } else if (m2 === 2) {
+        this.initHuffman(8);
+        this.getValue = this.getHuffman;
+    } else {
+        return new Uint8Array(0);
+    }
+
+    // initialize the Golomb tree
+    if (m1 === 0) {
+        this.initGolomb(2);
+        this.putLine = this.putLine0;
+    } else if (m1 === 1) {
+        this.initGolomb(4);
+        this.putLine = this.putLine1;
+    } else if (m1 === 2) {
+        this.initGolomb(7);
+        this.putLine = this.putLine2;
+    } else if (m1 === 3) {
+        this.initGolomb(3);
+        this.putLine = this.putLine3;
+    } else if (m1 === 4) {
+        this.putLine = this.putLine4;
+    } else {
+        return new Uint8Array(0);
+    }
+
+    while (this.d < this.length) this.putLine();
+    
+    return this.dest;
+}
+
+FF5AdvanceDecoder.prototype.getBits = function(n) {
+    var value = 0;
+    if (n === 0) {
+        return 0;
+    } else if (n > this.b) {
+        // we need more bits than what's left in the buffer
+        if (this.b !== 0) {
+            // empty the bitstream buffer
+            value = this.bitstream >>> (32 - this.b);
+            n -= this.b;
+            value <<= n;
+        }
+
+        // load the next 32-bit word in the buffer
+        this.bitstream = this.src[this.s++];
+        this.b = 32;
+    }
+
+    value |= this.bitstream >>> (32 - n);
+    this.bitstream <<= n;
+    this.b -= n;
+    return value;
+}
+
+FF5AdvanceDecoder.prototype.getByte = function() {
+    this.huffmanBits += 8;
+    return this.getBits(8);
+}
+
+FF5AdvanceDecoder.prototype.getVar = function(w) {
+    // get a variable length number
+    var value;
+    while (true) {
+        value |= this.getBits(w);
+        this.varBits += w + 1;
+        if (!this.getBits(1)) return value;
+        value <<= w;
+    }
+}
+
+FF5AdvanceDecoder.prototype.initHuffman = function(size) {
+    this.huffmanTree = [];
+    var code = 0;
+    for (var d = 0; d < (size * 2); d++) {
+        // get the number of values at this depth
+        this.huffmanBits += size;
+        var count = this.getBits(size);
+        for (var v = 0; v < count; v++) {
+            var node = this.huffmanTree;
+            for (var d1 = d; d1 !== 0; d1--) {
+                var c = (code >> d1) & 1;
+                if (!node[c]) node[c] = [];
+                node = node[c];
+                if (isNumber(node)) return;
+            }
+            this.huffmanBits += size;
+            node[code & 1] = this.getBits(size);
+            code++;
+        }
+        code <<= 1;
+    }
+}
+
+FF5AdvanceDecoder.prototype.getHuffman = function(node) {
+    node = node || this.huffmanTree;
+    this.huffmanBits += 1;
+    node = node[this.getBits(1)];
+    if (isNumber(node)) return node;
+    if (!node) return null;
+    return this.getHuffman(node);
+}
+
+FF5AdvanceDecoder.prototype.getHuffman4 = function() {
+    var v1 = this.getHuffman();
+    var v2 = this.getHuffman();
+    return (v1 << 4) | v2;
+}
+
+FF5AdvanceDecoder.prototype.initGolomb = function(n) {
+    this.golombExponent = new Uint8Array(8);
+    this.golombParameter = new Uint16Array(8);
+    var p = 1;
+    var e;
+    for (var i = 0; i < n; i++) {
+        this.golombBits += 4;
+        e = this.getBits(4) + 1;
+        this.golombExponent[i] = e;
+        this.golombParameter[i] = p;
+        p += 1 << e;
+    }
+}
+
+FF5AdvanceDecoder.prototype.getGolomb = function(p) {
+    var e = this.golombExponent[p];
+    this.golombBits += e;
+    return this.getBits(e) + this.golombParameter[p];
+}
+
+FF5AdvanceDecoder.prototype.putByte = function(byte) {
+    if (this.d >= this.dest.length) return;
+    this.dest[this.d++] = byte;
+}
+
+FF5AdvanceDecoder.prototype.putValue = function() {
+    this.putByte(this.getValue());
+}
+
+FF5AdvanceDecoder.prototype.putString = function(run) {
+    for (var i = 0; i < run; i++) this.putValue();
+}
+
+FF5AdvanceDecoder.prototype.putRLE = function(run, byte) {
+    for (var i = 0; i < run; i++) this.putByte(byte);
+}
+
+FF5AdvanceDecoder.prototype.putLZ77 = function(offset, run) {
+    if (this.d - offset < 0) return;
+    for (var i = 0; i < run; i++) this.putByte(this.dest[this.d - offset]);
+}
+
+FF5AdvanceDecoder.prototype.putLine0 = function() {
+
+    this.tBits += 2;
+    var t = this.getBits(2);
+    var run, byte, offset;
+    if (t === 3) {
+        // repeat a raw 8-bit value
+        this.miscBits += 6;
+        run = this.getBits(6) + 2;
+        this.miscBits += 8;
+        byte = this.getBits(8);
+        this.putRLE(run, byte);
+    } else if (t === 2) {
+        // copy a string of encoded values from bitstream
+        this.miscBits += 6;
+        run = this.getBits(6) + 1;
+        this.putString(run);
+    } else {
+        // repeat run from buffer (lz77)
+        offset = this.getGolomb(t);
+        this.miscBits += 6;
+        run = this.getBits(6) + 3;
+        this.putLZ77(offset, run);
+    }
+}
+
+FF5AdvanceDecoder.prototype.putLine1 = function() {
+    this.miscBits += 1;
+    if (!this.getBits(1)) {
+        // not compressed
+        this.putValue();
+    } else {
+        // repeat run from buffer (short)
+        this.miscBits += 2;
+        var offset = this.getGolomb(this.getBits(2));
+        this.miscBits += 4;
+        var run = this.getBits(4) + 3;
+        this.putLZ77(offset, run);
+    }
+}
+
+FF5AdvanceDecoder.prototype.putLine2 = function() {
+    this.miscBits += 1;
+    if (!this.getBits(1)) {
+        // not compressed
+        this.putValue();
+        return;
+    }
+
+    // compressed
+    this.tBits += 3;
+    var t = this.getBits(3);
+    var run, offset;
+    if (t === 7) {
+        run = this.getVar(3);
+        this.miscBits += 1;
+        if (!this.getBits(1)) {
+            // copy a string of bytes from bitstream
+            run++;
+            this.putString(run);
+        } else {
+            // repeat run from buffer (long)
+            this.tBits += 3;
+            offset = this.getGolomb(this.getBits(3));
+            run <<= 4;
+            this.miscBits += 4;
+            run += this.getBits(4) + 3;
+            this.putLZ77(offset, run);
+        }
+    } else {
+        // repeat run from buffer (short)
+        offset = this.getGolomb(t);
+        this.miscBits += 4;
+        run = this.getBits(4) + 3;
+        this.putLZ77(offset, run);
+    }
+}
+
+FF5AdvanceDecoder.prototype.putLine3 = function() {
+    this.miscBits += 1;
+    if (!this.getBits(1)) {
+        // not compressed
+        this.putValue();
+        this.putValue();
+        return;
+    }
+
+    // compressed
+    this.tBits += 2;
+    var t = this.getBits(2);
+    var run, offset;
+    if (t === 3) {
+        run = this.getVar(2);
+        this.miscBits += 1;
+        if (!this.getBits(1)) {
+            // copy a string of bytes from bitstream
+            run++;
+            this.putString(run * 2);
+        } else {
+            this.tBits += 2;
+            // repeat run from buffer (long)
+            offset = this.getGolomb(this.getBits(2));
+            run <<= 3;
+            this.miscBits += 3;
+            run += this.getBits(3) + 2;
+            this.putLZ77(offset * 2, run * 2);
+        }
+    } else {
+        // repeat run from buffer (short)
+        offset = this.getGolomb(t);
+        this.miscBits += 3;
+        run = this.getBits(3) + 2;
+        this.putLZ77(offset * 2, run * 2);
+    }
+}
+
+FF5AdvanceDecoder.prototype.putLine4 = function() {
+    this.putValue();
 }

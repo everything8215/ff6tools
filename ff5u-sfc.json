@@ -1681,18 +1681,18 @@
                         "stringTable": "mapProperties.vParallaxLayer3"
                     },
                     "category-tiled": "Tiled Background",
-                    "tiledLayer3": {
-                        "type": "property",
-                        "name": "Tiled Layer 3",
-                        "begin": 21,
-                        "mask": "0x80",
-                        "bool": true
-                    },
                     "tiledLayer2": {
                         "type": "property",
                         "name": "Tiled Layer 2",
                         "begin": 21,
                         "mask": "0x40",
+                        "bool": true
+                    },
+                    "tiledLayer3": {
+                        "type": "property",
+                        "name": "Tiled Layer 3",
+                        "begin": 21,
+                        "mask": "0x80",
                         "bool": true
                     },
                     "hAutoScroll": {

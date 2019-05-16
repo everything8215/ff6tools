@@ -3138,7 +3138,7 @@
             },
             "stringTable": {
                 "name": "Trigger Script",
-                "length": 704,
+                "length": 815,
                 "default": "Trigger Event %i",
                 "string": {
                     "255": "Save Point"
@@ -5185,7 +5185,7 @@
         },
         "npcSwitch": {
             "name": "NPC Switch",
-            "length": 922,
+            "length": 1152,
             "default": "NPC Switch %i",
             "string": {
                 "8": "Pyramid of Moore - First Tablet",

@@ -89,13 +89,13 @@ Object.defineProperty(ROMObject.prototype, "path", { get: function() {
 }});
 
 
-ROMObject.prototype.parsePath = function(path, relative, index) {
+ROMObject.prototype.parsePath = function(path, relativeTo, index) {
     if (!isNumber(index)) index = this.i;
     if (!isNumber(index)) index = this.value;
     if (isNumber(index)) path = path.replace(/%i/g, index.toString());
 
     var components = path.split(".");
-    var object = relative || this.rom;
+    var object = relativeTo || this.rom;
     for (var c = 0; c < components.length; c++) {
         
         var key = components[c];
@@ -270,7 +270,7 @@ Object.defineProperty(ROMAssembly.prototype, "assembledLength", { get: function(
     
     // do a dummy assemble if lazy data is not valid
     if (!this.lazyData) this.assemble();
-    
+
     return this.lazyData.length;
 }});
 
@@ -316,6 +316,7 @@ ROMAssembly.prototype.assemble = function(data) {
     
     // encode the data if needed
     this.lazyData = this.lazyData || ROMAssembly.encode(this.data, this.format);
+//    if (!this.lazyData) return false;
 
     // return if just updating lazyData (no data parameter)
     if (!data) return false;
@@ -329,6 +330,7 @@ ROMAssembly.prototype.assemble = function(data) {
         // return false if assembly overflowed its range
         success = false;
     } else {
+//        if (this.lazyData.length + this.range.begin > data.length) return false;
         data.set(this.lazyData, this.range.begin);
     }
 
@@ -544,11 +546,14 @@ ROMReference.prototype.update = function() {
     } else {
         // the value is the parent's address within its own parent (default)
         value = this.parent.range.begin;
-        if (this.target.unmapAddress) {
-            value = this.target.unmapAddress(value);
-        } else if (this.options.relative) {
+        if (this.target === this.rom) {
+            value = this.rom.unmapAddress(value);
+        } else if (this.options.isAbsolute) {
+            // this is sort of a temporary fix for 4-byte absolute gba pointers
+            value += this.rom.unmapAddress(this.options.relativeTo.range.begin);
+        } else if (this.options.relativeTo) {
             // address is relative to the address of some other assembly
-            value += this.options.relative.range.begin;
+            value += this.options.relativeTo.range.begin;
         }
     }
 
@@ -704,7 +709,7 @@ ROMData.prototype.assemble = function(data) {
         });
         for (var i = 0; i < keys.length; i++) {
             var key = keys[i];
-            var assembly = this.assembly[key];
+            var assembly = this[key];
             if (!assembly.assemble || assembly.invalid || assembly.disabled) continue;
             assembly.relocate(length);
             length += assembly.assembledLength;
@@ -717,7 +722,7 @@ ROMData.prototype.assemble = function(data) {
             this.markAsDirty();
         } else if (length < this.data.length) {
             // data got shorter
-            this.data = this.data.subarray(length);
+            this.data = this.data.subarray(0, length);
             this.markAsDirty();
         }
     }
@@ -1893,8 +1898,7 @@ ROM.dataFormat = {
                 for (p = 1; p <= 0x0800; p++) {
                     len = 0;
 
-                    while ((len < 34) && (s + len < src.length) && (src[s + len - p] == src[s + len]))
-                        len++;
+                    while ((len < 34) && (s + len < src.length) && (src[s + len - p] == src[s + len])) len++;
 
                     if (len > lenMax) {
                         // this sequence is longer than any others that have been found so far
@@ -2007,293 +2011,13 @@ ROM.dataFormat = {
         }
     },
     "ff5a-70": {
-        "encode": function(data) {
-            return data;
+        encode: function(data) {
+            var encoder = new FF5AdvanceEncoder();
+            return encoder.encode(data);
         },
-        "decode": function(data) {
-            var src = new Uint32Array(data.buffer, data.byteOffset, data.byteLength >> 2);
-            var s = 0; // source pointer
-            
-            // get the decompressed length
-            var length = src[s++] >> 8; // skip the first byte
-            var dest = new Uint8Array(length);
-            var d = 0;
-            
-            // initialize the bitstream buffer
-            var bitstream = src[s++];
-            var b = 32;
-            
-            function getBits(n) {
-                var value = 0;
-                if (n === 0) {
-                    return 0;
-                } else if (n > b) {
-                    // we need more bits than what's left in the buffer
-                    if (b !== 0) {
-                        // empty the bitstream buffer
-                        value = bitstream >>> (32 - b);
-                        n -= b;
-                        value <<= n;
-                    }
-                    
-                    // load the next 32-bit word in the buffer
-                    bitstream = src[s++];
-                    b = 32;
-                }
-                
-                value |= bitstream >>> (32 - n);
-                bitstream <<= n;
-                b -= n;
-                return value;
-            }
-            
-            function getByte() {
-                return getBits(8);
-            }
-
-            function getVar(w) {
-                // get a variable length number
-                var value;
-                while (true) {
-                    value |= getBits(w);
-                    if (!getBits(1)) return value;
-                    value <<= w;
-                }
-            }
-            
-            var root = [];
-            function initHuffman(size) {
-                for (var d = 0, code = 0; d < (size * 2); d++, code <<= 1) {
-                    // get the number of values at this depth
-                    var count = getBits(size);
-                    for (var v = 0; v < count; v++) {
-                        var node = root;
-                        var c = code;
-                        for (var d1 = d; d1 !== 0; d1--) {
-                            var c = (code >> d1) & 1;
-                            if (!node[c]) node[c] = [];
-                            node = node[c];
-                            if (isNumber(node)) return;
-                        }
-                        var c = (code >> d1) & 1;
-                        node[c] = getBits(size);
-                        code++;
-                    }
-                }
-            }
-
-            function getHuffman(node) {
-                node = node || root;
-                node = node[getBits(1)];
-                if (isNumber(node)) return node;
-                if (!node) return null;
-                return getHuffman(node);
-            }
-
-            function getHuffman4() {
-                var v1 = getHuffman();
-                var v2 = getHuffman();
-                return (v1 << 4) | v2;
-            }
-            
-            var treeByte = new Uint8Array(8);
-            var treeFactor = new Uint16Array(8);
-            function initTree(t) {
-                var f = 1;
-                var e = 0;
-                for (var i = 0; i < t; i++) {
-                    e = getBits(4) + 1;
-                    treeByte[i] = e;
-                    treeFactor[i] = f;
-                    f += 1 << e;
-                }
-            }
-
-            function getLine0() {
-                
-                var t = getBits(2);
-                if (t === 3) {
-                    // repeat a raw 8-bit value
-                    var run = getBits(6) + 2;
-                    var value = getBits(8);
-                    for (var i = 0; i < run; i++) {
-                        if (d > length) break;
-                        dest[d++] = value;
-                    }
-                } else if (t === 2) {
-                    // copy a string of encoded values from bitstream
-                    var run = getBits(6) + 1;
-                    for (var i = 0; i < run; i++) {
-                        if (d > length) break;
-                        var value = getValue();
-                        dest[d++] = value;
-                    }
-                } else {
-                    // repeat run from buffer (lz77)
-                    var e = treeByte[t];
-                    var offset = getBits(e) + treeFactor[t];
-                    var run = getBits(6) + 3;
-                    for (var i = 0; i < run; i++) {
-                        if (d > length) break;
-                        if (d - offset < 0) break;
-                        var byte = dest[d - offset]
-                        dest[d++] = byte;
-                    }
-                }
-            }
-
-            function getLine1() {
-                if (!getBits(1)) {
-                    // not compressed
-                    dest[d++] = getValue();
-                    return;
-                }
-                
-                // repeat run from buffer (short)
-                var t = getBits(2);
-                var e = treeByte[t];
-                var offset = getBits(e) + treeFactor[t];
-                var run = getBits(4) + 3;
-                
-                for (var i = 0; i < run; i++) {
-                    if (d > length) break;
-                    if (d - offset < 0) break;
-                    var byte = dest[d - offset]
-                    dest[d++] = byte;
-                }
-            }
-
-            function getLine2() {
-                if (!getBits(1)) {
-                    // not compressed
-                    dest[d++] = getValue();
-                    return;
-                }
-                
-                // compressed
-                var run, offset, e, byte;
-                var t = getBits(3);
-                if (t === 7) {
-                    run = getVar(3);
-                    if (!getBits(1)) {
-                        // copy a string of bytes from bitstream
-                        run++;
-                        for (var i = 0; i < run; i++) {
-                            if (d > length) break;
-                            dest[d++] = getValue();
-                        }
-                        return;
-                    }
-                    // repeat run from buffer (long)
-                    t = getBits(3);
-                    e = treeByte[t];
-                    offset = getBits(e) + treeFactor[t];
-                    run <<= 4;
-                    run += getBits(4) + 3;
-                } else {
-                    // repeat run from buffer (short)
-                    e = treeByte[t];
-                    offset = getBits(e) + treeFactor[t];
-                    run = getBits(4) + 3;
-                }
-                for (var i = 0; i < run; i++) {
-                    if (d > length) break;
-                    if (d - offset < 0) break;
-                    byte = dest[d - offset];
-                    dest[d++] = byte;
-                }
-            }
-
-            function getLine3() {
-                if (!getBits(1)) {
-                    // not compressed
-                    dest[d++] = getValue();
-                    dest[d++] = getValue();
-                    return;
-                }
-                
-                // compressed
-                var t = getBits(2);
-                if (t === 3) {
-                    run = getVar(2);
-                    if (!getBits(1)) {
-                        // copy a string of bytes from bitstream
-                        run++;
-                        for (var i = 0; i < run; i++) {
-                            if (d > length) break;
-                            dest[d++] = getValue();
-                            dest[d++] = getValue();
-                        }
-                        return;
-                    }
-                    // repeat run from buffer (long)
-                    t = getBits(2);
-                    e = treeByte[t];
-                    offset = getBits(e) + treeFactor[t];
-                    offset <<= 1;
-                    run <<= 3;
-                    run += getBits(3) + 2;
-                } else {
-                    // repeat run from buffer (short)
-                    e = treeByte[t];
-                    offset = getBits(e) + treeFactor[t];
-                    offset <<= 1;
-                    run = getBits(3) + 2;
-                }
-                for (var i = 0; i < run; i++) {
-                    if (d > length) break;
-                    if (d - offset < 0) break;
-                    byte = dest[d - offset];
-                    dest[d++] = byte;
-                    byte = dest[d - offset];
-                    dest[d++] = byte;
-                }
-            }
-
-            function getLine4() {
-                dest[d++] = getValue();
-            }
-
-            // get the compression mode
-            var mode = getBits(8);
-            var m1 = mode & 0x07;
-            var m2 = (mode & 0x18) >> 3;
-            var m3 = (mode & 0xE0) >> 5;
-            
-            var getValue;
-            if (m2 === 0) {
-                // no huffman encoding
-                getValue = getByte;
-            } else if (m2 === 1) {
-                // initialize the huffman table
-                initHuffman(4);
-                getValue = getHuffman4;
-            } else {
-                initHuffman(8);
-                getValue = getHuffman;
-            }
-            
-            // initialize the tree factors
-            var getLine;
-            if (m1 === 0) {
-                initTree(2);
-                getLine = getLine0;
-            } else if (m1 === 1) {
-                initTree(4);
-                getLine = getLine1;
-            } else if (m1 === 2) {
-                initTree(7);
-                getLine = getLine2;
-            } else if (m1 === 3) {
-                initTree(3);
-                getLine = getLine3;
-            } else if (m1 === 4) {
-                getLine = getLine4;
-            }
-
-            while (d < length) getLine();
-            
-            return dest;
+        decode: function(data) {
+            var decoder = new FF5AdvanceDecoder();
+            return decoder.decode(data);
         }
     },
     "ff5a-world": {
@@ -2308,7 +2032,7 @@ ROM.dataFormat = {
                 b = src[s++];
                 while (b === src[s]) s++;
                 dest[d++] = b;
-                dest[d++] = s;
+                dest[d++] = s - 1;
             }
 
             return dest.slice(0, d);
@@ -2612,52 +2336,6 @@ ROM.dataFormat = {
         }
     }
 };
-
-//ROM.prototype.parseLink = function(link, object) {
-//    var components = link.split(".");
-//    var object = object || this;
-//    for (var c = 0; c < components.length; c++) {
-//        
-//        var key = components[c];
-//        var i = null;
-//
-//        // check for an array subscript
-//        var subStart = key.indexOf('[');
-//        var subEnd = key.indexOf(']');
-//        if (subStart !== -1 && subEnd > subStart) {
-//            var sub = key.substring(subStart + 1, subEnd);
-//            var i = Number(sub);
-//            if (!isNumber(i)) {
-//                try {
-//                    i = eval(sub);
-//                } catch (e) {
-////                    this.log("Invalid Link: " + link);
-//                    return "Invalid Link: " + link;
-//                }
-//            }
-//            key = key.substring(0, subStart);
-//        }
-//        
-//        if (object && object[key] !== undefined) {
-//            object = object[key];
-//            if (!isNumber(i)) continue;
-//            
-//            if (object instanceof ROMArray) {
-//                // array entry
-//                object = object.item(i);
-//                continue;
-//            } else if (object instanceof ROMStringTable) {
-//                // string table entry
-//                object = object.string[i];
-//                continue;
-//            }
-//        } else {
-////            this.log("Invalid Link: " + link);
-//            return "Invalid Link: " + link;
-//        }
-//    }
-//    return object;
-//}
 
 ROM.prototype.canUndo = function() { return this.undoStack.length > 0; }
 ROM.prototype.canRedo = function() { return this.redoStack.length > 0; }
@@ -3414,9 +3092,11 @@ ROMArray.prototype.createPointer = function(i) {
     if (!this.pointerTable) return null;
 
     var offset = Number(this.pointerOffset);
+    var isAbsolute = false;
     if (!isNumber(offset) || offset === 0) {
         // absolute pointers
         offset = 0;
+        isAbsolute = true;
     } else if (this.parent.mapAddress) {
         // relative pointers
         offset = this.parent.mapAddress(offset);
@@ -3429,7 +3109,8 @@ ROMArray.prototype.createPointer = function(i) {
         var definition = {
             target: target,
             offset: offset,
-            relative: this
+            relativeTo: this,
+            isAbsolute: isAbsolute
         }
     } else {
         // create a new reference
@@ -3438,7 +3119,8 @@ ROMArray.prototype.createPointer = function(i) {
             mask: ROMArray.pointerMask[this.pointerLength],
             target: this.pointerTable,
             offset: offset,
-            relative: this
+            relativeTo: this,
+            isAbsolute: isAbsolute
         }
     }
     
