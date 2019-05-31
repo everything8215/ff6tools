@@ -37,6 +37,7 @@ function FF5Map(rom) {
 
     this.mapProperties = null;
     this.m = null; // map index
+    this.world = 0; // bartz' world, galuf's world, or underwater
     this.l = 0; // selected layer
     this.zoom = 1.0; // zoom multiplier
     this.selection = new Uint8Array([0x73, 0, 0, 1, 1, 0]);
@@ -188,7 +189,7 @@ FF5Map.prototype.mouseDown = function(e) {
             this.selectedTrigger = null;
             if (this.m < 3) {
                 this.selectWorldBattle(this.clickedCol, this.clickedRow) 
-            } else if (this.map >= 5) {
+            } else if (this.m >= 5) {
                 propertyList.select(this.mapProperties);
             }
             this.clickedCol = null;
@@ -372,8 +373,26 @@ FF5Map.prototype.selectTiles = function() {
         // select a single tile in the tileset view
         var tile = this.selection[5];
         this.tileset.selection = new Uint8Array([0x73, tile & 0x0F, tile >> 4, 1, 1, tile]);
+        this.selectTileProperties(tile);
     }
     this.tileset.drawCursor();
+}
+
+
+FF5Map.prototype.selectTileProperties = function(t) {
+    // select tile properties
+    var tileProperties;
+    if (this.selectedLayer.type === FF6MapLayer.Type.layer1) {
+        // layer 1 tile properties determined by graphics index
+        tileProperties = this.rom.mapTileProperties.item(this.mapProperties.tileProperties.value);
+    } else if (this.selectedLayer.type === FF6MapLayer.Type.world) {
+        // world map tile properties
+        tileProperties = this.rom.worldTileProperties.item(this.world);
+    } else {
+        // return if not layer 1
+        return;
+    }
+    propertyList.select(tileProperties.item(t));
 }
 
 FF5Map.prototype.selectLayer = function(l) {
@@ -725,14 +744,14 @@ FF5Map.prototype.loadWorldMap = function(m) {
     propertyList.select(null);
 
     // load graphics and layout
-    var w = this.rom.isSFC ? 0: 1;
-    if (m === 1) w ^= 1;
-    if (m > 2) w = 2;
+    this.world = this.rom.isSFC ? 0: 1;
+    if (m === 1) this.world ^= 1;
+    if (m > 2) this.world = 2;
 
-    var gfx = this.rom.worldGraphics.item(w).data;
-    var pal = this.rom.worldPalettes.item(w).data;
-    var paletteAssignment = this.rom.isSFC ? this.rom.worldPaletteAssignments.item(w).data : null;
-    var tileset = this.rom.worldTilesets.item(w).data;
+    var gfx = this.rom.worldGraphics.item(this.world).data;
+    var pal = this.rom.worldPalettes.item(this.world).data;
+    var paletteAssignment = this.rom.isSFC ? this.rom.worldPaletteAssignments.item(this.world).data : null;
+    var tileset = this.rom.worldTilesets.item(this.world).data;
 
     if (this.rom.isGBA) {
         gfx = gfx.subarray(8);
@@ -1291,6 +1310,7 @@ FF5MapTileset.prototype.mouseMove = function(e) {
     // redraw the cursor and notify the map
     this.drawCursor();
     this.map.selection = new Uint8Array(this.selection);
+    if (cols === 1 && rows === 1) this.map.selectTileProperties(this.selection[5]);
 }
 
 FF5MapTileset.prototype.selectLayer = function(l) {

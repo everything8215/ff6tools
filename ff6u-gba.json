@@ -4309,7 +4309,7 @@
                             },
                             "special": {
                                 "0xFFF7": "Impassable",
-                                "0x0007": "Counter"
+                                "0x0007": "Through-Tile"
                             }
                         }
                     }
@@ -6565,7 +6565,7 @@
                             "name": "Background",
                             "begin": 1,
                             "mask": "0x07",
-                            "invalid": "propertyList.editors.FF6Map.m !== 0",
+                            "invalid": "this.parent.parent.i !== 0",
                             "stringTable": {
                                 "string": {
                                     "0": "Field (WoB)",
@@ -6584,7 +6584,7 @@
                             "name": "Background",
                             "begin": 1,
                             "mask": "0x07",
-                            "invalid": "propertyList.editors.FF6Map.m !== 1",
+                            "invalid": "this.parent.parent.i !== 1",
                             "stringTable": {
                                 "string": {
                                     "0": "Field (WoB)",

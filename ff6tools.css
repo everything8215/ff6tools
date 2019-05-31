@@ -91,6 +91,10 @@ body {
     user-select: none;
 }
 
+#nav.hidden {
+    display: none;
+}
+
 .nav-list {
     background-color: white;
     margin: 0px;

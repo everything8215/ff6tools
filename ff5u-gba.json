@@ -1605,11 +1605,11 @@
                 "default": "Map %i",
                 "length": 547,
                 "string": {
-                     "0x0000": "World Map (World 1)",
-                     "0x0001": "World Map (World 2)",
-                     "0x0002": "World Map (World 3)",
-                     "0x0003": "Sea Floor (World 2)",
-                     "0x0004": "Sea Floor (World 3)",
+                     "0x0000": "World Map (Bartz' World)",
+                     "0x0001": "World Map (Galuf's World)",
+                     "0x0002": "World Map (Combined World)",
+                     "0x0003": "Sea Floor (Galuf's World)",
+                     "0x0004": "Sea Floor (Combined World)",
                      "0x0005": "Airship",
                      "0x0006": "Airship",
                      "0x0007": "Tycoon Castle Tower (Opening)",
@@ -2224,6 +2224,73 @@
                 "format": "bgr555"
             }
         },
+        "mapTileProperties": {
+            "type": "array",
+            "name": "Map Tile Properties",
+            "range": "0x08133960-0x08136760",
+            "array": {
+                "length": 23
+            },
+            "assembly": {
+                "type": "array",
+                "array": {
+                    "length": 256
+                },
+                "length": 512,
+                "assembly": {
+                    "type": "data",
+                    "length": 2,
+                    "assembly": {
+                        "flags": {
+                            "type": "property",
+                            "name": "Flags",
+                            "mask": "0xCFFF",
+                            "flag": true,
+                            "stringTable": {
+                                "string": {
+                                    "0": "Upper Z-Level",
+                                    "1": "Lower Z-Level",
+                                    "2": "Bridge",
+                                    "3": "Top Half Has Low Layer Priority",
+                                    "4": "Hide Party Unless on Bridge",
+                                    "5": "Tile Damage",
+                                    "6": "Force Low Sprite Priority",
+                                    "7": "NPC Passability",
+                                    "8": "Passable Through Right",
+                                    "9": "Passable Through Left",
+                                    "10": "Passable Through Bottom",
+                                    "11": "Passable Through Top",
+                                    "14": "Force Facing Direction",
+                                    "15": "Auto-Move Tile"
+                                }
+                            },
+                            "special": {
+                                "0x0003": "Exit",
+                                "0xFF00": "Through-Tile"
+                            }
+                        },
+                        "speed": {
+                            "type": "property",
+                            "name": "Speed",
+                            "mask": "0x3000",
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0": "Normal (1x)",
+                                    "1": "Slow (0.5x)",
+                                    "2": "Fast (4x)",
+                                    "3": "Fast (2x)"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "stringTable": {
+                "length": 23,
+                "default": "Tile Properties %i"
+            }
+        },
         "mapTilePriority": {
             "type": "array",
             "name": "Map Tile Priority",
@@ -2573,11 +2640,41 @@
                             "mask": "0x3F",
                             "hidden": true
                         },
-                        "unknownX": {
+                        "stationary": {
                             "type": "property",
-                            "name": "Unknown 3.6",
+                            "name": "Stationary",
+                            "begin": 5,
+                            "mask": "0x04",
+                            "bool": true
+                        },
+                        "movement1": {
+                            "type": "property",
+                            "name": "Movement 1",
                             "begin": 3,
-                            "mask": "0xC0"
+                            "mask": "0xC0",
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0": "Normal",
+                                    "2": "Move Toward Party",
+                                    "3": "Move Away From Party"
+                                }
+                            }
+                        },
+                        "movement2": {
+                            "type": "property",
+                            "name": "Movement 2",
+                            "begin": 4,
+                            "mask": "0xC0",
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0": "Random/None",
+                                    "1": "Circle",
+                                    "2": "Back and Forth",
+                                    "3": "Straight Line"
+                                }
+                            }
                         },
                         "y": {
                             "type": "property",
@@ -2586,15 +2683,9 @@
                             "mask": "0x3F",
                             "hidden": true
                         },
-                        "unknownY": {
+                        "speed": {
                             "type": "property",
-                            "name": "Unknown 4.6",
-                            "begin": 4,
-                            "mask": "0xC0"
-                        },
-                        "animationSpeed": {
-                            "type": "property",
-                            "name": "Animation Speed",
+                            "name": "Speed",
                             "begin": 5,
                             "mask": "0x03",
                             "stringTable": {
@@ -2605,13 +2696,6 @@
                                     "3": "Fast"
                                 }
                             }
-                        },
-                        "unknown2": {
-                            "type": "property",
-                            "name": "Unknown 5.2",
-                            "begin": 5,
-                            "mask": "0x04",
-                            "bool": true
                         },
                         "unknown3": {
                             "type": "property",
@@ -3310,6 +3394,97 @@
             },
             "pointerTable": {
                 "range": "0x08708F1C-0x08708F28"
+            }
+        },
+        "worldTileProperties": {
+            "type": "array",
+            "name": "World Map Tile Properties",
+            "range": "0x0813B754-0x0813BE14",
+            "array": {
+                "length": 3
+            },
+            "assembly": {
+                "type": "array",
+                "array": {
+                    "length": 192
+                },
+                "length": 576,
+                "assembly": {
+                    "type": "data",
+                    "length": 3,
+                    "assembly": {
+                        "flags": {
+                            "type": "property",
+                            "name": "Flags",
+                            "mask": "0xF0FFFF",
+                            "flag": true,
+                            "stringTable": {
+                                "string": {
+                                    "0": "Passable on Foot",
+                                    "1": "Passable on Chocobo",
+                                    "2": "Passable on Black Chocobo",
+                                    "3": "Passable on Hiryuu",
+                                    "4": "Passable in Submarine",
+                                    "5": "Passable in Ship",
+                                    "6": "Passable in Airship",
+                                    "7": "Submarine Can Surface",
+                                    "8": "Passable Through Right",
+                                    "9": "Passable Through Left",
+                                    "10": "Passable Through Bottom",
+                                    "11": "Passable Through Top",
+                                    "12": "Can't Get Off Chocobo",
+                                    "13": "Black Chocobo Can't Land",
+                                    "14": "Hiryuu Can't Land",
+                                    "15": "Airship Can't Land",
+                                    "20": "2.4",
+                                    "21": "Bottom of Sprite Transparent",
+                                    "22": "Bottom of Sprite Underwater",
+                                    "23": "2.7"
+                                }
+                            }
+                        },
+                        "background1": {
+                            "type": "property",
+                            "name": "Background",
+                            "begin": "2",
+                            "mask": "0x0F",
+                            "invalid": "this.parent.parent.i !== 1",
+                            "stringTable": {
+                                "string": {
+                                    "0": "<stringTable.battleBackgroundProperties[0]>",
+                                    "1": "<stringTable.battleBackgroundProperties[1]>",
+                                    "2": "<stringTable.battleBackgroundProperties[2]>",
+                                    "3": "<stringTable.battleBackgroundProperties[21]>",
+                                    "4": "<stringTable.battleBackgroundProperties[4]>",
+                                    "5": "<stringTable.battleBackgroundProperties[5]>",
+                                    "6": "<stringTable.battleBackgroundProperties[3]>",
+                                    "7": "<stringTable.battleBackgroundProperties[7]>",
+                                    "8": "<stringTable.battleBackgroundProperties[8]>"
+                                }
+                            }
+                        },
+                        "background2": {
+                            "type": "property",
+                            "name": "Background",
+                            "begin": "2",
+                            "mask": "0x0F",
+                            "invalid": "this.parent.parent.i !== 0",
+                            "stringTable": {
+                                "string": {
+                                    "0": "<stringTable.battleBackgroundProperties[33]>",
+                                    "1": "<stringTable.battleBackgroundProperties[1]>",
+                                    "2": "<stringTable.battleBackgroundProperties[2]>",
+                                    "3": "<stringTable.battleBackgroundProperties[21]>",
+                                    "4": "<stringTable.battleBackgroundProperties[4]>",
+                                    "5": "<stringTable.battleBackgroundProperties[5]>",
+                                    "6": "<stringTable.battleBackgroundProperties[3]>",
+                                    "7": "<stringTable.battleBackgroundProperties[7]>",
+                                    "8": "<stringTable.battleBackgroundProperties[8]>"
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "worldTilesets16": {

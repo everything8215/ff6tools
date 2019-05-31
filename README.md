@@ -10,6 +10,7 @@ Currently supported ROMs:
 - Final Fantasy IV (J)
 - Final Fantasy V (RPGe translation)
 - Final Fantasy V (J)
+- Final Fantasy V Advance (U)
 - Final Fantasy III (U)
 - Final Fantasy VI (J)
 - Final Fantasy VI Advance (U)
