@@ -593,10 +593,26 @@
                 <div id="edit">
                     <div id="edit-top">
                         <div id="map-controls">
-                            <label class="two-state checked tooltip"><input id="showLayer1" type="checkbox" checked="true" onchange="twoState(this)">Layer 1</label>
-                            <label class="two-state checked"><input id="showLayer2" type="checkbox" checked="true" onchange="twoState(this)">Layer 2</label>
-                            <label class="two-state checked"><input id="showLayer3" type="checkbox" checked="true" onchange="twoState(this)">Layer 3</label>
-                            <label class="two-state checked"><input id="showTriggers" type="checkbox" checked="true" onchange="twoState(this)">Triggers</label>
+                            <label class="two-state checked tooltip">
+                                <input id="showLayer1" type="checkbox" checked onchange="twoState(this)">
+                                Layer 1
+                            </label>
+                            <label class="two-state checked">
+                                <input id="showLayer2" type="checkbox" checked onchange="twoState(this)">
+                                Layer 2
+                            </label>
+                            <label class="two-state checked">
+                                <input id="showLayer3" type="checkbox" checked onchange="twoState(this)">
+                                Layer 3
+                            </label>
+                            <label class="two-state checked">
+                                <input id="showTriggers" type="checkbox" checked onchange="twoState(this)">
+                                Triggers
+                            </label>
+                            <label class="two-state">
+                                <input id="showScreen" type="checkbox" onchange="twoState(this)">
+                                Screen
+                            </label>
                             <div id="zoom-value">100%</div>
                             <input type="range" id="zoom" min="-2" max="2" step="1" value="0">
                             <div id="coordinates">(0,0)</div>

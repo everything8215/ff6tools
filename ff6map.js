@@ -44,9 +44,6 @@ function FF6Map(rom) {
     this.selection = new Uint8Array([0x73, 0, 0, 1, 1, 0]);
     this.clickPoint = null;
     this.triggerPoint = null;
-//    this.clickedCol = null;
-//    this.clickedRow = null;
-//    this.clickButton = null;
     this.isDragging = false;
     this.layer = [new FF6MapLayer(rom, FF6MapLayer.Type.layer1),
                   new FF6MapLayer(rom, FF6MapLayer.Type.layer2),
@@ -58,6 +55,14 @@ function FF6Map(rom) {
     this.selectedTrigger = null;
     this.observer = new ROMObserver(rom, this, {sub: true, link: true, array: true});
     this.ppu = new GFX.PPU();
+    
+    // mask layer stuff
+    this.screenCanvas = document.createElement('canvas');
+    this.screenCanvas.id = "map-screen";
+    this.screenCanvas.width = 256;
+    this.screenCanvas.width = 256;
+    this.scrollDiv.appendChild(this.screenCanvas);
+    this.tileMask = FF6Map.TileMask.none;
 
     // add event listeners
     var map = this;
@@ -93,6 +98,12 @@ function FF6Map(rom) {
     buttonTriggers.parentElement.childNodes[1].nodeValue = "Triggers";
     buttonTriggers.parentElement.style.display = "inline-block";
     this.showTriggers = buttonTriggers.checked;
+
+    var buttonScreen = document.getElementById("showScreen");
+    buttonScreen.onchange = function() { map.changeLayer("showScreen"); twoState(this); };
+    buttonScreen.parentElement.childNodes[1].nodeValue = "Screen";
+    buttonScreen.parentElement.style.display = "inline-block";
+    this.showScreen = buttonScreen.checked;
 
     document.getElementById("zoom").onchange = function() { map.changeZoom(); };
     
@@ -239,9 +250,6 @@ FF6Map.prototype.mouseDown = function(e) {
         y: ((e.offsetY / this.zoom + this.ppu.layers[this.l].y) % this.ppu.height) >> 4,
         button: e.button
     };
-//    this.clickedCol = ((e.offsetX / this.zoom + this.ppu.layers[this.l].x) % this.ppu.width) >> 4;
-//    this.clickedRow = ((e.offsetY / this.zoom + this.ppu.layers[this.l].y) % this.ppu.height) >> 4;
-//    this.clickButton = e.button;
     
     // update the selection position
     this.selection[1] = this.clickPoint.x;
@@ -291,6 +299,7 @@ FF6Map.prototype.mouseDown = function(e) {
         this.isDragging = true;
     }
     
+    this.drawScreen();
     this.drawCursor();
 }
 
@@ -315,6 +324,7 @@ FF6Map.prototype.mouseMove = function(e) {
     
     if (!this.isDragging) {
         // update the cursor
+        this.drawScreen();
         this.drawCursor();
         return;
     }
@@ -334,6 +344,7 @@ FF6Map.prototype.mouseMove = function(e) {
     }
 
     // update the cursor
+    this.drawScreen();
     this.drawCursor();
 }
 
@@ -362,14 +373,13 @@ FF6Map.prototype.mouseUp = function(e) {
     }
     
     this.isDragging = false;
-//    this.clickPoint.button = null;
-//    this.clickButton = null;
 }
 
 FF6Map.prototype.mouseEnter = function(e) {
     
     // show the cursor
     this.showCursor = true;
+    this.drawScreen();
     this.drawCursor();
 
     this.mouseUp(e);
@@ -379,6 +389,7 @@ FF6Map.prototype.mouseLeave = function(e) {
     
     // hide the cursor
     this.showCursor = (this.l === 3);
+    this.drawScreen();
     this.drawCursor();
     
     this.mouseUp(e);
@@ -417,8 +428,6 @@ FF6Map.prototype.openMenu = function(e) {
         y: ((e.offsetY / this.zoom + this.ppu.layers[this.l].y) % this.ppu.height) >> 4,
         button: e.button
     };
-//    this.clickedCol = ((e.offsetX / this.zoom + this.ppu.layers[this.l].x) % this.ppu.width) >> 4;
-//    this.clickedRow = ((e.offsetY / this.zoom + this.ppu.layers[this.l].y) % this.ppu.height) >> 4;
 
     this.menu.classList.add("menu-active");
     this.menu.style.left = e.x + "px";
@@ -432,7 +441,6 @@ FF6Map.prototype.closeMenu = function() {
 FF6Map.prototype.setTiles = function() {
     // return if not dragging
     if (!this.clickPoint) return;
-//    if (!isNumber(this.clickPoint) || !isNumber(this.clickedRow)) return;
 
     var col = this.selection[1];
     var row = this.selection[2];
@@ -454,7 +462,6 @@ FF6Map.prototype.setTiles = function() {
 FF6Map.prototype.selectTiles = function() {
     // return if not dragging
     if (!this.clickPoint) return;
-//    if (!isNumber(this.clickedCol) || !isNumber(this.clickedRow)) return;
     
     var col = this.selection[1];
     var row = this.selection[2];
@@ -506,6 +513,7 @@ FF6Map.prototype.selectLayer = function(l) {
     }
     
     this.showCursor = (this.l === 3);
+    this.drawScreen();
     this.drawCursor();
 }
 
@@ -534,6 +542,100 @@ FF6Map.prototype.changeLayer = function(id) {
     }
     this.invalidateMap();
     this.drawMap();
+}
+
+FF6Map.TileMask = {
+    none: "none",
+    passability: "passability",
+    spriteOverlay: "spriteOverlay",
+    npcPassability: "npcPassability",
+    layerPriority: "layerPriority"
+}
+
+FF6Map.prototype.drawMask = function() {
+    
+    if (this.tileMask === FF6Map.TileMask.none) return;
+    
+    
+}
+
+FF6Map.prototype.drawScreen = function() {
+
+    this.screenCanvas.style.display = "none";
+    if (!this.showScreen) return;
+
+    // calculate the screen rect
+    var x = ((this.selection[1] * 16) - this.ppu.layers[this.l].x) & (this.ppu.width - 1);
+    var y = ((this.selection[2] * 16) - this.ppu.layers[this.l].y) & (this.ppu.height - 1);
+    var screenRect;
+    if (this.rom.isSFC) {
+        screenRect = new Rect(x - 7 * 16, x + 8 * 16, y - 6.5 * 16, y + 6.5 * 16);
+    } else {
+        screenRect = new Rect(x - 7 * 16, x + 8 * 16, y - 5 * 16, y + 5 * 16);
+    }
+
+    if (this.m >= 3) {
+        // adjust the screen based on the map width
+        if (this.mapProperties.width.value !== 0) {
+            var maxWidth = this.mapProperties.width.value * 16 + 16;
+            if (screenRect.l <= 16) screenRect = screenRect.offset(16 - screenRect.l, 0);
+            if (screenRect.r > maxWidth) screenRect = screenRect.offset(maxWidth - screenRect.r, 0);
+        }
+
+        // adjust the screen based on the map height
+        if (this.mapProperties.height.value !== 0) {
+            var minHeight = this.rom.isSFC ? 8 : 16;
+            var maxHeight = this.mapProperties.height.value * 16 - (this.rom.isSFC ? 8 : 0);
+            if (screenRect.t <= minHeight) screenRect = screenRect.offset(0, minHeight - screenRect.t);
+            if (screenRect.b > maxHeight) screenRect = screenRect.offset(0, maxHeight - screenRect.b);
+        }
+        screenRect.l = Math.max(0, screenRect.l);
+        screenRect.r = Math.min(this.ppu.width, screenRect.r);
+        screenRect.t = Math.max(0, screenRect.t);
+        screenRect.b = Math.min(this.ppu.height, screenRect.b);
+    }
+
+    // scale and offset to match the map rect
+    screenRect = screenRect.scale(this.zoom).offset(-this.mapRect.l, -this.mapRect.t);
+
+    // draw the screen mask
+    this.screenCanvas.width = this.mapRect.w;
+    this.screenCanvas.height = this.mapRect.h;
+    this.screenCanvas.style.left = this.mapRect.l.toString() + "px";
+    this.screenCanvas.style.top = this.mapRect.t.toString() + "px";
+    this.screenCanvas.style.display = "block";
+    var ctx = this.screenCanvas.getContext('2d');
+    ctx.globalCompositeOperation = 'source-over'
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(0, 0, this.screenCanvas.width, this.screenCanvas.height);
+    ctx.globalCompositeOperation = 'destination-out'
+    ctx.fillStyle = 'rgba(0, 0, 0, 1.0)';
+    
+    if (this.m < 3 && this.rom.isGBA) {
+        screenRect.l += 16 * this.zoom;
+        screenRect.r -= 16 * this.zoom;
+        screenRect.t += 5 * this.zoom;
+        screenRect.b -= 35 * this.zoom;
+        ctx.beginPath();
+        ctx.moveTo(screenRect.l, screenRect.t);
+        ctx.lineTo(screenRect.l + 29 * this.zoom, screenRect.b);
+        ctx.lineTo(screenRect.r - 29 * this.zoom, screenRect.b);
+        ctx.lineTo(screenRect.r, screenRect.t);
+        ctx.lineTo(screenRect.l, screenRect.t);
+        ctx.fill();
+    } else if (this.m < 3 && this.rom.isSFC) {
+        screenRect.t -= 9 * this.zoom;
+        screenRect.b -= 42 * this.zoom;
+        ctx.beginPath();
+        ctx.moveTo(screenRect.l, screenRect.t);
+        ctx.lineTo(screenRect.l + 52 * this.zoom, screenRect.b);
+        ctx.lineTo(screenRect.r - 52 * this.zoom, screenRect.b);
+        ctx.lineTo(screenRect.r, screenRect.t);
+        ctx.lineTo(screenRect.l, screenRect.t);
+        ctx.fill();
+    } else {
+        ctx.fillRect(screenRect.l, screenRect.t, screenRect.w, screenRect.h);
+    }    
 }
 
 FF6Map.prototype.drawCursor = function() {
@@ -902,10 +1004,11 @@ FF6Map.prototype.drawMap = function() {
     ctx.imageSmoothingEnabled = false;
     ctx.webkitImageSmoothingEnabled = false;
     var scaledRect = this.mapRect.scale(1 / this.zoom);
-//    ctx.clearRect(scaledRect.l, scaledRect.t, scaledRect.w, scaledRect.h);
     ctx.drawImage(this.mapCanvas, scaledRect.l, scaledRect.t, scaledRect.w, scaledRect.h, 0, 0, this.mapRect.w, this.mapRect.h);
     
     this.drawTriggers();
+    this.drawMask();
+    this.drawScreen();
     this.drawCursor();
 }
 

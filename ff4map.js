@@ -59,6 +59,13 @@ function FF4Map(rom) {
     this.observer = new ROMObserver(rom, this, {sub: true, link: true, array: true});
     this.ppu = new GFX.PPU();
 
+    // mask layer stuff
+    this.screenCanvas = document.createElement('canvas');
+    this.screenCanvas.id = "map-screen";
+    this.screenCanvas.width = 256;
+    this.screenCanvas.width = 256;
+    this.scrollDiv.appendChild(this.screenCanvas);
+
     var map = this;
     this.div.onscroll = function() { map.scroll() };
 //    window.addEventListener("resize", map.scroll, false);
@@ -91,6 +98,12 @@ function FF4Map(rom) {
     buttonTriggers.parentElement.childNodes[1].nodeValue = "Triggers";
     buttonTriggers.parentElement.style.display = "inline-block";
     this.showTriggers = buttonTriggers.checked;
+
+    var buttonScreen = document.getElementById("showScreen");
+    buttonScreen.onchange = function() { map.changeLayer("showScreen"); twoState(this); };
+    buttonScreen.parentElement.childNodes[1].nodeValue = "Screen";
+    buttonScreen.parentElement.style.display = "inline-block";
+    this.showScreen = buttonScreen.checked;
 
     document.getElementById("zoom").onchange = function() { map.changeZoom(); };
     
@@ -230,6 +243,7 @@ FF4Map.prototype.mouseDown = function(e) {
         this.isDragging = true;
     }
     
+    this.drawScreen();
     this.drawCursor();
 }
 
@@ -282,6 +296,7 @@ FF4Map.prototype.mouseMove = function(e) {
 
     if (!this.isDragging) {
         // update the cursor
+        this.drawScreen();
         this.drawCursor();
         return;
     }
@@ -301,6 +316,7 @@ FF4Map.prototype.mouseMove = function(e) {
     }
 
     // update the cursor
+    this.drawScreen();
     this.drawCursor();
 }
 
@@ -308,6 +324,7 @@ FF4Map.prototype.mouseEnter = function(e) {
     
     // show the cursor
     this.showCursor = true;
+    this.drawScreen();
     this.drawCursor();
 
     this.mouseUp(e);
@@ -449,6 +466,7 @@ FF4Map.prototype.selectLayer = function(l) {
     }
     
     this.showCursor = (this.l === 3);
+    this.drawScreen();
     this.drawCursor();
 }
 
@@ -490,6 +508,40 @@ FF4Map.prototype.changeLayer = function(id) {
     }
     this.invalidateMap();
     this.drawMap();
+}
+
+FF4Map.prototype.drawScreen = function() {
+
+    this.screenCanvas.style.display = "none";
+    if (!this.showScreen) return;
+
+    // calculate the screen rect
+    var x = ((this.selection[1] * 16) - this.ppu.layers[this.l].x) & (this.ppu.width - 1);
+    var y = ((this.selection[2] * 16) - this.ppu.layers[this.l].y) & (this.ppu.height - 1);
+    var screenRect;
+    screenRect = new Rect(x - 7 * 16 + 1, x + 9 * 16 - 1, y - 7 * 16 + 1, y + 7 * 16 + 1);
+
+    screenRect.l = Math.max(0, screenRect.l);
+    screenRect.r = Math.min(this.ppu.width, screenRect.r);
+    screenRect.t = Math.max(0, screenRect.t);
+    screenRect.b = Math.min(this.ppu.height, screenRect.b);
+
+    // scale and offset to match the map rect
+    screenRect = screenRect.scale(this.zoom).offset(-this.mapRect.l, -this.mapRect.t);
+
+    // draw the screen mask
+    this.screenCanvas.width = this.mapRect.w;
+    this.screenCanvas.height = this.mapRect.h;
+    this.screenCanvas.style.left = this.mapRect.l.toString() + "px";
+    this.screenCanvas.style.top = this.mapRect.t.toString() + "px";
+    this.screenCanvas.style.display = "block";
+    var ctx = this.screenCanvas.getContext('2d');
+    ctx.globalCompositeOperation = 'source-over'
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(0, 0, this.screenCanvas.width, this.screenCanvas.height);
+    ctx.globalCompositeOperation = 'destination-out'
+    ctx.fillStyle = 'rgba(0, 0, 0, 1.0)';
+    ctx.fillRect(screenRect.l, screenRect.t, screenRect.w, screenRect.h);
 }
 
 FF4Map.prototype.drawCursor = function() {
@@ -857,6 +909,7 @@ FF4Map.prototype.drawMap = function() {
     ctx.drawImage(this.mapCanvas, scaledRect.l, scaledRect.t, scaledRect.w, scaledRect.h, 0, 0, this.mapRect.w, this.mapRect.h);
     
     this.drawTriggers();
+    this.drawScreen();
     this.drawCursor();
 }
 
@@ -1218,7 +1271,7 @@ FF4Map.prototype.drawNPC = function(npc) {
     var rawGraphics = this.rom.mapSpriteGraphics.data.subarray(gfxOffset, gfxOffset + 0x100);
     gfx.set(rawGraphics);
 
-    var npcRect = new Rect(x, x + w, y, y + h);
+    var npcRect = new Rect(x, x + w, y - 2, y + h - 2);
     npcRect = npcRect.scale(this.zoom);
     if (this.mapRect.intersect(npcRect).isEmpty()) return;
 

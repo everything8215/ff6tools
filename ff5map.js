@@ -53,8 +53,14 @@ function FF5Map(rom) {
     this.selectedTrigger = null;
     this.dirtyRect = null;
     this.mapRect = new Rect(0, 0, 256, 256);
-    
     this.ppu = new GFX.PPU();
+
+    // mask layer stuff
+    this.screenCanvas = document.createElement('canvas');
+    this.screenCanvas.id = "map-screen";
+    this.screenCanvas.width = 256;
+    this.screenCanvas.width = 256;
+    this.scrollDiv.appendChild(this.screenCanvas);
 
     var map = this;
     this.div.onscroll = function() { map.scroll() };
@@ -89,6 +95,12 @@ function FF5Map(rom) {
     buttonTriggers.parentElement.childNodes[1].nodeValue = "Triggers";
     buttonTriggers.parentElement.style.display = "inline-block";
     this.showTriggers = buttonTriggers.checked;
+
+    var buttonScreen = document.getElementById("showScreen");
+    buttonScreen.onchange = function() { map.changeLayer("showScreen"); twoState(this); };
+    buttonScreen.parentElement.childNodes[1].nodeValue = "Screen";
+    buttonScreen.parentElement.style.display = "inline-block";
+    this.showScreen = buttonScreen.checked;
 
     document.getElementById("zoom").onchange = function() { map.changeZoom(); };
 
@@ -204,6 +216,7 @@ FF5Map.prototype.mouseDown = function(e) {
         this.setTiles();
     }
     
+    this.drawScreen();
     this.drawCursor();
 }
 
@@ -268,6 +281,7 @@ FF5Map.prototype.mouseMove = function(e) {
     }
 
     // update the cursor
+    this.drawScreen();
     this.drawCursor();
 }
 
@@ -275,6 +289,7 @@ FF5Map.prototype.mouseEnter = function(e) {
     
     // show the cursor
     this.showCursor = true;
+    this.drawScreen();
     this.drawCursor();
 
     this.mouseUp(e);
@@ -284,6 +299,7 @@ FF5Map.prototype.mouseLeave = function(e) {
     
     // hide the cursor
     this.showCursor = (this.l === 3);
+    this.drawScreen();
     this.drawCursor();
     
     this.mouseUp(e);
@@ -407,6 +423,7 @@ FF5Map.prototype.selectLayer = function(l) {
     }
     
     this.showCursor = (this.l === 3);
+    this.drawScreen();
     this.drawCursor();
 }
 
@@ -435,6 +452,44 @@ FF5Map.prototype.changeLayer = function(id) {
     }
     this.invalidateMap();
     this.drawMap();
+}
+
+FF5Map.prototype.drawScreen = function() {
+
+    this.screenCanvas.style.display = "none";
+    if (!this.showScreen) return;
+
+    // calculate the screen rect
+    var x = ((this.selection[1] * 16) - this.ppu.layers[this.l].x) & (this.ppu.width - 1);
+    var y = ((this.selection[2] * 16) - this.ppu.layers[this.l].y) & (this.ppu.height - 1);
+    var screenRect;
+    screenRect = new Rect(x - 7 * 16 + 8, x + 9 * 16 - 8, y - 7 * 16 + 1, y + 7 * 16 + 1);
+    if (this.rom.isGBA) {
+        screenRect.t += 39;
+        screenRect.b -= 25;
+    }
+
+    screenRect.l = Math.max(0, screenRect.l);
+    screenRect.r = Math.min(this.ppu.width, screenRect.r);
+    screenRect.t = Math.max(0, screenRect.t);
+    screenRect.b = Math.min(this.ppu.height, screenRect.b);
+
+    // scale and offset to match the map rect
+    screenRect = screenRect.scale(this.zoom).offset(-this.mapRect.l, -this.mapRect.t);
+
+    // draw the screen mask
+    this.screenCanvas.width = this.mapRect.w;
+    this.screenCanvas.height = this.mapRect.h;
+    this.screenCanvas.style.left = this.mapRect.l.toString() + "px";
+    this.screenCanvas.style.top = this.mapRect.t.toString() + "px";
+    this.screenCanvas.style.display = "block";
+    var ctx = this.screenCanvas.getContext('2d');
+    ctx.globalCompositeOperation = 'source-over'
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(0, 0, this.screenCanvas.width, this.screenCanvas.height);
+    ctx.globalCompositeOperation = 'destination-out'
+    ctx.fillStyle = 'rgba(0, 0, 0, 1.0)';
+    ctx.fillRect(screenRect.l, screenRect.t, screenRect.w, screenRect.h);
 }
 
 FF5Map.prototype.drawCursor = function() {
@@ -869,6 +924,7 @@ FF5Map.prototype.drawMap = function() {
     ctx.drawImage(this.mapCanvas, scaledRect.l, scaledRect.t, scaledRect.w, scaledRect.h, 0, 0, this.mapRect.w, this.mapRect.h);
     
     this.drawTriggers();
+    this.drawScreen();
     this.drawCursor();
 }
 
@@ -1198,7 +1254,7 @@ FF5Map.prototype.drawNPC = function(npc) {
         gfx = rawGraphics.slice(gfxOffset, gfxOffset + tileCount * 0x40);
     }
 
-    var npcRect = new Rect(x, x + w, y, y + h);
+    var npcRect = new Rect(x, x + w, y - 2, y + h - 2);
     npcRect = npcRect.scale(this.zoom);
     if (this.mapRect.intersect(npcRect).isEmpty()) return;
 

@@ -4541,7 +4541,7 @@ Rect.prototype.scale = function(x, y) {
     x = Number(x);
     y = Number(y) || x;
     
-    return new Rect(this.l * x | 0, this.r * x | 0, this.t * y | 0, this.b * y | 0);
+    return new Rect((this.l * x) || 0, (this.r * x) || 0, (this.t * y) || 0, (this.b * y) || 0);
 }
 
 Rect.prototype.offset = function(x, y) {

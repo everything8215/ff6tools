@@ -347,6 +347,12 @@ body {
     pointer-events: none;
 }
 
+#map-screen {
+    z-index: 5;
+    position: absolute;
+    pointer-events: none;
+}
+
 #edit-bottom {
     margin: 0px;
     padding: 0px;
