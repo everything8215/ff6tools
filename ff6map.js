@@ -785,11 +785,6 @@ FF6Map.prototype.loadMap = function(m) {
     // load palette
     var pal = new Uint32Array(this.rom.mapPalettes.item(map.palette.value).data);
     pal[0] = 0xFF000000; // set background color to black
-//    if (this.rom.isGBA) {
-//        pal[4] = 0; // set transparent colors for 2bpp graphics (only affects gba)
-//        pal[8] = 0; // i fixed this in gfx.js
-//        pal[12] = 0;
-//    }
 
     var layout, tileset;
     var mapSizes = [16, 32, 64, 128];

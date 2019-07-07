@@ -1260,7 +1260,14 @@
                     "mask": "0xFF",
                     "bankByte": true
                 }
-            ]
+            ],
+            "stringTable": {
+                "default": "Layout %i",
+                "length": 383,
+                "string": {
+                    "0": "Town of Baron"
+                }
+            }
         },
         "mapPalettes": {
             "type": "array",
@@ -1272,6 +1279,40 @@
             "assembly": {
                 "length": 128,
                 "format": "bgr555"
+            },
+            "stringTable": {
+                "string": {
+                    "0": "Airship (Overworld)",
+                    "2": "Cave Magnes",
+                    "3": "Castle Exterior",
+                    "4": "Town Exterior",
+                    "5": "Town Interior",
+                    "6": "Castle Interior",
+                    "7": "Crystal Room",
+                    "8": "Big Whale",
+                    "9": "Land of Monsters",
+                    "10": "Tower of Zot/Bab-il",
+                    "11": "Giant of Bab-il",
+                    "12": "Moon Cave",
+                    "13": "Mountains",
+                    "14": "Watery Pass/Old Water-way",
+                    "15": "Sylvan Cave",
+                    "16": "Antlion's Cave",
+                    "17": "Cave Eblana",
+                    "18": "Sealed Cave",
+                    "19": "Dwarf Town Exterior",
+                    "20": "Lunar's Lair",
+                    "21": "Dwarf Castle Exterior",
+                    "22": "Cave Eblana (Rooms)",
+                    "23": "Dwarf Castle Interior",
+                    "24": "Agart",
+                    "25": "Silvera",
+                    "26": "Dwarf Town Interior",
+                    "27": "Palette 27",
+                    "28": "Palette 28",
+                    "29": "Palette 29",
+                    "30": "Airship (Underground)"
+                }
             }
         },
         "mapProperties": {
@@ -1378,7 +1419,8 @@
                     "palette": {
                         "type": "property",
                         "name": "Palette",
-                        "begin": 5
+                        "begin": 5,
+                        "stringTable": "mapPalettes"
                     },
                     "addition": {
                         "type": "property",

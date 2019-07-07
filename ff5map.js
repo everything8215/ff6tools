@@ -1780,7 +1780,7 @@ FF5AdvanceEncoder.prototype.compress = function(data, m1) {
         this.putLine = this.putLine2;
         this.golomb.n = 7;
         this.golomb.w = 3;
-        this.minString = 13; // 163920
+        this.minString = 13;
     } else if (m1 === 3) {
         // if the length of the data is an odd number, this will truncate the last byte
         this.src = new Uint16Array(data.buffer, data.byteOffset, data.byteLength >> 1);

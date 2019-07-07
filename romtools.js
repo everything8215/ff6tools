@@ -1150,6 +1150,14 @@ ROM.prototype.assemble = function(data) {
     return success;
 }
 
+ROM.prototype.disassemble = function(data) {
+    
+    // encompass the full data range
+    this.range = new ROMRange(0, data.length);
+    
+    ROMAssembly.prototype.disassemble.call(this, data);
+}
+
 ROM.prototype.expand = function(length) {
     if (length <= this.data.length) return;
     

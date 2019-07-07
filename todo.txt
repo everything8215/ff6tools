@@ -9,7 +9,7 @@ general
  * add an option to switch between hex and decimal
  * manual relocation
  * reserve rom ranges (remove free space for patches or compatibility with other editors)
- * make things load faster!
+ * make things load faster! (load event script in parallel ???)
  * log rom map
  * copy and paste
  * paste-able script text
@@ -20,7 +20,7 @@ general
 gui
 ---
  * battle vram viewer
- * custom property controls (entrance trigger destination, rendered text, colosseum battle)
+ * custom property controls (entrance trigger destination, rendered text, colosseum battle, fill tile)
  * grid controls (for element/status, esper/natural magic)
  * tile mask layers for map editor
  * allow multiple selection, cut/copy/paste in script list
