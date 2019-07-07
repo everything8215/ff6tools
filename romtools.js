@@ -795,7 +795,8 @@ ROMData.prototype.assemble = function(data) {
     }
     
     // pad free space
-    this.padFreeSpace();
+    // commenting this out because it was causing issues when using a previously edited ROM
+//    this.padFreeSpace();
     
     return ROMAssembly.prototype.assemble.call(this, data) && success;
 }
