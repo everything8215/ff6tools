@@ -20,7 +20,7 @@ function FF5Battle(rom) {
     this.div.id = 'map-edit';
     this.div.appendChild(this.canvas);
     
-    this.battleRect = new Rect(8, 248, 1, 160);
+    this.battleRect = new Rect(8, 248, this.rom.isSFC ? 1 : 8, this.rom.isSFC ? 160 : 128);
     this.zoom = 2.0;
 
     this.selectedMonster = null;
@@ -61,7 +61,7 @@ FF5Battle.prototype.battleName = function(b) {
         index = keys[k];
         count = monsterList[index];
         if (battleName !== "") battleName += ", ";
-        battleName += "<stringTable.monsterName[" + index.toString() + "]>"
+        battleName += "<stringTable.battleMonster[" + index.toString() + "]>"
         if (count !== 1) battleName += " ×" + count;
     }
     
@@ -173,6 +173,8 @@ FF5Battle.prototype.monsterInSlot = function(slot) {
     }
     if ((m & 0xFF) === 0xFF) return null; // slot is empty
 
+    var monsterProperties = this.rom.monsterProperties.item(m);
+    
     var pal = this.battleProperties["monster" + slot + "Palette"].value;
     
     var monsterPosition = this.rom.monsterPosition.item(this.b).item(slot - 1);
@@ -180,19 +182,33 @@ FF5Battle.prototype.monsterInSlot = function(slot) {
     var y = monsterPosition.y.value;
     
     var id;
-    if (this.battleProperties.flags.value & 0x20) {
-        id = this.rom.monsterProperties.item(m).monsterIDBoss.value;
+    if (this.rom.isGBA) {
+        if (m < 256) {
+            id = m;
+        } else if (m < 384) {
+            id = m + 256;
+        } else {
+            id = m + 256;
+        }
+    } else if (this.battleProperties.flags.value & 0x20) {
+        id = monsterProperties.monsterIDBoss.value;
     } else {
-        id = this.rom.monsterProperties.item(m).monsterID.value;
+        id = monsterProperties.monsterID.value;
     }
     
     // minimum size is 1x1
     var w = 1; var h = 1;
-    var map = this.mapForMonster(id);
-    for (var t = 0; t < map.tiles.length; t++) {
-        if (!map.tiles[t]) continue;
-        w = Math.max(w, (t % map.size) + 1);
-        h = Math.max(h, Math.floor(t / map.size) + 1)
+    if (this.rom.isSFC) {
+        var map = this.mapForMonster(id);
+        for (var t = 0; t < map.tiles.length; t++) {
+            if (!map.tiles[t]) continue;
+            w = Math.max(w, (t % map.size) + 1);
+            h = Math.max(h, Math.floor(t / map.size) + 1);
+        }
+    } else {
+        var size = this.rom.monsterSize.item(id);
+        w = Math.max(size.width.value, 1);
+        h = Math.max(size.height.value, 1);
     }
     
     return {
@@ -218,6 +234,7 @@ FF5Battle.prototype.monsterAtPoint = function(x, y) {
 
 FF5Battle.prototype.drawBattle = function() {
     this.drawBackground();
+    
     for (var slot = 8; slot > 0; slot--) {
         this.drawMonster(slot);
     }
@@ -235,6 +252,8 @@ FF5Battle.prototype.drawBattle = function() {
 }
 
 FF5Battle.prototype.mapForMonster = function(m) {
+
+    if (this.rom.isGBA) return;
 
     // load graphics properties
     var gfxProperties = this.rom.monsterGraphicsProperties.item(m);
@@ -279,52 +298,84 @@ FF5Battle.prototype.drawMonster = function(slot) {
     var m = this.monsterInSlot(slot);
     if (m === null) return; // return if slot is empty
     
-    // load graphics properties
-    var gfxProperties = this.rom.monsterGraphicsProperties.item(m.id);
+    var graphics, tiles, pal, w, h;
     
-    // decode the graphics
-    var gfx = this.rom.monsterGraphics.item(m.id);
     if (this.rom.isSFC) {
-        var format = gfxProperties.is3bpp.value ? "snes3bpp" : "snes4bpp";
-        if (gfx.format !== format) {
-            gfx.format = format;
-            gfx.disassemble(gfx.parent.data);        
+        // load graphics properties
+        var gfxProperties = this.rom.monsterGraphicsProperties.item(m.id);
+
+        // decode the graphics
+        var gfx = this.rom.monsterGraphics.item(m.id);
+        if (this.rom.isSFC) {
+            var format = gfxProperties.is3bpp.value ? "snes3bpp" : "snes4bpp";
+            if (gfx.format !== format) {
+                gfx.format = format;
+                gfx.disassemble(gfx.parent.data);        
+            }
         }
-    }
-    
-    // leave the first tile blank
-    var graphics = new Uint8Array(gfx.data.length + 64);
-    graphics.set(gfx.data, 64);
-    
-    var map = this.mapForMonster(m.id);
-    
-    // load palette
-    var p = gfxProperties.palette.value;
-    var pal = new Uint32Array(16);
-    if (this.battleProperties.gfxFlags.value & 4) {
-        // use underwater palette
-        pal.set(this.rom.monsterPaletteUnderwater.data);
+
+        // leave the first tile blank
+        graphics = new Uint8Array(gfx.data.length + 64);
+        graphics.set(gfx.data, 64);
+
+        var map = this.mapForMonster(m.id);
+        tiles = map.tiles;
+        w = map.size;
+        h = map.size;
+
+        // load palette
+        var p = gfxProperties.palette.value;
+        pal = new Uint32Array(16);
+        if (this.battleProperties.gfxFlags.value & 4) {
+            // use underwater palette
+            pal.set(this.rom.monsterPaletteUnderwater.data);
+        } else {
+            pal.set(this.rom.monsterPalette.item(p).data);
+            if (!gfxProperties.is3bpp.value) pal.set(this.rom.monsterPalette.item(p + 1).data, 8);
+        }
     } else {
-        pal.set(this.rom.monsterPalette.item(p).data);
-        if (this.rom.isGBA || !gfxProperties.is3bpp.value) pal.set(this.rom.monsterPalette.item(p + 1).data, 8);
+        // decode the graphics
+        var graphicsData = this.rom.monsterGraphics.item(m.id * 2);
+        if (!graphicsData.format) {
+            graphicsData.format = ["linear4bpp", "gba-lzss"];
+            graphicsData.disassemble(graphicsData.parent.data);
+        }
+
+        graphics = graphicsData.data.subarray(16);
+
+        // load size
+        w = m.rect.w >> 3;
+        h = m.rect.h >> 3;
+        
+        tiles = new Uint16Array(w * h);
+        for (var t = 0; t < tiles.length; t++) tiles[t] = t;
+        
+        // load palette
+        var paletteData = this.rom.monsterGraphics.item(m.id * 2 + 1);
+        if (!paletteData.format) {
+            paletteData.format = "bgr555";
+            paletteData.disassemble(paletteData.parent.data);
+        }
+        pal = paletteData.data.subarray(4);
     }
+    
     
     // set up the ppu
     var ppu = new GFX.PPU();
     ppu.pal = pal;
-    ppu.width = map.size * 8;
-    ppu.height = map.size * 8;
+    ppu.width = w * 8;
+    ppu.height = h * 8;
 
     // layer 1
     ppu.layers[0].format = GFX.TileFormat.snesSpriteTile;
-    ppu.layers[0].cols = map.size;
-    ppu.layers[0].rows = map.size;
+    ppu.layers[0].cols = w;
+    ppu.layers[0].rows = h;
     ppu.layers[0].z[0] = GFX.Z.snesS0;
     ppu.layers[0].z[1] = GFX.Z.snesS1;
     ppu.layers[0].z[2] = GFX.Z.snesS2;
     ppu.layers[0].z[3] = GFX.Z.snesS3;
     ppu.layers[0].gfx = graphics;
-    ppu.layers[0].tiles = map.tiles;
+    ppu.layers[0].tiles = tiles;
     ppu.layers[0].main = true;
 
     // draw the monster
@@ -376,6 +427,11 @@ FF5Battle.prototype.transparentMonster = function() {
 
 FF5Battle.prototype.drawBackground = function() {
     
+    if (this.rom.isGBA) {
+        this.drawBackgroundGBA();
+        return;
+    }
+    
     var bg = this.bg;
     var properties = this.rom.battleBackgroundProperties.item(bg);
     
@@ -418,6 +474,56 @@ FF5Battle.prototype.drawBackground = function() {
 
     // layer 2
     this.ppu.layers[1].format = GFX.TileFormat.snes4bppTile;
+    this.ppu.layers[1].cols = 32;
+    this.ppu.layers[1].rows = 32;
+    this.ppu.layers[1].z[0] = GFX.Z.snes2L;
+    this.ppu.layers[1].z[1] = GFX.Z.snes2H;
+    this.ppu.layers[1].gfx = gfx;
+    this.ppu.layers[1].tiles = tiles;
+    this.ppu.layers[1].main = true;
+
+    var context = this.battleCanvas.getContext('2d');
+    imageData = context.createImageData(256, 256);
+    this.ppu.renderPPU(imageData.data, 0, 0, 256, 256);
+    context.putImageData(imageData, 0, 0);
+}
+
+FF5Battle.prototype.drawBackgroundGBA = function() {
+    
+    var bg = this.bg * 3;
+    
+    // load graphics
+    var gfx = new Uint8Array(0x10000);
+    var graphicsData = this.rom.battleBackgroundGraphics.item(bg);
+    if (!graphicsData.format) {
+        graphicsData.format = ["linear4bpp", "gba-lzss"];
+        graphicsData.disassemble(graphicsData.parent.data);
+    }
+    gfx.set(graphicsData.data.subarray(16));
+        
+    // load layout
+    var layout = this.rom.battleBackgroundGraphics.item(bg + 1).data.subarray(12);
+    var tiles = new Uint16Array(layout.buffer, layout.byteOffset);
+    
+    // load palette
+    var pal = new Uint32Array(0x100);
+    var paletteData = this.rom.battleBackgroundGraphics.item(bg + 2);
+    if (!paletteData.format) {
+        paletteData.format = "bgr555";
+        paletteData.disassemble(paletteData.parent.data);
+    }
+    pal[0] = 0xFF000000;
+    pal.set(paletteData.data.subarray(4));
+    
+    // set up the ppu
+    this.ppu = new GFX.PPU();
+    this.ppu.pal = pal;
+    this.ppu.height = 256;
+    this.ppu.width = 256;
+    this.ppu.back = true;
+
+    // layer 2
+    this.ppu.layers[1].format = GFX.TileFormat.gba4bppTile;
     this.ppu.layers[1].cols = 32;
     this.ppu.layers[1].rows = 32;
     this.ppu.layers[1].z[0] = GFX.Z.snes2L;

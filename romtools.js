@@ -4322,7 +4322,7 @@ function ROMStringTable(rom, definition, parent) {
     this.type = ROMObject.Type.stringTable;
     this.link = definition.link;
     this.language = definition.language;
-    this.hideIndex = definition.hideIndex;
+    this.hideIndex = (definition.hideIndex === true);
     
     this.string = [];
     var i, string;
