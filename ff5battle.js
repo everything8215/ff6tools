@@ -61,7 +61,11 @@ FF5Battle.prototype.battleName = function(b) {
         index = keys[k];
         count = monsterList[index];
         if (battleName !== "") battleName += ", ";
-        battleName += "<stringTable.battleMonster[" + index.toString() + "]>"
+        if (this.rom.isGBA) {
+            battleName += "<stringTable.battleMonster[" + index.toString() + "]>"
+        } else {
+            battleName += "<stringTable.monsterName[" + index.toString() + "]>"
+        }
         if (count !== 1) battleName += " ×" + count;
     }
     
