@@ -543,6 +543,13 @@
                     pane.classList.add("hidden");
                 }
             }
+            
+            function removePortraits() {
+                for (var d = 0; d < (3262*2); d++) {
+                    var dialog = rom.text2.item(d);
+                    dialog.setText(dialog.text.replace(/\\portrait[0-9][0-9]/g, ""));
+                }
+            }
 
         </script>
     </head>

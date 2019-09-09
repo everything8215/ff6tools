@@ -2327,7 +2327,15 @@
             "array": {
                 "length": 512
             },
-            "stringTable": "battleMonster",
+            "stringTable": {
+                "length": 512,
+                "default": "Monster %i",
+                "string": {
+                    "0x0000-0x0070": "<stringTable.bossName[%i]>",
+                    "0x0080-0x0097": "<stringTable.bossNameGBA[%i-0x80]>",
+                    "0x00E0-0x01E0": "<stringTable.monsterName[%i-0xE0]>"
+                }
+            },
             "assembly": {
                 "type": "data",
                 "length": 36,
@@ -2335,8 +2343,20 @@
                     "monsterName": {
                         "type": "assembly",
                         "name": "Name",
-                        "external": "text[%i+0x12FB]",
-                        "invalid": "this.parent.i >= 406"
+                        "external": "text[%i+0x12FB-0xE0]",
+                        "invalid": "this.parent.i < 224"
+                    },
+                    "bossName": {
+                        "type": "assembly",
+                        "name": "Name",
+                        "external": "text[%i+0x13FB]",
+                        "invalid": "this.parent.i >= 112"
+                    },
+                    "bossNameGBA": {
+                        "type": "assembly",
+                        "name": "Name",
+                        "external": "text[%i+0x147B-0x80]",
+                        "invalid": "(this.parent.i < 128) || (this.parent.i >= 151)"
                     },
                     "speed": {
                         "type": "property",
@@ -2402,23 +2422,108 @@
                         "begin": 14,
                         "mask": "0xFFFF"
                     },
+                    "byte16": {
+                        "type": "property",
+                        "name": "Byte 16",
+                        "begin": 16
+                    },
+                    "byte17": {
+                        "type": "property",
+                        "name": "Byte 17",
+                        "begin": 17
+                    },
+                    "byte18": {
+                        "type": "property",
+                        "name": "Byte 18",
+                        "begin": 18
+                    },
+                    "byte19": {
+                        "type": "property",
+                        "name": "Byte 19",
+                        "begin": 19
+                    },
+                    "byte20": {
+                        "type": "property",
+                        "name": "Byte 20",
+                        "begin": 20
+                    },
+                    "byte21": {
+                        "type": "property",
+                        "name": "Byte 21",
+                        "begin": 21
+                    },
+                    "byte22": {
+                        "type": "property",
+                        "name": "Byte 22",
+                        "begin": 22
+                    },
+                    "byte23": {
+                        "type": "property",
+                        "name": "Byte 23",
+                        "begin": 23
+                    },
+                    "byte24": {
+                        "type": "property",
+                        "name": "Byte 24",
+                        "begin": 24
+                    },
+                    "byte25": {
+                        "type": "property",
+                        "name": "Byte 25",
+                        "begin": 25
+                    },
+                    "byte26": {
+                        "type": "property",
+                        "name": "Byte 26",
+                        "begin": 26
+                    },
+                    "byte27": {
+                        "type": "property",
+                        "name": "Byte 27",
+                        "begin": 27
+                    },
+                    "byte28": {
+                        "type": "property",
+                        "name": "Byte 28",
+                        "begin": 28
+                    },
+                    "byte29": {
+                        "type": "property",
+                        "name": "Byte 29",
+                        "begin": 29
+                    },
                     "monsterID": {
                         "type": "property",
                         "name": "Monster ID",
                         "begin": 30,
-                        "invalid": "this.parent.i >= 256"
+                        "mask": "0xFFFF"
                     },
                     "monsterIDBoss": {
                         "type": "property",
                         "name": "Monster ID",
                         "begin": 30,
-                        "offset": 256,
-                        "invalid": "this.parent.i < 256"
+                        "offset": "256",
+                        "mask": "0xFFFF"
                     },
                     "level": {
                         "type": "property",
                         "name": "Level",
-                        "begin": 31
+                        "begin": 32
+                    },
+                    "byte33": {
+                        "type": "property",
+                        "name": "Byte 33",
+                        "begin": 33
+                    },
+                    "byte34": {
+                        "type": "property",
+                        "name": "Byte 34",
+                        "begin": 34
+                    },
+                    "byte35": {
+                        "type": "property",
+                        "name": "Byte 35",
+                        "begin": 35
                     }
                 }
             }

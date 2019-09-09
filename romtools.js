@@ -1580,9 +1580,9 @@ ROM.dataFormat = {
         encode: function(data) {
             var newData = new Uint8Array(data.length);
             for (var i = 0; i < data.length; i++) {
-                var t = (data[i] - 1) & 0x3F;
-                var p = (data[i] - 0x0400) & 0x0400;
-                var v = (data[i] & 0x8000);
+                var t = data[i] & 0x3F;
+                var p = data[i] & 0x0400;
+                var v = data[i] & 0x8000;
                 newData[i] = t | (p >> 4) | (v >> 8);
             }
             return newData;
@@ -1591,9 +1591,9 @@ ROM.dataFormat = {
             var newData = new Uint16Array(data.length);
             for (var i = 0; i < data.length; i++) {
                 var t = data[i] & 0x3F;
-                var p = (data[i] & 0x40) + 0x40;
+                var p = data[i] & 0x40;
                 var v = data[i] & 0x80;
-                newData[i] = (t + 0x0201) | (p << 4) | (v << 8);
+                newData[i] = t | (p << 4) | (v << 8);
             }
             return newData;
         }
@@ -3934,7 +3934,7 @@ ROMText.prototype.setText = function(text) {
     // return if the value didn't change
     var oldText = this.text;
     var oldData = this.data;
-    if (data === oldData) {
+    if (compareTypedArrays(data, oldData)) {
         this.notifyObservers();
         return;
     }

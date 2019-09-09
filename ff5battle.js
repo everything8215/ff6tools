@@ -81,7 +81,7 @@ FF5Battle.prototype.mouseDown = function(e) {
     if (this.selectedMonster) {
         this.clickedPoint = {x: x, y: y};
         this.monsterPoint = { x: this.selectedMonster.x, y: this.selectedMonster.y };
-        propertyList.select(this.rom.monsterProperties.item(this.selectedMonster.monster));
+        propertyList.select(this.getMonsterProperties(this.selectedMonster.m));
     } else {
         propertyList.select(this.battleProperties);
     }
@@ -168,6 +168,24 @@ FF5Battle.prototype.loadBattle = function(b) {
     this.drawBattle();
 }
 
+FF5Battle.prototype.getMonsterProperties = function(m) {
+    if (this.rom.isSFC) {
+        return this.rom.monsterProperties.item(m);
+    } else if (m < 256) {
+        // normal monster
+        return this.rom.monsterProperties.item(m + 224);
+    } else if (m < 384) {
+        // normal boss
+        return this.rom.monsterProperties.item(m - 256);
+    } else if (m < 416) {
+        // gba boss
+        return this.rom.monsterProperties.item(m - 256);
+    } else {
+        // cloister of the dead boss
+        return this.rom.monsterProperties.item(m - 256);
+    }
+}
+
 FF5Battle.prototype.monsterInSlot = function(slot) {
     var m;
     if (this.battleProperties.flags.value & 0x20) {
@@ -177,7 +195,7 @@ FF5Battle.prototype.monsterInSlot = function(slot) {
     }
     if ((m & 0xFF) === 0xFF) return null; // slot is empty
 
-    var monsterProperties = this.rom.monsterProperties.item(m);
+    var monsterProperties = this.getMonsterProperties(m);
     
     var pal = this.battleProperties["monster" + slot + "Palette"].value;
     
@@ -186,15 +204,15 @@ FF5Battle.prototype.monsterInSlot = function(slot) {
     var y = monsterPosition.y.value;
     
     var id;
-    if (this.rom.isGBA) {
-        if (m < 256) {
-            id = m;
-        } else if (m < 384) {
-            id = m + 256;
-        } else {
-            id = m + 256;
-        }
-    } else if (this.battleProperties.flags.value & 0x20) {
+//    if (this.rom.isGBA) {
+//        if (m < 256) {
+//            id = m;
+//        } else if (m < 384) {
+//            id = m + 256;
+//        } else {
+//            id = m + 256;
+//        }
+    if (this.battleProperties.flags.value & 0x20) {
         id = monsterProperties.monsterIDBoss.value;
     } else {
         id = monsterProperties.monsterID.value;
@@ -221,7 +239,7 @@ FF5Battle.prototype.monsterInSlot = function(slot) {
         "y": y,
         "position": monsterPosition,
         "pal": pal,
-        "monster": m,
+        "m": m,
         "id": id,
         "rect": new Rect(x, x + w * 8, y, y + h * 8)
     };

@@ -71,6 +71,7 @@ FF4Battle.prototype.battleName = function(b) {
 }
 
 FF4Battle.prototype.mouseDown = function(e) {
+    
     var x = Math.floor(e.offsetX / this.zoom) + this.battleRect.l;
     var y = Math.floor(e.offsetY / this.zoom) + this.battleRect.t;
     this.selectedMonster = this.monsterAtPoint(x, y);
@@ -409,7 +410,13 @@ FF4Battle.prototype.drawBackground = function() {
     // load graphics
     var bg = (this.b === 439) ? 16 : this.bg;
     var gfx = new Uint8Array(0x10000);
-    gfx.set(this.rom.battleBackgroundGraphics.item(bg).data, 0x8040);
+    var gfx1 = this.rom.battleBackgroundGraphics.item(bg).data;
+    gfx.set(gfx1);
+    if (bg !== 16) {
+        // this is necessary for the cave background because it shares one tile with the moon background
+        var gfx2 = this.rom.battleBackgroundGraphics.item(bg + 1).data;
+        gfx.set(gfx2, gfx1.length);
+    }
     
     var properties = this.rom.battleBackgroundProperties.item(bg);
     var tiles = new Uint16Array(0x0400);
@@ -437,8 +444,8 @@ FF4Battle.prototype.drawBackground = function() {
     pal[0] = 0xFF000000;
     var p = bg;
     if (this.altPalette && FF4Battle.altPalette[p]) p = FF4Battle.altPalette[p];
-    pal.set(this.rom.battleBackgroundPalette.item(p).data.subarray(0, 8), 0x10);
-    pal.set(this.rom.battleBackgroundPalette.item(p).data.subarray(8, 16), 0x20);
+    pal.set(this.rom.battleBackgroundPalette.item(p).data.subarray(0, 8));
+    pal.set(this.rom.battleBackgroundPalette.item(p).data.subarray(8, 16), 0x10);
     
     // set up the ppu
     this.ppu = new GFX.PPU();
