@@ -148,8 +148,8 @@ FF5Battle.prototype.mouseLeave = function(e) {
 }
 
 FF5Battle.prototype.selectObject = function(object) {
-    document.getElementById("tileset-div").classList.add('hidden');
-    document.getElementById("tileset-layers").classList.add('hidden');
+    document.getElementById("toolbox-div").classList.add('hidden');
+    document.getElementById("toolbox-buttons").classList.add('hidden');
     document.getElementById("map-controls").classList.add('hidden');
     this.loadBattle(object.i);
 }

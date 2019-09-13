@@ -544,12 +544,12 @@
                 }
             }
             
-            function removePortraits() {
-                for (var d = 0; d < (3262*2); d++) {
-                    var dialog = rom.text2.item(d);
-                    dialog.setText(dialog.text.replace(/\\portrait[0-9][0-9]/g, ""));
-                }
-            }
+//            function removePortraits() {
+//                for (var d = 0; d < (3262*2); d++) {
+//                    var dialog = rom.text2.item(d);
+//                    dialog.setText(dialog.text.replace(/\\portrait[0-9][0-9]/g, ""));
+//                }
+//            }
 
         </script>
     </head>
@@ -645,17 +645,14 @@
 
                 <div id="toolbox">
 
-                    <div id="tileset-layers">
+                    <div id="toolbox-buttons">
                         <button class="toolbox-button selected" value="0">Layer 1</button>
                         <button class="toolbox-button" value="1">Layer 2</button>
                         <button class="toolbox-button" value="2">Layer 3</button>
                         <button class="toolbox-button" value="3">Triggers</button>
                     </div>
 
-                    <div id="tileset-div" class="relative no-select">
-                        <canvas id="tileset" width="256" height="256"></canvas>
-                        <canvas id="tileset-cursor" width="256" height="256"></canvas>
-                    </div>
+                    <div id="toolbox-div" class="relative no-select hidden"></div>
 
                     <div id="properties"></div>
                 </div>

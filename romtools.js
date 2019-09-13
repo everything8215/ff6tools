@@ -4560,6 +4560,15 @@ Rect.prototype.offset = function(x, y) {
     return new Rect(this.l + x, this.r + x, this.t + y, this.b + y);
 }
 
+Rect.prototype.inflate = function(l, r, t, b) {
+    l = Number(l);
+    r = Number(r);
+    t = Number(t);
+    b = Number(b);
+
+    return new Rect(this.l - l, this.r - r, this.t + t, this.b + b);
+}
+
 Object.defineProperty(Rect.prototype, "w", {
     get: function() { return this.r - this.l; },
     set: function(w) { this.r = this.l + w; }
@@ -4568,6 +4577,14 @@ Object.defineProperty(Rect.prototype, "w", {
 Object.defineProperty(Rect.prototype, "h", {
     get: function() { return this.b - this.t; },
     set: function(h) { this.b = this.t + h; }
+});
+
+Object.defineProperty(Rect.prototype, "centerX", {
+    get: function() { return (this.r + this.l) / 2; }
+});
+
+Object.defineProperty(Rect.prototype, "centerY", {
+    get: function() { return (this.b + this.t) / 2; }
 });
 
 // returns a hex string of a number with optional padding

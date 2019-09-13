@@ -5,7 +5,6 @@
 general
 -------
  * patch/asm support
- * make modules with require.js (maybe...)
  * add an option to switch between hex and decimal
  * manual relocation
  * reserve rom ranges (remove free space for patches or compatibility with other editors)
@@ -19,7 +18,7 @@ general
 
 gui
 ---
- * battle vram viewer
+ * battle vram viewer (done for ff6)
  * custom property controls (entrance trigger destination, rendered text, colosseum battle, fill tile)
  * grid controls (for element/status, esper/natural magic)
  * tile mask layers for map editor

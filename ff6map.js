@@ -36,7 +36,7 @@ function FF6Map(rom) {
     this.mapRect = new Rect(0, 0, 256, 256);
     this.npcCanvas = document.createElement('canvas');
     this.menu = document.getElementById("menu");
-
+    
     this.mapProperties = null;
     this.m = null; // map index
     this.l = 0; // selected layer
@@ -719,10 +719,13 @@ FF6Map.prototype.drawCursor = function() {
 }
 
 FF6Map.prototype.selectObject = function(object) {
-    document.getElementById("tileset-div").classList.remove('hidden');
-    document.getElementById("tileset-layers").classList.remove('hidden');
-    document.getElementById("map-controls").classList.remove('hidden');
+    this.show();
+    this.tileset.show();
     this.loadMap(object.i);
+}
+
+FF6Map.prototype.show = function() {
+    document.getElementById("map-controls").classList.remove('hidden');
 }
 
 FF6Map.prototype.loadMap = function(m) {
@@ -1686,8 +1689,16 @@ function FF6MapTileset(rom, map) {
 
     this.rom = rom;
     this.map = map;
-    this.canvas = document.getElementById("tileset");
-    this.cursorCanvas = document.getElementById("tileset-cursor");
+    
+    this.canvas = document.createElement('canvas');
+    this.canvas.id = "tileset";
+    this.canvas.width = 256;
+    this.canvas.height = 256;
+    
+    this.cursorCanvas = document.createElement("canvas");
+    this.cursorCanvas.id = "tileset-cursor";
+    this.cursorCanvas.width = 256;
+    this.cursorCanvas.height = 256;
 
     this.layer = [new FF6MapLayer(rom, FF6MapLayer.Type.layer1),
                   new FF6MapLayer(rom, FF6MapLayer.Type.layer2),
@@ -1712,6 +1723,17 @@ function FF6MapTileset(rom, map) {
         button.onclick = function() { tileset.selectLayer(this.value); };
 //        button.addEventListener("click", function() { tileset.selectLayer(this.value); });
     }
+}
+
+FF6MapTileset.prototype.show = function() {
+    this.div = document.getElementById('toolbox-div');
+    this.div.innerHTML = "";
+    this.div.classList.remove('hidden');
+    this.div.appendChild(this.canvas);
+    this.div.appendChild(this.cursorCanvas);
+
+    this.cursorCanvas.classList.remove('hidden');
+    document.getElementById("toolbox-buttons").classList.remove('hidden');
 }
 
 FF6MapTileset.prototype.mouseDown = function(e) {
@@ -1781,9 +1803,10 @@ FF6MapTileset.prototype.selectLayer = function(l) {
     
     if (this.map.l === 3) {
         // hide the canvas is the trigger layer is selected
-        this.canvas.style.display = "none";
-        this.cursorCanvas.style.display = "none";
+//        this.canvas.classList.add("hidden");
+//        this.cursorCanvas.classList.add("hidden");
         this.canvas.parentElement.style.height = "0px";
+        this.canvas.parentElement.classList.add("hidden");
         return;
     }
     
@@ -1792,9 +1815,10 @@ FF6MapTileset.prototype.selectLayer = function(l) {
     this.canvas.width = 256;
     this.cursorCanvas.height = 256;
     this.cursorCanvas.width = 256;
-    this.canvas.style.display = "block";
-    this.cursorCanvas.style.display = "block";
+//    this.canvas.style.display = "block";
+//    this.cursorCanvas.style.display = "block";
     this.canvas.parentElement.style.height = "256px";
+    this.canvas.parentElement.classList.remove("hidden");
 
     var ctx = this.canvas.getContext('2d');
     var imageData = ctx.createImageData(this.ppu.width, this.ppu.height);

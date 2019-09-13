@@ -558,7 +558,7 @@ body {
     cursor: ns-resize;
 }
 
-#tileset-div.hidden {
+#toolbox-div.hidden {
     display: none;
 }
 
@@ -567,7 +567,7 @@ body {
     position: absolute;
 }
 
-#tileset-layers {
+#toolbox-buttons {
 /*    text-align: center;*/
     width: 256px;
 /*    width: 100%;*/
@@ -579,7 +579,7 @@ body {
     background: linear-gradient(#fff,#ddd);
 }
 
-#tileset-layers.hidden {
+#toolbox-buttons.hidden {
     display: none;
 }
 
@@ -587,6 +587,11 @@ body {
     pointer-events: none;
     z-index: 2;
     position: absolute;
+    display: block;
+}
+
+#tileset-cursor.hidden {
+    display: none;
 }
 
 .no-select {

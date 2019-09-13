@@ -558,10 +558,13 @@ FF1Map.prototype.drawCursor = function() {
 }
 
 FF1Map.prototype.selectObject = function(object) {
-    document.getElementById("tileset-div").classList.remove('hidden');
-    document.getElementById("tileset-layers").classList.remove('hidden');
-    document.getElementById("map-controls").classList.remove('hidden');
+    this.show();
+    this.tileset.show();
     this.loadMap(object.i);
+}
+
+FF1Map.prototype.show = function() {
+    document.getElementById("map-controls").classList.remove('hidden');
 }
 
 FF1Map.prototype.loadMap = function(m) {
@@ -957,8 +960,16 @@ function FF1MapTileset(rom, map) {
 
     this.rom = rom;
     this.map = map;
-    this.canvas = document.getElementById("tileset");
-    this.cursorCanvas = document.getElementById("tileset-cursor");
+
+    this.canvas = document.createElement('canvas');
+    this.canvas.id = "tileset";
+    this.canvas.width = 256;
+    this.canvas.height = 256;
+    
+    this.cursorCanvas = document.createElement("canvas");
+    this.cursorCanvas.id = "tileset-cursor";
+    this.cursorCanvas.width = 256;
+    this.cursorCanvas.height = 256;
 
     this.layer = [new FF1MapLayer(rom, FF1MapLayer.Type.layer1)];
     this.worldLayer = new FF1MapLayer(rom, FF1MapLayer.Type.world);
@@ -981,6 +992,17 @@ function FF1MapTileset(rom, map) {
         button.onclick = function() { tileset.selectLayer(this.value); };
 //        button.addEventListener("click", function() { tileset.selectLayer(this.value); });
     }
+}
+
+FF1MapTileset.prototype.show = function() {
+    this.div = document.getElementById('toolbox-div');
+    this.div.innerHTML = "";
+    this.div.classList.remove('hidden');
+    this.div.appendChild(this.canvas);
+    this.div.appendChild(this.cursorCanvas);
+
+    this.cursorCanvas.classList.remove('hidden');
+    document.getElementById("toolbox-buttons").classList.remove('hidden');
 }
 
 FF1MapTileset.prototype.mouseDown = function(e) {

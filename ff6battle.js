@@ -6,6 +6,7 @@
 function FF6Battle(rom) {
     this.rom = rom;
     this.name = "FF6Battle";
+    this.vram = new FF6BattleVRAM(rom, this);
 
     this.b = null; // battle index
     this.bg = 0; // battle background index
@@ -189,10 +190,13 @@ FF6Battle.prototype.mouseLeave = function(e) {
 }
 
 FF6Battle.prototype.selectObject = function(object) {
-    document.getElementById("tileset-div").classList.add('hidden');
-    document.getElementById("tileset-layers").classList.add('hidden');
-    document.getElementById("map-controls").classList.add('hidden');
+    this.show();
+    this.vram.show();
     this.loadBattle(object.i);
+}
+
+FF6Battle.prototype.show = function() {
+    document.getElementById("map-controls").classList.add('hidden');
 }
 
 FF6Battle.prototype.loadBattle = function(b) {
@@ -234,12 +238,23 @@ FF6Battle.prototype.monsterInSlot = function(slot) {
     for (var t = 0; t < map.tiles.length; t++) {
         if (!map.tiles[t]) continue;
         w = Math.max(w, (t % map.size) + 1);
-        h = Math.max(h, Math.floor(t / map.size) + 1)
+        h = Math.max(h, Math.floor(t / map.size) + 1);
     }
+    w *= 8;
+    h *= 8;
     
-    if (m === 262) {
-        // ghost train
-        w = 16; h = 16;
+    // ghost train
+    if (m === 262) { w = 128; h = 128; }
+    
+    var vramRect = this.vram.rectForSlot(slot);
+    var oversize = false;
+    if (w > vramRect.w) {
+        oversize = true;
+        w = vramRect.w;
+    }
+    if (h > vramRect.h) {
+        oversize = true;
+        h = vramRect.h;
     }
 
     return {
@@ -249,8 +264,9 @@ FF6Battle.prototype.monsterInSlot = function(slot) {
         "present": this.battleProperties["monster" + slot + "Present"],
         "monster": m,
         "graphics": g,
-        "rect": new Rect(x, x + w * 8, y, y + h * 8),
-        "vOffset": this.rom.monsterProperties.item(m).verticalOffset.value
+        "rect": new Rect(x, x + w, y, y + h),
+        "vOffset": this.rom.monsterProperties.item(m).verticalOffset.value,
+        "oversize": oversize
     };
 }
 
@@ -319,6 +335,9 @@ FF6Battle.prototype.characterAtPoint = function(x, y) {
 }
 
 FF6Battle.prototype.drawBattle = function() {
+
+    this.vram.clearVRAM();
+    
     this.drawBackground();
     var self = this;
     this.monstersSortedByPriority().reverse().forEach(function(m) {
@@ -340,6 +359,8 @@ FF6Battle.prototype.drawBattle = function() {
     ctx.imageSmoothingEnabled = false;
     ctx.webkitImageSmoothingEnabled = false;
     ctx.drawImage(this.battleCanvas, this.battleRect.l, this.battleRect.t, this.battleRect.w, this.battleRect.h, 0, 0, scaledRect.w, scaledRect.h);
+    
+    this.vram.drawVRAM();
 }
 
 FF6Battle.prototype.mapForMonster = function(m) {
@@ -442,12 +463,24 @@ FF6Battle.prototype.drawMonster = function(slot) {
     if (!m.present.value) this.transparentMonster();
     
     // tint the selected monster
-    if (this.selectedMonster && this.selectedMonster.slot === slot) this.tintMonster();
-    
+    if (this.selectedMonster && this.selectedMonster.slot === slot) this.tintMonster('hsla(210, 100%, 50%, 0.5)');
+
+    // tint oversize monsters red
+    if (m.oversize) this.tintMonster('rgba(200, 0, 0, 0.5)');
+
+    // draw the monster on the battle canvas
     var ctx = this.battleCanvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
     ctx.webkitImageSmoothingEnabled = false;
     ctx.drawImage(this.monsterCanvas, 0, 0, m.rect.w, m.rect.h, m.rect.l, m.rect.t, m.rect.w, m.rect.h);
+    
+    // draw the monster on the vram canvas
+    var vramRect = this.vram.rectForSlot(slot);
+    if (vramRect.isEmpty()) return;
+    ctx = this.vram.vramCanvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    ctx.webkitImageSmoothingEnabled = false;
+    ctx.drawImage(this.monsterCanvas, 0, 0, m.rect.w, m.rect.h, vramRect.l, vramRect.t, m.rect.w, m.rect.h);
 }
 
 // from C2/CE2B
@@ -508,7 +541,7 @@ FF6Battle.prototype.drawCharacter = function(slot) {
     context.putImageData(imageData, 0, 0);
     
     // tint the selected character
-    if (this.selectedCharacter && this.selectedCharacter.slot === slot) this.tintMonster();
+    if (this.selectedCharacter && this.selectedCharacter.slot === slot) this.tintMonster('hsla(210, 100%, 50%, 0.5)');
     
     var ctx = this.battleCanvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
@@ -516,13 +549,13 @@ FF6Battle.prototype.drawCharacter = function(slot) {
     ctx.drawImage(this.monsterCanvas, 0, 0, c.rect.w, c.rect.h, c.rect.l, c.rect.t, c.rect.w, c.rect.h);
 }
 
-FF6Battle.prototype.tintMonster = function() {
+FF6Battle.prototype.tintMonster = function(style) {
     // create an offscreen canvas filled with the color
     var tintCanvas = document.createElement('canvas');
     tintCanvas.width = this.monsterCanvas.width;
     tintCanvas.height = this.monsterCanvas.height;
     var ctx = tintCanvas.getContext('2d');
-    ctx.fillStyle = 'hsla(210, 100%, 50%, 0.5)';
+    ctx.fillStyle = style;
     ctx.fillRect(0, 0, this.monsterCanvas.width, this.monsterCanvas.height);
     
     ctx = this.monsterCanvas.getContext('2d');
@@ -595,13 +628,28 @@ FF6Battle.prototype.drawGhostTrain = function(slot) {
     this.ppu.renderPPU(imageData.data);
     context.putImageData(imageData, 0, 0);
     
-    // tint the selected character
-    if (this.selectedMonster && this.selectedMonster.slot === slot) this.tintMonster();
+    // make monster transparent if it is not present
+    if (!m.present.value) this.transparentMonster();
     
+    // tint the selected monster
+    if (this.selectedMonster && this.selectedMonster.slot === slot) this.tintMonster('hsla(210, 100%, 50%, 0.5)');
+
+    // tint oversize monsters red
+    if (m.oversize) this.tintMonster('rgba(200, 0, 0, 0.5)');
+    
+    // draw the monster on the battle canvas
     var ctx = this.battleCanvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
     ctx.webkitImageSmoothingEnabled = false;
     ctx.drawImage(this.monsterCanvas, 0, 0, m.rect.w, m.rect.h, m.rect.l, m.rect.t, m.rect.w, m.rect.h);
+
+    // draw the monster on the vram canvas
+    var vramRect = this.vram.rectForSlot(slot);
+    if (vramRect.isEmpty()) return;
+    ctx = this.vram.vramCanvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    ctx.webkitImageSmoothingEnabled = false;
+    ctx.drawImage(this.monsterCanvas, 0, 0, m.rect.w, m.rect.h, vramRect.l, vramRect.t, m.rect.w, m.rect.h);
 }
 
 FF6Battle.prototype.drawBackground = function() {
@@ -677,4 +725,137 @@ FF6Battle.prototype.loadBattleBackgroundGraphics = function(i) {
     var end = begin + (i & 0x80 ? 0x2000 : 0x1000);
     var decode = this.rom.isSFC ? GFX.decodeSNES4bpp : GFX.decodeLinear4bpp;
     return decode(this.rom.data.subarray(begin, end));
+}
+
+function FF6BattleVRAM(rom, battle) {
+    this.rom = rom;
+    this.battle = battle;
+    this.name = "FF6BattleVRAM";
+
+    this.b = null; // battle index
+    this.bg = 0; // battle background index
+    this.battleProperties = null;
+    this.ppu = null;
+    this.canvas = document.createElement('canvas');
+    this.vramCanvas = document.createElement('canvas');
+    this.vramCanvas.width = 128;
+    this.vramCanvas.height = 128;
+    
+    this.zoom = 2.0;
+
+    this.selectedMonster = null;
+
+    var self = this;
+    this.canvas.onmousedown = function(e) { self.mouseDown(e) };
+}
+
+FF6BattleVRAM.prototype.show = function() {
+    this.div = document.getElementById('toolbox-div');
+    this.div.classList.remove('hidden');
+    this.div.innerHTML = "";
+    this.div.appendChild(this.canvas);
+
+    document.getElementById("toolbox-buttons").classList.add('hidden');
+}
+
+FF6BattleVRAM.prototype.mouseDown = function(e) {
+    var x = Math.floor(e.offsetX / this.zoom);
+    var y = Math.floor(e.offsetY / this.zoom);
+    
+    var clickedSlot = this.slotAtPoint(x, y);
+    if (!clickedSlot) return;
+    
+    var m = this.battle.monsterInSlot(clickedSlot);
+    if (!m) return;
+    
+    this.battle.selectedMonster = m;
+    this.battle.selectedCharacter = null;
+    propertyList.select(this.rom.monsterProperties.item(m.monster));
+
+    this.battle.drawBattle();
+}
+
+FF6BattleVRAM.prototype.rectForSlot = function(slot) {
+    var v = this.battle.battleProperties.vramMap.value;
+    var vramMap = this.rom.battleVRAMMap.item(v);
+    if (slot > vramMap.array.length) { return Rect.emptyRect; }
+    var vramMapData = vramMap.item(slot - 1);
+    
+    // monster slot, get vram map data
+    var vramAddress = vramMapData.vramAddress.value;
+    var w = vramMapData.width.value;
+    var h = vramMapData.height.value;
+    var l = (vramAddress & 0x01E0) >> 5;
+    var t = (vramAddress & 0xFE00) >> 9;
+    var r = l + w;
+    var b = t + h;
+    var slotRect = new Rect(l, r, t, b);
+    return slotRect.scale(8);
+}
+
+FF6BattleVRAM.prototype.slotAtPoint = function(x, y) {
+    for (var slot = 1; slot <= 6; slot++) {
+        if (this.rectForSlot(slot).containsPoint(x, y)) return slot;
+    }
+    return null;
+}
+
+FF6BattleVRAM.prototype.clearVRAM = function() {
+    
+    // clear the vram canvas
+    this.vramCanvas.height = 128;
+    this.vramCanvas.width = 128;
+
+    this.canvas.parentElement.style.height = "256px";
+    this.canvas.parentElement.classList.remove("hidden");
+
+    // recalculate zoom
+    this.zoom = 2.0; //this.div.clientWidth / 128;
+
+    this.canvas.width = 128 * this.zoom;
+    this.canvas.height = 128 * this.zoom;
+
+    var ctx = this.canvas.getContext('2d');
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, 128 * this.zoom, 128 * this.zoom)
+}
+
+FF6BattleVRAM.prototype.drawVRAM = function() {
+
+    var vramRect = new Rect(0, this.canvas.width, 0, this.canvas.height);
+    
+    // draw the monsters
+    var ctx = this.canvas.getContext('2d');
+    ctx.font = 'bold 48px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.imageSmoothingEnabled = false;
+    ctx.webkitImageSmoothingEnabled = false;
+    ctx.drawImage(this.vramCanvas, 0, 0, vramRect.w, vramRect.h);
+
+    // draw the slots
+    for (var slot = 1; slot <= 6; slot++) {
+        var slotRect = this.rectForSlot(slot);
+        if (slotRect.isEmpty()) continue;
+        slotRect = slotRect.scale(this.zoom);
+
+        // draw the vram slot
+        var x = slotRect.l + 0.5;
+        var y = slotRect.t + 0.5;
+        var w = slotRect.w - 1;
+        var h = slotRect.h - 1;
+
+        ctx.rect(x, y, w, h);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "gray";
+        ctx.stroke();
+        if (this.battle.selectedMonster && this.battle.selectedMonster.slot === slot) {
+            ctx.fillStyle = 'hsla(210, 100%, 50%, 0.5)';
+        } else {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+        }
+        ctx.fillText(slot.toString(), slotRect.centerX, slotRect.centerY);
+        ctx.strokeStyle = "rgba(255, 255, 255, 1.0)";
+        ctx.strokeText(slot.toString(), slotRect.centerX, slotRect.centerY);
+    }
 }

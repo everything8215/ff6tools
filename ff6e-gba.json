@@ -658,7 +658,8 @@
                         "type": "property",
                         "name": "VRAM Map",
                         "begin": 0,
-                        "mask": "0xF0"
+                        "mask": "0xF0",
+                        "stringTable": "battleVRAMMap"
                     },
                     "monsterEntry": {
                         "type": "property",
@@ -786,6 +787,63 @@
                                 "1": "Disable On The Veldt",
                                 "2": "Disable Preemptive Attack"
                             }
+                        }
+                    }
+                }
+            }
+        },
+        "battleVRAMMap": {
+            "type": "array",
+            "name": "Battle VRAM Map",
+            "range": "0x086203CE-0x0862048E",
+            "array": {
+                "length": 13
+            },
+            "pointerTable": {
+                "range": "0x086203B4-0x086203CE",
+                "offset": "0x08620000",
+                "pointerLength": 2
+            },
+            "stringTable": {
+                "length": 13,
+                "default": "VRAM Map %i",
+                "string": {
+                    "0": "(4) 64×64",
+                    "1": "(2) 64×64, (4) 32×32",
+                    "2": "(2) 96×64",
+                    "3": "(2) 64×128",
+                    "4": "(1) 96×64, (2) 64×64",
+                    "5": "(1) 64×128, (2) 64×64",
+                    "6": "(1) 128×128",
+                    "7": "(1) 96×96, (1) 32×96, (4) 32×32",
+                    "8": "(2) 64×64, (2) 32×64",
+                    "9": "(1) 96×96",
+                    "10": "(1) 64×96, (2) 32×64, (2) 32×32",
+                    "11": "(4) 32×64, (1) 64×64",
+                    "12": "(2) 64×64, (4) 32×64"
+                }
+            },
+            "assembly": {
+                "type": "array",
+                "assembly": {
+                    "type": "data",
+                    "length": 4,
+                    "assembly": {
+                        "vramAddress": {
+                            "type": "property",
+                            "name": "VRAM Address",
+                            "begin": 0,
+                            "mask": "0xFFFF"
+                        },
+                        "width": {
+                            "type": "property",
+                            "name": "Width",
+                            "begin": 2
+                        },
+                        "height": {
+                            "type": "property",
+                            "name": "Height",
+                            "begin": 3
                         }
                     }
                 }
