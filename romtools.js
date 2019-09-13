@@ -2733,19 +2733,19 @@ ROMProperty.prototype.setValue = function(value) {
 
     function redo() {
         assembly.value = value;
-        if (assembly.msb) {
-            var msb = eval(assembly.msb);
-            msb.value = value >> assembly.width;
-        }
+//        if (assembly.msb) {
+//            var msb = eval(assembly.msb);
+//            msb.value = value >> assembly.width;
+//        }
         assembly.notifyObservers();
         if (assembly.script) fixReferences(oldValue, value);
     }
     function undo() {
         assembly.value = oldValue;
-        if (assembly.msb) {
-            var msb = eval(assembly.msb);
-            msb.value = oldValue >> assembly.width;
-        }
+//        if (assembly.msb) {
+//            var msb = eval(assembly.msb);
+//            msb.value = oldValue >> assembly.width;
+//        }
         assembly.notifyObservers();
         if (assembly.script) fixReferences(value, oldValue);
     }
@@ -2753,7 +2753,13 @@ ROMProperty.prototype.setValue = function(value) {
     // perform an action to change the value
     var description = "Set " + this.name;
     var action = new ROMAction(this, undo, redo, description);
+    this.rom.beginAction();
     this.rom.doAction(action);
+    if (assembly.msb) {
+        var msb = eval(assembly.msb);
+        msb.setValue(value >> assembly.width)
+    }
+    this.rom.endAction();
 }
 
 // ROMArray
