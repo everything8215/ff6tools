@@ -250,11 +250,11 @@ FF6Battle.prototype.monsterInSlot = function(slot) {
     var oversize = false;
     if (w > vramRect.w) {
         oversize = true;
-        w = vramRect.w;
+        w = vramRect.w || w;
     }
     if (h > vramRect.h) {
         oversize = true;
-        h = vramRect.h;
+        h = vramRect.h || h;
     }
 
     return {
@@ -732,18 +732,12 @@ function FF6BattleVRAM(rom, battle) {
     this.battle = battle;
     this.name = "FF6BattleVRAM";
 
-    this.b = null; // battle index
-    this.bg = 0; // battle background index
-    this.battleProperties = null;
-    this.ppu = null;
     this.canvas = document.createElement('canvas');
     this.vramCanvas = document.createElement('canvas');
     this.vramCanvas.width = 128;
     this.vramCanvas.height = 128;
     
     this.zoom = 2.0;
-
-    this.selectedMonster = null;
 
     var self = this;
     this.canvas.onmousedown = function(e) { self.mouseDown(e) };
