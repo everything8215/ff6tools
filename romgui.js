@@ -1365,5 +1365,60 @@ ROMScriptList.prototype.closeMenu = function() {
 
 // ROMEditor
 function ROMEditor(rom) {
+    this.rom = rom;
+    this.editorControls = document.getElementById("edit-controls");
+}
+
+ROMEditor.prototype.hideControls = function() {
+    this.editorControls.classList.add("hidden");
+}
+
+ROMEditor.prototype.showControls = function() {
+    this.editorControls.classList.remove("hidden");
+}
+
+ROMEditor.prototype.resetControls = function() {
+    this.editorControls.innerHTML = "";
+}
+
+ROMEditor.prototype.addTwoState = function(id, onclick, labelText, checked) {
+    var label = document.createElement("label");
+    label.classList.add("two-state");
+    if (checked) label.classList.add("checked");
+//    label.classList.add("tooltip");
+    label.style.display = "inline-block";
+    this.editorControls.appendChild(label);
     
+    var button = document.createElement("input");
+    button.id = id;
+    button.type = "checkbox";
+    button.checked = checked;
+    button.onclick = function() { onclick(this.checked); twoState(this); };
+    label.appendChild(button);
+    
+    var p = document.createElement("p");
+    p.innerHTML = labelText;
+    label.appendChild(p);
+}
+
+ROMEditor.prototype.addZoom = function(zoom, onchange) {
+    var zoomValue = document.createElement("div");
+    zoomValue.id = "zoom-value";
+    zoomValue.innerHTML = (zoom * 100).toString() + "%";
+    this.editorControls.appendChild(zoomValue);
+
+    var zoomRange = document.createElement("input");
+    zoomRange.type = "range";
+    zoomRange.id = "zoom";
+    zoomRange.min = "-2";
+    zoomRange.max = "2";
+    zoomRange.step = "1";
+    zoomRange.value = Math.log2(zoom);
+    zoomRange.onchange = function() { onchange(); };
+    this.editorControls.appendChild(zoomRange);
+    
+    var zoomCoordinates = document.createElement("div");
+    zoomCoordinates.id = "coordinates";
+    zoomCoordinates.innerHTML = "(0,0)";
+    this.editorControls.appendChild(zoomCoordinates);
 }

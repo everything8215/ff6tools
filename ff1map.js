@@ -4,8 +4,7 @@
 //
 
 function FF1Map(rom) {
-    
-    this.rom = rom;
+    ROMEditor.call(this, rom);
     this.name = "FF1Map";
     this.tileset = new FF1MapTileset(rom, this);
     
@@ -51,9 +50,11 @@ function FF1Map(rom) {
     this.worldLayer = new FF1MapLayer(rom, FF1MapLayer.Type.world);
     this.triggers = [];
     this.showCursor = false;
+    this.showBackground = true;
+    this.showRooms = true;
+    this.showTriggers = true;
     this.selectedTrigger = null;
     this.isWorld = false;
-    this.showRooms = true;
     this.observer = new ROMObserver(rom, this, {sub: true, link: true, array: true});
     this.ppu = new GFX.PPU();
 
@@ -74,36 +75,11 @@ function FF1Map(rom) {
     this.scrollDiv.onmouseleave = function(e) { map.mouseLeave(e) };
     this.scrollDiv.oncontextmenu = function(e) { map.openMenu(e); return false; };
 
-    var buttonLayer1 = document.getElementById("showLayer1");
-    buttonLayer1.onchange = function() { map.changeLayer("showLayer1"); twoState(this); };
-    buttonLayer1.parentElement.childNodes[1].nodeValue = "Background";
-    buttonLayer1.parentElement.style.display = "inline-block";
-    this.showLayer1 = buttonLayer1.checked;
-
-    var buttonLayer2 = document.getElementById("showLayer2");
-    buttonLayer2.onchange = function() { map.changeLayer("showLayer2"); twoState(this); };
-    buttonLayer2.parentElement.childNodes[1].nodeValue = "Rooms";
-    buttonLayer2.parentElement.style.display = "inline-block";
-    buttonLayer2.checked = this.showRooms;
-
-    var buttonLayer3 = document.getElementById("showLayer3");
-    buttonLayer3.onchange = null;
-    buttonLayer3.parentElement.style.display = "none";
-
-    var buttonTriggers = document.getElementById("showTriggers");
-    buttonTriggers.onchange = function() { map.changeLayer("showTriggers"); twoState(this); };
-    buttonTriggers.parentElement.childNodes[1].nodeValue = "NPCs";
-    buttonTriggers.parentElement.style.display = "inline-block";
-    this.showTriggers = buttonTriggers.checked;
-    
-    var buttonScreen = document.getElementById("showScreen");
-    buttonScreen.onchange = function() { map.changeLayer("showScreen"); twoState(this); };
-    buttonScreen.parentElement.childNodes[1].nodeValue = "Screen";
-    buttonScreen.parentElement.style.display = "inline-block";
-    this.showScreen = buttonScreen.checked;
-
     document.getElementById("zoom").onchange = function() { map.changeZoom(); };
 }
+
+FF1Map.prototype = Object.create(ROMEditor.prototype);
+FF1Map.prototype.constructor = FF1Map;
 
 FF1Map.prototype.beginAction = function(callback) {
     this.rom.beginAction();
@@ -457,9 +433,9 @@ FF1Map.prototype.selectWorldBattle = function(x, y) {
 
 FF1Map.prototype.changeLayer = function(id) {
     this[id] = document.getElementById(id).checked;
-    this.showRooms = this.showLayer2;
-    var map = this.rom.mapProperties.item(this.m);
-    this.ppu.layers[0].main = this.showLayer1;
+//    this.showRooms = this.showLayer2;
+//    var map = this.rom.mapProperties.item(this.m);
+    this.ppu.layers[0].main = this.showBackground;
     this.loadMap();
 }
 
@@ -564,7 +540,15 @@ FF1Map.prototype.selectObject = function(object) {
 }
 
 FF1Map.prototype.show = function() {
-    document.getElementById("map-controls").classList.remove('hidden');
+    var map = this;
+
+    this.resetControls();
+    this.showControls();
+    this.addTwoState("showBackground", function() { map.changeLayer("showBackground"); }, "Background", this.showBackground);
+    this.addTwoState("showRooms", function() { map.changeLayer("showRooms"); }, "Rooms", this.showRooms);
+    this.addTwoState("showTriggers", function() { map.changeLayer("showTriggers"); }, "Triggers", this.showTriggers);
+    this.addTwoState("showScreen", function() { map.changeLayer("showScreen"); }, "Screen", this.showScreen);
+    this.addZoom(this.zoom, function() { map.changeZoom(); });
 }
 
 FF1Map.prototype.loadMap = function(m) {
@@ -622,7 +606,7 @@ FF1Map.prototype.loadMap = function(m) {
     this.ppu.layers[0].z[0] = GFX.Z.top;
     this.ppu.layers[0].gfx = gfx;
     this.ppu.layers[0].tiles = this.layer[0].tiles;
-    this.ppu.layers[0].main = this.showLayer1; // layer 1 always in main screen
+    this.ppu.layers[0].main = this.showBackground; // layer 1 always in main screen
 
     this.scrollDiv.style.width = (this.ppu.width * this.zoom).toString() + "px";
     this.scrollDiv.style.height = (this.ppu.height * this.zoom).toString() + "px";
@@ -673,7 +657,7 @@ FF1Map.prototype.loadWorldMap = function(m) {
     this.ppu.layers[0].z[0] = GFX.Z.top;
     this.ppu.layers[0].gfx = gfx;
     this.ppu.layers[0].tiles = this.worldLayer.tiles;
-    this.ppu.layers[0].main = this.showLayer1; // layer 1 always in main screen
+    this.ppu.layers[0].main = this.showBackground; // layer 1 always in main screen
 
     this.scrollDiv.style.width = (this.ppu.width * this.zoom).toString() + "px";
     this.scrollDiv.style.height = (this.ppu.height * this.zoom).toString() + "px";

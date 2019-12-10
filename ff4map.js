@@ -6,8 +6,7 @@
 // Jap translations: http://ff4.wikidot.com/weapons
 
 function FF4Map(rom) {
-    
-    this.rom = rom;
+    ROMEditor.call(this, rom);
     this.name = "FF4Map";
     this.tileset = new FF4MapTileset(rom, this);
     
@@ -54,6 +53,10 @@ function FF4Map(rom) {
     this.worldLayer = new FF4MapLayer(rom, FF4MapLayer.Type.world);
     this.triggers = [];
     this.showCursor = false;
+    this.showLayer1 = true;
+    this.showLayer2 = true;
+    this.showTriggers = true;
+    this.showScreen = false;
     this.selectedTrigger = null;
     this.isWorld = false;
     this.observer = new ROMObserver(rom, this, {sub: true, link: true, array: true});
@@ -75,40 +78,12 @@ function FF4Map(rom) {
     this.scrollDiv.onmouseenter = function(e) { map.mouseEnter(e) };
     this.scrollDiv.onmouseleave = function(e) { map.mouseLeave(e) };
     this.scrollDiv.oncontextmenu = function(e) { map.openMenu(e); return false; };
-
-    var buttonLayer1 = document.getElementById("showLayer1");
-    buttonLayer1.onchange = function() { map.changeLayer("showLayer1"); twoState(this); };
-    buttonLayer1.parentElement.childNodes[1].nodeValue = "Layer 1";
-    buttonLayer1.parentElement.style.display = "inline-block";
-    this.showLayer1 = buttonLayer1.checked;
-
-    var buttonLayer2 = document.getElementById("showLayer2");
-    buttonLayer2.onchange = function() { map.changeLayer("showLayer2"); twoState(this); };
-    buttonLayer2.parentElement.childNodes[1].nodeValue = "Layer 2";
-    buttonLayer2.parentElement.style.display = "inline-block";
-    this.showLayer2 = buttonLayer2.checked;
-
-    var buttonLayer3 = document.getElementById("showLayer3");
-    buttonLayer3.onchange = null;
-    buttonLayer3.parentElement.style.display = "none";
-    this.showLayer3 = buttonLayer3.checked;
-
-    var buttonTriggers = document.getElementById("showTriggers");
-    buttonTriggers.onchange = function() { map.changeLayer("showTriggers"); twoState(this); };
-    buttonTriggers.parentElement.childNodes[1].nodeValue = "Triggers";
-    buttonTriggers.parentElement.style.display = "inline-block";
-    this.showTriggers = buttonTriggers.checked;
-
-    var buttonScreen = document.getElementById("showScreen");
-    buttonScreen.onchange = function() { map.changeLayer("showScreen"); twoState(this); };
-    buttonScreen.parentElement.childNodes[1].nodeValue = "Screen";
-    buttonScreen.parentElement.style.display = "inline-block";
-    this.showScreen = buttonScreen.checked;
-
-    document.getElementById("zoom").onchange = function() { map.changeZoom(); };
     
     this.initBattleGroups();
 }
+
+FF4Map.prototype = Object.create(ROMEditor.prototype);
+FF4Map.prototype.constructor = FF4Map;
 
 FF4Map.prototype.beginAction = function(callback) {
     this.rom.beginAction();
@@ -626,7 +601,16 @@ FF4Map.prototype.selectObject = function(object) {
 }
 
 FF4Map.prototype.show = function() {
-    document.getElementById("map-controls").classList.remove('hidden');
+
+    var map = this;
+
+    this.resetControls();
+    this.showControls();
+    this.addTwoState("showLayer1", function() { map.changeLayer("showLayer1"); }, "Layer 1", this.showLayer1);
+    this.addTwoState("showLayer2", function() { map.changeLayer("showLayer2"); }, "Layer 2", this.showLayer2);
+    this.addTwoState("showTriggers", function() { map.changeLayer("showTriggers"); }, "Triggers", this.showTriggers);
+    this.addTwoState("showScreen", function() { map.changeLayer("showScreen"); }, "Screen", this.showScreen);
+    this.addZoom(this.zoom, function() { map.changeZoom(); });
 }
 
 FF4Map.prototype.loadMap = function(m) {

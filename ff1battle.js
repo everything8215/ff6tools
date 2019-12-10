@@ -4,7 +4,7 @@
 //
 
 function FF1Battle(rom) {
-    this.rom = rom;
+    ROMEditor.call(this, rom);
     this.name = "FF1Battle";
 
     this.b = null; // battle index
@@ -30,6 +30,9 @@ function FF1Battle(rom) {
     var self = this;
     this.canvas.onmousedown = function(e) { self.mouseDown(e) };
 }
+
+FF1Battle.prototype = Object.create(ROMEditor.prototype);
+FF1Battle.prototype.constructor = FF1Battle;
 
 FF1Battle.prototype.battleName = function(b) {
     var battleProperties = this.rom.battleProperties.item(b);
@@ -90,7 +93,8 @@ FF1Battle.prototype.mouseDown = function(e) {
 FF1Battle.prototype.selectObject = function(object) {
     document.getElementById("toolbox-div").classList.add('hidden');
     document.getElementById("toolbox-buttons").classList.add('hidden');
-    document.getElementById("map-controls").classList.add('hidden');
+    this.hideControls();
+//    document.getElementById("edit-controls").classList.add('hidden');
     this.loadBattle(object.i);
 }
 

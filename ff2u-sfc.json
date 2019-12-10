@@ -616,11 +616,12 @@
                         "name": "Cursor Properties",
                         "begin": 7
                     },
-                    "graphicsMold": {
+                    "vramMap": {
                         "type": "property",
-                        "name": "Graphics Mold",
+                        "name": "VRAM Map",
                         "begin": 0,
-                        "mask": "0x07"
+                        "mask": "0x07",
+                        "stringTable": "battleVRAMMap"
                     },
                     "hiddenMonsters": {
                         "type": "property",
@@ -685,6 +686,169 @@
                 "name": "Battle Properties",
                 "length": 512,
                 "default": "Battle %i"
+            }
+        },
+        "battleVRAMMap": {
+            "type": "data",
+            "name": "Battle VRAM Map",
+            "range": "0x16FBAC-0x16FC3C",
+            "assembly": {
+                "bossTileCount": {
+                    "type": "array",
+                    "name": "Boss Graphics Tile Count",
+                    "range": "0x00-0x30",
+                    "array": {
+                        "length": 6
+                    },
+                    "assembly": {
+                        "type": "data",
+                        "length": 8,
+                        "assembly": {
+                            "monster1": {
+                                "type": "property",
+                                "name": "Monster 1 Tile Count",
+                                "begin": 0,
+                                "mask": "0xFFFF"
+                            },
+                            "monster2": {
+                                "type": "property",
+                                "name": "Monster 2 Tile Count",
+                                "begin": 2,
+                                "mask": "0xFFFF"
+                            },
+                            "monster3": {
+                                "type": "property",
+                                "name": "Monster 3 Tile Count",
+                                "begin": 4,
+                                "mask": "0xFFFF"
+                            },
+                            "monster4": {
+                                "type": "property",
+                                "name": "Monster 4 Tile Count",
+                                "begin": 6,
+                                "mask": "0xFFFF"
+                            }
+                        }
+                    }
+                },
+                "vramOffset": {
+                    "type": "array",
+                    "name": "VRAM Offset",
+                    "range": "0x30-0x60",
+                    "array": {
+                        "length": 6
+                    },
+                    "assembly": {
+                        "type": "data",
+                        "length": 8,
+                        "assembly": {
+                            "monster1": {
+                                "type": "property",
+                                "name": "Monster 1 VRAM Address",
+                                "begin": 0,
+                                "mask": "0xFFFF"
+                            },
+                            "monster2": {
+                                "type": "property",
+                                "name": "Monster 2 VRAM Address",
+                                "begin": 2,
+                                "mask": "0xFFFF"
+                            },
+                            "monster3": {
+                                "type": "property",
+                                "name": "Monster 3 VRAM Address",
+                                "begin": 4,
+                                "mask": "0xFFFF"
+                            },
+                            "monster4": {
+                                "type": "property",
+                                "name": "Monster 4 VRAM Address",
+                                "begin": 6,
+                                "mask": "0xFFFF"
+                            }
+                        }
+                    }
+                },
+                "tileData1": {
+                    "type": "array",
+                    "name": "Tile Data Byte 1",
+                    "range": "0x60-0x78",
+                    "array": {
+                        "length": 6
+                    },
+                    "assembly": {
+                        "type": "data",
+                        "length": 4,
+                        "assembly": {
+                            "monster1": {
+                                "type": "property",
+                                "name": "Monster 1 Tile Data Byte 1",
+                                "begin": 0
+                            },
+                            "monster2": {
+                                "type": "property",
+                                "name": "Monster 2 Tile Data Byte 1",
+                                "begin": 1
+                            },
+                            "monster3": {
+                                "type": "property",
+                                "name": "Monster 3 Tile Data Byte 1",
+                                "begin": 2
+                            },
+                            "monster4": {
+                                "type": "property",
+                                "name": "Monster 4 Tile Data Byte 1",
+                                "begin": 3
+                            }
+                        }
+                    }
+                },
+                "tileData2": {
+                    "type": "array",
+                    "name": "Tile Data Byte 2",
+                    "range": "0x78-0x90",
+                    "array": {
+                        "length": 6
+                    },
+                    "assembly": {
+                        "type": "data",
+                        "length": 4,
+                        "assembly": {
+                            "monster1": {
+                                "type": "property",
+                                "name": "Monster 1 Tile Data Byte 2",
+                                "begin": 0
+                            },
+                            "monster2": {
+                                "type": "property",
+                                "name": "Monster 2 Tile Data Byte 2",
+                                "begin": 1
+                            },
+                            "monster3": {
+                                "type": "property",
+                                "name": "Monster 3 Tile Data Byte 2",
+                                "begin": 2
+                            },
+                            "monster4": {
+                                "type": "property",
+                                "name": "Monster 4 Tile Data Byte 2",
+                                "begin": 3
+                            }
+                        }
+                    }
+                }
+            },
+            "stringTable": {
+                "length": 6,
+                "default": "VRAM Map %i",
+                "string": {
+                    "0": "Large, None, None",
+                    "1": "Large, Large, None",
+                    "2": "Small, Small, Small",
+                    "3": "Large, Small, Small",
+                    "4": "Small, Small, Large",
+                    "5": "Small, Large, Small"
+                }
             }
         },
         "characterGraphics": {
@@ -2803,6 +2967,20 @@
                         "mask": "0x0F",
                         "multiplier": 8
                     },
+                    "clearBuffer": {
+                        "type": "property",
+                        "name": "Clear Tile Data Buffer",
+                        "begin": 1,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "tileIndexMSB": {
+                        "type": "property",
+                        "name": "Tile Index MSB",
+                        "begin": 1,
+                        "mask": "0x40",
+                        "bool": true
+                    },
                     "size": {
                         "type": "property",
                         "name": "Size",
@@ -2815,6 +2993,35 @@
                         "type": "property",
                         "name": "Palette",
                         "begin": 2
+                    },
+                    "slot": {
+                        "type": "property",
+                        "name": "Monster Slot",
+                        "begin": 3,
+                        "mask": "0x30",
+                        "stringTable": {
+                            "string": {
+                                "0": "Slot 1",
+                                "1": "Slot 2",
+                                "2": "Slot 3"
+                            }
+                        }
+                    },
+                    "transition": {
+                        "type": "property",
+                        "name": "Transition",
+                        "begin": 3,
+                        "mask": "0x0F",
+                        "stringTable": {
+                            "string": {
+                                "0": "None",
+                                "1": "Pixelate",
+                                "2": "Flash",
+                                "3": "Materialize",
+                                "4": "Flash/Shake",
+                                "5": "Jump"
+                            }
+                        }
                     },
                     "map": {
                         "type": "property",
@@ -2841,7 +3048,7 @@
                     "10": "Octomamm G",
                     "11": "Octomamm H",
                     "12": "Antlion",
-                    "13": "MomBomb",
+                    "13": "MomBomb B",
                     "14": "Milon",
                     "15": "MilonZ.",
                     "16": "Rubicant A",
@@ -2864,6 +3071,7 @@
                     "33": "Baigan",
                     "34": "RightArm",
                     "35": "LeftArm",
+                    "36": "MomBomb A",
                     "37": "Dr.Lugae A",
                     "38": "Balnab",
                     "39": "Balnab-Z",
@@ -5977,6 +6185,12 @@
                     "opcode": "0xF0",
                     "length": 2,
                     "assembly": {
+                        "slot": {
+                            "type": "property",
+                            "name": "Slot",
+                            "begin": 1,
+                            "mask": "0xC0"
+                        },
                         "graphics": {
                             "type": "property",
                             "name": "Graphics",

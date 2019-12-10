@@ -4,8 +4,7 @@
 //
 
 function FF5Map(rom) {
-    
-    this.rom = rom;
+    ROMEditor.call(this, rom);
     this.name = "FF5Map";
     this.tileset = new FF5MapTileset(rom, this);
     
@@ -50,6 +49,12 @@ function FF5Map(rom) {
     this.selectedLayer = this.layer[0];
     this.worldLayer = new FF5MapLayer(rom, FF5MapLayer.Type.world);
     this.triggers = [];
+    this.showCursor = true;
+    this.showLayer1 = true;
+    this.showLayer2 = true;
+    this.showLayer3 = true;
+    this.showTriggers = true;
+    this.showScreen = false;
     this.selectedTrigger = null;
     this.dirtyRect = null;
     this.mapRect = new Rect(0, 0, 256, 256);
@@ -72,41 +77,11 @@ function FF5Map(rom) {
     this.scrollDiv.onmouseleave = function(e) { map.mouseLeave(e) };
     this.scrollDiv.oncontextmenu = function(e) { map.openMenu(e); return false; };
 
-    var buttonLayer1 = document.getElementById("showLayer1");
-    buttonLayer1.onchange = function() { map.changeLayer("showLayer1"); twoState(this); };
-    buttonLayer1.parentElement.childNodes[1].nodeValue = "Layer 1";
-    buttonLayer1.parentElement.style.display = "inline-block";
-    this.showLayer1 = buttonLayer1.checked;
-
-    var buttonLayer2 = document.getElementById("showLayer2");
-    buttonLayer2.onchange = function() { map.changeLayer("showLayer2"); twoState(this); };
-    buttonLayer2.parentElement.childNodes[1].nodeValue = "Layer 2";
-    buttonLayer2.parentElement.style.display = "inline-block";
-    this.showLayer2 = buttonLayer2.checked;
-
-    var buttonLayer3 = document.getElementById("showLayer3");
-    buttonLayer3.onchange = function() { map.changeLayer("showLayer3"); twoState(this); };
-    buttonLayer3.parentElement.childNodes[1].nodeValue = "Layer 3";
-    buttonLayer3.parentElement.style.display = "inline-block";
-    this.showLayer3 = buttonLayer3.checked;
-
-    var buttonTriggers = document.getElementById("showTriggers");
-    buttonTriggers.onchange = function() { map.changeLayer("showTriggers"); twoState(this); };
-    buttonTriggers.parentElement.childNodes[1].nodeValue = "Triggers";
-    buttonTriggers.parentElement.style.display = "inline-block";
-    this.showTriggers = buttonTriggers.checked;
-
-    var buttonScreen = document.getElementById("showScreen");
-    buttonScreen.onchange = function() { map.changeLayer("showScreen"); twoState(this); };
-    buttonScreen.parentElement.childNodes[1].nodeValue = "Screen";
-    buttonScreen.parentElement.style.display = "inline-block";
-    this.showScreen = buttonScreen.checked;
-
-    document.getElementById("zoom").onchange = function() { map.changeZoom(); };
-
-    this.showCursor = false;
     this.observer = new ROMObserver(rom, this, {sub: true, link: true, array: true});
 }
+
+FF5Map.prototype = Object.create(ROMEditor.prototype);
+FF5Map.prototype.constructor = FF5Map;
 
 FF5Map.prototype.beginAction = function(callback) {
     this.rom.beginAction();
@@ -575,7 +550,18 @@ FF5Map.prototype.selectObject = function(object) {
 }
 
 FF5Map.prototype.show = function() {
-    document.getElementById("map-controls").classList.remove('hidden');
+    
+    var map = this;
+
+    this.resetControls();
+    this.showControls();
+    this.addTwoState("showLayer1", function() { map.changeLayer("showLayer1"); }, "Layer 1", this.showLayer1);
+    this.addTwoState("showLayer2", function() { map.changeLayer("showLayer2"); }, "Layer 2", this.showLayer2);
+    this.addTwoState("showLayer3", function() { map.changeLayer("showLayer3"); }, "Layer 3", this.showLayer3);
+    this.addTwoState("showTriggers", function() { map.changeLayer("showTriggers"); }, "Triggers", this.showTriggers);
+    this.addTwoState("showScreen", function() { map.changeLayer("showScreen"); }, "Screen", this.showScreen);
+    this.addZoom(this.zoom, function() { map.changeZoom(); });
+
 }
 
 FF5Map.prototype.loadMap = function(m) {

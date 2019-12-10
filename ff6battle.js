@@ -4,7 +4,7 @@
 //
 
 function FF6Battle(rom) {
-    this.rom = rom;
+    ROMEditor.call(this, rom);
     this.name = "FF6Battle";
     this.vram = new FF6BattleVRAM(rom, this);
 
@@ -26,7 +26,8 @@ function FF6Battle(rom) {
 
     this.selectedMonster = null;
     this.selectedCharacter = null;
-    
+    var showVRAM = false;
+
     this.observer = new ROMObserver(rom, this, {sub: true, link: true, array: true});
 
     var self = this;
@@ -38,6 +39,9 @@ function FF6Battle(rom) {
     this.monsterPoint = null;
     this.clickedPoint = null;
 }
+
+FF6Battle.prototype = Object.create(ROMEditor.prototype);
+FF6Battle.prototype.constructor = FF6Battle;
 
 FF6Battle.prototype.battleName = function(b) {
     var battleProperties = this.rom.battleProperties.item(b);
@@ -190,13 +194,17 @@ FF6Battle.prototype.mouseLeave = function(e) {
 }
 
 FF6Battle.prototype.selectObject = function(object) {
-    this.show();
-    this.vram.show();
     this.loadBattle(object.i);
+    this.show();
+    this.vram.show(this.showVRAM);
 }
 
 FF6Battle.prototype.show = function() {
-    document.getElementById("map-controls").classList.add('hidden');
+    var vram = this.vram;
+    
+    this.resetControls();
+    this.showControls();
+    this.addTwoState("showVRAM", function(checked) { vram.show(checked); }, "Show VRAM", this.showVRAM);
 }
 
 FF6Battle.prototype.loadBattle = function(b) {
@@ -743,14 +751,31 @@ function FF6BattleVRAM(rom, battle) {
     this.canvas.onmousedown = function(e) { self.mouseDown(e) };
 }
 
-FF6BattleVRAM.prototype.show = function() {
+FF6BattleVRAM.prototype.show = function(show) {
+
+    this.battle.showVRAM = show;
     this.div = document.getElementById('toolbox-div');
-    this.div.classList.remove('hidden');
-    this.div.innerHTML = "";
-    this.div.appendChild(this.canvas);
+    if (show) {
+        this.div.classList.remove('hidden');
+        this.div.innerHTML = "";
+        this.div.appendChild(this.canvas);
+        this.div.style.height = "256px";
+    } else {
+        this.div.classList.add('hidden');
+        this.div.innerHTML = "";
+    }
 
     document.getElementById("toolbox-buttons").classList.add('hidden');
 }
+
+//FF6BattleVRAM.prototype.show = function() {
+//    this.div = document.getElementById('toolbox-div');
+//    this.div.classList.remove('hidden');
+//    this.div.innerHTML = "";
+//    this.div.appendChild(this.canvas);
+//
+//    document.getElementById("toolbox-buttons").classList.add('hidden');
+//}
 
 FF6BattleVRAM.prototype.mouseDown = function(e) {
     var x = Math.floor(e.offsetX / this.zoom);
@@ -800,8 +825,12 @@ FF6BattleVRAM.prototype.clearVRAM = function() {
     this.vramCanvas.height = 128;
     this.vramCanvas.width = 128;
 
-    this.canvas.parentElement.style.height = "256px";
-    this.canvas.parentElement.classList.remove("hidden");
+//    if (this.canvas.parentElement) {
+//        this.canvas.parentElement.style.height = "256px";
+//        this.canvas.parentElement.classList.remove("hidden");
+//    }
+//    this.canvas.parentElement.style.height = "256px";
+//    this.canvas.parentElement.classList.remove("hidden");
 
     // recalculate zoom
     this.zoom = 2.0; //this.div.clientWidth / 128;

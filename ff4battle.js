@@ -4,8 +4,9 @@
 //
 
 function FF4Battle(rom) {
-    this.rom = rom;
+    ROMEditor.call(this, rom);
     this.name = "FF4Battle";
+    this.vram = new FF4BattleVRAM(rom, this);
 
     this.b = null; // battle index
     this.bg = 0; // battle background index
@@ -25,6 +26,7 @@ function FF4Battle(rom) {
     this.zoom = 2.0;
 
     this.selectedMonster = null;
+    var showVRAM = false;
     
     this.observer = new ROMObserver(rom, this, {sub: true, link: true, array: true});
 
@@ -37,6 +39,9 @@ function FF4Battle(rom) {
     this.monsterPoint = null;
     this.clickedPoint = null;
 }
+
+FF4Battle.prototype = Object.create(ROMEditor.prototype);
+FF4Battle.prototype.constructor = FF4Battle;
 
 FF4Battle.prototype.battleName = function(b) {
     var battleProperties = this.rom.battleProperties.item(b);
@@ -144,10 +149,19 @@ FF4Battle.prototype.mouseLeave = function(e) {
 }
 
 FF4Battle.prototype.selectObject = function(object) {
-    document.getElementById("toolbox-div").classList.add('hidden');
-    document.getElementById("toolbox-buttons").classList.add('hidden');
-    document.getElementById("map-controls").classList.add('hidden');
     this.loadBattle(object.i);
+    this.show();
+    this.vram.show(this.showVRAM);
+}
+
+FF4Battle.prototype.show = function() {
+
+    var vram = this.vram;
+    
+    this.resetControls();
+    this.showControls();
+    this.addTwoState("showVRAM", function(checked) { vram.show(checked); }, "Show VRAM", this.showVRAM);
+    
 }
 
 FF4Battle.prototype.loadBattle = function(b) {
@@ -162,6 +176,18 @@ FF4Battle.prototype.loadBattle = function(b) {
     
     this.selectedMonster = null;
     this.drawBattle();
+}
+
+FF4Battle.prototype.typeHidden = function(type) {
+    var h = this.battleProperties.hiddenMonsters.value;
+    if (h === 1 && type === 2) {
+        return true;
+    } else if (h === 2 && (type === 2 || type === 3)) {
+        return true;
+    } else if (h === 3 && type === 3) {
+        return true;
+    }
+    return false;
 }
 
 FF4Battle.prototype.monsterInSlot = function(slot) {
@@ -187,15 +213,7 @@ FF4Battle.prototype.monsterInSlot = function(slot) {
     var m = this.battleProperties["monster" + type].value;
     if (m === 0xFF) return null; // slot is empty
     
-    var h = this.battleProperties.hiddenMonsters.value;
-    var hidden = false;
-    if (h === 1 && type === 2) {
-        hidden = true;
-    } else if (h === 2 && (type === 2 || type === 3)) {
-        hidden = true;
-    } else if (h === 3 && type === 3) {
-        hidden = true;
-    }
+    var hidden = this.typeHidden(type);
 
     // get monster position and size
     var gfxProperties = this.rom.monsterGraphicsProperties.item(m);
@@ -238,6 +256,15 @@ FF4Battle.prototype.monsterInSlot = function(slot) {
     };
 }
 
+FF4Battle.prototype.firstMonsterOfType = function(type) {
+    for (var slot = 1; slot <= 8; slot++) {
+        var monster = this.monsterInSlot(slot);
+        if (!monster) break;
+        if (monster.type === type) return monster;
+    }
+    return null;
+}
+
 FF4Battle.prototype.monsterAtPoint = function(x, y) {
     
     for (var slot = 8; slot > 0; slot--) {
@@ -248,7 +275,11 @@ FF4Battle.prototype.monsterAtPoint = function(x, y) {
 }
 
 FF4Battle.prototype.drawBattle = function() {
+    this.vram.clearVRAM();
+    this.vram.loadVRAM();
+    
     this.drawBackground();
+    
     for (var slot = 1; slot <= 8; slot++) {
         this.drawMonster(slot);
     }
@@ -263,6 +294,8 @@ FF4Battle.prototype.drawBattle = function() {
     ctx.imageSmoothingEnabled = false;
     ctx.webkitImageSmoothingEnabled = false;
     ctx.drawImage(this.battleCanvas, this.battleRect.l, this.battleRect.t, this.battleRect.w, this.battleRect.h, 0, 0, scaledRect.w, scaledRect.h);
+    
+    this.vram.drawVRAM();
 }
 
 FF4Battle.prototype.drawMonster = function(slot) {
@@ -272,16 +305,16 @@ FF4Battle.prototype.drawMonster = function(slot) {
     
     // load graphics properties
     var gfxProperties = m.gfxProperties;
-    var w, h, tiles, gfx, pal;
+    var w, h, tiles;
+    
+    var monsterString = "monster" + m.type.toString();
+    var f1 = this.vram.tileData1[monsterString].value;
+    f1 &= 0xE3;
+    f1 |= (m.type + 2) << 2; // palette
+    var f2 = this.vram.tileData2[monsterString].value;
+    var tileFlags = (f1 << 8) | f2;
     
     if (gfxProperties.isCharacter.value) {
-        var c = gfxProperties.characterIndex.value;
-        if (c > this.rom.characterGraphics.array.length) return;
-        gfx = this.rom.characterGraphics.item(c).data;
-        
-        var p = gfxProperties.palette.value;
-        if (p > this.rom.characterPalette.array.length) return;
-        pal = this.rom.characterPalette.item(p).data;
         
         if (this.battleProperties.flags2.value & 0x10) {
             // enemy character
@@ -289,6 +322,7 @@ FF4Battle.prototype.drawMonster = function(slot) {
         } else {
             tiles = new Uint16Array([0x0000, 0x0001, 0x0002, 0x0003, 0x0004, 0x0005]);
         }
+        for (var t = 0; t < tiles.length; t++) { tiles[t] |= tileFlags; }
         w = 2; h = 3;
         
     } else if (gfxProperties.isBoss.value && m.bossProperties) {
@@ -301,8 +335,8 @@ FF4Battle.prototype.drawMonster = function(slot) {
         var mapIndex = bossProperties.map.value;
         if (gfxProperties.bossProperties.value === 63) mapIndex = 55; // zeromus map
         var map = this.rom.monsterBossMap.item(mapIndex).data;
-        var p = bossProperties.palette.value;
-
+        
+        if (bossProperties.tileIndexMSB.value) tileFlags |= 0x0100;
         for (var t = 0, i = 0; i < map.length; i++) {
             var mask = map[i];
             if (mask === 0xFF) {
@@ -311,46 +345,32 @@ FF4Battle.prototype.drawMonster = function(slot) {
                 t += map[++i]; continue;
             }
 
-            tiles[t++] = mask;
+            tiles[t++] = mask + tileFlags;
         }
+        
     } else {
         if (!m.size) return;
         w = m.size.width.value;
         h = m.size.height.value;
         tiles = new Uint16Array(w * h);
-        for (var t = 0; t < tiles.length; t++) tiles[t] = t;
-        var p = gfxProperties.palette.value;
+        for (var t = 0; t < tiles.length; t++) tiles[t] = t + tileFlags;
     }
-
-    if (!gfxProperties.isCharacter.value) {
-        // decode the graphics
-        var bytesPerTile = gfxProperties.is3bpp.value ? 24 : 32;
-        var decode = gfxProperties.is3bpp.value ? GFX.decodeSNES3bpp : GFX.decodeSNES4bpp;
-        var begin = this.rom.monsterGraphics.range.begin + gfxProperties.graphicsPointer.value;
-        var end = begin + 256 * bytesPerTile;
-        gfx = decode(this.rom.data.subarray(begin, end));
-
-        // load palette (use palette 1, palette 0 is for transparent tiles)
-        pal = new Uint32Array(17);
-        pal.set(this.rom.monsterPalette.item(p).data);
-        if (this.rom.isGBA || !gfxProperties.is3bpp.value) pal.set(this.rom.monsterPalette.item(p + 1).data, 8);
-    }
-
+    
     // set up the ppu
     var ppu = new GFX.PPU();
-    ppu.pal = pal;
+    ppu.pal = this.vram.vramPalette;
     ppu.width = w * 8;
     ppu.height = h * 8;
 
     // layer 1
-    ppu.layers[0].format = GFX.TileFormat.snesSpriteTile;
+    ppu.layers[0].format = GFX.TileFormat.snes4bppTile;
     ppu.layers[0].cols = w;
     ppu.layers[0].rows = h;
     ppu.layers[0].z[0] = GFX.Z.snesS0;
     ppu.layers[0].z[1] = GFX.Z.snesS1;
     ppu.layers[0].z[2] = GFX.Z.snesS2;
     ppu.layers[0].z[3] = GFX.Z.snesS3;
-    ppu.layers[0].gfx = gfx;
+    ppu.layers[0].gfx = this.vram.vramGraphics;
     ppu.layers[0].tiles = tiles;
     ppu.layers[0].main = true;
 
@@ -468,4 +488,294 @@ FF4Battle.prototype.drawBackground = function() {
     imageData = context.createImageData(256, 256);
     this.ppu.renderPPU(imageData.data, 0, 0, 256, 256);
     context.putImageData(imageData, 0, 0);
+}
+
+function FF4BattleVRAM(rom, battle) {
+    this.rom = rom;
+    this.battle = battle;
+    this.name = "FF4BattleVRAM";
+
+    this.canvas = document.createElement('canvas');
+    this.vramCanvas = document.createElement('canvas');
+    this.vramCanvas.width = 256;
+    this.vramCanvas.height = 512;
+    
+    this.zoom = 2.0;
+
+    var self = this;
+    this.canvas.onmousedown = function(e) { self.mouseDown(e) };
+}
+
+FF4BattleVRAM.prototype.show = function(show) {
+
+    this.battle.showVRAM = show;
+    this.div = document.getElementById('toolbox-div');
+    if (show) {
+        this.div.classList.remove('hidden');
+        this.div.innerHTML = "";
+        this.div.appendChild(this.canvas);
+        this.div.style.height = "512px";
+    } else {
+        this.div.classList.add('hidden');
+        this.div.innerHTML = "";
+    }
+
+    document.getElementById("toolbox-buttons").classList.add('hidden');
+}
+
+FF4BattleVRAM.prototype.mouseDown = function(e) {
+    var x = Math.floor(e.offsetX / this.zoom);
+    var y = Math.floor(e.offsetY / this.zoom);
+    
+    var clickedType = this.typeAtPoint(x, y);
+    if (!clickedType) return;
+    
+    var monster = this.battle.firstMonsterOfType(clickedType);
+    if (!monster) return;
+
+    this.battle.selectedMonster = monster;
+    this.battle.selectedCharacter = null;
+    propertyList.select(this.rom.monsterProperties.item(monster.m));
+
+    this.battle.drawBattle();
+}
+
+FF4BattleVRAM.prototype.rectForType = function(type) {
+    var v = this.battle.battleProperties.vramMap.value;
+    var monsterString = "monster" + type.toString();
+    var bossTileCount = this.bossTileCount[monsterString];
+    var vramOffset = this.vramOffset[monsterString];
+    if (!vramOffset.value) return Rect.emptyRect;
+    
+    // monster slot, get vram map data
+    var w = 128;
+    var h = (bossTileCount.value === 0x7F ? 64 : 128);
+    var l = 0;
+    var t = (vramOffset.value - 0x2000) >> 5;
+    var r = l + w;
+    var b = t + h;
+    var slotRect = new Rect(l, r, t, b);
+    return slotRect;
+}
+
+FF4BattleVRAM.prototype.typeAtPoint = function(x, y) {
+    for (var type = 1; type <= 3; type++) {
+        if (this.rectForType(type).containsPoint(x, y)) return type;
+    }
+    return null;
+}
+
+FF4BattleVRAM.prototype.clearVRAM = function() {
+    
+    // clear the vram canvas
+    this.vramCanvas.width = 256;
+    this.vramCanvas.height = 512;
+
+//    if (this.canvas.parentElement) {
+//        this.canvas.parentElement.style.height = "512px";
+//        this.canvas.parentElement.classList.remove("hidden");
+//    }
+
+    // recalculate zoom
+    this.zoom = 2.0; //this.div.clientWidth / 128;
+
+    this.canvas.width = 128 * this.zoom;
+    this.canvas.height = 256 * this.zoom;
+
+    var ctx = this.canvas.getContext('2d');
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, 128 * this.zoom, 256 * this.zoom)
+}
+
+FF4BattleVRAM.prototype.loadVRAM = function() {
+    
+    var v = this.battle.battleProperties.vramMap.value;
+    this.bossTileCount = this.rom.battleVRAMMap.bossTileCount.item(v);
+    this.vramOffset = this.rom.battleVRAMMap.vramOffset.item(v);
+    this.tileData1 = this.rom.battleVRAMMap.tileData1.item(v);
+    this.tileData2 = this.rom.battleVRAMMap.tileData2.item(v);
+    this.vramGraphics = new Uint8Array(0x8000);
+    this.vramPalette = new Uint32Array(0x100);
+    this.tiles = new Uint16Array(16 * 32);
+
+    for (var t = 1; t <= 3; t++) {
+        var monsterString = "monster" + t.toString();
+        var offset = this.vramOffset[monsterString].value;
+        var tileOffset = (offset - 0x2000) >> 4;
+        var paletteOffset = t + 2;
+        
+        var m = this.battle.battleProperties[monsterString].value;
+        if (m === 255) continue;
+        var gfxProperties = this.rom.monsterGraphicsProperties.item(m);
+        
+        // set tile data
+        if (offset) {
+            var f1 = this.tileData1[monsterString].value;
+            var f2 = this.tileData2[monsterString].value;
+            var tileFlags = (f1 << 8) | f2;
+            for (var tile = 0; tile < this.tiles.length; tile++) {
+                this.tiles[tile + tileOffset] = tile + tileFlags;
+            }
+        }
+        
+        if (gfxProperties.isCharacter.value) {
+            
+            // load graphics
+            if (offset) {
+                var c = gfxProperties.characterIndex.value;
+                if (c > this.rom.characterGraphics.array.length) return;
+                gfx = this.rom.characterGraphics.item(c).data;
+                this.vramGraphics.set(gfx, (offset - 0x2000) * 4);
+            }
+
+            // load palette
+            var p = gfxProperties.palette.value;
+            if (p > this.rom.characterPalette.array.length) return;
+            pal = this.rom.characterPalette.item(p).data;
+            this.vramPalette.set(pal, paletteOffset * 0x10);
+            
+        } else if (gfxProperties.isBoss.value) {
+            
+            // load palette
+            var bossProperties = this.rom.monsterBossProperties.item(gfxProperties.bossProperties.value);
+            var p = bossProperties.palette.value;
+            pal = new Uint32Array(16);
+            pal.set(this.rom.monsterPalette.item(p).data);
+            if (this.rom.isGBA || !gfxProperties.is3bpp.value) pal.set(this.rom.monsterPalette.item(p + 1).data, 8);
+            this.vramPalette.set(pal, paletteOffset * 0x10);
+            
+            // decode the graphics
+            if (offset) {
+                var tileCount = this.bossTileCount[monsterString].value;
+                var bytesPerTile = gfxProperties.is3bpp.value ? 24 : 32;
+                var decode = gfxProperties.is3bpp.value ? GFX.decodeSNES3bpp : GFX.decodeSNES4bpp;
+                var begin = this.rom.monsterGraphics.range.begin + gfxProperties.graphicsPointer.value;
+                var end = begin + tileCount * bytesPerTile;
+                gfx = decode(this.rom.data.subarray(begin, end));
+                this.vramGraphics.set(gfx, (offset - 0x2000) * 4);
+            }
+            
+        } else {
+            // load palette
+            var p = gfxProperties.palette.value;
+            pal = new Uint32Array(16);
+            pal.set(this.rom.monsterPalette.item(p).data);
+            if (this.rom.isGBA || !gfxProperties.is3bpp.value) pal.set(this.rom.monsterPalette.item(p + 1).data, 8);
+            this.vramPalette.set(pal, paletteOffset * 0x10);
+            
+            // decode the graphics
+            if (offset) {
+                var bytesPerTile = gfxProperties.is3bpp.value ? 24 : 32;
+                var decode = gfxProperties.is3bpp.value ? GFX.decodeSNES3bpp : GFX.decodeSNES4bpp;
+                var begin = this.rom.monsterGraphics.range.begin + gfxProperties.graphicsPointer.value;
+                var size = this.rom.monsterSize.item(gfxProperties.size.value);
+                var w = size.width.value * 8;
+                var h = size.height.value * 8;
+                var end = begin + w * h * bytesPerTile / 64;
+                gfx = decode(this.rom.data.subarray(begin, end));
+                this.vramGraphics.set(gfx, (offset - 0x2000) * 4);
+            }
+        }
+    }
+}
+
+FF4BattleVRAM.prototype.drawVRAM = function() {
+
+    // set up the ppu
+    var ppu = new GFX.PPU();
+    ppu.pal = this.vramPalette;
+    ppu.width = 16 * 8;
+    ppu.height = 32 * 8;
+
+    // layer 1
+    ppu.layers[0].format = GFX.TileFormat.snes4bppTile;
+    ppu.layers[0].cols = 16;
+    ppu.layers[0].rows = 32;
+    ppu.layers[0].z[0] = GFX.Z.snesS0;
+    ppu.layers[0].z[1] = GFX.Z.snesS1;
+    ppu.layers[0].z[2] = GFX.Z.snesS2;
+    ppu.layers[0].z[3] = GFX.Z.snesS3;
+    ppu.layers[0].gfx = this.vramGraphics;
+    ppu.layers[0].tiles = this.tiles;
+    ppu.layers[0].main = true;
+
+    // draw the monster
+    this.vramCanvas.width = ppu.width;
+    this.vramCanvas.height = ppu.height;
+    var context = this.vramCanvas.getContext('2d');
+    var imageData = context.createImageData(ppu.width, ppu.height);
+    ppu.renderPPU(imageData.data);
+    context.putImageData(imageData, 0, 0);
+
+    for (var type = 1; type <= 3; type++) {
+        if (this.battle.typeHidden(type)) this.transparentMonster(type);
+    }
+
+    // tint the selected monster
+    if (this.battle.selectedMonster) this.tintMonster(this.battle.selectedMonster.type);
+
+    // draw the monsters
+    var ctx = this.canvas.getContext('2d');
+    ctx.font = 'bold 48px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.imageSmoothingEnabled = false;
+    ctx.webkitImageSmoothingEnabled = false;
+    ctx.drawImage(this.vramCanvas, 0, 0, 256, 512);
+
+    // draw the slots
+    for (var type = 1; type <= 3; type++) {
+        var typeRect = this.rectForType(type);
+        if (typeRect.isEmpty()) continue;
+        typeRect = typeRect.scale(this.zoom);
+
+        // draw the vram slot
+        var x = typeRect.l + 0.5;
+        var y = typeRect.t + 0.5;
+        var w = typeRect.w - 1;
+        var h = typeRect.h - 1;
+
+        ctx.rect(x, y, w, h);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "gray";
+        ctx.stroke();
+        if (this.battle.selectedMonster && this.battle.selectedMonster.type === type) {
+            ctx.fillStyle = 'hsla(210, 100%, 50%, 0.5)';
+        } else {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+        }
+        ctx.fillText(type.toString(), typeRect.centerX, typeRect.centerY);
+        ctx.strokeStyle = "rgba(255, 255, 255, 1.0)";
+        ctx.strokeText(type.toString(), typeRect.centerX, typeRect.centerY);
+    }
+}
+
+FF4BattleVRAM.prototype.tintMonster = function(type) {
+    // create an offscreen canvas filled with the color
+    var tintCanvas = document.createElement('canvas');
+    tintCanvas.width = this.vramCanvas.width;
+    tintCanvas.height = this.vramCanvas.height;
+    var ctx = tintCanvas.getContext('2d');
+    ctx.fillStyle = 'hsla(210, 100%, 50%, 0.5)';
+    var typeRect = this.rectForType(type);
+    ctx.fillRect(typeRect.l, typeRect.t, typeRect.w, typeRect.h);
+    
+    ctx = this.vramCanvas.getContext('2d');
+    ctx.globalCompositeOperation = 'source-atop';
+    ctx.drawImage(tintCanvas, 0, 0);
+}
+
+FF4BattleVRAM.prototype.transparentMonster = function(type) {
+    // create an offscreen canvas filled with the color
+    var transparentCanvas = document.createElement('canvas');
+    transparentCanvas.width = this.vramCanvas.width;
+    transparentCanvas.height = this.vramCanvas.height;
+    var ctx = transparentCanvas.getContext('2d');
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    var typeRect = this.rectForType(type);
+    ctx.fillRect(typeRect.l, typeRect.t, typeRect.w, typeRect.h);
+    
+    ctx = this.vramCanvas.getContext('2d');
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.drawImage(transparentCanvas, 0, 0);
 }

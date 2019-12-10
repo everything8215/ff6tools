@@ -318,7 +318,7 @@ body {
     pointer-events: none;
 }
 
-#map-controls {
+#edit-controls {
     padding: 4px 0px;
     display: flex;
     flex-direction: row;
@@ -329,16 +329,12 @@ body {
     border-bottom: 1px solid #ccc;
 }
 
-#map-controls.hidden {
+#edit-controls.hidden {
     display: none;
 }
 
-#map-controls input {
+#edit-controls input {
 /*    float: left;*/
-}
-
-#map-controls p {
-    margin: 0px 8px;
 }
 
 #map-cursor {
@@ -474,6 +470,10 @@ body {
 
 .two-state input {
     display: none;
+}
+
+.two-state p {
+    margin: 0px;
 }
 
 #zoom {

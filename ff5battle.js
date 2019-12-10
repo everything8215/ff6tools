@@ -4,7 +4,7 @@
 //
 
 function FF5Battle(rom) {
-    this.rom = rom;
+    ROMEditor.call(this, rom);
     this.name = "FF5Battle";
 
     this.b = null; // battle index
@@ -36,6 +36,9 @@ function FF5Battle(rom) {
     this.monsterPoint = null;
     this.clickedPoint = null;
 }
+
+FF5Battle.prototype = Object.create(ROMEditor.prototype);
+FF5Battle.prototype.constructor = FF5Battle;
 
 FF5Battle.prototype.battleName = function(b) {
     var battleProperties = this.rom.battleProperties.item(b);
@@ -150,7 +153,8 @@ FF5Battle.prototype.mouseLeave = function(e) {
 FF5Battle.prototype.selectObject = function(object) {
     document.getElementById("toolbox-div").classList.add('hidden');
     document.getElementById("toolbox-buttons").classList.add('hidden');
-    document.getElementById("map-controls").classList.add('hidden');
+    this.hideControls();
+//    document.getElementById("edit-controls").classList.add('hidden');
     this.loadBattle(object.i);
 }
 
