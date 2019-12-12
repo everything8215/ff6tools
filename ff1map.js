@@ -74,8 +74,6 @@ function FF1Map(rom) {
     this.scrollDiv.onmouseenter = function(e) { map.mouseEnter(e) };
     this.scrollDiv.onmouseleave = function(e) { map.mouseLeave(e) };
     this.scrollDiv.oncontextmenu = function(e) { map.openMenu(e); return false; };
-
-    document.getElementById("zoom").onchange = function() { map.changeZoom(); };
 }
 
 FF1Map.prototype = Object.create(ROMEditor.prototype);

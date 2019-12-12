@@ -78,8 +78,8 @@
             "name": "Attack Name",
             "range": "0xE70F90-0xE717DC",
             "array": {
-                "length": 177,
-                "max": 177
+                "length": 169,
+                "max": 169
             },
             "assembly": {
                 "type": "text",

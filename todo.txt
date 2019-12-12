@@ -18,7 +18,7 @@ general
 
 gui
 ---
- * battle vram viewer (done for ff6)
+ * battle vram viewer for ff5
  * custom property controls (entrance trigger destination, rendered text, colosseum battle, fill tile)
  * grid controls (for element/status, esper/natural magic)
  * tile mask layers for map editor
@@ -39,6 +39,7 @@ game specific
  * ff5 monster ai
  * ff5 advance (battles, ff5j, ff5e)
  * can't expand/relocate ff6 advance text
+ * support for ff4 advance
 
 wish list
 ---------
