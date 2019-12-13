@@ -26,7 +26,8 @@ function FF6Battle(rom) {
 
     this.selectedMonster = null;
     this.selectedCharacter = null;
-    var showVRAM = false;
+    this.showVRAM = false;
+    this.showMonsters = true;
 
     this.observer = new ROMObserver(rom, this, {sub: true, link: true, array: true});
 
@@ -201,10 +202,24 @@ FF6Battle.prototype.selectObject = function(object) {
 
 FF6Battle.prototype.show = function() {
     var vram = this.vram;
-    
+    var battle = this;
+
     this.resetControls();
     this.showControls();
-    this.addTwoState("showVRAM", function(checked) { vram.show(checked); }, "Show VRAM", this.showVRAM);
+    this.closeList();
+    this.addTwoState("showMonsters", function(checked) { battle.showMonsters = checked; battle.drawBattle(); }, "Monsters", this.showMonsters);
+    
+    var bgList = [];
+    for (var i = 0; i < this.rom.battleBackgroundProperties.array.length; i++) {
+        bgList.push({
+            id: "bg" + i.toString(),
+            name: this.rom.stringTable.battleBackground.string[i].fString(),
+            onchange: function(bg) { battle.bg = bg; battle.drawBattle(); },
+            selected: function(bg) { return battle.bg === bg ? true : false; }
+        });
+    }
+    this.addList("showBackground", "Background", bgList);
+    this.addTwoState("showVRAM", function(checked) { vram.show(checked); }, "VRAM", this.showVRAM);
 }
 
 FF6Battle.prototype.loadBattle = function(b) {
@@ -347,15 +362,18 @@ FF6Battle.prototype.drawBattle = function() {
     this.vram.clearVRAM();
     
     this.drawBackground();
-    var self = this;
-    this.monstersSortedByPriority().reverse().forEach(function(m) {
-        if (!m) return;
-        self.drawMonster(m.slot);
-    });
-    this.charactersSortedByPriority().reverse().forEach(function(c) {
-        if (!c) return;
-        self.drawCharacter(c.slot);
-    });
+    
+    if (this.showMonsters) {
+        var self = this;
+        this.monstersSortedByPriority().reverse().forEach(function(m) {
+            if (!m) return;
+            self.drawMonster(m.slot);
+        });
+        this.charactersSortedByPriority().reverse().forEach(function(c) {
+            if (!c) return;
+            self.drawCharacter(c.slot);
+        });
+    }
     
     this.zoom = this.div.clientWidth / this.battleRect.w;
     

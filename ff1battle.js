@@ -24,6 +24,7 @@ function FF1Battle(rom) {
     this.zoom = 2.0;
 
     this.selectedMonster = null;
+    this.showMonsters = true;
     
     this.observer = new ROMObserver(rom, this, {sub: true, link: true, array: true});
 
@@ -91,11 +92,28 @@ FF1Battle.prototype.mouseDown = function(e) {
 }
 
 FF1Battle.prototype.selectObject = function(object) {
-    document.getElementById("toolbox-div").classList.add('hidden');
-    document.getElementById("toolbox-buttons").classList.add('hidden');
-    this.hideControls();
-//    document.getElementById("edit-controls").classList.add('hidden');
     this.loadBattle(object.i);
+    this.show();
+}
+
+FF1Battle.prototype.show = function() {
+    var battle = this;
+
+    this.resetControls();
+    this.showControls();
+    this.closeList();
+    this.addTwoState("showMonsters", function(checked) { battle.showMonsters = checked; battle.drawBattle(); }, "Monsters", this.showMonsters);
+    
+    var bgList = [];
+    for (var i = 0; i < this.rom.stringTable.battleBackground.string.length; i++) {
+        bgList.push({
+            id: "bg" + i.toString(),
+            name: this.rom.stringTable.battleBackground.string[i].fString(),
+            onchange: function(bg) { battle.bg = bg; battle.drawBattle(); },
+            selected: function(bg) { return battle.bg === bg ? true : false; }
+        });
+    }
+    this.addList("showBackground", "Background", bgList);
 }
 
 FF1Battle.prototype.loadBattle = function(b) {
@@ -253,7 +271,9 @@ FF1Battle.prototype.monsterAtPoint = function(x, y) {
 
 FF1Battle.prototype.drawBattle = function() {
     this.drawBackground();
-    for (var slot = 1; slot <= 9; slot++) this.drawMonster(slot);
+    if (this.showMonsters) {
+        for (var slot = 1; slot <= 9; slot++) this.drawMonster(slot);
+    }
 
     this.zoom = this.div.clientWidth / this.battleRect.w;
     

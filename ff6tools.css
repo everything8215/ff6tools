@@ -327,6 +327,10 @@ body {
     height: 20px;
     background: linear-gradient(#fff,#ddd);
     border-bottom: 1px solid #ccc;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 #edit-controls.hidden {
@@ -716,7 +720,7 @@ body {
 }
 
 .menu-active {
-    display: block;
+    display: inline-block;
 }
 
 .menu-submenu {
@@ -757,6 +761,18 @@ body {
 .menu-item-disabled {
     background-color: hsl(0, 0%, 95%);
     color: gray;
+}
+
+.menu-item.selected {
+    padding-left: 6px;
+}
+
+.menu-item.selected:before {
+    position: relative;
+    display: inline-block;
+    width: 14px;
+/*    left: -14px;*/
+    content: "✓";
 }
 
 .tooltip {

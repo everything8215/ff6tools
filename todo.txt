@@ -24,7 +24,6 @@ gui
  * tile mask layers for map editor
  * allow multiple selection, cut/copy/paste in script list
  * make tileset zoom in when sidebar is expanded
- * top bar for battle editor (change battle type, background)
  * progress bar
  * show rom title in top bar
  * script list/trigger double click functionality

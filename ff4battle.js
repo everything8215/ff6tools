@@ -26,7 +26,8 @@ function FF4Battle(rom) {
     this.zoom = 2.0;
 
     this.selectedMonster = null;
-    var showVRAM = false;
+    this.showVRAM = false;
+    this.showMonsters = true;
     
     this.observer = new ROMObserver(rom, this, {sub: true, link: true, array: true});
 
@@ -157,11 +158,25 @@ FF4Battle.prototype.selectObject = function(object) {
 FF4Battle.prototype.show = function() {
 
     var vram = this.vram;
+    var battle = this;
     
     this.resetControls();
     this.showControls();
-    this.addTwoState("showVRAM", function(checked) { vram.show(checked); }, "Show VRAM", this.showVRAM);
+    this.closeList();
+    this.addTwoState("showMonsters", function(checked) { battle.showMonsters = checked; battle.drawBattle(); }, "Monsters", this.showMonsters);
     
+    var bgList = [];
+    for (var i = 0; i < this.rom.battleBackgroundProperties.array.length; i++) {
+        bgList.push({
+            id: "bg" + i.toString(),
+            name: this.rom.stringTable.battleBackgroundProperties.string[i].fString(),
+            onchange: function(bg) { battle.bg = bg; battle.drawBattle(); },
+            selected: function(bg) { return battle.bg === bg ? true : false; }
+        });
+    }
+    this.addList("showBackground", "Background", bgList);
+    this.addTwoState("useAltPalette", function(checked) { battle.altPalette = checked; battle.drawBattle(); }, "Alt. Palette", this.altPalette);
+    this.addTwoState("showVRAM", function(checked) { vram.show(checked); }, "VRAM", this.showVRAM);
 }
 
 FF4Battle.prototype.loadBattle = function(b) {
@@ -280,8 +295,8 @@ FF4Battle.prototype.drawBattle = function() {
     
     this.drawBackground();
     
-    for (var slot = 1; slot <= 8; slot++) {
-        this.drawMonster(slot);
+    if (this.showMonsters) {
+        for (var slot = 1; slot <= 8; slot++) this.drawMonster(slot);
     }
 
     this.zoom = this.div.clientWidth / this.battleRect.w;

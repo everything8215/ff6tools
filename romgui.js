@@ -1346,6 +1346,7 @@ ROMScriptList.prototype.openMenu = function(e) {
     this.menu.classList.add("menu-active");
     this.menu.style.left = e.x + "px";
     this.menu.style.height = "";
+    this.menu.style.overflowY = "visible";
     
     var top = e.y;
     var height = this.menu.clientHeight;
@@ -1353,7 +1354,8 @@ ROMScriptList.prototype.openMenu = function(e) {
         top = window.innerHeight - height;
     }
     if (top < 0) {
-        this.menu.style.height = window.innerHeight + "px";
+        this.menu.style.height = (window.innerHeight - 10) + "px";
+        this.menu.style.overflowY = "auto";
         top = 0;
     }
     this.menu.style.top = top + "px";
@@ -1367,6 +1369,8 @@ ROMScriptList.prototype.closeMenu = function() {
 function ROMEditor(rom) {
     this.rom = rom;
     this.editorControls = document.getElementById("edit-controls");
+    this.menu = document.getElementById('menu');
+    this.list = [];
 }
 
 ROMEditor.prototype.hideControls = function() {
@@ -1379,6 +1383,7 @@ ROMEditor.prototype.showControls = function() {
 
 ROMEditor.prototype.resetControls = function() {
     this.editorControls.innerHTML = "";
+    this.list = [];
 }
 
 ROMEditor.prototype.addTwoState = function(id, onclick, labelText, checked) {
@@ -1421,4 +1426,69 @@ ROMEditor.prototype.addZoom = function(zoom, onchange) {
     zoomCoordinates.id = "coordinates";
     zoomCoordinates.innerHTML = "(0,0)";
     this.editorControls.appendChild(zoomCoordinates);
+}
+
+ROMEditor.prototype.addList = function(id, labelText, list) {
+    this.list[id] = list;
+
+    var label = document.createElement("label");
+    label.classList.add("two-state");
+    label.classList.add("checked");
+    label.style.display = "inline-block";
+    this.editorControls.appendChild(label);
+    
+    var self = this;
+    var button = document.createElement("input");
+    button.id = id;
+    button.type = "button";
+    button.onclick = function(e) { self.openList(e, id); };
+    label.appendChild(button);
+    
+    var p = document.createElement("p");
+    p.innerHTML = labelText;
+    label.appendChild(p);
+}
+
+ROMEditor.prototype.openList = function(e, id) {
+    
+    this.menu.innerHTML = "";
+    this.menu.classList.add('menu');
+
+    var list = this.list[id];
+    if (!list || !isArray(list)) return;
+    
+    // build the menu for the list of options
+    var self = this;
+    for (var i = 0; i < list.length; i++) {
+        var item = list[i];
+        var li = document.createElement('li');
+        li.id = item.id;
+        li.value = i;
+        li.innerHTML = item.name;
+        li.classList.add("menu-item");
+        li.onclick = function() { self.closeList(); item.onchange(this.value); };
+        if (item.selected(i)) li.classList.add("selected");
+        menu.appendChild(li);
+    }
+    
+    this.menu.classList.add("menu-active");
+    this.menu.style.left = e.x + "px";
+    this.menu.style.height = "";
+    this.menu.style.overflowY = "visible";
+    
+    var top = e.y;
+    var height = this.menu.clientHeight;
+    if (height + top > window.innerHeight) {
+        top = window.innerHeight - height;
+    }
+    if (top < 0) {
+        this.menu.style.height = (window.innerHeight - 10) + "px";
+        this.menu.style.overflowY = "auto";
+        top = 0;
+    }
+    this.menu.style.top = top + "px";
+}
+
+ROMEditor.prototype.closeList = function() {
+    this.menu.classList.remove("menu-active");
 }
