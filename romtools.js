@@ -1041,6 +1041,7 @@ function ROM(rom, definition) {
     this.undoStack = [];
     this.redoStack = [];
     this.action = null;
+    this.actionDepth = 0;
 
     // create the assemblies
     ROMData.call(this, this, definition);
@@ -2394,12 +2395,17 @@ ROM.prototype.pushAction = function(action, undo) {
 }
 
 ROM.prototype.beginAction = function() {
+    
+    this.actionDepth++;
     if (!this.action) this.action = [];
 }
 
 ROM.prototype.endAction = function() {
+    
+    this.actionDepth--;
+    if (this.actionDepth > 0) return;
+    this.actionDepth = 0;
     if (this.action) this.undoStack.push(this.action);
-//    this.redoStack = [];
     this.action = null;
 }
 
@@ -4413,12 +4419,18 @@ ROMStringTable.prototype.createString = function(value) {
     return null;
 }
 
+// TODO: add undo functionality for these
+ROMStringTable.prototype.setString = function(i, value) {
+    this.string[i] = this.createString(value);
+    this.string[i].i = i;
+}
+
 ROMStringTable.prototype.insertString = function(i, string) {
-    
+    this.string.splice(i, 0, string);
 }
 
 ROMStringTable.prototype.removeString = function(i) {
-    
+    this.string.splice(i, 1);
 }
 
 // ROMRange

@@ -766,8 +766,8 @@ ROMPropertyList.prototype.listControlHTML = function(object, options) {
 
     // create an option for each valid string in the table
     var stringTable = this.rom.stringTable[object.stringTable];
-    var min = object.min + object.offset;
-    var max = object.max + object.offset;
+    var min = (object.min * object.multiplier) + object.offset;
+    var max = (object.max * object.multiplier) + object.offset;
     for (var i = min; i <= max; i++) {
 
         var optionString = "";
@@ -1346,7 +1346,7 @@ ROMScriptList.prototype.openMenu = function(e) {
     this.menu.classList.add("menu-active");
     this.menu.style.left = e.x + "px";
     this.menu.style.height = "";
-    this.menu.style.overflowY = "visible";
+//    this.menu.style.overflowY = "visible";
     
     var top = e.y;
     var height = this.menu.clientHeight;
@@ -1355,7 +1355,7 @@ ROMScriptList.prototype.openMenu = function(e) {
     }
     if (top < 0) {
         this.menu.style.height = (window.innerHeight - 10) + "px";
-        this.menu.style.overflowY = "auto";
+//        this.menu.style.overflowY = "auto";
         top = 0;
     }
     this.menu.style.top = top + "px";
@@ -1428,8 +1428,12 @@ ROMEditor.prototype.addZoom = function(zoom, onchange) {
     this.editorControls.appendChild(zoomCoordinates);
 }
 
-ROMEditor.prototype.addList = function(id, labelText, list) {
-    this.list[id] = list;
+ROMEditor.prototype.addList = function(id, labelText, listNames, onchange, selected) {
+    this.list[id] = {
+        names: listNames,
+        onchange: onchange,
+        selected: selected
+    };
 
     var label = document.createElement("label");
     label.classList.add("two-state");
@@ -1455,19 +1459,17 @@ ROMEditor.prototype.openList = function(e, id) {
     this.menu.classList.add('menu');
 
     var list = this.list[id];
-    if (!list || !isArray(list)) return;
+    if (!list || !isArray(list.names)) return;
     
     // build the menu for the list of options
     var self = this;
-    for (var i = 0; i < list.length; i++) {
-        var item = list[i];
+    for (var i = 0; i < list.names.length; i++) {
         var li = document.createElement('li');
-        li.id = item.id;
         li.value = i;
-        li.innerHTML = item.name;
+        li.innerHTML = list.names[i];
         li.classList.add("menu-item");
-        li.onclick = function() { self.closeList(); item.onchange(this.value); };
-        if (item.selected(i)) li.classList.add("selected");
+        li.onclick = function() { self.closeList(); list.onchange(this.value); };
+        if (list.selected(i)) li.classList.add("selected");
         menu.appendChild(li);
     }
     

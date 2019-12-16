@@ -484,8 +484,11 @@
                 battleList.classList.add("nav-list");
                 battleCategory.appendChild(battleList);
                 
-                for (var b = 0; b < rom.battleProperties.array.length; b++) {
-                    battleList.appendChild(liForBattle(b));
+//                for (var b = 0; b < rom.battleProperties.array.length; b++) {
+//                    battleList.appendChild(liForBattle(b));
+//                }
+                if (rom.battleProperties && rom.battleProperties.assembly && rom.battleProperties.assembly.editor) {
+                    propertyList.getEditor(rom.battleProperties.assembly.editor);
                 }
             }
             
@@ -505,35 +508,35 @@
                 return li;
             }
 
-            function liForBattle(b) {
-                var li = document.createElement("li");
-                li.classList.add("nav-object")
-                li.onclick = function(e) {
-                    e.stopPropagation();
-                    propertyList.select(rom.battleProperties.item(b));
-                }
-                var span = document.createElement("span");
-                span.innerHTML = b.toString();
-                span.classList.add("navListIndex");
-                li.appendChild(span);
-                var name = battleName(b);
-                rom.stringTable.battleProperties.string[b].value = name;
-                li.innerHTML += rom.stringTable.battleProperties.string[b].fString();
-                return li;
-            }
-            
-            function battleName(b) {
-
-                var defaultName = "Battle " + b.toString();
-                if (!rom.battleProperties) return defaultName;
-                var battleProperties = rom.battleProperties.item(b);
-                if (!battleProperties || !battleProperties.editor) return defaultName;
-                var editor = propertyList.getEditor(battleProperties.editor);
-                if (!editor || !editor.battleName) return defaultName;
-                var name = editor.battleName(b);
-                if (name === "") return defaultName;
-                return name;
-            }
+//            function liForBattle(b) {
+//                var li = document.createElement("li");
+//                li.classList.add("nav-object")
+//                li.onclick = function(e) {
+//                    e.stopPropagation();
+//                    propertyList.select(rom.battleProperties.item(b));
+//                }
+//                var span = document.createElement("span");
+//                span.innerHTML = b.toString();
+//                span.classList.add("navListIndex");
+//                li.appendChild(span);
+//                var name = battleName(b);
+//                rom.stringTable.battleProperties.string[b].value = name;
+//                li.innerHTML += rom.stringTable.battleProperties.string[b].fString();
+//                return li;
+//            }
+//            
+//            function battleName(b) {
+//
+//                var defaultName = "Battle " + b.toString();
+//                if (!rom.battleProperties) return defaultName;
+//                var battleProperties = rom.battleProperties.item(b);
+//                if (!battleProperties || !battleProperties.editor) return defaultName;
+//                var editor = propertyList.getEditor(battleProperties.editor);
+//                if (!editor || !editor.battleName) return defaultName;
+//                var name = editor.battleName(b);
+//                if (name === "") return defaultName;
+//                return name;
+//            }
 
             function togglePane(p) {
                 var pane = document.getElementById(p);

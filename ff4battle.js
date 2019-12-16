@@ -11,6 +11,7 @@ function FF4Battle(rom) {
     this.b = null; // battle index
     this.bg = 0; // battle background index
     this.altPalette = false; // use alternate background palette
+    this.backAttack = false;
     this.battleProperties = null;
     this.ppu = null;
     this.canvas = document.createElement('canvas');
@@ -39,44 +40,105 @@ function FF4Battle(rom) {
     this.canvas.onmouseleave = function(e) { self.mouseLeave(e) };
     this.monsterPoint = null;
     this.clickedPoint = null;
+    
+    this.updateBattleStrings();
 }
 
 FF4Battle.prototype = Object.create(ROMEditor.prototype);
 FF4Battle.prototype.constructor = FF4Battle;
 
-FF4Battle.prototype.battleName = function(b) {
-    var battleProperties = this.rom.battleProperties.item(b);
-    var monster1 = battleProperties.monster1.value;
-    var monster2 = battleProperties.monster2.value;
-    var monster3 = battleProperties.monster3.value;
-    var m1 = battleProperties.monster1Count.value
-    var m2 = battleProperties.monster2Count.value
-    var m3 = battleProperties.monster3Count.value
+//FF4Battle.prototype.battleName = function(b) {
+//    var battleProperties = this.rom.battleProperties.item(b);
+//    var monster1 = battleProperties.monster1.value;
+//    var monster2 = battleProperties.monster2.value;
+//    var monster3 = battleProperties.monster3.value;
+//    var m1 = battleProperties.monster1Count.value
+//    var m2 = battleProperties.monster2Count.value
+//    var m3 = battleProperties.monster3Count.value
+//
+//    if (monster2 === monster3) { m2 += m3; m3 = 0; }
+//    if (monster1 === monster2) { m1 += m2; m2 = 0; }
+//    if (monster1 === monster3) { m1 += m3; m3 = 0; }
+//
+//    var battleName = "";
+//    if (m1 !== 0) {
+//        battleName += "<monsterName[" + monster1.toString() + "]>"
+//        if (m1 !== 1) battleName += " ×" + m1;
+//    }
+//    if (m2 !== 0) {
+//        if (battleName !== "") battleName += ", ";
+//        battleName += "<monsterName[" + monster2.toString() + "]>"
+//        if (m2 !== 1) battleName += " ×" + m2;
+//    }
+//    if (m3 !== 0) {
+//        if (battleName !== "") battleName += ", ";
+//        battleName += "<monsterName[" + monster3.toString() + "]>"
+//        if (m3 !== 1) battleName += " ×" + m3;
+//    }
+//    if (battleName === "") battleName = "Battle %i";
+//    return battleName;
+//}
 
-    if (monster2 === monster3) { m2 += m3; m3 = 0; }
-    if (monster1 === monster2) { m1 += m2; m2 = 0; }
-    if (monster1 === monster3) { m1 += m3; m3 = 0; }
+FF4Battle.prototype.updateBattleStrings = function() {
+    
+    var paletteStringTable = this.rom.stringTable.monsterPalette;
+    var graphicsStringTable = this.rom.stringTable.monsterGraphics;
+    for (var m = 0; m < this.rom.monsterProperties.array.length; m++) {
+        
+        // skip characters
+        if (this.rom.monsterGraphicsProperties.item(m).isCharacter.value) continue;
 
-    var battleName = "";
-    if (m1 !== 0) {
-        battleName += "<monsterName[" + monster1.toString() + "]>"
-        if (m1 !== 1) battleName += " ×" + m1;
+        var p = this.rom.monsterGraphicsProperties.item(m).palette.value;
+        var paletteString = paletteStringTable.string[p];
+        if (!paletteString) {
+            paletteStringTable.setString(p, "<stringTable.monsterName[" + m.toString() + "]>");
+        }
+        
+        var g = this.rom.monsterGraphicsProperties.item(m).graphicsPointer.value;
+        var graphicsString = graphicsStringTable.string[g];
+        if (!graphicsString) {
+            graphicsStringTable.setString(g, "<stringTable.monsterName[" + m.toString() + "]>");
+        } else {
+            // duplicate monsters using the same graphics
+            graphicsString.value += ", <stringTable.monsterName[" + m.toString() + "]>";
+        }
     }
-    if (m2 !== 0) {
-        if (battleName !== "") battleName += ", ";
-        battleName += "<monsterName[" + monster2.toString() + "]>"
-        if (m2 !== 1) battleName += " ×" + m2;
+    
+    for (var b = 0; b < this.rom.battleProperties.array.length; b++) {
+        var battleProperties = this.rom.battleProperties.item(b);
+        var monster1 = battleProperties.monster1.value;
+        var monster2 = battleProperties.monster2.value;
+        var monster3 = battleProperties.monster3.value;
+        var m1 = battleProperties.monster1Count.value
+        var m2 = battleProperties.monster2Count.value
+        var m3 = battleProperties.monster3Count.value
+
+        if (monster2 === monster3) { m2 += m3; m3 = 0; }
+        if (monster1 === monster2) { m1 += m2; m2 = 0; }
+        if (monster1 === monster3) { m1 += m3; m3 = 0; }
+
+        var battleName = "";
+        if (m1 !== 0) {
+            battleName += "<monsterName[" + monster1.toString() + "]>"
+            if (m1 !== 1) battleName += " ×" + m1;
+        }
+        if (m2 !== 0) {
+            if (battleName !== "") battleName += ", ";
+            battleName += "<monsterName[" + monster2.toString() + "]>"
+            if (m2 !== 1) battleName += " ×" + m2;
+        }
+        if (m3 !== 0) {
+            if (battleName !== "") battleName += ", ";
+            battleName += "<monsterName[" + monster3.toString() + "]>"
+            if (m3 !== 1) battleName += " ×" + m3;
+        }
+        this.rom.stringTable.battleProperties.string[b].value = battleName;
     }
-    if (m3 !== 0) {
-        if (battleName !== "") battleName += ", ";
-        battleName += "<monsterName[" + monster3.toString() + "]>"
-        if (m3 !== 1) battleName += " ×" + m3;
-    }
-    if (battleName === "") battleName = "Battle %i";
-    return battleName;
 }
 
 FF4Battle.prototype.mouseDown = function(e) {
+    
+    this.closeList();
     
     var x = Math.floor(e.offsetX / this.zoom) + this.battleRect.l;
     var y = Math.floor(e.offsetY / this.zoom) + this.battleRect.t;
@@ -95,6 +157,7 @@ FF4Battle.prototype.mouseDown = function(e) {
 }
 
 FF4Battle.prototype.mouseMove = function(e) {
+    this.closeList();
     if (!this.selectedMonster || !this.clickedPoint) return;
     
     var x = Math.floor(e.offsetX / this.zoom) + this.battleRect.l;
@@ -102,6 +165,12 @@ FF4Battle.prototype.mouseMove = function(e) {
     
     var dx = x - this.clickedPoint.x;
     var dy = y - this.clickedPoint.y;
+
+    // move backward enemies in the opposite direction
+    if (this.backAttack) dx = -dx;
+
+    if (dx < 0) dx += 7;
+    if (dy < 0) dy += 7;
 
     var monsterX = this.selectedMonster.x.value;
     var monsterY = this.selectedMonster.y.value;
@@ -165,17 +234,16 @@ FF4Battle.prototype.show = function() {
     this.closeList();
     this.addTwoState("showMonsters", function(checked) { battle.showMonsters = checked; battle.drawBattle(); }, "Monsters", this.showMonsters);
     
-    var bgList = [];
+    var bgNames = [];
     for (var i = 0; i < this.rom.battleBackgroundProperties.array.length; i++) {
-        bgList.push({
-            id: "bg" + i.toString(),
-            name: this.rom.stringTable.battleBackgroundProperties.string[i].fString(),
-            onchange: function(bg) { battle.bg = bg; battle.drawBattle(); },
-            selected: function(bg) { return battle.bg === bg ? true : false; }
-        });
+        bgNames.push(this.rom.stringTable.battleBackgroundProperties.string[i].fString());
     }
-    this.addList("showBackground", "Background", bgList);
+    var onChangeBG = function(bg) { battle.bg = bg; battle.drawBattle(); }
+    var bgSelected = function(bg) { return battle.bg === bg; }
+    this.addList("showBackground", "Background", bgNames, onChangeBG, bgSelected);
+
     this.addTwoState("useAltPalette", function(checked) { battle.altPalette = checked; battle.drawBattle(); }, "Alt. Palette", this.altPalette);
+    this.addTwoState("backAttack", function(checked) { battle.backAttack = checked; battle.drawBattle(); }, "Back Attack", this.backAttack);
     this.addTwoState("showVRAM", function(checked) { vram.show(checked); }, "VRAM", this.showVRAM);
 }
 
@@ -186,6 +254,7 @@ FF4Battle.prototype.loadBattle = function(b) {
         this.observer.stopObserving(this.battleProperties);
         this.b = b;
         this.battleProperties = this.rom.battleProperties.item(b);
+        if (this.battleProperties.flags1.value & 0x01) this.backAttack = true;
         this.observer.startObserving(this.battleProperties, this.loadBattle);
     }
     
@@ -257,13 +326,19 @@ FF4Battle.prototype.monsterInSlot = function(slot) {
         w = 16; h = 24;
     }
 
+    var rect = new Rect(x.value, x.value + w, y.value, y.value + h);
+    if (this.backAttack) {
+        rect.l = 256 - (x.value + w);
+        rect.r = 256 - x.value;
+    }
+    
     return {
         slot: slot,
         m: m,
         type: type,
         x: x,
         y: y,
-        rect: new Rect(x.value, x.value + w, y.value, y.value + h),
+        rect: rect,
         gfxProperties: gfxProperties,
         bossProperties: bossProperties,
         size: size,
@@ -397,7 +472,7 @@ FF4Battle.prototype.drawMonster = function(slot) {
     ppu.renderPPU(imageData.data);
     context.putImageData(imageData, 0, 0);
     
-    if (m.hidden) this.transparentMonster();
+    if (m.hidden || (this.battleProperties.flags2.value & 0x80)) this.transparentMonster();
     
     // tint the selected monster
     if (this.selectedMonster && this.selectedMonster.slot === slot) this.tintMonster();
@@ -405,8 +480,17 @@ FF4Battle.prototype.drawMonster = function(slot) {
     var ctx = this.battleCanvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
     ctx.webkitImageSmoothingEnabled = false;
-    monsterRect = m.rect;
-    ctx.drawImage(this.monsterCanvas, 0, 0, monsterRect.w, monsterRect.h, monsterRect.l, monsterRect.t, monsterRect.w, monsterRect.h);
+    if (!this.backAttack) {
+        ctx.drawImage(this.monsterCanvas, 0, 0, m.rect.w, m.rect.h, m.rect.l, m.rect.t, m.rect.w, m.rect.h);
+    } else {
+        // flip monster horizontally
+        ctx.scale(-1, 1);
+        ctx.drawImage(this.monsterCanvas, 0, 0, m.rect.w, m.rect.h, -m.rect.l, m.rect.t, -m.rect.w, m.rect.h);
+        ctx.setTransform(1,0,0,1,0,0);
+    }
+
+//    monsterRect = m.rect;
+//    ctx.drawImage(this.monsterCanvas, 0, 0, m.rect.w, m.rect.h, m.rect.l, m.rect.t, m.rect.w, m.rect.h);
 }
 
 FF4Battle.prototype.tintMonster = function() {
@@ -429,7 +513,7 @@ FF4Battle.prototype.transparentMonster = function() {
     transparentCanvas.width = this.monsterCanvas.width;
     transparentCanvas.height = this.monsterCanvas.height;
     var ctx = transparentCanvas.getContext('2d');
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
     ctx.fillRect(0, 0, this.monsterCanvas.width, this.monsterCanvas.height);
     
     ctx = this.monsterCanvas.getContext('2d');
@@ -786,7 +870,7 @@ FF4BattleVRAM.prototype.transparentMonster = function(type) {
     transparentCanvas.width = this.vramCanvas.width;
     transparentCanvas.height = this.vramCanvas.height;
     var ctx = transparentCanvas.getContext('2d');
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
     var typeRect = this.rectForType(type);
     ctx.fillRect(typeRect.l, typeRect.t, typeRect.w, typeRect.h);
     

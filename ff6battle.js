@@ -10,6 +10,7 @@ function FF6Battle(rom) {
 
     this.b = null; // battle index
     this.bg = 0; // battle background index
+    this.battleType = FF6Battle.Type.normal;
     this.battleProperties = null;
     this.ppu = null;
     this.canvas = document.createElement('canvas');
@@ -39,40 +40,102 @@ function FF6Battle(rom) {
     this.canvas.onmouseleave = function(e) { self.mouseLeave(e) };
     this.monsterPoint = null;
     this.clickedPoint = null;
+    
+    this.updateBattleStrings();
 }
 
 FF6Battle.prototype = Object.create(ROMEditor.prototype);
 FF6Battle.prototype.constructor = FF6Battle;
 
-FF6Battle.prototype.battleName = function(b) {
-    var battleProperties = this.rom.battleProperties.item(b);
-    
-    // count up the monsters
-    var monsterList = {};
-    var index, count;
-    for (var m = 1; m <= 6; m++) {
-        index = battleProperties["monster" + m].value;
-        if (index === 0x01FF) continue;
-        count = monsterList[index];
-        monsterList[index] = (count || 0) + 1;
-    }
+FF6Battle.Type = {
+    normal: "normal",
+    back: "back",
+    pincer: "pincer",
+    side: "side"
+}
 
-    var battleName = "";
-    var keys = Object.keys(monsterList);
-    for (var k = 0; k < keys.length; k++) {
-        index = keys[k];
-        count = monsterList[index];
-        if (battleName !== "") battleName += ", ";
-        battleName += "<stringTable.monsterName[" + index.toString() + "]>"
-//        battleName += this.rom.stringTable.monsterName.fString(index);
-        if (count !== 1) battleName += " ×" + count;
+//FF6Battle.prototype.battleName = function(b) {
+//    var battleProperties = this.rom.battleProperties.item(b);
+//    
+//    // count up the monsters
+//    var monsterList = {};
+//    var index, count;
+//    for (var m = 1; m <= 6; m++) {
+//        index = battleProperties["monster" + m].value;
+//        if (index === 0x01FF) continue;
+//        count = monsterList[index];
+//        monsterList[index] = (count || 0) + 1;
+//    }
+//
+//    var battleName = "";
+//    var keys = Object.keys(monsterList);
+//    for (var k = 0; k < keys.length; k++) {
+//        index = keys[k];
+//        count = monsterList[index];
+//        if (battleName !== "") battleName += ", ";
+//        battleName += "<stringTable.monsterName[" + index.toString() + "]>"
+////        battleName += this.rom.stringTable.monsterName.fString(index);
+//        if (count !== 1) battleName += " ×" + count;
+//    }
+//    
+//    if (battleName === "") battleName = "Battle %i";
+//    return battleName;
+//}
+
+FF6Battle.prototype.updateBattleStrings = function() {
+    
+    var paletteStringTable = this.rom.stringTable.monsterPalette;
+    var graphicsStringTable = this.rom.stringTable.monsterGraphics;
+    for (var m = 0; m < this.rom.monsterProperties.array.length; m++) {
+        var p = this.rom.monsterGraphicsProperties.item(m).palette.value;
+        var paletteString = paletteStringTable.string[p];
+        if (!paletteString) {
+            paletteStringTable.setString(p, "<stringTable.monsterName[" + m.toString() + "]>");
+        }
+        
+        var g = this.rom.monsterGraphicsProperties.item(m).graphicsPointer.value;
+        var graphicsString = graphicsStringTable.string[g];
+        if (!graphicsString) {
+            graphicsStringTable.setString(g, "<stringTable.monsterName[" + m.toString() + "]>");
+        } else {
+            // duplicate monsters using the same graphics
+            graphicsString.value += ", <stringTable.monsterName[" + m.toString() + "]>";
+        }
     }
     
-    if (battleName === "") battleName = "Battle %i";
-    return battleName;
+    for (var b = 0; b < this.rom.battleProperties.array.length; b++) {
+        var battleProperties = this.rom.battleProperties.item(b);
+
+        // count up the monsters
+        var monsterList = {};
+        var index, count;
+        for (var m = 1; m <= 6; m++) {
+            index = battleProperties["monster" + m].value;
+            if (index === 0x01FF) continue;
+            count = monsterList[index];
+            monsterList[index] = (count || 0) + 1;
+        }
+
+        var battleName = "";
+        var keys = Object.keys(monsterList);
+        for (var k = 0; k < keys.length; k++) {
+            index = keys[k];
+            count = monsterList[index];
+            if (battleName !== "") battleName += ", ";
+            battleName += "<stringTable.monsterName[" + index.toString() + "]>"
+    //        battleName += this.rom.stringTable.monsterName.fString(index);
+            if (count !== 1) battleName += " ×" + count;
+        }
+
+        if (battleName === "") battleName = "Battle %i";
+        this.rom.stringTable.battleProperties.string[b].value = battleName;
+    }
 }
 
 FF6Battle.prototype.mouseDown = function(e) {
+    
+    this.closeList();
+    
     var x = Math.floor(e.offsetX / this.zoom) + this.battleRect.l;
     var y = Math.floor(e.offsetY / this.zoom) + this.battleRect.t;
     this.selectedMonster = this.monsterAtPoint(x, y);
@@ -82,14 +145,14 @@ FF6Battle.prototype.mouseDown = function(e) {
         var m = this.selectedMonster;
         this.selectedCharacter = null;
         this.clickedPoint = {x: x, y: y};
-        this.monsterPoint = { x: m.rect.l, y: m.rect.t };
-        propertyList.select(this.rom.monsterProperties.item(this.selectedMonster.monster));
+        this.monsterPoint = { x: m.x.value, y: m.y.value };
+        propertyList.select(this.rom.monsterProperties.item(m.monster));
     } else if (this.selectedCharacter) {
         var c = this.selectedCharacter;
         this.clickedPoint = {x: x, y: y};
         var characterAI = this.characterAI();
-        this.characterPoint = { x: c.rect.l, y: c.rect.t };
-        propertyList.select(this.rom.monsterProperties.item(this.selectedCharacter.script) || this.characterAI());
+        this.characterPoint = { x: c.x.value, y: c.y.value };
+        propertyList.select(this.rom.monsterProperties.item(c.script) || characterAI);
     } else {
         propertyList.select(this.battleProperties);
     }
@@ -108,13 +171,37 @@ FF6Battle.prototype.mouseMove = function(e) {
     if (this.selectedMonster) {
         var m = this.selectedMonster;
         
+        // move backward enemies in the opposite direction
+        if (m.hFlip && this.battleType !== FF6Battle.Type.side) dx = -dx;
+
         if (dx < 0) dx += 7;
         if (dy < 0) dy += 7;
-
+        
         var newX = (this.monsterPoint.x + dx) & ~7;
         var newY = (this.monsterPoint.y + dy) & ~7;
-        newX = Math.max(0, Math.min(newX, 120));
-        newY = Math.max(0, Math.min(newY, 120));
+        
+        // fix x position for pincer attack
+        if (this.battleType === FF6Battle.Type.pincer) {
+            if (m.hFlip) {
+                // monster is on the right
+                if (newX > 0x78) {
+                    // monster moved from right to left
+                    newX = 0x68 - m.rect.w - (newX - 0x78);
+                } else if (newX + m.rect.w < 0x68) {
+                    return;
+                }
+            } else {
+                // monster is on the left
+                if (newX + m.rect.w >= 0x68) {
+                    // monster moved from left to right
+                    newX = 0x80 - (newX + m.rect.w - 0x68);
+                    if (newX + m.rect.w < 0x68) return;
+                }
+            }
+        }
+        
+        newX = Math.max(0, Math.min(newX, 0x78));
+        newY = Math.max(0, Math.min(newY, 0x78));
         if (newX === m.x.value && newY === m.y.value) return;
         
         this.observer.stopObserving(this.battleProperties);
@@ -209,16 +296,32 @@ FF6Battle.prototype.show = function() {
     this.closeList();
     this.addTwoState("showMonsters", function(checked) { battle.showMonsters = checked; battle.drawBattle(); }, "Monsters", this.showMonsters);
     
-    var bgList = [];
+    var bgNames = [];
     for (var i = 0; i < this.rom.battleBackgroundProperties.array.length; i++) {
-        bgList.push({
-            id: "bg" + i.toString(),
-            name: this.rom.stringTable.battleBackground.string[i].fString(),
-            onchange: function(bg) { battle.bg = bg; battle.drawBattle(); },
-            selected: function(bg) { return battle.bg === bg ? true : false; }
-        });
+        bgNames.push(this.rom.stringTable.battleBackground.string[i].fString());
     }
-    this.addList("showBackground", "Background", bgList);
+    var onChangeBG = function(bg) { battle.bg = bg; battle.drawBattle(); }
+    var bgSelected = function(bg) { return battle.bg === bg; }
+    this.addList("showBackground", "Background", bgNames, onChangeBG, bgSelected);
+    
+    var onChangeType = function(type) {
+        switch (type) {
+            case 0: battle.battleType = FF6Battle.Type.normal; break;
+            case 1: battle.battleType = FF6Battle.Type.back; break;
+            case 2: battle.battleType = FF6Battle.Type.pincer; break;
+            case 3: battle.battleType = FF6Battle.Type.side; break;
+        }
+        battle.drawBattle();
+    }
+    var typeSelected = function(type) {
+        switch (type) {
+            case 0: return battle.battleType === FF6Battle.Type.normal;
+            case 1: return battle.battleType === FF6Battle.Type.back;
+            case 2: return battle.battleType === FF6Battle.Type.pincer;
+            case 3: return battle.battleType === FF6Battle.Type.side;
+        }
+    }
+    this.addList("battleType", "Type", ["Normal", "Back", "Pincer", "Side"], onChangeType, typeSelected);
     this.addTwoState("showVRAM", function(checked) { vram.show(checked); }, "VRAM", this.showVRAM);
 }
 
@@ -279,6 +382,27 @@ FF6Battle.prototype.monsterInSlot = function(slot) {
         oversize = true;
         h = vramRect.h || h;
     }
+    
+    // see C1/1481
+    var hFlip = false;
+    switch (this.battleType) {
+        case FF6Battle.Type.normal:
+            break;
+        case FF6Battle.Type.back:
+            x = 256 - (x + w);
+            hFlip = true;
+            break;
+        case FF6Battle.Type.pincer:
+            if ((x + w) < 0x68) break;
+            x = 256 - (x + w - 0x40);
+            hFlip = true;
+            break;
+        case FF6Battle.Type.side:
+            x += 0x30;
+            if (x < 0x80) hFlip = true;
+            break;
+    }
+    var rect = new Rect(x, x + w, y, y + h);
 
     return {
         "slot": slot,
@@ -287,7 +411,8 @@ FF6Battle.prototype.monsterInSlot = function(slot) {
         "present": this.battleProperties["monster" + slot + "Present"],
         "monster": m,
         "graphics": g,
-        "rect": new Rect(x, x + w, y, y + h),
+        "rect": rect,
+        "hFlip": hFlip,
         "vOffset": this.rom.monsterProperties.item(m).verticalOffset.value,
         "oversize": oversize
     };
@@ -498,7 +623,14 @@ FF6Battle.prototype.drawMonster = function(slot) {
     var ctx = this.battleCanvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
     ctx.webkitImageSmoothingEnabled = false;
-    ctx.drawImage(this.monsterCanvas, 0, 0, m.rect.w, m.rect.h, m.rect.l, m.rect.t, m.rect.w, m.rect.h);
+    if (!m.hFlip) {
+        ctx.drawImage(this.monsterCanvas, 0, 0, m.rect.w, m.rect.h, m.rect.l, m.rect.t, m.rect.w, m.rect.h);
+    } else {
+        // flip monster horizontally
+        ctx.scale(-1, 1);
+        ctx.drawImage(this.monsterCanvas, 0, 0, m.rect.w, m.rect.h, -m.rect.l, m.rect.t, -m.rect.w, m.rect.h);
+        ctx.setTransform(1,0,0,1,0,0);
+    }
     
     // draw the monster on the vram canvas
     var vramRect = this.vram.rectForSlot(slot);
@@ -595,7 +727,7 @@ FF6Battle.prototype.transparentMonster = function() {
     transparentCanvas.width = this.monsterCanvas.width;
     transparentCanvas.height = this.monsterCanvas.height;
     var ctx = transparentCanvas.getContext('2d');
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
     ctx.fillRect(0, 0, this.monsterCanvas.width, this.monsterCanvas.height);
     
     ctx = this.monsterCanvas.getContext('2d');
@@ -667,7 +799,13 @@ FF6Battle.prototype.drawGhostTrain = function(slot) {
     var ctx = this.battleCanvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
     ctx.webkitImageSmoothingEnabled = false;
-    ctx.drawImage(this.monsterCanvas, 0, 0, m.rect.w, m.rect.h, m.rect.l, m.rect.t, m.rect.w, m.rect.h);
+    if (!m.hFlip) {
+        ctx.drawImage(this.monsterCanvas, 0, 0, m.rect.w, m.rect.h, m.rect.l, m.rect.t, m.rect.w, m.rect.h);
+    } else {
+        ctx.scale(-1, 1);
+        ctx.drawImage(this.monsterCanvas, 0, 0, m.rect.w, m.rect.h, -m.rect.l, m.rect.t, -m.rect.w, m.rect.h);
+        ctx.setTransform(1,0,0,1,0,0);
+    }
 
     // draw the monster on the vram canvas
     var vramRect = this.vram.rectForSlot(slot);

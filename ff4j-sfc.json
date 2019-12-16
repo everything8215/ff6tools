@@ -3298,7 +3298,12 @@
         "monsterGraphics": {
             "type": "assembly",
             "name": "Monster Graphics",
-            "range": "0x098000-0x0CB2F8"
+            "range": "0x098000-0x0CB2F8",
+            "stringTable": {
+                "length": 0,
+                "default": "Monster Graphics %i",
+                "hideIndex": true
+            }
         },
         "monsterGraphicsProperties": {
             "type": "array",
@@ -3353,14 +3358,16 @@
                     "palette": {
                         "type": "property",
                         "name": "Palette",
-                        "begin": 1
+                        "begin": 1,
+                        "stringTable": "monsterPalette"
                     },
                     "graphicsPointer": {
                         "type": "property",
-                        "name": "Graphics Pointer",
+                        "name": "Graphics",
                         "begin": 2,
                         "mask": "0x7FFF",
-                        "multiplier": 8
+                        "multiplier": 8,
+                        "stringTable": "monsterGraphics"
                     },
                     "is3bpp": {
                         "type": "property",
@@ -3439,6 +3446,11 @@
             "assembly": {
                 "length": 16,
                 "format": "bgr555"
+            },
+            "stringTable": {
+                "length": 0,
+                "default": "Monster Palette %i",
+                "hideIndex": true
             }
         },
         "monsterPosition": {

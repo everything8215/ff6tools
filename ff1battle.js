@@ -30,54 +30,93 @@ function FF1Battle(rom) {
 
     var self = this;
     this.canvas.onmousedown = function(e) { self.mouseDown(e) };
+    
+    this.updateBattleStrings();
 }
 
 FF1Battle.prototype = Object.create(ROMEditor.prototype);
 FF1Battle.prototype.constructor = FF1Battle;
 
-FF1Battle.prototype.battleName = function(b) {
-    var battleProperties = this.rom.battleProperties.item(b);
-    var monster1 = battleProperties.monster1.value;
-    var monster2 = battleProperties.monster2.value;
-    var monster3 = battleProperties.monster3.value;
-    var monster4 = battleProperties.monster4.value;
-    var m1 = battleProperties.monster1Max.value
-    var m2 = battleProperties.monster2Max.value
-    var m3 = battleProperties.monster3Max.value
-    var m4 = battleProperties.monster4Max.value
+//FF1Battle.prototype.battleName = function(b) {
+//    var battleProperties = this.rom.battleProperties.item(b);
+//    var monster1 = battleProperties.monster1.value;
+//    var monster2 = battleProperties.monster2.value;
+//    var monster3 = battleProperties.monster3.value;
+//    var monster4 = battleProperties.monster4.value;
+//    var m1 = battleProperties.monster1Max.value
+//    var m2 = battleProperties.monster2Max.value
+//    var m3 = battleProperties.monster3Max.value
+//    var m4 = battleProperties.monster4Max.value
+//
+//    if (monster3 === monster4) { m3 += m4; m4 = 0; }
+//    if (monster2 === monster4) { m2 += m4; m4 = 0; }
+//    if (monster1 === monster4) { m1 += m4; m4 = 0; }
+//    if (monster2 === monster3) { m2 += m3; m3 = 0; }
+//    if (monster1 === monster2) { m1 += m2; m2 = 0; }
+//    if (monster1 === monster3) { m1 += m3; m3 = 0; }
+//
+//    var battleName = "";
+//    if (m1 !== 0) {
+//        battleName += "<monsterName[" + monster1.toString() + "]>"
+//    }
+//    if (m2 !== 0) {
+//        if (battleName !== "") battleName += ", ";
+//        battleName += "<monsterName[" + monster2.toString() + "]>"
+//    }
+//    if (m3 !== 0) {
+//        if (battleName !== "") battleName += ", ";
+//        battleName += "<monsterName[" + monster3.toString() + "]>"
+//    }
+//    if (m4 !== 0) {
+//        if (battleName !== "") battleName += ", ";
+//        battleName += "<monsterName[" + monster4.toString() + "]>"
+//    }
+//    if (battleName === "") battleName = "Battle %i";
+//    return battleName;
+//}
 
-    if (monster3 === monster4) { m3 += m4; m4 = 0; }
-    if (monster2 === monster4) { m2 += m4; m4 = 0; }
-    if (monster1 === monster4) { m1 += m4; m4 = 0; }
-    if (monster2 === monster3) { m2 += m3; m3 = 0; }
-    if (monster1 === monster2) { m1 += m2; m2 = 0; }
-    if (monster1 === monster3) { m1 += m3; m3 = 0; }
+FF1Battle.prototype.updateBattleStrings = function() {
+    
+    for (var b = 0; b < this.rom.battleProperties.array.length; b++) {
+        var battleProperties = this.rom.battleProperties.item(b);
+        var monster1 = battleProperties.monster1.value;
+        var monster2 = battleProperties.monster2.value;
+        var monster3 = battleProperties.monster3.value;
+        var monster4 = battleProperties.monster4.value;
+        var m1 = battleProperties.monster1Max.value
+        var m2 = battleProperties.monster2Max.value
+        var m3 = battleProperties.monster3Max.value
+        var m4 = battleProperties.monster4Max.value
 
-    var battleName = "";
-    if (m1 !== 0) {
-        battleName += "<monsterName[" + monster1.toString() + "]>"
-//        if (m1 !== 1) battleName += " ×" + m1;
+        if (monster3 === monster4) { m3 += m4; m4 = 0; }
+        if (monster2 === monster4) { m2 += m4; m4 = 0; }
+        if (monster1 === monster4) { m1 += m4; m4 = 0; }
+        if (monster2 === monster3) { m2 += m3; m3 = 0; }
+        if (monster1 === monster2) { m1 += m2; m2 = 0; }
+        if (monster1 === monster3) { m1 += m3; m3 = 0; }
+
+        var battleName = "";
+        if (m1 !== 0) {
+            battleName += "<monsterName[" + monster1.toString() + "]>"
+        }
+        if (m2 !== 0) {
+            if (battleName !== "") battleName += ", ";
+            battleName += "<monsterName[" + monster2.toString() + "]>"
+        }
+        if (m3 !== 0) {
+            if (battleName !== "") battleName += ", ";
+            battleName += "<monsterName[" + monster3.toString() + "]>"
+        }
+        if (m4 !== 0) {
+            if (battleName !== "") battleName += ", ";
+            battleName += "<monsterName[" + monster4.toString() + "]>"
+        }
+        this.rom.stringTable.battleProperties.string[b].value = battleName;
     }
-    if (m2 !== 0) {
-        if (battleName !== "") battleName += ", ";
-        battleName += "<monsterName[" + monster2.toString() + "]>"
-//        if (m2 !== 1) battleName += " ×" + m2;
-    }
-    if (m3 !== 0) {
-        if (battleName !== "") battleName += ", ";
-        battleName += "<monsterName[" + monster3.toString() + "]>"
-//        if (m3 !== 1) battleName += " ×" + m3;
-    }
-    if (m4 !== 0) {
-        if (battleName !== "") battleName += ", ";
-        battleName += "<monsterName[" + monster4.toString() + "]>"
-//        if (m4 !== 1) battleName += " ×" + m4;
-    }
-    if (battleName === "") battleName = "Battle %i";
-    return battleName;
 }
 
 FF1Battle.prototype.mouseDown = function(e) {
+    this.closeList();
     var x = Math.floor(e.offsetX / this.zoom) + this.battleRect.l;
     var y = Math.floor(e.offsetY / this.zoom) + this.battleRect.t;
     this.selectedMonster = this.monsterAtPoint(x, y);
@@ -104,16 +143,13 @@ FF1Battle.prototype.show = function() {
     this.closeList();
     this.addTwoState("showMonsters", function(checked) { battle.showMonsters = checked; battle.drawBattle(); }, "Monsters", this.showMonsters);
     
-    var bgList = [];
+    var bgNames = [];
     for (var i = 0; i < this.rom.stringTable.battleBackground.string.length; i++) {
-        bgList.push({
-            id: "bg" + i.toString(),
-            name: this.rom.stringTable.battleBackground.string[i].fString(),
-            onchange: function(bg) { battle.bg = bg; battle.drawBattle(); },
-            selected: function(bg) { return battle.bg === bg ? true : false; }
-        });
+        bgNames.push(this.rom.stringTable.battleBackground.string[i].fString());
     }
-    this.addList("showBackground", "Background", bgList);
+    var onChangeBG = function(bg) { battle.bg = bg; battle.drawBattle(); }
+    var bgSelected = function(bg) { return battle.bg === bg; }
+    this.addList("showBackground", "Background", bgNames, onChangeBG, bgSelected);
 }
 
 FF1Battle.prototype.loadBattle = function(b) {

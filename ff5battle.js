@@ -36,48 +36,91 @@ function FF5Battle(rom) {
     this.canvas.onmouseleave = function(e) { self.mouseLeave(e) };
     this.monsterPoint = null;
     this.clickedPoint = null;
+    
+    this.updateBattleStrings();
 }
 
 FF5Battle.prototype = Object.create(ROMEditor.prototype);
 FF5Battle.prototype.constructor = FF5Battle;
 
-FF5Battle.prototype.battleName = function(b) {
-    var battleProperties = this.rom.battleProperties.item(b);
-    var isBoss = battleProperties.flags.value & 0x20;
-    
-    // count up the monsters
-    var monsterList = {};
-    var index, count;
-    for (var m = 1; m <= 8; m++) {
-        if (isBoss) {
-            index = battleProperties["monster" + m + "Boss"].value;
-        } else {
-            index = battleProperties["monster" + m].value;
-        }
-        if ((index & 0xFF) === 0xFF) continue;
-        count = monsterList[index];
-        monsterList[index] = (count || 0) + 1;
-    }
+//FF5Battle.prototype.battleName = function(b) {
+//    var battleProperties = this.rom.battleProperties.item(b);
+//    var isBoss = battleProperties.flags.value & 0x20;
+//    
+//    // count up the monsters
+//    var monsterList = {};
+//    var index, count;
+//    for (var m = 1; m <= 8; m++) {
+//        if (isBoss) {
+//            index = battleProperties["monster" + m + "Boss"].value;
+//        } else {
+//            index = battleProperties["monster" + m].value;
+//        }
+//        if ((index & 0xFF) === 0xFF) continue;
+//        count = monsterList[index];
+//        monsterList[index] = (count || 0) + 1;
+//    }
+//
+//    var battleName = "";
+//    var keys = Object.keys(monsterList);
+//    for (var k = 0; k < keys.length; k++) {
+//        index = keys[k];
+//        count = monsterList[index];
+//        if (battleName !== "") battleName += ", ";
+//        if (this.rom.isGBA) {
+//            battleName += "<stringTable.battleMonster[" + index.toString() + "]>"
+//        } else {
+//            battleName += "<stringTable.monsterName[" + index.toString() + "]>"
+//        }
+//        if (count !== 1) battleName += " ×" + count;
+//    }
+//    
+//    if (battleName === "") battleName = "Battle %i";
+//    return battleName;
+//}
 
-    var battleName = "";
-    var keys = Object.keys(monsterList);
-    for (var k = 0; k < keys.length; k++) {
-        index = keys[k];
-        count = monsterList[index];
-        if (battleName !== "") battleName += ", ";
-        if (this.rom.isGBA) {
-            battleName += "<stringTable.battleMonster[" + index.toString() + "]>"
-        } else {
-            battleName += "<stringTable.monsterName[" + index.toString() + "]>"
-        }
-        if (count !== 1) battleName += " ×" + count;
-    }
+FF5Battle.prototype.updateBattleStrings = function() {
     
-    if (battleName === "") battleName = "Battle %i";
-    return battleName;
+    for (var b = 0; b < this.rom.battleProperties.array.length; b++) {
+        var battleProperties = this.rom.battleProperties.item(b);
+        var isBoss = battleProperties.flags.value & 0x20;
+
+        // count up the monsters
+        var monsterList = {};
+        var index, count;
+        for (var m = 1; m <= 8; m++) {
+            if (isBoss) {
+                index = battleProperties["monster" + m + "Boss"].value;
+            } else {
+                index = battleProperties["monster" + m].value;
+            }
+            if ((index & 0xFF) === 0xFF) continue;
+            count = monsterList[index];
+            monsterList[index] = (count || 0) + 1;
+        }
+
+        var battleName = "";
+        var keys = Object.keys(monsterList);
+        for (var k = 0; k < keys.length; k++) {
+            index = keys[k];
+            count = monsterList[index];
+            if (battleName !== "") battleName += ", ";
+            if (this.rom.isGBA) {
+                battleName += "<stringTable.battleMonster[" + index.toString() + "]>"
+            } else {
+                battleName += "<stringTable.monsterName[" + index.toString() + "]>"
+            }
+            if (count !== 1) battleName += " ×" + count;
+        }
+
+        if (battleName === "") battleName = "Battle %i";
+        this.rom.stringTable.battleProperties.string[b].value = battleName;
+    }
 }
 
 FF5Battle.prototype.mouseDown = function(e) {
+    this.closeList();
+
     var x = Math.floor(e.offsetX / this.zoom) + this.battleRect.l;
     var y = Math.floor(e.offsetY / this.zoom) + this.battleRect.t;
     this.selectedMonster = this.monsterAtPoint(x, y);
@@ -164,16 +207,13 @@ FF5Battle.prototype.show = function() {
     this.closeList();
     this.addTwoState("showMonsters", function(checked) { battle.showMonsters = checked; battle.drawBattle(); }, "Monsters", this.showMonsters);
     
-    var bgList = [];
+    var bgNames = [];
     for (var i = 0; i < this.rom.battleBackgroundProperties.array.length; i++) {
-        bgList.push({
-            id: "bg" + i.toString(),
-            name: this.rom.stringTable.battleBackgroundProperties.string[i].fString(),
-            onchange: function(bg) { battle.bg = bg; battle.drawBattle(); },
-            selected: function(bg) { return battle.bg === bg ? true : false; }
-        });
+        bgNames.push(this.rom.stringTable.battleBackgroundProperties.string[i].fString());
     }
-    this.addList("showBackground", "Background", bgList);
+    var onChangeBG = function(bg) { battle.bg = bg; battle.drawBattle(); }
+    var bgSelected = function(bg) { return battle.bg === bg; }
+    this.addList("showBackground", "Background", bgNames, onChangeBG, bgSelected);
 }
 
 FF5Battle.prototype.loadBattle = function(b) {
@@ -461,7 +501,7 @@ FF5Battle.prototype.transparentMonster = function() {
     transparentCanvas.width = this.monsterCanvas.width;
     transparentCanvas.height = this.monsterCanvas.height;
     var ctx = transparentCanvas.getContext('2d');
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
     ctx.fillRect(0, 0, this.monsterCanvas.width, this.monsterCanvas.height);
     
     ctx = this.monsterCanvas.getContext('2d');
