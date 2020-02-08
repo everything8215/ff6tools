@@ -7594,75 +7594,28 @@
                     "length": 1,
                     "opcode": "0xB6",
                     "assembly": {
-                        "count": {
-                            "type": "property",
-                            "name": "Choices",
-                            "begin": 50,
-                            "min": 1,
-                            "max": 8
-                        },
-                        "scriptPointer1": {
-                            "type": "property",
-                            "name": "Choice 1",
+                        "pointerArray": {
+                            "type": "array",
+                            "name": "Script Pointers",
                             "begin": 1,
-                            "mask": "0xFFFFFF",
-                            "script": "eventScript"
-                        },
-                        "scriptPointer2": {
-                            "type": "property",
-                            "name": "Choice 2",
-                            "begin": 4,
-                            "mask": "0xFFFFFF",
-                            "invalid": "this.parent.count.value < 2",
-                            "script": "eventScript"
-                        },
-                        "scriptPointer3": {
-                            "type": "property",
-                            "name": "Choice 3",
-                            "begin": 7,
-                            "mask": "0xFFFFFF",
-                            "invalid": "this.parent.count.value < 3",
-                            "script": "eventScript"
-                        },
-                        "scriptPointer4": {
-                            "type": "property",
-                            "name": "Choice 4",
-                            "begin": 10,
-                            "mask": "0xFFFFFF",
-                            "invalid": "this.parent.count.value < 4",
-                            "script": "eventScript"
-                        },
-                        "scriptPointer5": {
-                            "type": "property",
-                            "name": "Choice 5",
-                            "begin": 13,
-                            "mask": "0xFFFFFF",
-                            "invalid": "this.parent.count.value < 5",
-                            "script": "eventScript"
-                        },
-                        "scriptPointer6": {
-                            "type": "property",
-                            "name": "Choice 6",
-                            "begin": 16,
-                            "mask": "0xFFFFFF",
-                            "invalid": "this.parent.count.value < 6",
-                            "script": "eventScript"
-                        },
-                        "scriptPointer7": {
-                            "type": "property",
-                            "name": "Choice 7",
-                            "begin": 19,
-                            "mask": "0xFFFFFF",
-                            "invalid": "this.parent.count.value < 7",
-                            "script": "eventScript"
-                        },
-                        "scriptPointer8": {
-                            "type": "property",
-                            "name": "Choice 8",
-                            "begin": 22,
-                            "mask": "0xFFFFFF",
-                            "invalid": "this.parent.count.value < 8",
-                            "script": "eventScript"
+                            "array": {
+                                "length": 1,
+                                "min": 1,
+                                "max": 8
+                            },
+                            "assembly": {
+                                "type": "data",
+                                "length": 3,
+                                "assembly": {
+                                    "scriptPointer": {
+                                        "type": "property",
+                                        "name": "Pointer",
+                                        "begin": 0,
+                                        "mask": "0xFFFFFF",
+                                        "script": "eventScript"
+                                    }
+                                }
+                            }
                         }
                     }
                 },
