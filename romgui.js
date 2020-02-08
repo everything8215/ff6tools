@@ -132,7 +132,14 @@ ROMNavigator.prototype.liForCategory = function(definition) {
 
             var object = self.rom.parsePath(options.path);
             if (!object) continue;
-            var li = self.liForObject(object, options);
+            var li;
+            if (object instanceof ROMArray) {
+                li = self.liForArray(object, options);
+            } else if (object instanceof ROMStringTable) {
+                li = self.liForStringTable(object, options);
+            } else {
+                li = self.liForObject(object, options);
+            }
 
             if (!li) continue;
             ul.appendChild(li);
@@ -152,8 +159,8 @@ ROMNavigator.prototype.liForCategory = function(definition) {
 
 ROMNavigator.prototype.liForObject = function(object, options) {
 
-    if (object instanceof ROMArray) return this.liForArray(object, options);
-    if (object instanceof ROMStringTable) return this.liForStringTable(object, options);
+//    if (object instanceof ROMArray) return this.liForArray(object, options);
+//    if (object instanceof ROMStringTable) return this.liForStringTable(object, options);
     
     var li = document.createElement("li");
     li.classList.add("nav-object")
@@ -458,35 +465,68 @@ ROMPropertyList.prototype.showProperties = function() {
 
     } else if (object instanceof ROMData || object instanceof ROMCommand) {
         // object with sub-assemblies
-        var keys = Object.keys(object.assembly);
-        for (var i = 0; i < keys.length; i++) {
-            var key = keys[i];
-            
-            // category name
-            if (isString(object.assembly[key])) {
-                var categoryDiv = document.createElement('div');
-                categoryDiv.classList.add("property-category");
-                properties.appendChild(categoryDiv);
-                
-                var category = document.createElement('p');
-                category.innerHTML = object.assembly[key];
-                categoryDiv.appendChild(category);
-                continue;
-            }
-            
-            if (object.assembly[key].invalid) continue;
-            var assembly = object[key];
-            if (!assembly) continue;
-            
-            var propertyHTML = this.propertyHTML(assembly, {name: object.assembly[key].name});
-            if (!propertyHTML) continue;
-            properties.appendChild(propertyHTML);
-            this.observer.startObserving(assembly, this.showProperties);
+        var assemblyHTML = this.assemblyHTML(object);
+        for (var i = 0; i < assemblyHTML.length; i++) {
+            properties.appendChild(assemblyHTML[i]);
         }
+        
+    } else if (object instanceof ROMArray) {
+        // object is an array
+        var arrayHTML = this.arrayHTML(object);
+        for (var i = 0; i < arrayHTML.length; i++) {
+            properties.appendChild(arrayHTML[i]);
+        }
+        this.observer.startObserving(object, this.showProperties);
     }
     
     this.updateLabels();
 }
+
+ROMPropertyList.prototype.assemblyHTML = function(object, options) {
+    
+    options = options || {};
+    
+    var divs = [];
+    if (!object.assembly) return divs;
+    
+    var keys = Object.keys(object.assembly);
+    for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+
+        // category name
+        if (isString(object.assembly[key])) {
+            var categoryDiv = document.createElement('div');
+            categoryDiv.classList.add("property-category");
+            divs.push(categoryDiv);
+
+            var category = document.createElement('p');
+            category.innerHTML = object.assembly[key];
+            categoryDiv.appendChild(category);
+            continue;
+        }
+
+        if (object.assembly[key].invalid) continue;
+        var assembly = object[key];
+        if (!assembly) continue;
+
+        if (assembly instanceof ROMArray) {
+            // array of properties
+            var arrayHTML = this.arrayHTML(assembly, {name: object.assembly[key].name, index: options.index});
+            if (!arrayHTML) continue;
+            divs = divs.concat(arrayHTML);
+            this.observer.startObserving(assembly, this.showProperties);
+
+        } else {
+            // single property
+            var propertyHTML = this.propertyHTML(assembly, {name: object.assembly[key].name, index: options.index});
+            if (!propertyHTML) continue;
+            divs.push(propertyHTML);
+            this.observer.startObserving(assembly, this.showProperties);
+        }
+    }
+    return divs;
+}
+
 
 ROMPropertyList.prototype.labelHTML = function(object) {
     
@@ -550,6 +590,7 @@ ROMPropertyList.prototype.propertyHTML = function(object, options) {
     options = options || {};
     options.key = options.key || object.key || "undefined";
     options.name = options.name || object.name;
+    if (options.index !== undefined) options.name += " " + options.index.toString();
     options.propertyID = "property-" + options.key;
     options.controlID = "property-control-" + options.key;
     options.labelID = "property-label-" + options.key;
@@ -602,6 +643,9 @@ ROMPropertyList.prototype.propertyHTML = function(object, options) {
         
     } else if (object instanceof ROMString) {
         controlDiv = this.stringControlHTML(object, options);
+        
+    } else if (object instanceof ROMArray) {
+        controlDiv = this.arrayLengthControlHTML(object, options);
         
     } else {
         return null;
@@ -768,7 +812,7 @@ ROMPropertyList.prototype.listControlHTML = function(object, options) {
     var stringTable = this.rom.stringTable[object.stringTable];
     var min = (object.min * object.multiplier) + object.offset;
     var max = (object.max * object.multiplier) + object.offset;
-    for (var i = min; i <= max; i++) {
+    for (var i = min; i <= max; i += object.multiplier) {
 
         var optionString = "";
         if (!stringTable.hideIndex) {
@@ -919,6 +963,73 @@ ROMPropertyList.prototype.stringControlHTML = function(object, options) {
     return controlDiv;
 }
 
+ROMPropertyList.prototype.arrayLengthControlHTML = function(object, options) {
+    // create a div for the control
+    var controlDiv = document.createElement('div');
+    controlDiv.classList.add("property-control-div");
+
+    // length input
+    var input = document.createElement('input');
+    controlDiv.appendChild(input);
+    input.id = options.controlID;
+    input.type = "number";
+    input.classList.add("property-control");
+    input.value = object.array.length.toString();
+    input.min = object.min;
+    input.max = object.max;
+    input.onchange = function() {
+        var value = Number(this.value);
+        object.setLength(value);
+        document.getElementById(this.id).focus();
+    };
+    
+    return controlDiv;
+}
+
+ROMPropertyList.prototype.arrayHTML = function(object, options) {
+    
+    if (object.hidden || object.invalid) return null;
+    
+    options = options || {};
+    options.key = options.key || object.key || "undefined";
+    options.name = options.name || object.name;
+    options.propertyID = "property-" + options.key;
+    options.controlID = "property-control-" + options.key;
+    options.labelID = "property-label-" + options.key;
+
+    var divs = [];
+    
+    // create the category (array heading)
+    var categoryDiv = document.createElement('div');
+    categoryDiv.classList.add("property-category");
+    divs.push(categoryDiv);
+    var category = document.createElement('p');
+    category.innerHTML = options.name;
+    categoryDiv.appendChild(category);
+    
+    // create the length control
+    if (object.min !== object.max) {
+        var lengthDiv = this.propertyHTML(object, {name: "Array Size"});
+        divs.push(lengthDiv);
+    }
+    
+    // create divs for each element in the array
+    for (var i = 0; i < object.array.length; i++) {
+        var element = object.item(i);
+        
+        if (element instanceof ROMData) {
+            var assemblyHTML = this.assemblyHTML(element, {index: i});
+            divs = divs.concat(assemblyHTML);
+            
+        } else {
+            var propertyHTML = this.propertyHTML(element, {index: i});
+            divs.push(propertyHTML);
+        }
+    }
+
+    return divs;
+}
+
 ROMPropertyList.prototype.updateLabels = function() {
     var labels = document.getElementsByClassName("property-label");
     var w = 0;
@@ -966,11 +1077,11 @@ ROMPropertyList.prototype.showEditor = function(object) {
     editor.selectObject(object);
     
     // TODO: come up with a way to select any object in the navigator pane
-    if (object.editor.includes("Map")) {
-        selectMap(object.i);
-    } else if (object.editor.includes("Battle")) {
-        selectBattle(object.i);
-    }
+//    if (object.editor.includes("Map")) {
+//        selectMap(object.i);
+//    } else if (object.editor.includes("Battle")) {
+//        selectBattle(object.i);
+//    }
 }
 
 // ROMScriptList

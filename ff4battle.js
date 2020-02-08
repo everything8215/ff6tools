@@ -24,6 +24,7 @@ function FF4Battle(rom) {
     this.div.appendChild(this.canvas);
     
     this.battleRect = new Rect(8, 249, 1, 141);
+    this.battleRect = new Rect(8, 249, this.rom.isSFC ? 1 : 8, this.rom.isSFC ? 141 : 120);
     this.zoom = 2.0;
 
     this.selectedMonster = null;
@@ -81,6 +82,11 @@ FF4Battle.prototype.constructor = FF4Battle;
 
 FF4Battle.prototype.updateBattleStrings = function() {
     
+    if (this.rom.isGBA) {
+        this.updateBattleStringsGBA();
+        return;
+    }
+    
     var paletteStringTable = this.rom.stringTable.monsterPalette;
     var graphicsStringTable = this.rom.stringTable.monsterGraphics;
     for (var m = 0; m < this.rom.monsterProperties.array.length; m++) {
@@ -132,6 +138,35 @@ FF4Battle.prototype.updateBattleStrings = function() {
             battleName += "<monsterName[" + monster3.toString() + "]>"
             if (m3 !== 1) battleName += " ×" + m3;
         }
+        this.rom.stringTable.battleProperties.string[b].value = battleName;
+    }
+}
+
+FF4Battle.prototype.updateBattleStringsGBA = function() {
+    for (var b = 0; b < this.rom.battleMonster.array.length; b++) {
+        var battleMonster = this.rom.battleMonster.item(b);
+        
+        // count up the monsters
+        var monsterList = {};
+        var index, count;
+        for (var m = 0; m < (battleMonster.array.length - 1); m++) {
+            index = battleMonster.item(m).monster.value;
+            count = monsterList[index];
+            monsterList[index] = (count || 0) + 1;
+        }
+
+        var battleName = "";
+        var keys = Object.keys(monsterList);
+        for (var k = 0; k < keys.length; k++) {
+            index = keys[k];
+            count = monsterList[index];
+            if (battleName !== "") battleName += ", ";
+            battleName += "<stringTable.monsterName[" + index.toString() + "]>"
+    //        battleName += this.rom.stringTable.monsterName.fString(index);
+            if (count !== 1) battleName += " ×" + count;
+        }
+
+        if (battleName === "") battleName = "Battle %i";
         this.rom.stringTable.battleProperties.string[b].value = battleName;
     }
 }
@@ -235,7 +270,7 @@ FF4Battle.prototype.show = function() {
     this.addTwoState("showMonsters", function(checked) { battle.showMonsters = checked; battle.drawBattle(); }, "Monsters", this.showMonsters);
     
     var bgNames = [];
-    for (var i = 0; i < this.rom.battleBackgroundProperties.array.length; i++) {
+    for (var i = 0; i < this.rom.battleBackgroundGraphics.array.length; i++) {
         bgNames.push(this.rom.stringTable.battleBackgroundProperties.string[i].fString());
     }
     var onChangeBG = function(bg) { battle.bg = bg; battle.drawBattle(); }
@@ -244,7 +279,9 @@ FF4Battle.prototype.show = function() {
 
     this.addTwoState("useAltPalette", function(checked) { battle.altPalette = checked; battle.drawBattle(); }, "Alt. Palette", this.altPalette);
     this.addTwoState("backAttack", function(checked) { battle.backAttack = checked; battle.drawBattle(); }, "Back Attack", this.backAttack);
-    this.addTwoState("showVRAM", function(checked) { vram.show(checked); }, "VRAM", this.showVRAM);
+    if (this.rom.isSFC) {
+        this.addTwoState("showVRAM", function(checked) { vram.show(checked); }, "VRAM", this.showVRAM);
+    }
 }
 
 FF4Battle.prototype.loadBattle = function(b) {
@@ -254,7 +291,7 @@ FF4Battle.prototype.loadBattle = function(b) {
         this.observer.stopObserving(this.battleProperties);
         this.b = b;
         this.battleProperties = this.rom.battleProperties.item(b);
-        if (this.battleProperties.flags1.value & 0x01) this.backAttack = true;
+        if (this.rom.isSFC && this.battleProperties.flags1.value & 0x01) this.backAttack = true;
         this.observer.startObserving(this.battleProperties, this.loadBattle);
     }
     
@@ -275,6 +312,8 @@ FF4Battle.prototype.typeHidden = function(type) {
 }
 
 FF4Battle.prototype.monsterInSlot = function(slot) {
+    
+    if (this.rom.isGBA) return this.monsterInSlotGBA(slot);
     
     var type = 1;
     var monsterCount = [
@@ -346,6 +385,40 @@ FF4Battle.prototype.monsterInSlot = function(slot) {
     };
 }
 
+FF4Battle.prototype.monsterInSlotGBA = function(slot) {
+    var battleMonster = this.rom.battleMonster.item(this.b);
+    if (slot >= battleMonster.array.length) return null;
+    var monster = battleMonster.item(slot - 1);
+    
+    var m = monster.monster.value;
+    var type = monster.monsterType.value;
+
+    var monsterSize = this.rom.monsterSize.item(m);
+
+    var x = monster.x;
+    var y = monster.y;
+    var w = monsterSize.width.value;
+    var h = monsterSize.height.value;
+    
+    var rect = new Rect(x.value, x.value + w, y.value, y.value + h);
+    if (this.backAttack) {
+        rect.l = 256 - (x.value + w);
+        rect.r = 256 - x.value;
+    }
+    
+    var hidden = false;
+    
+    return {
+        slot: slot,
+        m: m,
+        type: type,
+        x: x,
+        y: y,
+        rect: rect,
+        hidden: hidden
+    };
+}
+
 FF4Battle.prototype.firstMonsterOfType = function(type) {
     for (var slot = 1; slot <= 8; slot++) {
         var monster = this.monsterInSlot(slot);
@@ -365,8 +438,10 @@ FF4Battle.prototype.monsterAtPoint = function(x, y) {
 }
 
 FF4Battle.prototype.drawBattle = function() {
-    this.vram.clearVRAM();
-    this.vram.loadVRAM();
+    if (this.rom.isSFC) {
+        this.vram.clearVRAM();
+        this.vram.loadVRAM();
+    }
     
     this.drawBackground();
     
@@ -385,10 +460,17 @@ FF4Battle.prototype.drawBattle = function() {
     ctx.webkitImageSmoothingEnabled = false;
     ctx.drawImage(this.battleCanvas, this.battleRect.l, this.battleRect.t, this.battleRect.w, this.battleRect.h, 0, 0, scaledRect.w, scaledRect.h);
     
-    this.vram.drawVRAM();
+    if (this.rom.isSFC) {
+        this.vram.drawVRAM();
+    }
 }
 
 FF4Battle.prototype.drawMonster = function(slot) {
+    
+    if (this.rom.isGBA) {
+        this.drawMonsterGBA(slot);
+        return;
+    }
     
     var m = this.monsterInSlot(slot);
     if (m === null) return; // return if slot is empty
@@ -488,9 +570,73 @@ FF4Battle.prototype.drawMonster = function(slot) {
         ctx.drawImage(this.monsterCanvas, 0, 0, m.rect.w, m.rect.h, -m.rect.l, m.rect.t, -m.rect.w, m.rect.h);
         ctx.setTransform(1,0,0,1,0,0);
     }
+}
 
-//    monsterRect = m.rect;
-//    ctx.drawImage(this.monsterCanvas, 0, 0, m.rect.w, m.rect.h, m.rect.l, m.rect.t, m.rect.w, m.rect.h);
+FF4Battle.prototype.drawMonsterGBA = function(slot) {
+    var m = this.monsterInSlotGBA(slot);
+    if (m === null) return; // return if slot is empty
+
+    // decode the graphics
+    var graphicsData = this.rom.monsterGraphics.item(m.m * 2 + 1);
+    if (!graphicsData.format) {
+        graphicsData.format = ["linear4bpp", "gba-lzss"];
+        graphicsData.disassemble(graphicsData.parent.data);
+    }
+
+    var graphics = graphicsData.data.subarray(16);
+
+    // load size
+    var w = m.rect.w >> 3;
+    var h = m.rect.h >> 3;
+
+    var tiles = new Uint16Array(w * h);
+    for (var t = 0; t < tiles.length; t++) tiles[t] = t;
+
+    // load palette
+    var paletteData = this.rom.monsterGraphics.item(m.m * 2);
+    if (!paletteData.format) {
+        paletteData.format = "bgr555";
+        paletteData.disassemble(paletteData.parent.data);
+    }
+    var pal = paletteData.data.subarray(4);
+
+    // set up the ppu
+    var ppu = new GFX.PPU();
+    ppu.pal = pal;
+    ppu.width = w * 8;
+    ppu.height = h * 8;
+
+    // layer 1
+    ppu.layers[0].format = GFX.TileFormat.snesSpriteTile;
+    ppu.layers[0].cols = w;
+    ppu.layers[0].rows = h;
+    ppu.layers[0].z[0] = GFX.Z.snesS0;
+    ppu.layers[0].z[1] = GFX.Z.snesS1;
+    ppu.layers[0].z[2] = GFX.Z.snesS2;
+    ppu.layers[0].z[3] = GFX.Z.snesS3;
+    ppu.layers[0].gfx = graphics;
+    ppu.layers[0].tiles = tiles;
+    ppu.layers[0].main = true;
+
+    // draw the monster
+    this.monsterCanvas.width = ppu.width;
+    this.monsterCanvas.height = ppu.height;
+    var context = this.monsterCanvas.getContext('2d');
+    var imageData = context.createImageData(ppu.width, ppu.height);
+    ppu.renderPPU(imageData.data);
+    context.putImageData(imageData, 0, 0);
+
+    var ctx = this.battleCanvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    ctx.webkitImageSmoothingEnabled = false;
+    if (!this.backAttack) {
+        ctx.drawImage(this.monsterCanvas, 0, 0, m.rect.w, m.rect.h, m.rect.l, m.rect.t, m.rect.w, m.rect.h);
+    } else {
+        // flip monster horizontally
+        ctx.scale(-1, 1);
+        ctx.drawImage(this.monsterCanvas, 0, 0, m.rect.w, m.rect.h, -m.rect.l, m.rect.t, -m.rect.w, m.rect.h);
+        ctx.setTransform(1,0,0,1,0,0);
+    }
 }
 
 FF4Battle.prototype.tintMonster = function() {
@@ -526,6 +672,11 @@ FF4Battle.altPalette = [0x16, 0x00, 0x00, 0x00, 0x11, 0x00, 0x00, 0x12, 0x14, 0x
 
 FF4Battle.prototype.drawBackground = function() {
     
+    if (this.rom.isGBA) {
+        this.drawBackgroundGBA();
+        return;
+    }
+
     // load graphics
     var bg = (this.b === 439) ? 16 : this.bg;
     var gfx = new Uint8Array(0x10000);
@@ -575,6 +726,46 @@ FF4Battle.prototype.drawBackground = function() {
 
     // layer 2
     this.ppu.layers[1].format = GFX.TileFormat.snes4bppTile;
+    this.ppu.layers[1].cols = 32;
+    this.ppu.layers[1].rows = 32;
+    this.ppu.layers[1].z[0] = GFX.Z.snes2L;
+    this.ppu.layers[1].z[1] = GFX.Z.snes2H;
+    this.ppu.layers[1].gfx = gfx;
+    this.ppu.layers[1].tiles = tiles;
+    this.ppu.layers[1].main = true;
+
+    var context = this.battleCanvas.getContext('2d');
+    imageData = context.createImageData(256, 256);
+    this.ppu.renderPPU(imageData.data, 0, 0, 256, 256);
+    context.putImageData(imageData, 0, 0);
+}
+
+FF4Battle.prototype.drawBackgroundGBA = function() {
+    
+    // load graphics
+    var gfx = new Uint8Array(0x10000);
+    var graphicsData = this.rom.battleBackgroundGraphics.item(this.bg);
+    gfx.set(graphicsData.data.subarray(16));
+        
+    // load layout
+    var layout = this.rom.battleBackgroundLayout.item(this.bg).data.subarray(12);
+    var tiles = new Uint16Array(layout.buffer, layout.byteOffset);
+    
+    // load palette
+    var pal = new Uint32Array(0x100);
+    var paletteData = this.rom.battleBackgroundPalette.item(this.bg);
+    pal[0] = 0xFF000000;
+    pal.set(paletteData.data.subarray(4));
+    
+    // set up the ppu
+    this.ppu = new GFX.PPU();
+    this.ppu.pal = pal;
+    this.ppu.height = 256;
+    this.ppu.width = 256;
+    this.ppu.back = true;
+
+    // layer 2
+    this.ppu.layers[1].format = GFX.TileFormat.gba4bppTile;
     this.ppu.layers[1].cols = 32;
     this.ppu.layers[1].rows = 32;
     this.ppu.layers[1].z[0] = GFX.Z.snes2L;

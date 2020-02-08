@@ -7718,7 +7718,8 @@
                             "type": "property",
                             "name": "Switch Count",
                             "offset": 1,
-                            "mask": "0x07"
+                            "mask": "0x07",
+                            "hidden": true
                         },
                         "anyAll": {
                             "type": "property",
@@ -7731,136 +7732,46 @@
                                 }
                             }
                         },
-                        "switch1": {
-                            "type": "property",
-                            "name": "Switch 1",
+                        "switchArray": {
+                            "type": "array",
+                            "name": "Switches",
                             "begin": 1,
-                            "mask": "0x7FFF",
-                            "stringTable": "eventSwitches"
-                        },
-                        "state1": {
-                            "type": "property",
-                            "name": "State 1",
-                            "begin": 1,
-                            "mask": "0x8000",
-                            "stringTable": {
-                                "string": {
-                                    "0": "Off",
-                                    "1": "On"
+                            "array": {
+                                "length": 1,
+                                "min": 1,
+                                "max": 8
+                            },
+                            "reference": [
+                                {
+                                    "target": "this.parent.count",
+                                    "arrayLength": true
+                                }
+                            ],
+                            "assembly": {
+                                "type": "data",
+                                "length": 2,
+                                "assembly": {
+                                    "switch": {
+                                        "type": "property",
+                                        "name": "Switch",
+                                        "begin": 0,
+                                        "mask": "0x7FFF",
+                                        "stringTable": "eventSwitches"
+                                    },
+                                    "state": {
+                                        "type": "property",
+                                        "name": "State",
+                                        "begin": 0,
+                                        "mask": "0x8000",
+                                        "stringTable": {
+                                            "string": {
+                                                "0": "Off",
+                                                "1": "On"
+                                            }
+                                        }
+                                    }
                                 }
                             }
-                        },
-                        "switch2": {
-                            "type": "property",
-                            "name": "Switch 2",
-                            "begin": 3,
-                            "mask": "0x7FFF",
-                            "stringTable": "eventSwitches",
-                            "invalid": "this.parent.count.value < 2"
-                        },
-                        "state2": {
-                            "type": "property",
-                            "name": "State 2",
-                            "begin": 3,
-                            "mask": "0x8000",
-                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
-                            "invalid": "this.parent.count.value < 2"
-                        },
-                        "switch3": {
-                            "type": "property",
-                            "name": "Switch 3",
-                            "begin": 5,
-                            "mask": "0x7FFF",
-                            "stringTable": "eventSwitches",
-                            "invalid": "this.parent.count.value < 3"
-                        },
-                        "state3": {
-                            "type": "property",
-                            "name": "State 3",
-                            "begin": 5,
-                            "mask": "0x8000",
-                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
-                            "invalid": "this.parent.count.value < 3"
-                        },
-                        "switch4": {
-                            "type": "property",
-                            "name": "Switch 4",
-                            "begin": 7,
-                            "mask": "0x7FFF",
-                            "stringTable": "eventSwitches",
-                            "invalid": "this.parent.count.value < 4"
-                        },
-                        "state4": {
-                            "type": "property",
-                            "name": "State 4",
-                            "begin": 7,
-                            "mask": "0x8000",
-                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
-                            "invalid": "this.parent.count.value < 4"
-                        },
-                        "switch5": {
-                            "type": "property",
-                            "name": "Switch 5",
-                            "begin": 9,
-                            "mask": "0x7FFF",
-                            "stringTable": "eventSwitches",
-                            "invalid": "this.parent.count.value < 5"
-                        },
-                        "state5": {
-                            "type": "property",
-                            "name": "State 5",
-                            "begin": 9,
-                            "mask": "0x8000",
-                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
-                            "invalid": "this.parent.count.value < 5"
-                        },
-                        "switch6": {
-                            "type": "property",
-                            "name": "Switch 6",
-                            "begin": 11,
-                            "mask": "0x7FFF",
-                            "stringTable": "eventSwitches",
-                            "invalid": "this.parent.count.value < 6"
-                        },
-                        "state6": {
-                            "type": "property",
-                            "name": "State 6",
-                            "begin": 11,
-                            "mask": "0x8000",
-                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
-                            "invalid": "this.parent.count.value < 6"
-                        },
-                        "switch7": {
-                            "type": "property",
-                            "name": "Switch 7",
-                            "begin": 13,
-                            "mask": "0x7FFF",
-                            "stringTable": "eventSwitches",
-                            "invalid": "this.parent.count.value < 7"
-                        },
-                        "state7": {
-                            "type": "property",
-                            "name": "State 7",
-                            "begin": 13,
-                            "mask": "0x8000",
-                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
-                            "invalid": "this.parent.count.value < 7"
-                        },
-                        "switch8": {
-                            "type": "property",
-                            "name": "Switch 8",
-                            "begin": 15,
-                            "mask": "0x7FFF",
-                            "stringTable": "eventSwitches",
-                            "invalid": "this.parent.count.value < 8"
-                        },
-                        "state8": {
-                            "type": "property",
-                            "name": "State 8",
-                            "begin": 15,
-                            "mask": "0x8000",
-                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
-                            "invalid": "this.parent.count.value < 8"
                         }
                     }
                 },
@@ -10182,7 +10093,8 @@
                             "type": "property",
                             "name": "Switch Count",
                             "offset": 1,
-                            "mask": "0x07"
+                            "mask": "0x07",
+                            "hidden": true
                         },
                         "anyAll": {
                             "type": "property",
@@ -10195,136 +10107,46 @@
                                 }
                             }
                         },
-                        "switch1": {
-                            "type": "property",
-                            "name": "Switch 1",
+                        "switchArray": {
+                            "type": "array",
+                            "name": "Switches",
                             "begin": 1,
-                            "mask": "0x7FFF",
-                            "stringTable": "eventSwitches"
-                        },
-                        "state1": {
-                            "type": "property",
-                            "name": "State 1",
-                            "begin": 1,
-                            "mask": "0x8000",
-                            "stringTable": {
-                                "string": {
-                                    "0": "Off",
-                                    "1": "On"
+                            "array": {
+                                "length": 1,
+                                "min": 1,
+                                "max": 8
+                            },
+                            "reference": [
+                                {
+                                    "target": "this.parent.count",
+                                    "arrayLength": true
+                                }
+                            ],
+                            "assembly": {
+                                "type": "data",
+                                "length": 2,
+                                "assembly": {
+                                    "switch": {
+                                        "type": "property",
+                                        "name": "Switch",
+                                        "begin": 0,
+                                        "mask": "0x7FFF",
+                                        "stringTable": "eventSwitches"
+                                    },
+                                    "state": {
+                                        "type": "property",
+                                        "name": "State",
+                                        "begin": 0,
+                                        "mask": "0x8000",
+                                        "stringTable": {
+                                            "string": {
+                                                "0": "Off",
+                                                "1": "On"
+                                            }
+                                        }
+                                    }
                                 }
                             }
-                        },
-                        "switch2": {
-                            "type": "property",
-                            "name": "Switch 2",
-                            "begin": 3,
-                            "mask": "0x7FFF",
-                            "stringTable": "eventSwitches",
-                            "invalid": "this.parent.count.value < 2"
-                        },
-                        "state2": {
-                            "type": "property",
-                            "name": "State 2",
-                            "begin": 3,
-                            "mask": "0x8000",
-                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
-                            "invalid": "this.parent.count.value < 2"
-                        },
-                        "switch3": {
-                            "type": "property",
-                            "name": "Switch 3",
-                            "begin": 5,
-                            "mask": "0x7FFF",
-                            "stringTable": "eventSwitches",
-                            "invalid": "this.parent.count.value < 3"
-                        },
-                        "state3": {
-                            "type": "property",
-                            "name": "State 3",
-                            "begin": 5,
-                            "mask": "0x8000",
-                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
-                            "invalid": "this.parent.count.value < 3"
-                        },
-                        "switch4": {
-                            "type": "property",
-                            "name": "Switch 4",
-                            "begin": 7,
-                            "mask": "0x7FFF",
-                            "stringTable": "eventSwitches",
-                            "invalid": "this.parent.count.value < 4"
-                        },
-                        "state4": {
-                            "type": "property",
-                            "name": "State 4",
-                            "begin": 7,
-                            "mask": "0x8000",
-                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
-                            "invalid": "this.parent.count.value < 4"
-                        },
-                        "switch5": {
-                            "type": "property",
-                            "name": "Switch 5",
-                            "begin": 9,
-                            "mask": "0x7FFF",
-                            "stringTable": "eventSwitches",
-                            "invalid": "this.parent.count.value < 5"
-                        },
-                        "state5": {
-                            "type": "property",
-                            "name": "State 5",
-                            "begin": 9,
-                            "mask": "0x8000",
-                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
-                            "invalid": "this.parent.count.value < 5"
-                        },
-                        "switch6": {
-                            "type": "property",
-                            "name": "Switch 6",
-                            "begin": 11,
-                            "mask": "0x7FFF",
-                            "stringTable": "eventSwitches",
-                            "invalid": "this.parent.count.value < 6"
-                        },
-                        "state6": {
-                            "type": "property",
-                            "name": "State 6",
-                            "begin": 11,
-                            "mask": "0x8000",
-                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
-                            "invalid": "this.parent.count.value < 6"
-                        },
-                        "switch7": {
-                            "type": "property",
-                            "name": "Switch 7",
-                            "begin": 13,
-                            "mask": "0x7FFF",
-                            "stringTable": "eventSwitches",
-                            "invalid": "this.parent.count.value < 7"
-                        },
-                        "state7": {
-                            "type": "property",
-                            "name": "State 7",
-                            "begin": 13,
-                            "mask": "0x8000",
-                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
-                            "invalid": "this.parent.count.value < 7"
-                        },
-                        "switch8": {
-                            "type": "property",
-                            "name": "Switch 8",
-                            "begin": 15,
-                            "mask": "0x7FFF",
-                            "stringTable": "eventSwitches",
-                            "invalid": "this.parent.count.value < 8"
-                        },
-                        "state8": {
-                            "type": "property",
-                            "name": "State 8",
-                            "begin": 15,
-                            "mask": "0x8000",
-                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
-                            "invalid": "this.parent.count.value < 8"
                         }
                     }
                 },
@@ -10731,7 +10553,8 @@
                             "type": "property",
                             "name": "Switch Count",
                             "offset": 1,
-                            "mask": "0x07"
+                            "mask": "0x07",
+                            "hidden": true
                         },
                         "anyAll": {
                             "type": "property",
@@ -10744,136 +10567,46 @@
                                 }
                             }
                         },
-                        "switch1": {
-                            "type": "property",
-                            "name": "Switch 1",
+                        "switchArray": {
+                            "type": "array",
+                            "name": "Switches",
                             "begin": 1,
-                            "mask": "0x7FFF",
-                            "stringTable": "eventSwitches"
-                        },
-                        "state1": {
-                            "type": "property",
-                            "name": "State 1",
-                            "begin": 1,
-                            "mask": "0x8000",
-                            "stringTable": {
-                                "string": {
-                                    "0": "Off",
-                                    "1": "On"
+                            "array": {
+                                "length": 1,
+                                "min": 1,
+                                "max": 8
+                            },
+                            "reference": [
+                                {
+                                    "target": "this.parent.count",
+                                    "arrayLength": true
+                                }
+                            ],
+                            "assembly": {
+                                "type": "data",
+                                "length": 2,
+                                "assembly": {
+                                    "switch": {
+                                        "type": "property",
+                                        "name": "Switch",
+                                        "begin": 0,
+                                        "mask": "0x7FFF",
+                                        "stringTable": "eventSwitches"
+                                    },
+                                    "state": {
+                                        "type": "property",
+                                        "name": "State",
+                                        "begin": 0,
+                                        "mask": "0x8000",
+                                        "stringTable": {
+                                            "string": {
+                                                "0": "Off",
+                                                "1": "On"
+                                            }
+                                        }
+                                    }
                                 }
                             }
-                        },
-                        "switch2": {
-                            "type": "property",
-                            "name": "Switch 2",
-                            "begin": 3,
-                            "mask": "0x7FFF",
-                            "stringTable": "eventSwitches",
-                            "invalid": "this.parent.count.value < 2"
-                        },
-                        "state2": {
-                            "type": "property",
-                            "name": "State 2",
-                            "begin": 3,
-                            "mask": "0x8000",
-                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
-                            "invalid": "this.parent.count.value < 2"
-                        },
-                        "switch3": {
-                            "type": "property",
-                            "name": "Switch 3",
-                            "begin": 5,
-                            "mask": "0x7FFF",
-                            "stringTable": "eventSwitches",
-                            "invalid": "this.parent.count.value < 3"
-                        },
-                        "state3": {
-                            "type": "property",
-                            "name": "State 3",
-                            "begin": 5,
-                            "mask": "0x8000",
-                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
-                            "invalid": "this.parent.count.value < 3"
-                        },
-                        "switch4": {
-                            "type": "property",
-                            "name": "Switch 4",
-                            "begin": 7,
-                            "mask": "0x7FFF",
-                            "stringTable": "eventSwitches",
-                            "invalid": "this.parent.count.value < 4"
-                        },
-                        "state4": {
-                            "type": "property",
-                            "name": "State 4",
-                            "begin": 7,
-                            "mask": "0x8000",
-                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
-                            "invalid": "this.parent.count.value < 4"
-                        },
-                        "switch5": {
-                            "type": "property",
-                            "name": "Switch 5",
-                            "begin": 9,
-                            "mask": "0x7FFF",
-                            "stringTable": "eventSwitches",
-                            "invalid": "this.parent.count.value < 5"
-                        },
-                        "state5": {
-                            "type": "property",
-                            "name": "State 5",
-                            "begin": 9,
-                            "mask": "0x8000",
-                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
-                            "invalid": "this.parent.count.value < 5"
-                        },
-                        "switch6": {
-                            "type": "property",
-                            "name": "Switch 6",
-                            "begin": 11,
-                            "mask": "0x7FFF",
-                            "stringTable": "eventSwitches",
-                            "invalid": "this.parent.count.value < 6"
-                        },
-                        "state6": {
-                            "type": "property",
-                            "name": "State 6",
-                            "begin": 11,
-                            "mask": "0x8000",
-                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
-                            "invalid": "this.parent.count.value < 6"
-                        },
-                        "switch7": {
-                            "type": "property",
-                            "name": "Switch 7",
-                            "begin": 13,
-                            "mask": "0x7FFF",
-                            "stringTable": "eventSwitches",
-                            "invalid": "this.parent.count.value < 7"
-                        },
-                        "state7": {
-                            "type": "property",
-                            "name": "State 7",
-                            "begin": 13,
-                            "mask": "0x8000",
-                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
-                            "invalid": "this.parent.count.value < 7"
-                        },
-                        "switch8": {
-                            "type": "property",
-                            "name": "Switch 8",
-                            "begin": 15,
-                            "mask": "0x7FFF",
-                            "stringTable": "eventSwitches",
-                            "invalid": "this.parent.count.value < 8"
-                        },
-                        "state8": {
-                            "type": "property",
-                            "name": "State 8",
-                            "begin": 15,
-                            "mask": "0x8000",
-                            "stringTable": "scriptEncoding.event.jumpSwitch.state1",
-                            "invalid": "this.parent.count.value < 8"
                         }
                     }
                 },

@@ -201,6 +201,8 @@ FF5Battle.prototype.selectObject = function(object) {
 
 FF5Battle.prototype.show = function() {
     var battle = this;
+    document.getElementById('toolbox-buttons').classList.add("hidden");
+    document.getElementById('toolbox-div').classList.add("hidden");
 
     this.resetControls();
     this.showControls();
@@ -442,7 +444,6 @@ FF5Battle.prototype.drawMonster = function(slot) {
         }
         pal = paletteData.data.subarray(4);
     }
-    
     
     // set up the ppu
     var ppu = new GFX.PPU();

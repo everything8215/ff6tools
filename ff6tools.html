@@ -4,6 +4,7 @@
         <meta charset="UTF-8">
         <title>FF6Tools</title>
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+        <link rel="stylesheet" type="text/css" href="balloon.css" />
         <link rel="stylesheet" type="text/css" href="ff6tools.css" />
         
         <script src="https://unpkg.com/split.js@1.5.9/dist/split.min.js"></script>
@@ -17,6 +18,7 @@
         <script type="text/javascript" src="ff4map.js"></script>
         <script type="text/javascript" src="ff4battle.js"></script>
         <script type="text/javascript" src="ff4script.js"></script>
+        <script type="text/javascript" src="ff4level.js"></script>
         <script type="text/javascript" src="ff5map.js"></script>
         <script type="text/javascript" src="ff5battle.js"></script>
         <script type="text/javascript" src="ff5script.js"></script>
@@ -261,20 +263,91 @@
 
                 // create gui objects
                 propertyList = new ROMPropertyList(rom);
-                loadMapNames();
+                if (rom.mapProperties && rom.mapProperties.assembly && rom.mapProperties.assembly.editor)
+                    propertyList.getEditor(rom.mapProperties.assembly.editor);
+                if (rom.battleProperties && rom.battleProperties.assembly && rom.battleProperties.assembly.editor)
+                    propertyList.getEditor(rom.battleProperties.assembly.editor);
+//                loadMapNames();
                 romNavigator = new ROMNavigator(rom);
                 scriptList = new ROMScriptList(rom);
                 
+//                // test compression
+//                // 59, 232, 278 fail
+//                var encoder = new FF5AdvanceEncoder();
+//                var decoder = new FF5AdvanceDecoder();
+//                for (var i = 59; i < this.rom.mapGraphicsData.array.length; i++) {
+//                    var layout = this.rom.mapGraphicsData.item(i);
+//                    for (var m1 = 0; m1 < 5; m1++) {
+//                        for (var m3 = 0; m3 < 5; m3++) {
+//                            encoder.m1 = m1;
+//                            encoder.m3 = m3;
+//                            var testData = encoder.compress(layout.data);
+//                            testData = decoder.decode(testData);
+//                            var pass = compareTypedArrays(testData, layout.data);
+//                            console.log("Layout " + i + ", (" + m1 + "," + m3 + "): " + (pass ? "Pass" : "**Fail**"));
+//                        }
+//                    }
+//                }
+                
                 // select the first map
                 propertyList.select(rom.mapProperties.item(0));
+//                propertyList.select(rom.battleProperties.item(0));
 
                 // output strings to the console
 //                var bigString = "";
-//                for (var d = 0; d < rom.attackName.array.length; d++) {
-//                    var dialogString = rom.attackName.item(d).text;
+//                for (var d = 0; d < rom.text.array.length; d++) {
+//                    var dialogString = rom.text.item(d).text;
 //                    bigString += hexString(d, 4) + ": " + dialogString.replace(/\\n/g, "\n        ").replace(/\\page/g, "\n        ") + "\n";
 //                }
 //                console.log(bigString);
+                
+//                // output script to the console
+//                var bigString = "";
+//                for (var s = 0; s < rom.eventScript.array.length; s++) {
+//                    var scriptString = "Event " + hexString(s, 4, "") + "\n----------\n";
+//                    var script = rom.eventScript.item(s);
+//                    for (var c = 0; c < script.command.length; c++) {
+//                        var command = script.command[c];
+//                        scriptString += hexString(command.range.begin, 4, "") + ": ";
+//                        for (var b = 0; b < 18; b++) {
+//                            if (b < command.data.length) {
+//                                scriptString += hexString(command.data[b], 2, "") + " ";
+//                            } else {
+//                                scriptString += "   ";
+//                            }
+//                        }
+//                        scriptString += " " + command.description + "\n";
+//                        if (command.key.startsWith("dialog")) {
+//                            var d = command.dialog.value & 0x7FFF;
+//                            var dialog = rom.text.item(d);
+//                            if (dialog) {
+//                                scriptString += "                                                             " + dialog.formattedText.replace(/\n/g, "\n                                                             ") + "\n";
+//                            } else {
+//                                scriptString += " (Invalid Dialog)";
+//                            }
+//                        }
+//                    }
+//                    bigString += scriptString + "\n";
+//                }
+//                console.log(bigString);
+
+//                // create a zip file
+//                var zip = new JSZip();
+//                
+//                for (var i = 0; i < rom.mapGraphicsData.array.length; i++) {
+//                    var graphicsData = rom.mapGraphicsData.item(i);
+//                    if (graphicsData.lazyData[0] === 0x70) {
+//                        graphicsData.format = "ff5a-70";
+//                        graphicsData.disassemble(rom.mapGraphicsData.lazyData);
+//                    }
+//                    var graphicsName = hexString(graphicsData.range.begin + rom.mapGraphicsData.range.begin) + ".bin";
+//                    zip.file(graphicsName, graphicsData.data);
+//                }
+//                
+//                zip.generateAsync({ type:"blob" }).then(function(content) {
+//                    // see FileSaver.js
+//                    saveAs(content, "ff4u-gba-graphics.zip");
+//                });
             }
 
             function saveROM(forceSave) {
@@ -303,7 +376,7 @@
                 zip.file(rom.name + '.' + rom.system, rom.data);
                 zip.file(rom.name + '.json', definition);
                 
-                zip.generateAsync({type:"blob"}).then(function(content) {
+                zip.generateAsync({ type:"blob" }).then(function(content) {
                     // see FileSaver.js
                     saveAs(content, rom.name + ".zip");
                 });
@@ -392,34 +465,6 @@
                 }
             }
             
-            function selectMap(m) {
-                
-                var navList = document.getElementById("nav-list-Maps");
-                if (!navList) return;
-                for (var i = 0; i < navList.childNodes.length; i++) {
-                    if (i === m) {
-                        navList.childNodes[i].classList.add("selected");
-                        selectBattle(null);
-                    } else {
-                        navList.childNodes[i].classList.remove("selected");
-                    }
-                }
-            }
-
-            function selectBattle(m) {
-                
-                var navList = document.getElementById("nav-list-Battles");
-                if (!navList) return;
-                for (var i = 0; i < navList.childNodes.length; i++) {
-                    if (i === m) {
-                        navList.childNodes[i].classList.add("selected");
-                        selectMap(null);
-                    } else {
-                        navList.childNodes[i].classList.remove("selected");
-                    }
-                }
-            }
-
             function undo() {
                 if (rom.canUndo()) rom.undo();
             }
@@ -437,106 +482,6 @@
                     obj.parentNode.classList.remove("checked");
                 }
             }
-
-            function loadMapNames() {
-//                var navList = document.getElementById("navList");
-//                navList.innerHTML = "";
-                
-                // load maps
-                if (!rom.mapProperties) return;
-                var mapCategory = document.createElement("li");
-                mapCategory.classList.add("nav-category");
-//                mapCategory.classList.add("shown");
-                mapCategory.onclick = function() {
-                    this.classList.toggle("shown");
-                }
-//                navList.appendChild(mapCategory);
-                
-                var p = document.createElement("p");
-                p.innerHTML = "Maps";
-                mapCategory.appendChild(p);
-                
-                var mapList = document.createElement("ul");
-                mapList.id = "nav-list-Maps";
-                mapList.classList.add("nav-list");
-                mapCategory.appendChild(mapList);
-                
-                for (var m = 0; m < rom.mapProperties.array.length; m++) {
-                    mapList.appendChild(liForMap(m));
-                }
-                
-                // load battles
-                if (!rom.battleProperties) return;
-                var battleCategory = document.createElement("li");
-                battleCategory.classList.add("nav-category");
-//                battleCategory.classList.add("shown");
-                battleCategory.onclick = function() {
-                    this.classList.toggle("shown");
-                }
-//                navList.appendChild(battleCategory);
-                
-                var p = document.createElement("p");
-                p.innerHTML = "Battles";
-                battleCategory.appendChild(p);
-                
-                var battleList = document.createElement("ul");
-                battleList.id = "nav-list-Battles";
-                battleList.classList.add("nav-list");
-                battleCategory.appendChild(battleList);
-                
-//                for (var b = 0; b < rom.battleProperties.array.length; b++) {
-//                    battleList.appendChild(liForBattle(b));
-//                }
-                if (rom.battleProperties && rom.battleProperties.assembly && rom.battleProperties.assembly.editor) {
-                    propertyList.getEditor(rom.battleProperties.assembly.editor);
-                }
-            }
-            
-            function liForMap(m) {
-                var mapNames = rom.stringTable["mapProperties"];
-                var li = document.createElement("li");
-                li.classList.add("nav-object")
-                li.onclick = function(e) {
-                    e.stopPropagation();
-                    propertyList.select(rom.mapProperties.item(m));
-                }
-                var span = document.createElement("span");
-                span.innerHTML = m.toString();
-                span.classList.add("nav-object-index");
-                li.appendChild(span);
-                li.innerHTML += mapNames.string[m].fString();
-                return li;
-            }
-
-//            function liForBattle(b) {
-//                var li = document.createElement("li");
-//                li.classList.add("nav-object")
-//                li.onclick = function(e) {
-//                    e.stopPropagation();
-//                    propertyList.select(rom.battleProperties.item(b));
-//                }
-//                var span = document.createElement("span");
-//                span.innerHTML = b.toString();
-//                span.classList.add("navListIndex");
-//                li.appendChild(span);
-//                var name = battleName(b);
-//                rom.stringTable.battleProperties.string[b].value = name;
-//                li.innerHTML += rom.stringTable.battleProperties.string[b].fString();
-//                return li;
-//            }
-//            
-//            function battleName(b) {
-//
-//                var defaultName = "Battle " + b.toString();
-//                if (!rom.battleProperties) return defaultName;
-//                var battleProperties = rom.battleProperties.item(b);
-//                if (!battleProperties || !battleProperties.editor) return defaultName;
-//                var editor = propertyList.getEditor(battleProperties.editor);
-//                if (!editor || !editor.battleName) return defaultName;
-//                var name = editor.battleName(b);
-//                if (name === "") return defaultName;
-//                return name;
-//            }
 
             function togglePane(p) {
                 var pane = document.getElementById(p);
@@ -562,35 +507,28 @@
             
             <div id="topbar">
                 <div>
-                    <button class="icon-btn float-left tooltip" onclick="document.getElementById('rom-file').click();" >
+                    <button class="icon-btn float-left" onclick="document.getElementById('rom-file').click();" aria-label="Open ROM" data-balloon-pos="down-left">
                         <i class="fas fa-folder-open"></i>
-                        <span class="tooltiptext">Open ROM</span>
                     </button>
                     <input type="file" style="display:none;" id="rom-file" name="file"/>
-                    <button class="icon-btn float-left tooltip" onclick="saveROM()">
+                    <button class="icon-btn float-left" onclick="saveROM()" aria-label="Save ROM" data-balloon-pos="down">
                         <i class="fas fa-save"></i>
-                        <span class="tooltiptext">Save ROM</span>
                     </button>
-                    <button class="icon-btn float-left tooltip" onclick="undo()">
+                    <button class="icon-btn float-left" onclick="undo()" aria-label="Undo" data-balloon-pos="down">
                         <i class="fas fa-undo"></i>
-                        <span class="tooltiptext">Undo</span>
                     </button>
-                    <button class="icon-btn float-left tooltip" onclick="redo()">
+                    <button class="icon-btn float-left" onclick="redo()" aria-label="Redo" data-balloon-pos="down">
                         <i class="fas fa-redo"></i>
-                        <span class="tooltiptext">Redo</span>
                     </button>
                     
-                    <button class="icon-btn float-right tooltip" onclick="togglePane('toolbox')">
+                    <button class="icon-btn float-right" onclick="togglePane('toolbox')" aria-label="Show/Hide Toolbox" data-balloon-pos="down-right">
                         <i class="fas fa-angle-double-right"></i>
-                        <span class="tooltiptext">Show/Hide Toolbox</span>
                     </button>
-                    <button class="icon-btn float-right tooltip" onclick="togglePane('edit-bottom')">
+                    <button class="icon-btn float-right" onclick="togglePane('edit-bottom')" aria-label="Show/Hide Script" data-balloon-pos="down-right">
                         <i class="fas fa-angle-double-down"></i>
-                        <span class="tooltiptext">Show/Hide Script</span>
                     </button>
-                    <button class="icon-btn float-right tooltip" onclick="togglePane('nav')">
+                    <button class="icon-btn float-right" onclick="togglePane('nav')" aria-label="Show/Hide Navigator" data-balloon-pos="down">
                         <i class="fas fa-angle-double-left"></i>
-                        <span class="tooltiptext">Show/Hide Navigator</span>
                     </button>
                 </div>
             </div>

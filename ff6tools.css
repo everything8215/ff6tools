@@ -775,48 +775,6 @@ body {
     content: "✓";
 }
 
-.tooltip {
-    position: relative;
-    display: inline-block;
-}
-
-.tooltip .tooltiptext {
-    opacity: 0;
-    display: none;
-    z-index: 12;
-    width: 120px;
-    background-color: black;
-    color: #fff;
-    text-align: center;
-    font-size: small;
-    border-radius: 5px;
-    padding: 5px;
-    position: absolute;
-    top: 150%;
-    left: 50%;
-    margin-left: -65px;
-}
-
-.tooltip .tooltiptext::after {
-    content: "";
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    margin-left: -5px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: transparent transparent black transparent;
-}
-
-/*
-.tooltip:hover .tooltiptext {
-    display: inline-block;
-    transition: 0.5s;
-    transition-delay: 0.25s;
-    opacity: 1;
-}
-*/
-
 .modal {
     display: none;
     position: fixed;
@@ -898,4 +856,8 @@ body {
 
 .expand-div label {
     font-size: small;
+}
+
+#chart-edit {
+    background-color: hsl(0, 0%, 95%);
 }

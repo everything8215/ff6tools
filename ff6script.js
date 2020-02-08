@@ -44,9 +44,11 @@ FF6Script.description = function(command) {
             break;
         case "jumpDialog":
             desc = command.name;
-            var choices = (command.data.length - 1) / 3;
-            for (var c = 1; c <= choices; c++) {
-                offset = command["scriptPointer" + c].value;
+            var choices = command.pointerArray.array.length;
+//            var choices = (command.data.length - 1) / 3;
+            for (var c = 0; c < choices; c++) {
+                offset = command.pointerArray.item(c).scriptPointer.value;
+//                offset = command["scriptPointer" + c].value;
                 label = FF6Script.label(command.parent, offset);
                 desc += "<br/>" + c + ": ";
                 desc += label;
@@ -55,13 +57,14 @@ FF6Script.description = function(command) {
         case "jumpSwitch":
             offset = command.scriptPointer.value;
             label = FF6Script.label(command.parent, offset);
-            var count = command.count.value;
+            var count = command.switchArray.array.length;
             var anyAll = command.anyAll.value ? "all" : "any";
             
             desc = "Jump to " + label + " if " + anyAll + " of these are true:"
-            for (var s = 1; s <= count; s++) {
-                var eventSwitch = this.string(command, "switch" + s, "eventSwitches");
-                var state = command["state" + s].value ? "On" : "Off";
+            for (var s = 0; s < count; s++) {
+                var switchAssembly = command.switchArray.item(s);
+                var eventSwitch = this.string(switchAssembly, "switch", "eventSwitches");
+                var state = switchAssembly.state.value ? "On" : "Off";
                 desc += "<br/>" + s + ". " + eventSwitch + " == " + state;
             }
             break;
@@ -207,13 +210,19 @@ FF6Script.didDisassemble = function(command, data) {
                 choices = matches.length;
                 break;
             }
-            command.range.end += choices * 3;
-            command.count.value = choices;
+            command.range.end = command.range.begin + 1 + choices * 3;
+//            command.count.value = choices;
+            command.pointerArray.array.length = choices;
+            command.pointerArray.range.end = command.range.length;
             
             ROMData.prototype.disassemble.call(command, data);
-            for (c = 1; c <= choices; c++) {
-                offset = command["scriptPointer" + c].value;
-                command.parent.addPlaceholder(command["scriptPointer" + c], offset, "event");
+            command.pointerArray.disassemble(command.data);
+            for (c = 0; c < choices; c++) {
+                var pointer = command.pointerArray.item(c).scriptPointer;
+                offset = pointer.value;
+                command.parent.addPlaceholder(pointer, offset, "event");
+//                offset = command["scriptPointer" + c].value;
+//                command.parent.addPlaceholder(command["scriptPointer" + c], offset, "event");
             }
             break;
 
@@ -224,7 +233,11 @@ FF6Script.didDisassemble = function(command, data) {
             // update the command's range
             command.range.end = command.range.begin + length;
             command.assembly.scriptPointer.range = new ROMRange(length - 3, length);
+            command.switchArray.array.length = count;
+            command.switchArray.range.end = command.switchArray.range.begin + count * 2;
             ROMData.prototype.disassemble.call(command, data);
+            command.switchArray.disassemble(command.data);
+            command.scriptPointer.disassemble(command.data);
             
             // add a placeholder at the jump offset
             offset = command.scriptPointer.value;
@@ -284,12 +297,33 @@ FF6Script.willAssemble = function(command) {
         case "switch":
             if (command.encoding !== "event") break;
             command.bank.value = command.switch.value >> 8;
+            command.bank.markAsDirty();
+            break;
+
+        case "jumpDialog":
+            var count = command.pointerArray.array.length;
+            var length = 1 + count * 3;
+            var newData = new Uint8Array(length);
+            newData.set(command.data);
+            command.lazyData = null;
+            command.data = newData;
+            command.range.end = command.range.begin + length;
+            command.assembly.pointerArray.range.end = length;
             break;
 
         case "jumpSwitch":
-            var count = command.count.value;
+            var count = command.switchArray.array.length;
+            if (command.count.value !== count) {
+                command.count.value = count;
+                command.count.markAsDirty();
+            }
             var length = count * 2 + 4;
+            var newData = new Uint8Array(length);
+            newData.set(command.data);
+            command.lazyData = null;
+            command.data = newData;
             command.range.end = command.range.begin + length;
+            command.assembly.switchArray.range.end = length - 3;
             command.assembly.scriptPointer.range = new ROMRange(length - 3, length);
             break;
 

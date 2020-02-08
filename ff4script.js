@@ -81,6 +81,9 @@ FF4Script.description = function(command) {
 
         case "mapDialog":
             var map = propertyList.editors["FF4Map"];
+            if (!map) {
+                return "Display Map Dialog " + command.dialog.value.toString();
+            }
             var m = map.m;
             
             var dialog = command.rom.mapDialog.item(m).item(command.dialog.value);
@@ -154,12 +157,19 @@ FF4Script.description = function(command) {
 
 FF4Script.string = function(command, key, stringKey) {
     var stringTable;
+    var property = command[key];
+    if (!property) return "Invalid String";
+    
     if (stringKey) {
         stringTable = command.rom.stringTable[stringKey];
     } else {
-        stringTable = command.rom.stringTable[command[key].stringTable];
+        stringTable = command.rom.stringTable[property.stringTable];
     }
-    return stringTable.string[command[key].value].fString();
+    
+    var value = property.value;
+    var string = stringTable.string[value];
+    if (!string) return "Invalid String";
+    return string.fString();
 }
 
 FF4Script.fixSwitch = function(switchProperty) {

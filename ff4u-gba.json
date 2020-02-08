@@ -1,0 +1,2076 @@
+{
+    "type": "rom",
+    "key": "ff4u-gba",
+    "name": "Final Fantasy IV Advance (U)",
+    "length": "0x800000",
+    "crc32": "0xFEEEBDE4",
+    "system": "gba",
+    "pointerLength": 4,
+    "mode": "gba",
+    "pad": "0x00",
+    "hierarchy": [
+        {
+            "name": "Map",
+            "list": [
+                {
+                    "name": "Maps",
+                    "path": "mapProperties"
+                }
+            ]
+        }, {
+            "name": "Event",
+            "list": [
+                {
+                    "name": "Event Script",
+                    "path": "eventScript"
+                }
+            ]
+        }, {
+            "name": "Battle",
+            "list": [
+                {
+                    "name": "Battles",
+                    "path": "battleProperties"
+                }, {
+                    "name": "Monsters",
+                    "path": "monsterProperties"
+                }
+            ]
+        }
+    ],
+    "assembly": {
+        "battleBackgroundGraphics": {
+            "type": "array",
+            "name": "Battle Background Graphics",
+            "range": "0x081301E0-0x08181B44",
+            "array": {
+                "length": 22
+            },
+            "assembly": {
+                "format": ["linear4bpp", "gba-lzss"]
+            },
+            "pointerTable": {
+                "range": "0x080F6EB8-0x080F6F10"
+            }
+        },
+        "battleBackgroundPalette": {
+            "type": "array",
+            "name": "Battle Background Palette",
+            "range": "0x08181B44-0x08182C74",
+            "array": {
+                "length": 22
+            },
+            "assembly": {
+                "format": "bgr555"
+            },
+            "pointerTable": {
+                "range": "0x080F6F14-0x080F6F6C"
+            }
+        },
+        "battleBackgroundLayout": {
+            "type": "array",
+            "name": "Battle Background Palette",
+            "range": "0x08182C74-0x0818857C",
+            "array": {
+                "length": 22
+            },
+            "pointerTable": {
+                "range": "0x080F6F70-0x080F6FC8"
+            }
+        },
+        "battleMonster": {
+            "type": "array",
+            "name": "Battle Monster",
+            "range": "0x080FEA74-0x08104064",
+            "array": {
+                "length": 751
+            },
+            "assembly": {
+                "type": "array",
+                "assembly": {
+                    "type": "data",
+                    "length": 8,
+                    "assembly": {
+                        "monsterType": {
+                            "type": "property",
+                            "name": "Type",
+                            "begin": 0,
+                            "mask": "0xFFFF",
+                            "stringTable": {
+                                "string": {
+                                    "0": "Type 1",
+                                    "1": "Type 2",
+                                    "2": "Type 3",
+                                    "0xFF": "Empty"
+                                }
+                            }
+                        },
+                        "monster": {
+                            "type": "property",
+                            "name": "Monster",
+                            "begin": 2,
+                            "mask": "0xFFFF",
+                            "stringTable": "monsterName",
+                            "link": "monsterProperties[%i]"
+                        },
+                        "x": {
+                            "type": "property",
+                            "name": "X Position",
+                            "begin": 4,
+                            "multiplier": 8,
+                            "offset": 8,
+                            "hidden": true
+                        },
+                        "y": {
+                            "type": "property",
+                            "name": "Y Position",
+                            "begin": 5,
+                            "multiplier": 8,
+                            "offset": 16,
+                            "hidden": true
+                        }
+                    }
+                }
+            },
+            "pointerTable": {
+                "range": "0x080FDEB8-0x080FEA74"
+            }
+        },
+        "battleProperties": {
+            "type": "array",
+            "name": "Battle Properties",
+            "range": "0x080E8000-0x080E9000",
+            "array": {
+                "length": 751
+            },
+            "assembly": {
+                "type": "data",
+                "length": 8,
+                "editor": "FF4Battle",
+                "assembly": {
+
+                }
+            },
+            "stringTable": {
+                "name": "Battle Properties",
+                "length": 751,
+                "default": "Battle %i"
+            }
+        },
+        "eventScript": {
+            "type": "array",
+            "name": "Event Script",
+            "range": "0x08393DC4-0x083CA6E4",
+            "array": {
+                "length": 1241
+            },
+            "assembly": {
+                "type": "script",
+                "encoding": "event"
+            },
+            "pointerTable": {
+                "range": "0x08392A5C-0x08393DC4",
+                "offset": "0x08393DC4"
+            },
+            "stringTable": {
+                "name": "Event Scripts",
+                "length": 1241,
+                "default": "Event %i",
+                "string": {
+                    "0x008B": "Castle Baron",
+                    "0x008C": "Castle Baron: Cid Intro",
+                    "0x0242": "Town Baron",
+                    "0x02B8": "Village Mist: Bomb Ring",
+                    "0x02BB": "Village Mist"
+                }
+            }
+        },
+        "mapGraphicsData": {
+            "type": "array",
+            "name": "Map Graphics Data",
+            "range": "0x0823D3CC-0x082BF2F0",
+            "array": {
+                "length": 896
+            },
+            "pointerTable": {
+                "range": "0x080D95A4-0x080DA3A4"
+            }
+        },
+        "mapProperties": {
+            "type": "array",
+            "name": "Map Properties",
+            "range": "0x080E10B4-0x080E4748",
+            "array": {
+                "length": 499
+            },
+            "assembly": {
+                "type": "data",
+                "length": 28,
+                "editor": "FF4Map",
+                "assembly": {
+                    "tileset": {
+                        "type": "property",
+                        "name": "Tileset",
+                        "begin": 0,
+                        "mask": "0xFFFF"
+                    },
+                    "layout": {
+                        "type": "property",
+                        "name": "Map Layout",
+                        "begin": 2,
+                        "mask": "0x0FFF"
+                    },
+                    "tileProperties": {
+                        "type": "property",
+                        "name": "Tile Properties",
+                        "begin": 4,
+                        "mask": "0xFFFF"
+                    },
+                    "unknown_6": {
+                        "type": "property",
+                        "name": "Unknown 6",
+                        "begin": 6,
+                        "mask": "0xFFFF"
+                    },
+                    "exitPointer": {
+                        "type": "property",
+                        "name": "Exit Pointer",
+                        "begin": 8,
+                        "mask": "0x7FFFFFFF"
+                    },
+                    "treasures": {
+                        "type": "property",
+                        "name": "Treasures",
+                        "begin": 12,
+                        "mask": "0x0FFF",
+                        "offset": 402
+                    },
+                    "unknown_14": {
+                        "type": "property",
+                        "name": "Unknown 14",
+                        "begin": 14,
+                        "mask": "0x0FFF",
+                        "offset": 402
+                    },
+                    "npcs": {
+                        "type": "property",
+                        "name": "NPCs",
+                        "begin": 16,
+                        "mask": "0x0FFF"
+                    },
+                    "unknown_18": {
+                        "type": "property",
+                        "name": "Unknown 18",
+                        "begin": 18,
+                        "mask": "0xFFFF"
+                    },
+                    "unknown_20": {
+                        "type": "property",
+                        "name": "Unknown 20",
+                        "begin": 20,
+                        "mask": "0xFF"
+                    },
+                    "unknown_21": {
+                        "type": "property",
+                        "name": "Unknown 21",
+                        "begin": 21,
+                        "mask": "0xFF"
+                    },
+                    "unknown_22": {
+                        "type": "property",
+                        "name": "Unknown 22",
+                        "begin": 22,
+                        "mask": "0xFFFF"
+                    },
+                    "battlePointer": {
+                        "type": "property",
+                        "name": "Battle Pointer",
+                        "begin": 24,
+                        "mask": "0x7FFFFFFF"
+                    }
+                }
+            },
+            "stringTable": {
+                "name": "Map Names",
+                "length": 499,
+                "link": "text[%i+0x0917]"
+            }
+        },
+        "mapTileset": {
+            "type": "array",
+            "name": "Map Tileset",
+            "range": "0x080CAD7C-0x080E4990",
+            "array": {
+                "length": 34
+            },
+            "assembly": {
+                "type": "data",
+                "assembly": {
+                    "palette": {
+                        "type": "property",
+                        "name": "Palette",
+                        "begin": 0,
+                        "mask": "0x0FFF"
+                    },
+                    "graphics": {
+                        "type": "property",
+                        "name": "Graphics",
+                        "begin": 4,
+                        "mask": "0x0FFF"
+                    },
+                    "tileset": {
+                        "type": "property",
+                        "name": "Tileset",
+                        "begin": 6,
+                        "mask": "0x0FFF"
+                    },
+                    "animationPointer": {
+                        "type": "property",
+                        "name": "Animation Pointer",
+                        "begin": 8,
+                        "mask": "0x7FFFFFFF"
+                    }
+                }
+            },
+            "pointerTable": {
+                "range": "0x080E4748-0x080E47D0"
+            }
+        },
+        "mapExit": {
+            "type": "array",
+            "name": "Map Exit",
+            "range": "0x080CA818-0x080D95A4",
+            "array": {
+                "length": 499
+            },
+            "assembly": {
+                "type": "array",
+                "assembly": {
+                    "type": "data",
+                    "length": 12,
+                    "assembly": {
+                        "map": {
+                            "type": "property",
+                            "name": "Map",
+                            "begin": 0,
+                            "mask": "0xFFFF",
+                            "link": "mapProperties[%i]",
+                            "stringTable": "mapProperties"
+                        },
+                        "x": {
+                            "type": "property",
+                            "name": "X Destination",
+                            "begin": 2
+                        },
+                        "y": {
+                            "type": "property",
+                            "name": "Y Destination",
+                            "begin": 3
+                        }
+                    }
+                }
+            },
+            "pointerTable": "mapProperties[%i].exitPointer"
+        },
+        "mapSpriteGraphics": {
+            "type": "array",
+            "name": "Map Sprite Graphics",
+            "range": "0x082BF9D8-0x082E26A8",
+            "array": {
+                "length": 1304
+            },
+            "pointerTable": {
+                "range": "0x080D5858-0x080D6CB8"
+            }
+        },
+        "mapSpriteProperties": {
+            "type": "array",
+            "name": "Map Sprite Properties",
+            "range": "0x080D6D28-0x080D70F4",
+            "array": {
+                "length": 243
+            },
+            "assembly": {
+                "type": "data",
+                "length": 4,
+                "assembly": {
+                    "offset": {
+                        "type": "property",
+                        "name": "Offset",
+                        "begin": 0,
+                        "mask": "0xFFFF"
+                    }
+                }
+            }
+        },
+        "mapTriggers": {
+            "type": "array",
+            "name": "Map Triggers",
+            "range": "0x080DCC98-0x080E10B4",
+            "array": {
+                "length": 595
+            },
+            "assembly": {
+                "type": "array",
+                "assembly": {
+                    "type": "data",
+                    "length": 12,
+                    "assembly": {
+                        "triggerType": {
+                            "type": "property",
+                            "name": "Type",
+                            "begin": 0,
+                            "mask": "0xFF"
+                        },
+                        "graphics": {
+                            "type": "property",
+                            "name": "Graphics",
+                            "begin": 1,
+                            "mask": "0xFF"
+                        },
+                        "x": {
+                            "type": "property",
+                            "name": "X Position",
+                            "begin": 2,
+                            "mask": "0xFF"
+                        },
+                        "y": {
+                            "type": "property",
+                            "name": "Y Position",
+                            "begin": 3,
+                            "mask": "0xFF"
+                        },
+                        "direction": {
+                            "type": "property",
+                            "name": "Direction",
+                            "begin": 4,
+                            "mask": "0xFF"
+                        },
+                        "event": {
+                            "type": "property",
+                            "name": "Event",
+                            "begin": 8,
+                            "mask": "0xFFFF"
+                        }
+                    }
+                }
+            },
+            "pointerTable": "mapTriggerPointers[%i].triggerPointer"
+        },
+        "mapTriggerPointers": {
+            "type": "array",
+            "name": "Pointers to Map Triggers",
+            "range": "0x080DBA00-0x080DCC98",
+            "array": {
+                "length": 595
+            },
+            "assembly": {
+                "type": "data",
+                "length": 8,
+                "assembly": {
+                    "triggerPointer": {
+                        "type": "property",
+                        "name": "Pointer",
+                        "start": 0,
+                        "mask": "0x7FFFFFFF"
+                    },
+                    "count": {
+                        "type": "property",
+                        "name": "Count",
+                        "start": 4,
+                        "mask": "0xFFFF"
+                    }
+                }
+            }
+        },
+        "monsterGraphics": {
+            "type": "array",
+            "name": "Monster/Summon Graphics",
+            "range": "0x0818857C-0x081D9F70",
+            "array": {
+                "length": 724
+            },
+            "pointerTable": {
+                "range": "0x080F6FC8-0x080F7B18"
+            }
+        },
+        "monsterProperties": {
+            "type": "array",
+            "name": "Monster Properties",
+            "range": "0x080EA860-0x080EB439",
+            "array": {
+                "length": 224
+            },
+            "assembly": {
+                "type": "data",
+                "assembly": {
+                }
+            },
+            "pointerTable": {
+                "range": "0x0EA6A0-0x0EA860",
+                "offset": "0x0E0000"
+            },
+            "stringTable": "monsterName"
+        },
+        "monsterSize": {
+            "type": "array",
+            "name": "Monster Properties",
+            "range": "0x080F8018-0x080F9110",
+            "array": {
+                "length": 362
+            },
+            "assembly": {
+                "type": "data",
+                "length": 12,
+                "assembly": {
+                    "width": {
+                        "type": "property",
+                        "name": "Width",
+                        "begin": 3,
+                        "multiplier": 8
+                    },
+                    "height": {
+                        "type": "property",
+                        "name": "Height",
+                        "begin": 4,
+                        "multiplier": 8
+                    }
+                }
+            }
+        },
+        "text": {
+            "type": "array",
+            "name": "Text",
+            "range": "0x082E98BC-0x08323B68",
+            "isSequential": true,
+            "array": {
+                "length": 6287
+            },
+            "assembly": {
+                "type": "text",
+                "encoding": "text",
+                "multiLine": true
+            },
+            "pointerTable": {
+                "range": "0x082E3680-0x082E98BC",
+                "offset": "0x082E3670"
+            },
+            "stringTable": {
+                "name": "Text",
+                "length": 6287,
+                "default": "<text[%i]>"
+            }
+        }
+    },
+    "scriptEncoding": {
+        "event": {
+            "name": "Event Script",
+            "delegate": "FF4Script",
+            "command": {
+                "unknown_00": {
+                    "name": "Command 0x00",
+                    "opcode": "0x00",
+                    "length": 1
+                },
+                "unknown_01": {
+                    "name": "Command 0x01",
+                    "opcode": "0x01",
+                    "length": 1
+                },
+                "unknown_02": {
+                    "name": "Command 0x02",
+                    "opcode": "0x02",
+                    "length": 1
+                },
+                "loadMap": {
+                    "name": "Load Map",
+                    "opcode": ["0x03", "0x04"],
+                    "length": 6,
+                    "assembly": {
+                        "map": {
+                            "type": "property",
+                            "name": "Map",
+                            "begin": 1,
+                            "mask": "0xFFFF",
+                            "link": "mapProperties[%i]",
+                            "stringTable": "mapProperties"
+                        },
+                        "x": {
+                            "type": "property",
+                            "name": "X Position",
+                            "begin": 3
+                        },
+                        "y": {
+                            "type": "property",
+                            "name": "Y Position",
+                            "begin": 4
+                        },
+                        "direction": {
+                            "type": "property",
+                            "name": "Direction",
+                            "begin": 5
+                        }
+                    }
+                },
+                "end": {
+                    "name": "End of Script",
+                    "opcode": "0x05",
+                    "length": 1
+                },
+                "unknown_06": {
+                    "name": "Command 0x06",
+                    "opcode": "0x06",
+                    "length": 5
+                },
+                "unknown_07": {
+                    "name": "Command 0x07",
+                    "opcode": "0x07",
+                    "length": 1
+                },
+                "unknown_08": {
+                    "name": "Command 0x08",
+                    "opcode": "0x08",
+                    "length": 1
+                },
+                "unknown_09": {
+                    "name": "Command 0x09",
+                    "opcode": "0x09",
+                    "length": 1
+                },
+                "unknown_0A": {
+                    "name": "Command 0x0A",
+                    "opcode": "0x0A",
+                    "length": 1
+                },
+                "dialog0D": {
+                    "name": "Display Dialog ?",
+                    "opcode": ["0x0B", "0x0D"],
+                    "length": 5,
+                    "assembly": {
+                        "dialog": {
+                            "type": "property",
+                            "name": "Dialog",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        }
+                    }
+                },
+                "dialog": {
+                    "name": "Display Dialog",
+                    "opcode": ["0x0C", "0x0E", "0x0F", "0x10"],
+                    "length": 3,
+                    "assembly": {
+                        "dialog": {
+                            "type": "property",
+                            "name": "Dialog",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        }
+                    }
+                },
+                "dialogWait": {
+                    "name": "Display Dialog and Wait",
+                    "opcode": "0x11",
+                    "length": 7,
+                    "assembly": {
+                        "dialog": {
+                            "type": "property",
+                            "name": "Dialog",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        }
+                    }
+                },
+                "unknown_12": {
+                    "name": "Command 0x12",
+                    "opcode": "0x12",
+                    "length": 5
+                },
+                "unknown_13": {
+                    "name": "Command 0x13",
+                    "opcode": "0x13",
+                    "length": 1
+                },
+                "showGil": {
+                    "name": "Show Gil",
+                    "opcode": "0x14",
+                    "length": 1
+                },
+                "yesNo": {
+                    "name": "Show Yes/No Box",
+                    "opcode": "0x15",
+                    "length": 3
+                },
+                "takeGil": {
+                    "name": "Take Gil",
+                    "opcode": "0x17",
+                    "length": 5
+                },
+                "unknown_18": {
+                    "name": "Command 0x18",
+                    "opcode": "0x18",
+                    "length": 1
+                },
+                "unknown_19": {
+                    "name": "Command 0x19",
+                    "opcode": "0x19",
+                    "length": 12
+                },
+                "giveItem": {
+                    "name": "Give Item",
+                    "opcode": "0x1A",
+                    "length": 3
+                },
+                "takeItem": {
+                    "name": "Take Item",
+                    "opcode": "0x1B",
+                    "length": 3
+                },
+                "cinematicEffect": {
+                    "name": "Cinematic Effect",
+                    "opcode": "0x1C",
+                    "length": 5
+                },
+                "unknown_1D": {
+                    "name": "Command 0x1D",
+                    "opcode": "0x1D",
+                    "length": 4
+                },
+                "jump": {
+                    "name": "Jump",
+                    "opcode": "0x1E",
+                    "length": 5,
+                    "assembly": {
+                        "scriptPointer": {
+                            "type": "property",
+                            "name": "Script Pointer",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        },
+                        "event": {
+                            "type": "property",
+                            "name": "Event",
+                            "begin": 3,
+                            "mask": "0xFFFF",
+                            "special": {
+                                "0xFFFF": "Current Event"
+                            }
+                        }
+                    }
+                },
+                "loop": {
+                    "name": "Loop",
+                    "opcode": "0x1F",
+                    "length": 5,
+                    "assembly": {
+                        "scriptPointer": {
+                            "type": "property",
+                            "name": "Script Pointer",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        },
+                        "event": {
+                            "type": "property",
+                            "name": "Event",
+                            "begin": 3,
+                            "mask": "0xFFFF",
+                            "special": {
+                                "0xFFFF": "Current Event"
+                            }
+                        }
+                    }
+                },
+                "unknown_20": {
+                    "name": "Command 0x20",
+                    "opcode": "0x20",
+                    "length": 4
+                },
+                "setVariable": {
+                    "name": "Set Variable",
+                    "opcode": "0x21",
+                    "length": 5
+                },
+                "unknown_22": {
+                    "name": "Command 0x22",
+                    "opcode": "0x22",
+                    "length": 1
+                },
+                "unknown_23": {
+                    "name": "Command 0x23",
+                    "opcode": "0x23",
+                    "length": 9
+                },
+                "unknown_25": {
+                    "name": "Command 0x25",
+                    "opcode": "0x25",
+                    "length": 9
+                },
+                "unknown_26": {
+                    "name": "Command 0x26",
+                    "opcode": "0x26",
+                    "length": 7
+                },
+                "unknown_27": {
+                    "name": "Command 0x27",
+                    "opcode": "0x27",
+                    "length": 3
+                },
+                "unknown_28": {
+                    "name": "Command 0x28",
+                    "opcode": "0x28",
+                    "length": 3
+                },
+                "unknown_29": {
+                    "name": "Command 0x29",
+                    "opcode": "0x29",
+                    "length": 3
+                },
+                "unknown_2A": {
+                    "name": "Command 0x2A",
+                    "opcode": "0x2A",
+                    "length": 3
+                },
+                "setSwitch": {
+                    "name": "Set Switch",
+                    "opcode": "0x2F",
+                    "length": 3
+                },
+                "clearSwitch": {
+                    "name": "Clear Switch",
+                    "opcode": "0x30",
+                    "length": 3
+                },
+                "jumpSwitch": {
+                    "name": "Jump Based on Switch",
+                    "opcode": "0x31",
+                    "length": 8,
+                    "assembly": {
+                        "value": {
+                            "type": "property",
+                            "name": "Value",
+                            "begin": 1
+                        },
+                        "switch": {
+                            "type": "property",
+                            "name": "Switch",
+                            "begin": 2,
+                            "mask": "0xFFFF"
+                        },
+                        "scriptPointer": {
+                            "type": "property",
+                            "name": "Script Pointer",
+                            "begin": 4,
+                            "mask": "0xFFFF"
+                        },
+                        "event": {
+                            "type": "property",
+                            "name": "Event",
+                            "begin": 6,
+                            "mask": "0xFFFF",
+                            "special": {
+                                "0xFFFF": "Current Event"
+                            }
+                        }
+                    }
+                },
+                "unknown_32": {
+                    "name": "Command 0x32",
+                    "opcode": "0x32",
+                    "length": 4
+                },
+                "unknown_33": {
+                    "name": "Command 0x33",
+                    "opcode": "0x33",
+                    "length": 3
+                },
+                "unknown_34": {
+                    "name": "Command 0x34",
+                    "opcode": "0x34",
+                    "length": 3
+                },
+                "unknown_35": {
+                    "name": "Command 0x35",
+                    "opcode": "0x35",
+                    "length": 6
+                },
+                "unknown_36": {
+                    "name": "Command 0x36",
+                    "opcode": "0x36",
+                    "length": 4
+                },
+                "wait": {
+                    "name": "Wait",
+                    "opcode": "0x37",
+                    "length": 3,
+                    "assembly": {
+                        "duration": {
+                            "type": "property",
+                            "name": "Duration",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        }
+                    }
+                },
+                "objectAction": {
+                    "name": "Set Object Action",
+                    "opcode": "0x38",
+                    "length": 2
+                },
+                "unknown_39": {
+                    "name": "Command 0x39",
+                    "opcode": "0x39",
+                    "length": 5
+                },
+                "unknown_3A": {
+                    "name": "Command 0x3A",
+                    "opcode": "0x3A",
+                    "length": 1
+                },
+                "moveObject": {
+                    "name": "Move Object",
+                    "opcode": "0x3B",
+                    "length": 4,
+                    "assembly": {
+                        "object": {
+                            "type": "property",
+                            "name": "Object",
+                            "begin": 1
+                        },
+                        "direction": {
+                            "type": "property",
+                            "name": "Direction",
+                            "begin": 2
+                        },
+                        "speed": {
+                            "type": "property",
+                            "name": "Speed",
+                            "begin": 3
+                        }
+                    }
+                },
+                "unknown_3C": {
+                    "name": "Command 0x3C",
+                    "opcode": "0x3C",
+                    "length": 13
+                },
+                "unknown_3D": {
+                    "name": "Command 0x3D",
+                    "opcode": "0x3D",
+                    "length": 3
+                },
+                "unknown_3E": {
+                    "name": "Command 0x3E",
+                    "opcode": "0x3E",
+                    "length": 3
+                },
+                "unknown_3F": {
+                    "name": "Command 0x3F",
+                    "opcode": "0x3F",
+                    "length": 4
+                },
+                "unknown_40": {
+                    "name": "Command 0x40",
+                    "opcode": "0x40",
+                    "length": 4,
+                    "assembly": {
+                        "x": {
+                            "type": "property",
+                            "name": "X Position",
+                            "begin": 1
+                        },
+                        "y": {
+                            "type": "property",
+                            "name": "Y Position",
+                            "begin": 2
+                        },
+                        "unknown3": {
+                            "type": "property",
+                            "name": "Unkown 3",
+                            "begin": 3
+                        }
+                    }
+                },
+                "queueObject": {
+                    "name": "Queue for Object",
+                    "opcode": "0x41",
+                    "length": 7,
+                    "assembly": {
+                        "object": {
+                            "type": "property",
+                            "name": "Object",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        },
+                        "scriptPointer": {
+                            "type": "property",
+                            "name": "Script Pointer",
+                            "begin": 3,
+                            "mask": "0xFFFF"
+                        },
+                        "event": {
+                            "type": "property",
+                            "name": "Event",
+                            "begin": 5,
+                            "mask": "0xFFFF",
+                            "special": {
+                                "0xFFFF": "Current Event"
+                            }
+                        }
+                    }
+                },
+                "unknown_42": {
+                    "name": "Command 0x42",
+                    "opcode": "0x42",
+                    "length": 7
+                },
+                "unknown_43": {
+                    "name": "Command 0x43",
+                    "opcode": "0x43",
+                    "length": 5
+                },
+                "waitObject": {
+                    "name": "Wait for Object",
+                    "opcode": "0x44",
+                    "length": 3,
+                    "assembly": {
+                        "object": {
+                            "type": "property",
+                            "name": "Object",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        }
+                    }
+                },
+                "unknown_45": {
+                    "name": "Command 0x45",
+                    "opcode": "0x45",
+                    "length": 3
+                },
+                "stopObjectAnimation": {
+                    "name": "Stop Object Animation",
+                    "opcode": "0x46",
+                    "length": 3
+                },
+                "unknown_47": {
+                    "name": "Command 0x47",
+                    "opcode": "0x47",
+                    "length": 3
+                },
+                "objectDirection": {
+                    "name": "Set Object Facing Direction",
+                    "opcode": ["0x49", "0x4B"],
+                    "length": 4
+                },
+                "partyDirection": {
+                    "name": "Set Party Facing Direction",
+                    "opcode": ["0x4A", "0x4C"],
+                    "length": 2
+                },
+                "objectTurn": {
+                    "name": "Turn Object",
+                    "opcode": "0x4D",
+                    "length": 5
+                },
+                "unknown_4E": {
+                    "name": "Command 0x4E",
+                    "opcode": "0x4E",
+                    "length": 1
+                },
+                "setScreenColor": {
+                    "name": "Set Screen Color",
+                    "opcode": "0x4F",
+                    "length": 3
+                },
+                "fadeScreenColor": {
+                    "name": "Fade Screen Color",
+                    "opcode": "0x50",
+                    "length": 6
+                },
+                "fadeInOut": {
+                    "name": "Fade In/Out",
+                    "opcode": ["0x51", "0x52"],
+                    "length": 2
+                },
+                "unknown_55": {
+                    "name": "Command 0x55",
+                    "opcode": "0x55",
+                    "length": 2
+                },
+                "unknown_56": {
+                    "name": "Command 0x56",
+                    "opcode": "0x56",
+                    "length": 2
+                },
+                "flashScreen": {
+                    "name": "Flash Screen",
+                    "opcode": "0x57",
+                    "length": 11
+                },
+                "waitFlash": {
+                    "name": "Wait for Flash Screen",
+                    "opcode": "0x58",
+                    "length": 1
+                },
+                "waitWipe": {
+                    "name": "Wait for Screen Wipe",
+                    "opcode": "0x59",
+                    "length": 1
+                },
+                "screenWipe": {
+                    "name": "Screen Wipe",
+                    "opcode": "0x5B-0x5D",
+                    "length": 1,
+                    "assembly": {
+                        "inOut": {
+                            "type": "property",
+                            "name": "In/Out",
+                            "begin": 0,
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0x5A": "0x5A",
+                                    "0x5B": "0x5B",
+                                    "0x5C": "Wipe In"
+                                }
+                            }
+                        }
+                    }
+                },
+                "unknown_5D": {
+                    "name": "Command 0x5D",
+                    "opcode": "0x5D",
+                    "length": 1
+                },
+                "unknown_5E": {
+                    "name": "Command 0x5E",
+                    "opcode": "0x5E",
+                    "length": 3
+                },
+                "deleteObject": {
+                    "name": "Delete Object",
+                    "opcode": "0x5F",
+                    "length": 3
+                },
+                "showHideObject": {
+                    "name": "Show/Hide Object",
+                    "opcode": ["0x60", "0x61"],
+                    "length": 5
+                },
+                "unknown_62": {
+                    "name": "Command 0x62",
+                    "opcode": "0x62",
+                    "length": 4
+                },
+                "unknown_63": {
+                    "name": "Command 0x63",
+                    "opcode": "0x63",
+                    "length": 4
+                },
+                "unknown_64": {
+                    "name": "Command 0x64",
+                    "opcode": "0x64",
+                    "length": 2
+                },
+                "createObject": {
+                    "name": "Create Object",
+                    "opcode": ["0x65", "0x66"],
+                    "length": 17,
+                    "assembly": {
+                        "triggerType": {
+                            "type": "property",
+                            "name": "Type",
+                            "begin": 1
+                        },
+                        "graphics": {
+                            "type": "property",
+                            "name": "Graphics",
+                            "begin": 2,
+                            "mask": "0xFF"
+                        },
+                        "x": {
+                            "type": "property",
+                            "name": "X Position",
+                            "begin": 3
+                        },
+                        "y": {
+                            "type": "property",
+                            "name": "Y Position",
+                            "begin": 4
+                        },
+                        "direction": {
+                            "type": "property",
+                            "name": "Direction",
+                            "begin": 5
+                        },
+                        "scriptPointer": {
+                            "type": "property",
+                            "name": "Script Pointer",
+                            "begin": 9,
+                            "mask": "0xFFFF"
+                        },
+                        "event": {
+                            "type": "property",
+                            "name": "Event",
+                            "begin": 11,
+                            "mask": "0xFFFF",
+                            "special": {
+                                "0xFFFF": "Current Event"
+                            }
+                        }
+                    }
+                },
+                "jumpPosition": {
+                    "name": "Jump Based on Party Position",
+                    "opcode": "0x67",
+                    "length": 9,
+                    "assembly": {
+                        "x": {
+                            "type": "property",
+                            "name": "X Position",
+                            "begin": 1
+                        },
+                        "y": {
+                            "type": "property",
+                            "name": "Y Position",
+                            "begin": 2
+                        },
+                        "direction": {
+                            "type": "property",
+                            "name": "Direction",
+                            "begin": 3
+                        },
+                        "scriptPointer": {
+                            "type": "property",
+                            "name": "Script Pointer",
+                            "begin": 5,
+                            "mask": "0xFFFF"
+                        },
+                        "event": {
+                            "type": "property",
+                            "name": "Event",
+                            "begin": 7,
+                            "mask": "0xFFFF",
+                            "special": {
+                                "0xFFFF": "Current Event"
+                            }
+                        }
+                    }
+                },
+                "unknown_68": {
+                    "name": "Command 0x68",
+                    "opcode": "0x68",
+                    "length": 5
+                },
+                "unknown_69": {
+                    "name": "Command 0x69",
+                    "opcode": "0x69",
+                    "length": 7
+                },
+                "unknown_6A": {
+                    "name": "Command 0x6A",
+                    "opcode": "0x6A",
+                    "length": 5,
+                    "assembly": {
+                        "x": {
+                            "type": "property",
+                            "name": "X Position",
+                            "begin": 1
+                        },
+                        "y": {
+                            "type": "property",
+                            "name": "Y Position",
+                            "begin": 2
+                        },
+                        "unknown3": {
+                            "type": "property",
+                            "name": "Unkown 3",
+                            "begin": 3
+                        },
+                        "unknown4": {
+                            "type": "property",
+                            "name": "Unkown 4",
+                            "begin": 4
+                        }
+                    }
+                },
+                "unknown_6B": {
+                    "name": "Command 0x6B",
+                    "opcode": "0x6B",
+                    "length": 3
+                },
+                "changeBackground": {
+                    "name": "Change Background",
+                    "opcode": "0x6C-0x70",
+                    "length": 8
+                },
+                "unknown_70": {
+                    "name": "Command 0x70",
+                    "opcode": "0x70",
+                    "length": 3
+                },
+                "unknown_71": {
+                    "name": "Command 0x71",
+                    "opcode": "0x71",
+                    "length": 2
+                },
+                "unknown_72": {
+                    "name": "Command 0x72",
+                    "opcode": "0x72",
+                    "length": 2
+                },
+                "unknown_73": {
+                    "name": "Command 0x73",
+                    "opcode": "0x73",
+                    "length": 2
+                },
+                "unknown_74": {
+                    "name": "Command 0x74",
+                    "opcode": "0x74",
+                    "length": 2
+                },
+                "learnSpell": {
+                    "name": "Learn Spell",
+                    "opcode": "0x75",
+                    "length": 7
+                },
+                "playSong": {
+                    "name": "Play Song",
+                    "opcode": "0x76",
+                    "length": 3,
+                    "assembly": {
+                        "song": {
+                            "type": "property",
+                            "name": "Song",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        }
+                    }
+                },
+                "unknown_77": {
+                    "name": "Command 0x77",
+                    "opcode": "0x77",
+                    "length": 3
+                },
+                "soundEffect": {
+                    "name": "Play Sound Effect",
+                    "opcode": "0x78",
+                    "length": 3
+                },
+                "stopMusic": {
+                    "name": "Stop Music",
+                    "opcode": "0x79",
+                    "length": 1
+                },
+                "unknown_7A": {
+                    "name": "Command 0x7A",
+                    "opcode": "0x7A",
+                    "length": 1
+                },
+                "unknown_7B": {
+                    "name": "Command 0x7B",
+                    "opcode": "0x7B",
+                    "length": 1
+                },
+                "unknown_7C": {
+                    "name": "Command 0x7C",
+                    "opcode": "0x7C",
+                    "length": 1
+                },
+                "unknown_7D": {
+                    "name": "Command 0x7D",
+                    "opcode": "0x7D",
+                    "length": 1
+                },
+                "unknown_7E": {
+                    "name": "Command 0x7E",
+                    "opcode": "0x7E",
+                    "length": 1
+                },
+                "battle": {
+                    "name": "Battle",
+                    "opcode": "0x7F",
+                    "length": 3
+                },
+                "battle80": {
+                    "name": "Battle 0x80",
+                    "opcode": "0x80",
+                    "length": 8
+                },
+                "unknown_81": {
+                    "name": "Command 0x81",
+                    "opcode": "0x81",
+                    "length": 4
+                },
+                "unknown_82": {
+                    "name": "Command 0x82",
+                    "opcode": "0x82",
+                    "length": 2
+                },
+                "unknown_83": {
+                    "name": "Command 0x83",
+                    "opcode": "0x83",
+                    "length": 2
+                },
+                "unknown_84": {
+                    "name": "Command 0x84",
+                    "opcode": "0x84",
+                    "length": 2
+                },
+                "unknown_85": {
+                    "name": "Command 0x85",
+                    "opcode": "0x85",
+                    "length": 2
+                },
+                "unknown_86": {
+                    "name": "Command 0x86",
+                    "opcode": "0x86",
+                    "length": 1
+                },
+                "unknown_87": {
+                    "name": "Command 0x87",
+                    "opcode": "0x87",
+                    "length": 2
+                },
+                "unknown_88": {
+                    "name": "Command 0x88",
+                    "opcode": "0x88",
+                    "length": 4
+                },
+                "unknown_89": {
+                    "name": "Command 0x89",
+                    "opcode": "0x89",
+                    "length": 1
+                },
+                "unknown_8A": {
+                    "name": "Command 0x8A",
+                    "opcode": "0x8A",
+                    "length": 1
+                },
+                "unknown_8B": {
+                    "name": "Command 0x8B",
+                    "opcode": "0x8B",
+                    "length": 2
+                },
+                "unknown_8C": {
+                    "name": "Command 0x8C",
+                    "opcode": "0x8C",
+                    "length": 12
+                },
+                "unknown_8D": {
+                    "name": "Command 0x8D",
+                    "opcode": "0x8D",
+                    "length": 4
+                },
+                "unknown_8E": {
+                    "name": "Command 0x8E",
+                    "opcode": "0x8E",
+                    "length": 4
+                },
+                "unknown_8F": {
+                    "name": "Command 0x8F",
+                    "opcode": "0x8F",
+                    "length": 1
+                },
+                "unknown_90": {
+                    "name": "Command 0x90",
+                    "opcode": "0x90",
+                    "length": 1
+                },
+                "unknown_91": {
+                    "name": "Command 0x91",
+                    "opcode": "0x91",
+                    "length": 1
+                },
+                "unknown_92": {
+                    "name": "Command 0x92",
+                    "opcode": "0x92",
+                    "length": 4
+                },
+                "unknown_93": {
+                    "name": "Command 0x93",
+                    "opcode": "0x93",
+                    "length": 1
+                },
+                "unknown_94": {
+                    "name": "Command 0x94",
+                    "opcode": "0x94",
+                    "length": 1
+                },
+                "unknown_95": {
+                    "name": "Command 0x94",
+                    "opcode": "0x95",
+                    "length": 4
+                },
+                "unknown_96": {
+                    "name": "Command 0x96",
+                    "opcode": "0x96",
+                    "length": 14
+                },
+                "unknown_97": {
+                    "name": "Command 0x97",
+                    "opcode": "0x97",
+                    "length": 4
+                },
+                "unknown_98": {
+                    "name": "Command 0x98",
+                    "opcode": "0x98",
+                    "length": 4
+                },
+                "unknown_99": {
+                    "name": "Command 0x99",
+                    "opcode": "0x99",
+                    "length": 7
+                },
+                "unknown_9A": {
+                    "name": "Command 0x9A",
+                    "opcode": "0x9A",
+                    "length": 6
+                },
+                "unknown_9B": {
+                    "name": "Command 0x9B",
+                    "opcode": "0x9B",
+                    "length": 1
+                },
+                "unknown_9C": {
+                    "name": "Command 0x9C",
+                    "opcode": "0x9C",
+                    "length": 3
+                },
+                "unknown_9E": {
+                    "name": "Command 0x9E",
+                    "opcode": "0x9E",
+                    "length": 4
+                },
+                "unknown_9F": {
+                    "name": "Command 0x9F",
+                    "opcode": "0x9F",
+                    "length": 7
+                },
+                "unknown_A2": {
+                    "name": "Command 0xA2",
+                    "opcode": "0xA2",
+                    "length": 3
+                },
+                "unlearnSpell": {
+                    "name": "Unlearn Spell",
+                    "opcode": "0xA3",
+                    "length": 4
+                },
+                "return": {
+                    "name": "Return from Subroutine",
+                    "opcode": "0xA5",
+                    "length": 1
+                },
+                "unknown_A6": {
+                    "name": "Command 0xA6",
+                    "opcode": "0xA6",
+                    "length": 1
+                },
+                "unknown_A7": {
+                    "name": "Command 0xA7",
+                    "opcode": "0xA7",
+                    "length": 1
+                },
+                "unknown_A8": {
+                    "name": "Command 0xA8",
+                    "opcode": "0xA8",
+                    "length": 1
+                },
+                "unknown_A9": {
+                    "name": "Command 0xA9",
+                    "opcode": "0xA9",
+                    "length": 1
+                },
+                "unknown_AB": {
+                    "name": "Command 0xAB",
+                    "opcode": "0xAB",
+                    "length": 2
+                },
+                "unknown_AA": {
+                    "name": "Command 0xAA",
+                    "opcode": "0xAA",
+                    "length": 1
+                },
+                "unknown_AC": {
+                    "name": "Command 0xAC",
+                    "opcode": "0xAC",
+                    "length": 1
+                },
+                "unknown_AD": {
+                    "name": "Command 0xAD",
+                    "opcode": "0xAD",
+                    "length": 65
+                },
+                "unknown_AE": {
+                    "name": "Command 0xAE",
+                    "opcode": "0xAE",
+                    "length": 1
+                },
+                "unknown_AF": {
+                    "name": "Command 0xAF",
+                    "opcode": "0xAF",
+                    "length": 1
+                },
+                "unknown_B0": {
+                    "name": "Command 0xB0",
+                    "opcode": "0xB0",
+                    "length": 5
+                },
+                "unknown_B1": {
+                    "name": "Command 0xB1",
+                    "opcode": "0xB1",
+                    "length": 6
+                },
+                "unknown_B3": {
+                    "name": "Command 0xB3",
+                    "opcode": "0xB3",
+                    "length": 7
+                },
+                "unknown_B4": {
+                    "name": "Command 0xB4",
+                    "opcode": "0xB4",
+                    "length": 6
+                },
+                "unknown_B6": {
+                    "name": "Command 0xB6",
+                    "opcode": "0xB6",
+                    "length": 5
+                },
+                "unknown_B7": {
+                    "name": "Command 0xB7",
+                    "opcode": "0xB7",
+                    "length": 3
+                },
+                "unknown_B8": {
+                    "name": "Command 0xB8",
+                    "opcode": "0xB8",
+                    "length": 4
+                },
+                "unknown_B9": {
+                    "name": "Command 0xB9",
+                    "opcode": "0xB9",
+                    "length": 2
+                },
+                "unknown_BA": {
+                    "name": "Command 0xBA",
+                    "opcode": "0xBA",
+                    "length": 4
+                },
+                "unknown_BB": {
+                    "name": "Command 0xBB",
+                    "opcode": "0xBB",
+                    "length": 1
+                },
+                "unknown_BC": {
+                    "name": "Command 0xBC",
+                    "opcode": "0xBC",
+                    "length": 7
+                },
+                "unknown_BD": {
+                    "name": "Command 0xBD",
+                    "opcode": "0xBD",
+                    "length": 5
+                },
+                "unknown_BE": {
+                    "name": "Command 0xBE",
+                    "opcode": "0xBE",
+                    "length": 2
+                },
+                "unknown_BF": {
+                    "name": "Command 0xBF",
+                    "opcode": "0xBF",
+                    "length": 2
+                },
+                "unknown_C0": {
+                    "name": "Command 0xC0",
+                    "opcode": "0xC0",
+                    "length": 1
+                },
+                "unknown_C1": {
+                    "name": "Command 0xC1",
+                    "opcode": "0xC1",
+                    "length": 1
+                },
+                "unknown_C2": {
+                    "name": "Command 0xC2",
+                    "opcode": "0xC2",
+                    "length": 2
+                },
+                "unknown_C3": {
+                    "name": "Command 0xC3",
+                    "opcode": "0xC3",
+                    "length": 2
+                },
+                "unknown_C4": {
+                    "name": "Command 0xC4",
+                    "opcode": "0xC4",
+                    "length": 2
+                },
+                "unknown_C5": {
+                    "name": "Command 0xC5",
+                    "opcode": "0xC5",
+                    "length": 3
+                },
+                "unknown_C6": {
+                    "name": "Command 0xC6",
+                    "opcode": "0xC6",
+                    "length": 3
+                },
+                "unknown_C7": {
+                    "name": "Command 0xC7",
+                    "opcode": "0xC7",
+                    "length": 3
+                },
+                "unknown_C8": {
+                    "name": "Command 0xC8",
+                    "opcode": "0xC8",
+                    "length": 3
+                },
+                "unknown_C9": {
+                    "name": "Command 0xC9",
+                    "opcode": "0xC9",
+                    "length": 4
+                },
+                "unknown_CA": {
+                    "name": "Command 0xCA",
+                    "opcode": "0xCA",
+                    "length": 2
+                },
+                "unknown_CB": {
+                    "name": "Command 0xCB",
+                    "opcode": "0xCB",
+                    "length": 5
+                },
+                "unknown_CD": {
+                    "name": "Command 0xCD",
+                    "opcode": "0xCD",
+                    "length": 3
+                },
+                "unknown_CE": {
+                    "name": "Command 0xCE",
+                    "opcode": "0xCE",
+                    "length": 1
+                },
+                "unknown_CF": {
+                    "name": "Command 0xCF",
+                    "opcode": "0xCF",
+                    "length": 3
+                },
+                "unknown_D0": {
+                    "name": "Command 0xD0",
+                    "opcode": "0xD0",
+                    "length": 3
+                },
+                "unknown_D1": {
+                    "name": "Command 0xD1",
+                    "opcode": "0xD1",
+                    "length": 4
+                },
+                "unknown_D2": {
+                    "name": "Command 0xD2",
+                    "opcode": "0xD2",
+                    "length": 1
+                },
+                "unknown_D3": {
+                    "name": "Command 0xD3",
+                    "opcode": "0xD3",
+                    "length": 1
+                },
+                "unknown_D4": {
+                    "name": "Command 0xD4",
+                    "opcode": "0xD4",
+                    "length": 1
+                },
+                "unknown_D5": {
+                    "name": "Command 0xD5",
+                    "opcode": "0xD5",
+                    "length": 2
+                },
+                "unknown_D6": {
+                    "name": "Command 0xD6",
+                    "opcode": "0xD6",
+                    "length": 2
+                },
+                "unknown_D7": {
+                    "name": "Command 0xD7",
+                    "opcode": "0xD7",
+                    "length": 2
+                },
+                "unknown_D8": {
+                    "name": "Command 0xD8",
+                    "opcode": "0xD8",
+                    "length": 1
+                },
+                "unknown_D9": {
+                    "name": "Command 0xD9",
+                    "opcode": "0xD9",
+                    "length": 1
+                },
+                "unknown_DA": {
+                    "name": "Command 0xDA",
+                    "opcode": "0xDA",
+                    "length": 1
+                },
+                "unknown_DB": {
+                    "name": "Command 0xDB",
+                    "opcode": "0xDB",
+                    "length": 1
+                },
+                "unknown_DC": {
+                    "name": "Command 0xDC",
+                    "opcode": "0xDC",
+                    "length": 1
+                },
+                "unknown_DD": {
+                    "name": "Command 0xDD",
+                    "opcode": "0xDD",
+                    "length": 1
+                },
+                "unknown_DE": {
+                    "name": "Command 0xDE",
+                    "opcode": "0xDE",
+                    "length": 4
+                },
+                "unknown_DF": {
+                    "name": "Command 0xDF",
+                    "opcode": "0xDF",
+                    "length": 3
+                },
+                "unknown_E0": {
+                    "name": "Command 0xE0",
+                    "opcode": "0xE0",
+                    "length": 2
+                },
+                "unknown_E1": {
+                    "name": "Command 0xE1",
+                    "opcode": "0xE1",
+                    "length": 4
+                },
+                "unknown_E2": {
+                    "name": "Command 0xE2",
+                    "opcode": "0xE2",
+                    "length": 4
+                },
+                "unknown_E3": {
+                    "name": "Command 0xE3",
+                    "opcode": "0xE3",
+                    "length": 2
+                },
+                "unknown_E4": {
+                    "name": "Command 0xE4",
+                    "opcode": "0xE4",
+                    "length": 1
+                },
+                "unknown_E3": {
+                    "name": "Command 0xE3",
+                    "opcode": "0xE3",
+                    "length": 2
+                },
+                "unknown_E5": {
+                    "name": "Command 0xE5",
+                    "opcode": "0xE5",
+                    "length": 1
+                },
+                "unknown_EA": {
+                    "name": "Command 0xEA",
+                    "opcode": "0xEA",
+                    "length": 2
+                },
+                "unknown_EE": {
+                    "name": "Command 0xEE",
+                    "opcode": "0xEE",
+                    "length": 4
+                },
+                "unknown_EF": {
+                    "name": "Command 0xEF",
+                    "opcode": "0xEF",
+                    "length": 2
+                },
+                "terminator": {
+                    "name": "Script Terminator",
+                    "opcode": "0xFF",
+                    "length": 1
+                }
+            }
+        }
+    },
+    "charTable": {
+        "characters": {
+            "name": "Character Names",
+            "char": {
+                "0xC598": "\\char00",
+                "0xC599": "\\char01",
+                "0xC59A": "\\char02",
+                "0xC59B": "\\char03",
+                "0xC59C": "\\char04",
+                "0xC59D": "\\char05",
+                "0xC59E": "\\char06",
+                "0xC59F": "\\char07",
+                "0xC5A0": "\\char08",
+                "0xC5A1": "\\char09",
+                "0xC5A2": "\\char10",
+                "0xC5A3": "\\char11"
+            }
+        },
+        "portraits": {
+            "name": "Character Portraits",
+            "char": {
+                "0xC5AD": "\\portrait00",
+                "0xC5AE": "\\portrait01",
+                "0xC5AF": "\\portrait02",
+                "0xC5B0": "\\portrait03",
+                "0xC5B1": "\\portrait04",
+                "0xC5B2": "\\portrait05",
+                "0xC5B3": "\\portrait06",
+                "0xC5B4": "\\portrait07",
+                "0xC5B5": "\\portrait08",
+                "0xC5B6": "\\portrait09",
+                "0xC5B7": "\\portrait10",
+                "0xC5B8": "\\portrait11",
+                "0xC5B9": "\\portrait12",
+                "0xC5BA": "\\clear_portrait"
+            }
+        },
+        "text": {
+            "name": "Text",
+            "char": {
+                "0x00": " ",
+                "0x01": "e",
+                "0x02": "o",
+                "0x03": "t",
+                "0x04": "a",
+                "0x05": "r",
+                "0x06": "n",
+                "0x07": "s",
+                "0x08": "i",
+                "0x09": "h",
+                "0x0A": "l",
+                "0x0B": ".",
+                "0x0C": "\\0",
+                "0x0D": "u",
+                "0x0E": "d",
+                "0x0F": "m",
+                "0x10": "y",
+                "0x11": "g",
+                "0x12": "c",
+                "0x13": "w",
+                "0x14": ":",
+                "0x15": "f",
+                "0x16": "!",
+                "0x17": "p",
+                "0x18": "b",
+                "0x19": "v",
+                "0x1A": "I",
+                "0x1B": "k",
+                "0x1C": "'",
+                "0x1D": ",",
+                "0x1E": "T",
+                "0x1F": "S",
+                "0x20": "?",
+                "0x21": "W",
+                "0x22": "C",
+                "0x23": "A",
+                "0x24": "B",
+                "0x25": "M",
+                "0x26": "H",
+                "0x27": "G",
+                "0x28": "R",
+                "0x29": "Y",
+                "0x2A": "D",
+                "0x2B": "E",
+                "0x2C": "L",
+                "0x2D": "P",
+                "0x2E": "O",
+                "0x2F": "N",
+                "0x30": "F",
+                "0x31": "-",
+                "0x32": "z",
+                "0x34": "K",
+                "0x37": "U",
+                "0x38": "j",
+                "0x39": "x",
+                "0x3F": "1",
+                "0x40": "Z",
+                "0x42": "0",
+                "0x43": "q",
+                "0x45": "2",
+                "0x48": "*",
+                "0x49": "3",
+                "0x4A": "V",
+                "0x4B": "\"",
+                "0x4F": "(",
+                "0x50": ")",
+                "0x52": "4",
+                "0x54": "Q",
+                "0x55": "5",
+                "0x56": "9",
+                "0x57": "J",
+                "0x58": "X",
+                "0x5A": "/",
+                "0x5C": "6",
+                "0x5E": "7",
+                "0x60": "+",
+                "0x64": "8",
+                "0x66": "&",
+                "0x67": "%",
+                "0x69": ";",
+                "0x6A": "_",
+                "0xC596": "\\n",
+                "0xC5AC": "\\page"
+            }
+        }
+    },
+    "textEncoding": {
+        "text": {
+            "name": "Text",
+            "charTable": [
+                "text",
+                "characters",
+                "portraits"
+            ]
+        }
+    },
+    "stringTable": {
+        "battleBackgroundProperties": {
+            "name": "Battle Background",
+            "default": "Battle Background %i",
+            "length": 22,
+            "string": {
+                "0": "Field",
+                "1": "Overworld Cave",
+                "2": "Desert",
+                "3": "Overworld Cave (Water)",
+                "4": "Forest",
+                "5": "Mountains",
+                "6": "Black Cave",
+                "7": "Underground Exterior",
+                "8": "Dirt Cave",
+                "9": "Underground Cave 1",
+                "10": "Underground Cave 2",
+                "11": "Moon Cave",
+                "12": "Moon Exterior",
+                "13": "Crystal Room",
+                "14": "Final Battle",
+                "15": "Airship",
+                "16": "Castle",
+                "17": "Field (Night)",
+                "18": "Tower of Bab-il/Zot",
+                "19": "Giant of Bab-il",
+                "20": "Beach",
+                "21": "Town"
+            }
+        },
+        "characterNames": {
+            "name": "Character Names",
+            "length": 64,
+            "link": "text[%i+0x00F4]"
+        },
+        "monsterName": {
+            "name": "Monster Name",
+            "length": 283,
+            "link": "text[%i+0x112B]"
+        }
+    },
+    "freeSpace": [
+    ]
+}

@@ -138,6 +138,9 @@ FF1Battle.prototype.selectObject = function(object) {
 FF1Battle.prototype.show = function() {
     var battle = this;
 
+    document.getElementById('toolbox-buttons').classList.add("hidden");
+    document.getElementById('toolbox-div').classList.add("hidden");
+
     this.resetControls();
     this.showControls();
     this.closeList();

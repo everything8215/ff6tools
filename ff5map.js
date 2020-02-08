@@ -1752,46 +1752,50 @@ FF5AdvanceEncoder.prototype.encode = function(data) {
 
     var bestComp;
     // try all 5 encoding modes and choose the one with the smallest compressed size
-    for (var m1 = 0; m1 < 5; m1++) {
-        var comp = this.compress(data, m1);
-        if (!bestComp || comp.length < bestComp.length) bestComp = comp;
+    for (this.m1 = 0; this.m1 < 5; this.m1++) {
+        for (this.m3 = 0; this.m3 < 5; this.m3++) {
+            var comp = this.compress(data);
+            if (!bestComp || comp.length < bestComp.length) bestComp = comp;
+        }
     }
 
     return bestComp;
 }
 
-FF5AdvanceEncoder.prototype.compress = function(data, m1) {
-    this.src = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+FF5AdvanceEncoder.prototype.compress = function(data) {
+    this.src = this.deltaMod(data);
     this.s = 0; // source pointer
 
     // read the data line-by-line
     this.huffman = {node8: {}, tree8: [], node4: {}, tree4: []};
     this.stringValues = [];
     this.stringOffset = 0;
+    this.maxString = 0;
     this.golomb = {values: []};
     this.lines = [];
     
-    if (m1 === 0) {
+    if (this.m1 === 0) {
         this.getLine = this.getLine0;
         this.putLine = this.putLine0;
         this.golomb.n = 2;
         this.golomb.w = 2;
         this.minString = 1;
-    } else if (m1 === 1) {
+        this.maxString = 64;
+    } else if (this.m1 === 1) {
         this.getLine = this.getLine1;
         this.putLine = this.putLine1;
         this.golomb.n = 4;
         this.golomb.w = 2;
         this.minString = 1;
-    } else if (m1 === 2) {
+    } else if (this.m1 === 2) {
         this.getLine = this.getLine2;
         this.putLine = this.putLine2;
         this.golomb.n = 7;
         this.golomb.w = 3;
         this.minString = 13;
-    } else if (m1 === 3) {
+    } else if (this.m1 === 3) {
         // if the length of the data is an odd number, this will truncate the last byte
-        this.src = new Uint16Array(data.buffer, data.byteOffset, data.byteLength >> 1);
+        this.src = new Uint16Array(this.src.buffer, this.src.byteOffset, this.src.byteLength >> 1);
         this.getLine = this.getLine3;
         this.putLine = this.putLine3;
         this.golomb.n = 3;
@@ -1809,7 +1813,7 @@ FF5AdvanceEncoder.prototype.compress = function(data, m1) {
     this.pushStringBuffer();
     
     // destination buffer twice as long as source (should cover anything)
-    this.dest = new Uint32Array(data.byteLength >> 1);
+    this.dest = new Uint32Array(data.byteLength << 1);
     this.d = 1; // skip 32 bits for the header
 
     // initialize the bitstream buffer
@@ -1830,7 +1834,7 @@ FF5AdvanceEncoder.prototype.compress = function(data, m1) {
 
     // write the header and compression mode
     this.dest[0] = (data.length << 8) | 0x70;
-    this.dest[1] |= (m1 << 24) | (this.m2 << 27);
+    this.dest[1] |= (this.m1 << 24) | (this.m2 << 27) | (this.m3 << 29);
     
     return new Uint8Array(this.dest.buffer, this.dest.byteOffset, this.d * 4);
 }
@@ -1857,6 +1861,15 @@ FF5AdvanceEncoder.prototype.getLZ77 = function(maxRun) {
 
 FF5AdvanceEncoder.prototype.pushStringBuffer = function() {
     
+    while (this.maxString && this.stringValues.length > this.maxString) {
+        // push strings recursively
+        var partialString = this.stringValues.slice(this.maxString);
+        this.stringValues = this.stringValues.slice(0, this.maxString);
+        this.pushStringBuffer();
+        this.stringOffset -= partialString.length;
+        this.stringValues = partialString;
+    }
+
     if (this.stringValues.length >= this.minString) {
         this.lines.push({type: "string", string: this.stringValues, run: this.stringValues.length, offset: this.stringOffset});
     } else if (this.stringValues.length !== 0) {
@@ -2345,6 +2358,85 @@ FF5AdvanceEncoder.prototype.putString = function(string) {
     for (var i = 0; i < string.length; i++) this.putValue(string[i]);
 }
 
+FF5AdvanceEncoder.prototype.deltaMod = function(data) {
+    if (this.m3 === 1) {
+        // nybble delta mod
+        return this.deltaMod1(data);
+    } else if (this.m3 === 2) {
+        // byte delta mod
+        return this.deltaMod2(data);
+    } else if (this.m3 === 3) {
+        // word delta mod
+        return this.deltaMod3(data);
+    } else if (this.m3 === 4) {
+        // even/odd byte delta mod
+        return this.deltaMod4(data);
+    } else {
+        // no delta mod
+        return new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+    }
+}
+
+FF5AdvanceEncoder.prototype.deltaMod1 = function(data) {
+    var src = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+    var s = 0;
+    var dest = new Uint8Array(data.length);
+    var d = 0;
+    var lo = 0; var hi = 0;
+    var lo1 = 0;
+    var hi1 = 0;
+
+    while (d < dest.length) {
+        hi = src[s++];
+        lo = hi & 0x0F;
+        hi &= 0xF0;
+        hi1 = hi;
+        dest[d++] = (lo - (hi1 >> 4)) & 0x0F | (hi - (lo1 << 4)) & 0xF0;
+        lo1 = lo;
+    }
+    return dest;
+}
+
+FF5AdvanceEncoder.prototype.deltaMod2 = function(data) {
+    var src = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+    var s = 0;
+    var dest = new Uint8Array(data.length);
+    var d = 0;
+
+    dest[d++] = src[s++];
+    while (d < dest.length) {
+        dest[d++] = src[s] - src[s - 1]; s++;
+    }
+    return dest;
+}
+
+FF5AdvanceEncoder.prototype.deltaMod3 = function(data) {
+    var src = new Uint16Array(data.buffer, data.byteOffset, Math.ceil(data.byteLength / 2));
+    var s = 0;
+    var dest = new Uint16Array(data.length);
+    var d = 0;
+
+    dest[d++] = src[s++];
+    while (d < dest.length) {
+        dest[d++] = src[s] - src[s - 1]; s++;
+    }
+    return new Uint8Array(dest.buffer, dest.byteOffset, dest.byteLength);
+}
+
+FF5AdvanceEncoder.prototype.deltaMod4 = function(data) {
+    var src = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+    var s = 0;
+    var dest = new Uint8Array(data.length);
+    var d = 0;
+
+    dest[d++] = src[s++];
+    dest[d++] = src[s++];
+    while (d < dest.length) {
+        dest[d++] = src[s] - src[s - 2]; s++;
+    }
+    return dest;
+}
+
 function FF5AdvanceDecoder() {}
 
 FF5AdvanceDecoder.prototype.decode = function(data) {
@@ -2407,6 +2499,17 @@ FF5AdvanceDecoder.prototype.decode = function(data) {
     }
 
     while (this.d < this.length) this.putLine();
+    
+    // do post-decoding
+    if (m3 === 1) {
+        this.postDecode1();
+    } else if (m3 === 2) {
+        this.postDecode2();
+    } else if (m3 === 3) {
+        this.postDecode3();
+    } else if (m3 === 4) {
+        this.postDecode4();
+    }
     
     return this.dest;
 }
@@ -2649,4 +2752,53 @@ FF5AdvanceDecoder.prototype.putLine3 = function() {
 
 FF5AdvanceDecoder.prototype.putLine4 = function() {
     this.putValue();
+}
+
+FF5AdvanceDecoder.prototype.postDecode1 = function() {
+    this.d = 0;
+    var previous = 0;
+    var hi, lo;
+    while (this.d < this.length) {
+        hi = this.dest[this.d] & 0xF0;
+        lo = this.dest[this.d] & 0x0F;
+        hi = (hi + previous) & 0xF0;
+        lo = (lo + (hi >> 4)) & 0x0F;
+        this.dest[this.d++] = lo | hi;
+        previous = lo << 4;
+    }
+}
+
+FF5AdvanceDecoder.prototype.postDecode2 = function() {
+    this.d = 0;
+    var previous = 0;
+    while (this.d < this.length) {
+        previous = (this.dest[this.d] + previous) & 0xFF;
+        this.dest[this.d++] = previous;
+    }
+}
+
+FF5AdvanceDecoder.prototype.postDecode3 = function() {
+    this.d = 0;
+    var previous = 0;
+    var current = 0;
+    while (this.d < this.length) {
+        current = this.dest[this.d];
+        current |= (this.dest[this.d + 1] << 8);
+        current = (current + previous) & 0xFFFF;
+        previous = current;
+        this.dest[this.d++] = current & 0xFF;
+        this.dest[this.d++] = current >> 8;
+    }
+}
+
+FF5AdvanceDecoder.prototype.postDecode4 = function() {
+    this.d = 0;
+    var previous1 = 0;
+    var previous2 = 0;
+    while (this.d < this.length) {
+        previous1 = (this.dest[this.d] + previous1) & 0xFF;
+        this.dest[this.d++] = previous1;
+        previous2 = (this.dest[this.d] + previous2) & 0xFF;
+        this.dest[this.d++] = previous2;
+    }
 }

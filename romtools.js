@@ -503,7 +503,7 @@ function ROMReference(rom, definition, parent) {
     
     // the target is the object that the reference will be written to (default is the rom itself)
     if (isString(definition.target)) {
-        this.target = this.rom[definition.target];
+        this.target = this.rom[definition.target] || eval(definition.target);
     } else {
         this.target = definition.target || this.rom;
     }
@@ -884,6 +884,7 @@ ROMData.prototype.addFreeSpace = function(freeRange) {
 
 ROMData.prototype.removeFreeSpace = function(range) {
     var newFreeSpace = [];
+    if (!this.freeSpace) return;
     for (var i = 0; i < this.freeSpace.length; i++) {
         var overlap = this.freeSpace[i];
         if (overlap.contains(range.begin)) {
@@ -2707,6 +2708,8 @@ ROMProperty.prototype.disassemble = function(data) {
     } else if (this.msb) {
         var msb = eval(this.msb);
         this.value |= msb.value << this.width;
+        this.max &= (this.mask >> this.bit);
+        this.max |= msb.max << this.width;
     }
     this.value *= this.multiplier;
     this.value += this.offset;
@@ -2763,7 +2766,7 @@ ROMProperty.prototype.setValue = function(value) {
     this.rom.doAction(action);
     if (assembly.msb) {
         var msb = eval(assembly.msb);
-        msb.setValue(value >> assembly.width)
+        msb.setValue(value >> assembly.width);
     }
     this.rom.endAction();
 }
@@ -2778,9 +2781,10 @@ function ROMArray(rom, definition, parent) {
         var length = Number(definition.array.length);
         if (isNumber(length)) this.array.length = length;
         var max = Number(definition.array.max);
-        if (isNumber(max)) this.array.max = max;
+        if (isNumber(max)) this.max = max;
+        this.min = 0; // default minimum array size is zero
         var min = Number(definition.array.min);
-        if (isNumber(min)) this.array.min = min;
+        if (isNumber(min)) this.min = min;
     }
     
     // determine if elements are strictly sequential or shared
@@ -2819,9 +2823,10 @@ Object.defineProperty(ROMArray.prototype, "definition", { get: function() {
     
     definition.array = {};
     if (this.array.length) definition.array.length = this.array.length;
-    if (this.array.max) definition.array.max = this.array.max;
-    if (this.array.min) definition.array.min = this.array.min;
+    if (this.max) definition.array.max = this.max;
+    if (this.min) definition.array.min = this.min;
     if (definition.array === {}) delete definition.array;
+    
     if (this.isSequential) definition.isSequential = true;
     if (this.endPointer) definition.endPointer = true;
     if (this.autoBank) definition.autoBank = true;
@@ -2995,7 +3000,7 @@ ROMArray.prototype.disassemble = function(data) {
         }
 
     } else if (isNumber(Number(this.terminator))) {
-        // null-terminated items
+        // terminated data
         var terminator = Number(this.terminator);
         begin = 0;
         end = 0;
@@ -3005,6 +3010,7 @@ ROMArray.prototype.disassemble = function(data) {
             end++;
             itemRanges.push(new ROMRange(begin, end));
             begin = end;
+            if (itemRanges.length === this.array.length) break;
         }
         
     } else if (!this.pointerTable) {
@@ -3013,9 +3019,9 @@ ROMArray.prototype.disassemble = function(data) {
         
         // validate the number of array items
         if (this.array.length === 0) {
-            var l = Math.floor(this.range.length / length);
-            if (l < 0) console.log(l);
-            this.array.length = Math.floor(this.range.length / length);
+            var l = Math.floor(this.data.length / length);
+//            if (l < 0) console.log(l);
+            this.array.length = Math.floor(this.data.length / length);
         }
         
         for (var i = 0; i < this.array.length; i++) {
@@ -3208,7 +3214,7 @@ ROMArray.prototype.blankAssembly = function() {
 }
 
 ROMArray.prototype.insertAssembly = function(assembly, i) {
-    if (this.array.max && this.array.length >= this.array.max) {
+    if (this.max && this.array.length >= this.max) {
         // array is full
         this.notifyObservers();
         return null;
@@ -3237,7 +3243,8 @@ ROMArray.prototype.insertAssembly = function(assembly, i) {
 
 ROMArray.prototype.removeAssembly = function(i) {
     // validate the index
-    if (!isNumber(i) || i >= this.array.length) {
+    if (!isNumber(i)) i = this.array.length - 1;
+    if (i >= this.array.length || this.array.length === this.min) {
         this.notifyObservers();
         return null;
     }
@@ -3257,6 +3264,28 @@ ROMArray.prototype.removeAssembly = function(i) {
     var action = new ROMAction(this, undo, redo, description);
     this.rom.doAction(action);
     return this.array[i];
+}
+
+ROMArray.prototype.setLength = function(length) {
+    
+    if (!isNumber(length)) return;
+    length = Math.max(length, this.min);
+    if (this.max) length = Math.min(length, this.max);
+    
+    // return if the length didn't change
+    if (this.array.length === length) return;
+    
+    this.rom.beginAction();
+    if (this.array.length > length) {
+        // remove array elements
+        while (this.array.length !== length) this.removeAssembly();
+        
+    } else {
+        // insert array elements
+        while (this.array.length !== length) this.insertAssembly(this.blankAssembly());
+    }
+    
+    this.rom.endAction();
 }
 
 ROMArray.prototype.item = function(i) {
@@ -3418,11 +3447,8 @@ Object.defineProperty(ROMScript.prototype, "assembledLength", { get: function() 
     
     if (this.lazyData) return this.lazyData.length;
     
-    var assembledLength = 0;
-    for (var c = 0; c < this.command.length; c++) {
-        assembledLength += this.command[c].assembledLength;
-    }
-
+    var assembledLength = this.updateOffsets();
+    
     this.data = new Uint8Array(assembledLength);
     this.range.end = this.range.begin + assembledLength;
     return assembledLength;
@@ -3477,6 +3503,7 @@ ROMScript.prototype.updateReferences = function() {
 ROMScript.prototype.assemble = function(data) {
 
     // update the length of the script
+    this.updateReferences();
     this.assembledLength;
     for (var c = 0; c < this.command.length; c++) {
         this.command[c].assemble(this.data);
@@ -3651,6 +3678,7 @@ ROMScript.prototype.updateOffsets = function() {
         command.range.end = offset;
         this.label[command.label] = command;
     }
+    return offset;
 }
 
 Object.defineProperty(ROMScript.prototype, "defaultEncoding", { get: function() {
@@ -4216,7 +4244,7 @@ ROMTextEncoding.prototype.format = function(text, html) {
             text = text.replace(regex, (html ? "<br/>" : "\n"));
         } else if (key === "\\choice") {
             // replace multiple choice indicator
-            for (var c = 1; text.includes(key); c++) {
+            for (var c = 0; text.includes(key); c++) {
                 text = text.replace(key, c + ": ")
             }
         } else if (key.startsWith("\\char") || key.startsWith("\\hchar")) {
@@ -4607,7 +4635,7 @@ Object.defineProperty(Rect.prototype, "centerY", {
 
 // returns a hex string of a number with optional padding
 function hexString(num, pad, prefix) {
-    prefix = prefix || "0x";
+    if (prefix === undefined) prefix = "0x";
     if (num < 0) num = 0xFFFFFFFF + num + 1;
     var hex = num.toString(16).toUpperCase();
     if (isNumber(pad)) hex = hex.padStart(pad, "0");

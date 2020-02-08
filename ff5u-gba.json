@@ -5100,7 +5100,7 @@
     },
     "charTable": {
         "text": {
-            "name": "Menu",
+            "name": "Text",
             "char": {
                 "0x00": " ",
                 "0x01": "e",
