@@ -36,6 +36,26 @@
                     "path": "monsterProperties"
                 }
             ]
+        }, {
+            "name": "Character",
+            "list": [
+                {
+                    "name": "Character Properties",
+                    "path": "characterProperties"
+                }, {
+                    "name": "Character Names",
+                    "path": "characterNames"
+                }, {
+                    "name": "Character Jobs",
+                    "path": "characterJob"
+                }, {
+                    "name": "Spell Lists",
+                    "path": "spellList"
+                }, {
+                    "name": "Attacks",
+                    "path": "attackProperties"
+                }
+            ]
         }
     ],
     "assembly": {
@@ -139,7 +159,7 @@
         "battleProperties": {
             "type": "array",
             "name": "Battle Properties",
-            "range": "0x080E8000-0x080E9000",
+            "range": "0x080FC740-0x080FDEB8",
             "array": {
                 "length": 751
             },
@@ -148,13 +168,349 @@
                 "length": 8,
                 "editor": "FF4Battle",
                 "assembly": {
-
+                    "background": {
+                        "type": "property",
+                        "name": "Background",
+                        "stringTable": {
+                            "length": 23,
+                            "default": "<stringTable.battleBackgroundProperties[%i-1]>",
+                            "string": {
+                                "0": "Map Default"
+                            }
+                        }
+                    },
+                    "monsters": {
+                        "type": "assembly",
+                        "external": "battleMonster[%i]"
+                    }
                 }
             },
             "stringTable": {
                 "name": "Battle Properties",
                 "length": 751,
                 "default": "Battle %i"
+            }
+        },
+        "characterBattleCommands": {
+            "type": "array",
+            "name": "Character Battle Commands",
+            "range": "0x080F62F0-0x080F63A4",
+            "array": {
+                "length": 15
+            },
+            "assembly": {
+                "type": "array",
+                "format": "terminated(0xFF)",
+                "assembly": {
+                    "type": "data",
+                    "length": 1,
+                    "assembly": {
+                        "command": {
+                            "type": "property",
+                            "name": "Command",
+                            "begin": 0,
+                            "stringTable": "battleCommand"
+                        }
+                    }
+                }
+            },
+            "pointerTable": {
+                "range": "0x080F62F8-0x080F6334"
+            }
+        },
+        "characterLevelProgression": {
+            "type": "array",
+            "name": "Character Level Progression",
+            "range": "0x080E7834-0x080EBE14",
+            "array": {
+                "length": 13
+            },
+            "assembly": {
+                "type": "array",
+                "assembly": {
+                    "type": "data",
+                    "length": 16,
+                    "assembly": {
+                        "exp": {
+                            "type": "property",
+                            "name": "Experience",
+                            "begin": 4,
+                            "mask": "0x7FFFFFFF"
+                        },
+                        "hp": {
+                            "type": "property",
+                            "name": "HP",
+                            "begin": 0,
+                            "mask": "0xFF"
+                        },
+                        "hpMax": {
+                            "type": "property",
+                            "name": "HP",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        },
+                        "mp": {
+                            "type": "property",
+                            "name": "MP",
+                            "begin": 2,
+                            "mask": "0xFF"
+                        },
+                        "mpMax": {
+                            "type": "property",
+                            "name": "MP",
+                            "begin": 3,
+                            "mask": "0xFF"
+                        },
+                        "strength": {
+                            "type": "property",
+                            "name": "Strength",
+                            "begin": 8,
+                            "mask": "0xFF"
+                        },
+                        "agility": {
+                            "type": "property",
+                            "name": "Agility",
+                            "begin": 9,
+                            "mask": "0xFF"
+                        },
+                        "stamina": {
+                            "type": "property",
+                            "name": "Stamina",
+                            "begin": 10,
+                            "mask": "0xFF"
+                        },
+                        "intellect": {
+                            "type": "property",
+                            "name": "Intellect",
+                            "begin": 11,
+                            "mask": "0xFF"
+                        },
+                        "spirit": {
+                            "type": "property",
+                            "name": "Sprit",
+                            "begin": 12,
+                            "mask": "0xFF"
+                        }
+                    }
+                }
+            },
+            "pointerTable": {
+                "range": "0x080EE5B8-0x080EE5F0"
+            }
+        },
+        "characterStartingLevel": {
+            "type": "array",
+            "name": "Character Starting Level",
+            "range": "0x080EE5F0-0x080EE600",
+            "array": {
+                "length": 14
+            },
+            "assembly": {
+                "type": "data",
+                "length": 1,
+                "assembly": {
+                    "level": {
+                        "type": "property",
+                        "name": "Level"
+                    }
+                }
+            }
+        },
+        "characterProperties": {
+            "type": "array",
+            "name": "Character Properties",
+            "range": "0x080F2AD8-0x080F2CB8",
+            "array": {
+                "length": 15
+            },
+            "assembly": {
+                "type": "data",
+                "length": 32,
+                "assembly": {
+                    "title": {
+                        "type": "property",
+                        "name": "Title",
+                        "external": "text[%i+0x0C9B]"
+                    },
+                    "hand": {
+                        "type": "property",
+                        "name": "Right/Left-Handed",
+                        "begin": 1,
+                        "stringTable": {
+                            "hideIndex": true,
+                            "string": {
+                                "0": "Right-Handed",
+                                "1": "Left-Handed",
+                                "2": "Ambidextrous"
+                            }
+                        }
+                    },
+                    "level": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 0,
+                        "max": 69
+                    },
+                    "hp": {
+                        "type": "property",
+                        "name": "HP",
+                        "begin": 2,
+                        "mask": "0xFFFF"
+                    },
+                    "mp": {
+                        "type": "property",
+                        "name": "MP",
+                        "begin": 4,
+                        "mask": "0xFFFF"
+                    },
+                    "strength": {
+                        "type": "property",
+                        "name": "Strength",
+                        "begin": 6
+                    },
+                    "agility": {
+                        "type": "property",
+                        "name": "Agility",
+                        "begin": 7
+                    },
+                    "vitality": {
+                        "type": "property",
+                        "name": "Vitality",
+                        "begin": 8
+                    },
+                    "intellect": {
+                        "type": "property",
+                        "name": "Intellect",
+                        "begin": 9
+                    },
+                    "spirit": {
+                        "type": "property",
+                        "name": "Spirit",
+                        "begin": 10
+                    },
+                    "experience": {
+                        "type": "property",
+                        "name": "Experience",
+                        "begin": 12,
+                        "mask": "0xFFFFFF"
+                    },
+                    "rightHand": {
+                        "type": "property",
+                        "name": "Right Hand",
+                        "begin": 16,
+                        "mask": "0xFFFF",
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
+                    },
+                    "rightHandQty": {
+                        "type": "property",
+                        "name": "Right Hand Qty",
+                        "begin": 18,
+                        "mask": "0xFFFF"
+                    },
+                    "leftHand": {
+                        "type": "property",
+                        "name": "Left Hand",
+                        "begin": 20,
+                        "mask": "0xFFFF",
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
+                    },
+                    "leftHandQty": {
+                        "type": "property",
+                        "name": "Left Hand Qty",
+                        "begin": 22,
+                        "mask": "0xFFFF"
+                    },
+                    "helmet": {
+                        "type": "property",
+                        "name": "Helmet",
+                        "begin": 24,
+                        "mask": "0xFFFF",
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
+                    },
+                    "armor": {
+                        "type": "property",
+                        "name": "Armor",
+                        "begin": 26,
+                        "mask": "0xFFFF",
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
+                    },
+                    "shield": {
+                        "type": "property",
+                        "name": "Shield",
+                        "begin": 28,
+                        "mask": "0xFFFF",
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
+                    },
+                    "battleCommands": {
+                        "type": "assembly",
+                        "external": "characterBattleCommands[%i]"
+                    },
+                    "initialSpellList1": {
+                        "type": "assembly",
+                        "external": "spellListInitial[%i * 4]",
+                        "name": "Initial White Magic"
+                    },
+                    "learnedSpellList1": {
+                        "type": "assembly",
+                        "external": "spellListLearned[%i * 4]",
+                        "name": "Learned White Magic"
+                    },
+                    "initialSpellList2": {
+                        "type": "assembly",
+                        "external": "spellListInitial[%i * 4 + 1]",
+                        "name": "Initial Black Magic"
+                    },
+                    "learnedSpellList2": {
+                        "type": "assembly",
+                        "external": "spellListLearned[%i * 4 + 1]",
+                        "name": "Learned Black Magic"
+                    },
+                    "initialSpellList3": {
+                        "type": "assembly",
+                        "external": "spellListInitial[%i * 4 + 2]",
+                        "name": "Initial Summon Magic"
+                    },
+                    "learnedSpellList3": {
+                        "type": "assembly",
+                        "external": "spellListLearned[%i * 4 + 2]",
+                        "name": "Learned Summon Magic"
+                    },
+                    "initialSpellList4": {
+                        "type": "assembly",
+                        "external": "spellListInitial[%i * 4 + 3]",
+                        "name": "Initial Ninjutsu Magic"
+                    },
+                    "learnedSpellList4": {
+                        "type": "assembly",
+                        "external": "spellListLearned[%i * 4 + 3]",
+                        "name": "Learned Ninjutsu Magic"
+                    }
+                }
+            },
+            "stringTable": {
+                "default": "Character Stats %i",
+                "string": {
+                    "0": "Cecil (Dark Knight)",
+                    "1": "Kain",
+                    "2": "Rosa",
+                    "3": "Rydia (Child)",
+                    "4": "Cid",
+                    "5": "Tellah",
+                    "6": "Edward",
+                    "7": "Yang",
+                    "8": "Palom",
+                    "9": "Porom",
+                    "10": "Edge",
+                    "11": "FuSoYa",
+                    "12": "Cecil (Paladin)",
+                    "13": "Rydia (Adult)",
+                    "14": "Golbez"
+                }
             }
         },
         "eventScript": {
@@ -497,18 +853,146 @@
         "monsterProperties": {
             "type": "array",
             "name": "Monster Properties",
-            "range": "0x080EA860-0x080EB439",
+            "range": "0x080F9110-0x080FAFE8",
             "array": {
                 "length": 224
             },
             "assembly": {
                 "type": "data",
+                "length": 28,
                 "assembly": {
+                    "monsterName": {
+                        "type": "assembly",
+                        "name": "Name",
+                        "external": "text[%i+0x112B]"
+                    },
+                    "level": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 0
+                    },
+                    "hp": {
+                        "type": "property",
+                        "name": "HP",
+                        "begin": 4,
+                        "mask": "0x7FFFFFFF",
+                        "max": 999999
+                    },
+                    "experience": {
+                        "type": "property",
+                        "name": "Experience",
+                        "begin": 8,
+                        "mask": "0xFFFF"
+                    },
+                    "gil": {
+                        "type": "property",
+                        "name": "Gil",
+                        "begin": 10,
+                        "mask": "0xFFFF"
+                    },
+                    "attackMult": {
+                        "type": "property",
+                        "name": "Attack Mult.",
+                        "begin": 12
+                    },
+                    "attack": {
+                        "type": "property",
+                        "name": "Attack",
+                        "begin": 13
+                    },
+                    "precision": {
+                        "type": "property",
+                        "name": "Precision",
+                        "begin": 14
+                    },
+                    "defenseMult": {
+                        "type": "property",
+                        "name": "Defense Mult.",
+                        "begin": 15
+                    },
+                    "defense": {
+                        "type": "property",
+                        "name": "Defense",
+                        "begin": 16
+                    },
+                    "evasion": {
+                        "type": "property",
+                        "name": "Evasion",
+                        "begin": 17
+                    },
+                    "mDefMult": {
+                        "type": "property",
+                        "name": "M.Def.Mult.",
+                        "begin": 18
+                    },
+                    "mDef": {
+                        "type": "property",
+                        "name": "M.Def.",
+                        "begin": 19
+                    },
+                    "mEvasion": {
+                        "type": "property",
+                        "name": "M.Evasion",
+                        "begin": 20
+                    },
+                    "agilityMin": {
+                        "type": "property",
+                        "name": "Agility (Min)",
+                        "begin": 21
+                    },
+                    "agilityMax": {
+                        "type": "property",
+                        "name": "Agility (Max)",
+                        "begin": 22
+                    },
+                    "agilityMod": {
+                        "type": "property",
+                        "name": "Agility Mod.",
+                        "begin": 23
+                    },
+                    "unknown24": {
+                        "type": "property",
+                        "name": "Unknown 24",
+                        "begin": 24
+                    },
+                    "magic": {
+                        "type": "property",
+                        "name": "Magic ?",
+                        "begin": 25
+                    },
+                    "bossFlags": {
+                        "type": "property",
+                        "name": "Boss Flags",
+                        "begin": 26,
+                        "flag": true,
+                        "mask": "0x07",
+                        "stringTable": {
+                            "string": {
+                                "0": "Boss",
+                                "1": "Fiend",
+                                "2": "Zeromus"
+                            }
+                        }
+                    },
+                    "monsterType": {
+                        "type": "property",
+                        "name": "Monster Type",
+                        "begin": 27,
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "0": "Dragon",
+                                "1": "Mech",
+                                "2": "Reptile",
+                                "3": "Spirit",
+                                "4": "Giant",
+                                "5": "Flan",
+                                "6": "Mage",
+                                "7": "Undead"
+                            }
+                        }
+                    }
                 }
-            },
-            "pointerTable": {
-                "range": "0x0EA6A0-0x0EA860",
-                "offset": "0x0E0000"
             },
             "stringTable": "monsterName"
         },
@@ -536,6 +1020,77 @@
                         "multiplier": 8
                     }
                 }
+            }
+        },
+        "spellListInitial": {
+            "type": "array",
+            "name": "Initial Spells",
+            "range": "0x080EE7C0-0x080EE920",
+            "array": {
+                "length": 56
+            },
+            "assembly": {
+                "type": "array",
+                "format": "terminated(0xFF)",
+                "assembly": {
+                    "type": "data",
+                    "length": 1,
+                    "assembly": {
+                        "spell": {
+                            "type": "property",
+                            "name": "Spell",
+                            "begin": 0,
+                            "stringTable": "spellName"
+                        }
+                    }
+                }
+            },
+            "pointerTable": {
+                "range": "0x080EE600-0x080EE6E0"
+            }
+        },
+        "spellListLearned": {
+            "type": "array",
+            "name": "Learned Spells",
+            "range": "0x080EE7C0-0x080EE920",
+            "array": {
+                "length": 56
+            },
+            "assembly": {
+                "type": "array",
+                "format": "terminated(0xFF)",
+                "terminator": 0,
+                "assembly": {
+                    "type": "data",
+                    "isSequential": true,
+                    "assembly": {
+                        "spells": {
+                            "type": "array",
+                            "format": "terminated(0)",
+                            "name": "Spells",
+                            "begin": 1,
+                            "assembly": {
+                                "type": "data",
+                                "length": 1,
+                                "assembly": {
+                                    "spell": {
+                                        "type": "property",
+                                        "name": "Spell",
+                                        "stringTable": "spellName"
+                                    }
+                                }
+                            }
+                        },
+                        "level": {
+                            "type": "property",
+                            "name": "Level",
+                            "begin": 0
+                        }
+                    }
+                }
+            },
+            "pointerTable": {
+                "range": "0x080EE6E0-0x080EE7C0"
             }
         },
         "text": {
@@ -2031,6 +2586,11 @@
         }
     },
     "stringTable": {
+        "attackName": {
+            "name": "Attack Name",
+            "length": 174,
+            "link": "text[%i+0x12F5]"
+        },
         "battleBackgroundProperties": {
             "name": "Battle Background",
             "default": "Battle Background %i",
@@ -2060,15 +2620,35 @@
                 "21": "Town"
             }
         },
+        "battleCommand": {
+            "name": "Battle Command",
+            "length": 26,
+            "link": "text[%i+0x1100]"
+        },
         "characterNames": {
             "name": "Character Names",
-            "length": 64,
+            "length": 13,
             "link": "text[%i+0x00F4]"
+        },
+        "characterTitle": {
+            "name": "Character Title",
+            "length": 14,
+            "link": "text[%i+0x0C9B]"
+        },
+        "itemNames": {
+            "name": "Item Names",
+            "length": 325,
+            "link": "text[%i+0x0F9D]"
         },
         "monsterName": {
             "name": "Monster Name",
             "length": 283,
             "link": "text[%i+0x112B]"
+        },
+        "spellName": {
+            "name": "Spell Name",
+            "length": 72,
+            "link": "text[%i+0x12F5]"
         }
     },
     "freeSpace": [

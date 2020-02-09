@@ -277,11 +277,9 @@ FF4Battle.prototype.show = function() {
     var bgSelected = function(bg) { return battle.bg === bg; }
     this.addList("showBackground", "Background", bgNames, onChangeBG, bgSelected);
 
-    this.addTwoState("useAltPalette", function(checked) { battle.altPalette = checked; battle.drawBattle(); }, "Alt. Palette", this.altPalette);
+    if (this.rom.isSFC) this.addTwoState("useAltPalette", function(checked) { battle.altPalette = checked; battle.drawBattle(); }, "Alt. Palette", this.altPalette);
     this.addTwoState("backAttack", function(checked) { battle.backAttack = checked; battle.drawBattle(); }, "Back Attack", this.backAttack);
-    if (this.rom.isSFC) {
-        this.addTwoState("showVRAM", function(checked) { vram.show(checked); }, "VRAM", this.showVRAM);
-    }
+    if (this.rom.isSFC) this.addTwoState("showVRAM", function(checked) { vram.show(checked); }, "VRAM", this.showVRAM);
 }
 
 FF4Battle.prototype.loadBattle = function(b) {
@@ -460,9 +458,7 @@ FF4Battle.prototype.drawBattle = function() {
     ctx.webkitImageSmoothingEnabled = false;
     ctx.drawImage(this.battleCanvas, this.battleRect.l, this.battleRect.t, this.battleRect.w, this.battleRect.h, 0, 0, scaledRect.w, scaledRect.h);
     
-    if (this.rom.isSFC) {
-        this.vram.drawVRAM();
-    }
+    if (this.rom.isSFC) this.vram.drawVRAM();
 }
 
 FF4Battle.prototype.drawMonster = function(slot) {
@@ -625,6 +621,9 @@ FF4Battle.prototype.drawMonsterGBA = function(slot) {
     var imageData = context.createImageData(ppu.width, ppu.height);
     ppu.renderPPU(imageData.data);
     context.putImageData(imageData, 0, 0);
+
+    // tint the selected monster
+    if (this.selectedMonster && this.selectedMonster.slot === slot) this.tintMonster();
 
     var ctx = this.battleCanvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;

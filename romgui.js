@@ -467,6 +467,7 @@ ROMPropertyList.prototype.showProperties = function() {
         // object with sub-assemblies
         var assemblyHTML = this.assemblyHTML(object);
         for (var i = 0; i < assemblyHTML.length; i++) {
+            if (!assemblyHTML[i]) continue;
             properties.appendChild(assemblyHTML[i]);
         }
         
@@ -474,6 +475,7 @@ ROMPropertyList.prototype.showProperties = function() {
         // object is an array
         var arrayHTML = this.arrayHTML(object);
         for (var i = 0; i < arrayHTML.length; i++) {
+            if (!arrayHTML[i]) continue;
             properties.appendChild(arrayHTML[i]);
         }
         this.observer.startObserving(object, this.showProperties);
@@ -590,7 +592,10 @@ ROMPropertyList.prototype.propertyHTML = function(object, options) {
     options = options || {};
     options.key = options.key || object.key || "undefined";
     options.name = options.name || object.name;
-    if (options.index !== undefined) options.name += " " + options.index.toString();
+    if (isNumber(options.index)) {
+        options.name += " " + options.index;
+        options.key += "-" + options.index;
+    }
     options.propertyID = "property-" + options.key;
     options.controlID = "property-control-" + options.key;
     options.labelID = "property-label-" + options.key;
@@ -992,6 +997,7 @@ ROMPropertyList.prototype.arrayHTML = function(object, options) {
     
     options = options || {};
     options.key = options.key || object.key || "undefined";
+    if (isNumber(options.index)) options.key += "-" + options.index;
     options.name = options.name || object.name;
     options.propertyID = "property-" + options.key;
     options.controlID = "property-control-" + options.key;
@@ -1021,6 +1027,10 @@ ROMPropertyList.prototype.arrayHTML = function(object, options) {
             var assemblyHTML = this.assemblyHTML(element, {index: i});
             divs = divs.concat(assemblyHTML);
             
+        } else if (element instanceof ROMArray) {
+            var arrayHTML = this.arrayHTML(element, {index: i});
+            divs = divs.concat(arrayHTML);
+
         } else {
             var propertyHTML = this.propertyHTML(element, {index: i});
             divs.push(propertyHTML);

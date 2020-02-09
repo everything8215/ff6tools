@@ -1505,7 +1505,10 @@ ROM.dataFormat = {
             return newData;
         },
         decode: function(data, terminator) {
-            return data.subarray(0, data.length - 1);
+            terminator = terminator || 0;
+            var length = 0;
+            while (length < data.length && data[length] !== terminator) length++;
+            return data.subarray(0, length);
         }
     },
     
