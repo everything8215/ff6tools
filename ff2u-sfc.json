@@ -1574,7 +1574,7 @@
                         "begin": 11,
                         "mask": "0xFFFF"
                     },
-                    "hp": {
+                    "mp": {
                         "type": "property",
                         "name": "Max MP",
                         "begin": 13,

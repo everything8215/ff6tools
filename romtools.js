@@ -2791,6 +2791,7 @@ function ROMArray(rom, definition, parent) {
     }
     
     // determine if elements are strictly sequential or shared
+    this.isFragmented = (definition.isFragmented === true);
     this.isSequential = (definition.isSequential === true);
     this.endPointer = (definition.endPointer === true);
     this.autoBank = (definition.autoBank === true);
@@ -2830,6 +2831,7 @@ Object.defineProperty(ROMArray.prototype, "definition", { get: function() {
     if (this.min) definition.array.min = this.min;
     if (definition.array === {}) delete definition.array;
     
+    if (this.isFragmented) definition.isFragmented = true;
     if (this.isSequential) definition.isSequential = true;
     if (this.endPointer) definition.endPointer = true;
     if (this.autoBank) definition.autoBank = true;
@@ -2903,6 +2905,9 @@ ROMArray.prototype.updateReferences = function() {
 }
 
 ROMArray.prototype.relocate = function(begin, end) {
+    
+    // no need to relocate fragmented arrays
+    if (this.isFragmented) return;
     
     // update the pointer offset if the array moved
     if (isNumber(begin) && begin !== this.range.begin && Number(this.pointerOffset)) {
@@ -3105,9 +3110,19 @@ ROMArray.prototype.disassemble = function(data) {
         if (this.isAbsolute) range = this.rom.mapRange(range);
         if (this.pointerTable) range = range.offset(-this.range.begin);
         definition.range = range.toString();
-        var assembly = ROMObject.create(this.rom, definition, this);
-        assembly.i = i;
-        assembly.disassemble(this.data);
+        
+        var assembly;
+        if (this.isFragmented) {
+            definition.key += "_" + i;
+            assembly = this.parent.addAssembly(definition);
+            assembly.i = i;
+            assembly.disassemble(data);
+        } else {
+            assembly = ROMObject.create(this.rom, definition, this);
+            assembly.i = i;
+            assembly.disassemble(this.data);
+        }
+        
         if (pointers[i]) {
             pointers[i].parent = assembly;
             assembly.reference.push(pointers[i]);
@@ -3912,53 +3927,6 @@ ROMText.prototype.disassemble = function(data) {
     }
 }
 
-//ROMText.prototype.propertyHTML = function(name) {
-//    
-//    if (this.hidden || this.invalid) return null;
-//    
-//    // create a div for the property
-//    var propertyDiv = document.createElement('div');
-//    propertyDiv.classList.add("property-div");
-//    propertyDiv.id = "property-" + this.key;
-//    var id = "property-control-" + this.key;
-//    
-//    // create a label
-//    var label = document.createElement('label');
-//    label.htmlFor = id;
-//    label.classList.add("property-label");
-//    name = name || this.name;
-//    if (name) label.innerHTML = name + ":";
-//    propertyDiv.appendChild(label);
-//
-//    // create a div for the control(s)
-//    var controlDiv = document.createElement('div');
-//    propertyDiv.appendChild(controlDiv);
-//    controlDiv.classList.add("property-control-div");
-//        
-//    // create a text box
-//    var input = document.createElement(this.multiLine ? 'textarea' : 'input');
-//    controlDiv.appendChild(input);
-//    input.id = id;
-//    input.value = this.text;
-//    input.disabled = this.disabled;
-//    input.classList.add("property-control");
-//    input.classList.add(this.multiLine ? "property-textarea" : "property-text");
-//    var text = this;
-//    input.onchange = function() {
-//        text.setText(this.value);
-//        document.getElementById(this.id).focus();
-//    };
-//
-////    document.body.appendChild(propertyDiv);
-////    parent.appendChild(propertyDiv);
-//
-//    // calculate the required height
-////    var height = input.scrollHeight;
-////    input.style.height = height + "px";
-//    
-//    return propertyDiv;
-//}
-
 ROMText.prototype.setText = function(text) {
     
     // validate the text
@@ -4216,7 +4184,7 @@ ROMTextEncoding.prototype.textLength = function(data) {
 ROMTextEncoding.prototype.format = function(text, html) {
     
     var escapeKeys = Object.keys(this.encodingTable);
-    escapeKeys = escapeKeys.filter(str => str.startsWith("\\"));
+    escapeKeys = escapeKeys.filter(function(str) { return str.startsWith("\\"); });
     escapeKeys = escapeKeys.sort(function(a, b) { return b.length - a.length; });
     
     for (var i = 0; i < escapeKeys.length; i++) {
