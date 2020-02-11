@@ -2031,13 +2031,13 @@ ROM.dataFormat = {
             return dest.slice(0, d);
         }
     },
-    "ff5a-70": {
+    "tose-70": {
         encode: function(data) {
-            var encoder = new FF5AdvanceEncoder();
+            var encoder = new Tose70Encoder();
             return encoder.encode(data);
         },
         decode: function(data) {
-            var decoder = new FF5AdvanceDecoder();
+            var decoder = new Tose70Decoder();
             return decoder.decode(data);
         }
     },

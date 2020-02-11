@@ -1280,7 +1280,7 @@
                 "length": 380
             },
             "assembly": {
-                "format": "ff5a-70"
+                "format": "tose-70"
             },
             "pointerTable": {
                 "range": "0x0870871C-0x08708D0C"

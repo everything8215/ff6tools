@@ -460,7 +460,7 @@ FF4Map.prototype.tilePropertiesAtTile = function(x, y, layer) {
         if (tp === 0xFFFF) return 0;
         var layout = this.rom.mapGraphicsData.item(tp & 0x0FFF);
         if (!layout.format) {
-            layout.format = "ff5a-70";
+            layout.format = "tose-70";
             layout.disassemble(layout.parent.lazyData);
         }
         var w = this.layer[0].w;
@@ -865,7 +865,7 @@ FF4Map.prototype.loadMapGBA = function(m) {
     var gfx = new Uint32Array(0x100000);
     var graphicsData = this.rom.mapGraphicsData.item(mapTileset.graphics.value);
     if (!graphicsData.format) {
-        graphicsData.format = ["linear4bpp", "ff5a-70"];
+        graphicsData.format = ["linear4bpp", "tose-70"];
         graphicsData.disassemble(graphicsData.parent.lazyData);
     }
     gfx.set(graphicsData.data, 0);
@@ -888,7 +888,7 @@ FF4Map.prototype.loadMapGBA = function(m) {
     layout = this.rom.mapGraphicsData.item(map.layout.value);
     if (!layout.format) {
         // decompress layout data
-        layout.format = "ff5a-70";
+        layout.format = "tose-70";
         layout.disassemble(layout.parent.lazyData);
     }
     var w = layout.data[0] | (layout.data[1] << 8);
