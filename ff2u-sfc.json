@@ -1554,6 +1554,7 @@
                         "type": "property",
                         "name": "Level",
                         "begin": 2,
+                        "min": 1,
                         "max": 69
                     },
                     "currentHP": {

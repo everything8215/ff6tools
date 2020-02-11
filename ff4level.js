@@ -425,7 +425,6 @@ FF4LevelProgression.prototype.loadCharacter = function(c) {
     this.characterStats = this.rom.characterStats.item(c);
     if (!this.characterStats) return;
     this.c = c;
-    var id = this.characterStats.properties.value;
     this.levelProgData = this.rom.characterLevelProgression.item(c);
     if (!this.levelProgData) return;
     propertyList.select(this.characterStats);
@@ -438,6 +437,8 @@ FF4LevelProgression.prototype.loadCharacter = function(c) {
 }
 
 FF4LevelProgression.prototype.updateStats = function() {
+    
+    // todo: clean this up, it's a mess
     var level = this.characterStats.level.value;
     var exp = this.characterStats.expLastLevel.value;
     var minHP = this.characterStats.hp.value;

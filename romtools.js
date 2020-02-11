@@ -362,6 +362,7 @@ ROMAssembly.prototype.disassemble = function(data) {
     
     // decode the data
     this.data = ROMAssembly.decode(this.lazyData, this.format);
+    this.range.length = this.lazyData.length;
     this.isLoaded = true;
 }
 
@@ -672,7 +673,11 @@ Object.defineProperty(ROMData.prototype, "definition", { get: function() {
         // don't include pointer tables (they will be defined by their array)
         if (assembly.key.endsWith("PointerTable")) continue;
         
+        // don't include array fragments either
+        if (assembly.fragment) continue;
+        
         var assemblyDefinition = assembly.definition;
+        
         if (!assemblyDefinition) continue;
         delete assemblyDefinition.key; // key is implied
         definition.assembly[key] = assemblyDefinition;
@@ -1508,6 +1513,7 @@ ROM.dataFormat = {
             terminator = terminator || 0;
             var length = 0;
             while (length < data.length && data[length] !== terminator) length++;
+            data = data.subarray(0, length + 1);
             return data.subarray(0, length);
         }
     },
@@ -2021,6 +2027,7 @@ ROM.dataFormat = {
                 }
             }
 
+            data = data.subarray(0, s);
             return dest.slice(0, d);
         }
     },
@@ -2203,6 +2210,7 @@ ROM.dataFormat = {
                 }
             }
 
+            data = data.subarray(0, s);
             return dest.slice(0, d);
         }
     },
@@ -2791,6 +2799,7 @@ function ROMArray(rom, definition, parent) {
     }
     
     // determine if elements are strictly sequential or shared
+    this.hideCategory = (definition.hideCategory === true);
     this.isFragmented = (definition.isFragmented === true);
     this.isSequential = (definition.isSequential === true);
     this.endPointer = (definition.endPointer === true);
@@ -2831,6 +2840,7 @@ Object.defineProperty(ROMArray.prototype, "definition", { get: function() {
     if (this.min) definition.array.min = this.min;
     if (definition.array === {}) delete definition.array;
     
+    if (this.hideCategory) definition.hideCategory = true;
     if (this.isFragmented) definition.isFragmented = true;
     if (this.isSequential) definition.isSequential = true;
     if (this.endPointer) definition.endPointer = true;
@@ -2979,6 +2989,9 @@ ROMArray.prototype.assemble = function(data) {
         }
     }
     
+    // fragmented assemblies get assembled by the parent
+    if (this.isFragmented) return true;
+    
     // create an array and assemble each item
     this.data = new Uint8Array(length);
     for (i = 0; i < this.array.length; i++) this.array[i].assemble(this.data);
@@ -3108,16 +3121,18 @@ ROMArray.prototype.disassemble = function(data) {
     for (i = 0; i < itemRanges.length; i++) {
         var range = itemRanges[i];
         if (this.isAbsolute) range = this.rom.mapRange(range);
-        if (this.pointerTable) range = range.offset(-this.range.begin);
-        definition.range = range.toString();
         
         var assembly;
         if (this.isFragmented) {
-            definition.key += "_" + i;
+            definition.key = this.key + "_" + i;
+            definition.range = range.toString();
             assembly = this.parent.addAssembly(definition);
             assembly.i = i;
+            assembly.fragment = true;
             assembly.disassemble(data);
         } else {
+            if (this.pointerTable) range = range.offset(-this.range.begin);
+            definition.range = range.toString();
             assembly = ROMObject.create(this.rom, definition, this);
             assembly.i = i;
             assembly.disassemble(this.data);
@@ -3147,28 +3162,23 @@ ROMArray.prototype.createPointer = function(i) {
         offset = this.parent.mapAddress(offset);
     }
 
+    // create a new reference
+    var definition = {
+        offset: offset,
+        relativeTo: (this.isFragmented ? this.rom : this),
+        isAbsolute: isAbsolute
+    };
+    
     if (isString(this.pointerTable)) {
-        // create a new reference
         var target = this.parsePath(this.pointerTable, this.rom, i);
         if (!target) return null;
-        var definition = {
-            target: target,
-            offset: offset,
-            relativeTo: this,
-            isAbsolute: isAbsolute
-        }
+        definition.target = target;
     } else {
-        // create a new reference
-        var definition = {
-            begin: i * this.pointerLength,
-            mask: ROMArray.pointerMask[this.pointerLength],
-            target: this.pointerTable,
-            offset: offset,
-            relativeTo: this,
-            isAbsolute: isAbsolute
-        }
+        definition.begin = i * this.pointerLength;
+        definition.mask = ROMArray.pointerMask[this.pointerLength];
+        definition.target = this.pointerTable;
     }
-    
+
     return new ROMReference(this.rom, definition, this);    
 }
 
@@ -3223,6 +3233,7 @@ ROMArray.prototype.blankAssembly = function() {
     assembly.range = new ROMRange(0, data.length);
     assembly.disassemble(data);
     assembly.i = this.array.length;
+    if (this.isFragmented) assembly.fragment = true;
     var pointer = this.createPointer(assembly.i);
     if (pointer) {
         pointer.parent = assembly;
@@ -4447,6 +4458,9 @@ Object.defineProperty(ROMRange.prototype, "isEmpty", {
 Object.defineProperty(ROMRange.prototype, "length", {
     get: function() {
         return (this.end - this.begin);
+    },
+    set: function(length) {
+        this.end = this.begin + length;
     }
 });
 

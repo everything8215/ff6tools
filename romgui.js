@@ -1010,7 +1010,7 @@ ROMPropertyList.prototype.arrayHTML = function(object, options) {
     categoryDiv.classList.add("property-category");
     divs.push(categoryDiv);
     var category = document.createElement('p');
-    category.innerHTML = options.name;
+    if (!object.hideCategory) category.innerHTML = options.name;
     categoryDiv.appendChild(category);
     
     // create the length control

@@ -2511,6 +2511,7 @@ FF5AdvanceDecoder.prototype.decode = function(data) {
         this.postDecode4();
     }
     
+    data = data.subarray(0, this.s * 4);
     return this.dest;
 }
 

@@ -544,7 +544,7 @@
         "mapGraphicsData": {
             "type": "array",
             "name": "Map Graphics Data",
-            "range": "0x0823D3CC-0x082BF2F0",
+            "isFragmented": true,
             "array": {
                 "length": 896
             },
@@ -1066,6 +1066,7 @@
                     "assembly": {
                         "spells": {
                             "type": "array",
+                            "hideCategory": true,
                             "format": "terminated(0)",
                             "name": "Spells",
                             "begin": 1,
