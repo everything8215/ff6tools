@@ -37,7 +37,6 @@ game specific
  * ff5 monster ai
  * ff5 advance (battles, ff5j, ff5e)
  * can't expand/relocate ff6 advance text
- * support for ff4 advance
  * battle vram viewer for ff5
 
 wish list

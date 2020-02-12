@@ -334,7 +334,7 @@
                     },
                     "hand": {
                         "type": "property",
-                        "name": "Right/Left-Handed",
+                        "name": "Handedness",
                         "begin": 1,
                         "stringTable": {
                             "hideIndex": true,
@@ -2653,5 +2653,6 @@
         }
     },
     "freeSpace": [
+        "0x086DD8D0-0x08800000"
     ]
 }

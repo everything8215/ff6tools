@@ -22,7 +22,7 @@ function FF4LevelProgression(rom) {
 
     this.showStat = [true, false, false, false, false, false, false, false];
     this.showRange = false;
-    this.showLegend = false;
+    this.showLegend = true;
     
     this.c = 0;
     this.selectedPoint = null;
@@ -61,6 +61,7 @@ FF4LevelProgression.prototype.resize = function() {
 }
 
 FF4LevelProgression.prototype.mouseDown = function(e) {
+    this.closeList();
     if (!this.selectedPoint) return;
     propertyList.select(this.selectedPoint.object)
 }
@@ -181,51 +182,51 @@ FF4LevelProgression.stats = [
         name: "HP",
         axis: "HP (×100)",
         key: "hp",
-        color: "hsla(100, 100%, 25%, 1.0)",
-        fillColor: "hsla(100, 100%, 25%, 0.25)",
+        color: "hsla(100, 100%, 30%, 1.0)",
+        fillColor: "hsla(100, 100%, 30%, 0.25)",
         multiplier: 100,
         max: 9999
     }, {
         name: "MP",
         axis: "MP (×10)",
         key: "mp",
-        color: "hsla(220, 100%, 25%, 1.0)",
-        fillColor: "hsla(220, 100%, 50%, 0.25)",
+        color: "hsla(220, 100%, 35%, 1.0)",
+        fillColor: "hsla(220, 100%, 60%, 0.25)",
         multiplier: 10,
         max: 999
     }, {
         name: "Strength",
         key: "strength",
-        color: "hsla(0, 100%, 30%, 1.0)",
-        fillColor: "hsla(0, 100%, 30%, 0.25)",
+        color: "hsla(0, 100%, 40%, 1.0)",
+        fillColor: "hsla(0, 100%, 40%, 0.25)",
         multiplier: 1,
         max: 99
     }, {
         name: "Agility",
         key: "agility",
-        color: "hsla(50, 100%, 25%, 1.0)",
-        fillColor: "hsla(50, 100%, 25%, 0.25)",
+        color: "hsla(50, 100%, 35%, 1.0)",
+        fillColor: "hsla(50, 100%, 35%, 0.25)",
         multiplier: 1,
         max: 99
     }, {
         name: "Vitality",
         key: "vitality",
-        color: "hsla(170, 100%, 25%, 1.0)",
-        fillColor: "hsla(170, 100%, 25%, 0.25)",
+        color: "hsla(170, 100%, 35%, 1.0)",
+        fillColor: "hsla(170, 100%, 35%, 0.25)",
         multiplier: 1,
         max: 99
     }, {
         name: "Wisdom",
         key: "wisdom",
-        color: "hsla(270, 100%, 25%, 1.0)",
-        fillColor: "hsla(270, 100%, 25%, 0.25)",
+        color: "hsla(270, 100%, 35%, 1.0)",
+        fillColor: "hsla(270, 100%, 35%, 0.25)",
         multiplier: 1,
         max: 99
     }, {
         name: "Will",
         key: "will",
-        color: "hsla(320, 100%, 25%, 1.0)",
-        fillColor: "hsla(320, 100%, 25%, 0.25)",
+        color: "hsla(320, 100%, 35%, 1.0)",
+        fillColor: "hsla(320, 100%, 35%, 0.25)",
         multiplier: 1,
         max: 99
     }
@@ -659,7 +660,7 @@ FF4LevelProgression.prototype.drawChart = function() {
     
     // draw legend
     if (this.showLegend) {
-        
+        this.drawLegend(ctx);
     }
 }
 
@@ -713,6 +714,63 @@ FF4LevelProgression.prototype.drawStat = function(stat, ctx) {
         ctx.fillStyle = FF4LevelProgression.stats[stat].color;
         ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI);
         ctx.fill();
+    }
+}
+
+FF4LevelProgression.prototype.drawLegend = function(ctx) {
+    
+    // find the widest stat
+    var maxWidth = 0;
+    var height = 10;
+    var lineHeight = 15;
+    ctx.font = 'small sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    for (var s = 0; s < 8; s++) {
+        if (!this.showStat[s]) continue;
+        var name = FF4LevelProgression.stats[s].axis || FF4LevelProgression.stats[s].name;
+        var size = ctx.measureText(name);
+        maxWidth = Math.max(size.width + 15, maxWidth);
+        height += lineHeight;
+    }
+    if (maxWidth === 0) return;
+    
+    var l = this.chartRect.l + 10;
+    var t = this.chartRect.t + 10;
+    var r = l + 20 + maxWidth;
+    var b = t + height;
+    
+    var legendRect = new Rect(l, r, t, b);
+        
+    // draw the legend box
+    ctx.fillStyle = "white";
+    ctx.fillRect(legendRect.l, legendRect.t, legendRect.w, legendRect.h);
+
+    ctx.beginPath();
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 1.0;
+    ctx.moveTo(legendRect.l - 0.5, legendRect.t - 0.5);
+    ctx.lineTo(legendRect.l - 0.5, legendRect.b + 0.5);
+    ctx.lineTo(legendRect.r + 0.5, legendRect.b + 0.5);
+    ctx.lineTo(legendRect.r + 0.5, legendRect.t - 0.5);
+    ctx.closePath();
+    ctx.stroke();
+    
+    // draw stat names and color blobs
+    var x = l + 10;
+    var y = t + 5;
+    for (var s = 0; s < 8; s++) {
+        if (!this.showStat[s]) continue;
+        
+        ctx.fillStyle = FF4LevelProgression.stats[s].color;
+        ctx.fillRect(x, y + 2, 9, 9);
+        ctx.strokeStyle = "black";
+        ctx.strokeRect(x - 0.5, y + 1.5, 10, 10);
+        
+        ctx.fillStyle = "black";
+        var name = FF4LevelProgression.stats[s].axis || FF4LevelProgression.stats[s].name;
+        ctx.fillText(name, x + 15, y);
+        y += lineHeight;
     }
 }
 
