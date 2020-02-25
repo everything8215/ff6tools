@@ -2454,7 +2454,10 @@
             "array": {
                 "length": 384
             },
-            "pointerTable": "monsterGraphicsProperties[%i].graphicsPointer"
+            "pointerObject": {
+                "arrayPath": "monsterGraphicsProperties",
+                "pointerPath": "graphicsPointer"
+            }
         },
         "monsterGraphicsMap": {
             "type": "data",
@@ -3318,7 +3321,10 @@
             "array": {
                 "length": 528
             },
-            "pointerTable": "treasurePointers[%i].pointer",
+            "pointerObject": {
+                "arrayPath": "treasurePointers",
+                "pointerPath": "pointer"
+            },
             "assembly": {
                 "type": "array",
                 "assembly": {

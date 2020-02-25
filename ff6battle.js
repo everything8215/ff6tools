@@ -41,6 +41,8 @@ function FF6Battle(rom) {
     this.monsterPoint = null;
     this.clickedPoint = null;
     
+    this.rom.monsterGraphics; // load monster graphics
+    this.rom.monsterPalette; // load monster palettes
     this.updateBattleStrings();
 }
 
@@ -54,55 +56,30 @@ FF6Battle.Type = {
     side: "side"
 }
 
-//FF6Battle.prototype.battleName = function(b) {
-//    var battleProperties = this.rom.battleProperties.item(b);
-//    
-//    // count up the monsters
-//    var monsterList = {};
-//    var index, count;
-//    for (var m = 1; m <= 6; m++) {
-//        index = battleProperties["monster" + m].value;
-//        if (index === 0x01FF) continue;
-//        count = monsterList[index];
-//        monsterList[index] = (count || 0) + 1;
-//    }
-//
-//    var battleName = "";
-//    var keys = Object.keys(monsterList);
-//    for (var k = 0; k < keys.length; k++) {
-//        index = keys[k];
-//        count = monsterList[index];
-//        if (battleName !== "") battleName += ", ";
-//        battleName += "<stringTable.monsterName[" + index.toString() + "]>"
-////        battleName += this.rom.stringTable.monsterName.fString(index);
-//        if (count !== 1) battleName += " ×" + count;
-//    }
-//    
-//    if (battleName === "") battleName = "Battle %i";
-//    return battleName;
-//}
-
 FF6Battle.prototype.updateBattleStrings = function() {
     
-    var paletteStringTable = this.rom.stringTable.monsterPalette;
-    var graphicsStringTable = this.rom.stringTable.monsterGraphics;
-    for (var m = 0; m < this.rom.monsterProperties.array.length; m++) {
-        var p = this.rom.monsterGraphicsProperties.item(m).palette.value;
-        var paletteString = paletteStringTable.string[p];
-        if (!paletteString) {
-            paletteStringTable.setString(p, "<stringTable.monsterName[" + m.toString() + "]>");
-        }
-        
-        var g = this.rom.monsterGraphicsProperties.item(m).graphicsPointer.value;
-        var graphicsString = graphicsStringTable.string[g];
-        if (!graphicsString) {
-            graphicsStringTable.setString(g, "<stringTable.monsterName[" + m.toString() + "]>");
-        } else {
-            // duplicate monsters using the same graphics
-            graphicsString.value += ", <stringTable.monsterName[" + m.toString() + "]>";
-        }
-    }
-    
+//    var paletteStringTable = this.rom.stringTable.monsterPalette;
+//    for (var m = 0; m < this.rom.monsterGraphicsProperties.array.length; m++) {
+//        
+//        var graphicsProperties = this.rom.monsterGraphicsProperties.item(m);
+//        var i = graphicsProperties.palette.target.i;
+//        var string = paletteStringTable.string[i];
+//        if (!string) {
+//            paletteStringTable.setString(i, "<stringTable.monsterName[" + m.toString() + "]>");
+//        } else {
+//            // duplicate monsters using the same graphics
+//            string.value += ", <stringTable.monsterName[" + m.toString() + "]>";
+//        }
+//    }
+//
+//    var bigString = "";
+//    for (var s = 0; s < paletteStringTable.string.length; s++) {
+//        var string = paletteStringTable.string[s];
+//        if (!string) continue;
+//        bigString += '"' + s + '": "' + string.fString() + '",\n';
+//    }
+//    console.log(bigString);
+
     for (var b = 0; b < this.rom.battleProperties.array.length; b++) {
         var battleProperties = this.rom.battleProperties.item(b);
 
@@ -123,7 +100,6 @@ FF6Battle.prototype.updateBattleStrings = function() {
             count = monsterList[index];
             if (battleName !== "") battleName += ", ";
             battleName += "<stringTable.monsterName[" + index.toString() + "]>"
-    //        battleName += this.rom.stringTable.monsterName.fString(index);
             if (count !== 1) battleName += " ×" + count;
         }
 
@@ -361,10 +337,12 @@ FF6Battle.prototype.monsterInSlot = function(slot) {
     // minimum size is 1x1
     var w = 1; var h = 1;
     var map = this.mapForMonster(g);
-    for (var t = 0; t < map.tiles.length; t++) {
-        if (!map.tiles[t]) continue;
-        w = Math.max(w, (t % map.size) + 1);
-        h = Math.max(h, Math.floor(t / map.size) + 1);
+    if (map) {
+        for (var t = 0; t < map.tiles.length; t++) {
+            if (!map.tiles[t]) continue;
+            w = Math.max(w, (t % map.size) + 1);
+            h = Math.max(h, Math.floor(t / map.size) + 1);
+        }
     }
     w *= 8;
     h *= 8;
@@ -521,10 +499,12 @@ FF6Battle.prototype.mapForMonster = function(m) {
 
     // load graphics map and set up tile data
     var size, mask, row, map;
-    if (gfxProperties.largeMap.value) {
+    if (gfxProperties.useLargeMap.value) {
         size = 16; mask = 0x8000;
         if (this.rom.isSFC) {
-            map = this.rom.monsterGraphicsMap.large.item(gfxProperties.map.value).data;
+            map = this.rom.monsterGraphicsMap.large.item(gfxProperties.largeMap.value);
+            if (!map) return null;
+            map = map.data;
         } else {
             var mapBegin = this.rom.mapAddress(gfxProperties.mapPointer.value);
             var mapEnd = mapBegin + 32;
@@ -534,7 +514,9 @@ FF6Battle.prototype.mapForMonster = function(m) {
     } else {
         size = 8; mask = 0x80;
         if (this.rom.isSFC) {
-            map = this.rom.monsterGraphicsMap.small.item(gfxProperties.map.value).data;
+            map = this.rom.monsterGraphicsMap.small.item(gfxProperties.smallMap.value);
+            if (!map) return null;
+            map = map.data;
         } else {
             var mapBegin = this.rom.mapAddress(gfxProperties.mapPointer.value);
             var mapEnd = mapBegin + 8;
@@ -563,7 +545,8 @@ FF6Battle.prototype.drawMonster = function(slot) {
     var gfxProperties = this.rom.monsterGraphicsProperties.item(m.graphics);
     
     // decode the graphics
-    var gfx = this.rom.monsterGraphics.item(m.graphics);
+    var gfx = gfxProperties.graphicsPointer.value;
+//    var gfx = this.rom.monsterGraphics.item(m.graphics);
     if (this.rom.isSFC) {
         var format = gfxProperties.is3bpp.value ? "snes3bpp" : "snes4bpp";
         if (gfx.format !== format) {
@@ -577,12 +560,14 @@ FF6Battle.prototype.drawMonster = function(slot) {
     graphics.set(gfx.data, 64);
     
     var map = this.mapForMonster(m.graphics);
+    if (!map) return;
     
     // load palette
     var p = gfxProperties.palette.value;
     var pal = new Uint32Array(16);
-    pal.set(this.rom.monsterPalette.item(p).data);
-    if (this.rom.isGBA || !gfxProperties.is3bpp.value) pal.set(this.rom.monsterPalette.item(p + 1).data, 8);
+    pal.set(gfxProperties.palette.value.data);
+//    pal.set(this.rom.monsterPalette.item(p).data);
+//    if (this.rom.isGBA || !gfxProperties.is3bpp.value) pal.set(this.rom.monsterPalette.item(p + 1).data, 8);
     
     // set up the ppu
     var ppu = new GFX.PPU();

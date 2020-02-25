@@ -79,6 +79,8 @@ function FF4Map(rom) {
     this.scrollDiv.onmouseleave = function(e) { map.mouseLeave(e) };
     this.scrollDiv.oncontextmenu = function(e) { map.openMenu(e); return false; };
     
+    this.rom.mapTriggers;
+    this.rom.mapExit;
     this.initBattleGroups();
 }
 
@@ -1163,7 +1165,7 @@ FF4Map.prototype.loadTriggersGBA = function() {
     this.triggers = [];
 
     // load triggers
-    var triggers = this.rom.mapTriggers.item(this.mapProperties.npcs.value);
+    var triggers = this.rom.mapTriggerPointers.item(this.mapProperties.npcs.value).triggerPointer.value;
     this.observer.startObserving(triggers, this.reloadTriggers);
     for (i = 0; i < triggers.array.length; i++) {
         var trigger = triggers.item(i);
@@ -1176,7 +1178,8 @@ FF4Map.prototype.loadTriggersGBA = function() {
     }
     
     // load tile properties triggers
-    var treasures = this.rom.mapTriggers.item(this.mapProperties.treasures.value);
+    var treasures = this.rom.mapTriggerPointers.item(this.mapProperties.treasures.value).triggerPointer.value;
+    var exits = this.mapProperties.exitPointer.value;
     for (y = 0; y < this.layer[0].h; y++) {
         for (x = 0; x < this.layer[0].w; x++) {
             var tp = this.tilePropertiesAtTile(x, y);
@@ -1184,18 +1187,22 @@ FF4Map.prototype.loadTriggersGBA = function() {
             var key;
             if (tp & 0x0040) {
                 // exit (upper z-level)
-                object = this.rom.mapExit.item(this.m).item(tp & 0x0F);
+                if (!exits) continue;
+                object = exits.item(tp & 0x0F);
                 key = "entranceTriggers";
             } else if (tp & 0x4000) {
                 // exit (lower z-level)
-                object = this.rom.mapExit.item(this.m).item((tp & 0x0F00) >> 8);
+                if (!exits) continue;
+                object = exits.item((tp & 0x0F00) >> 8);
                 key = "entranceTriggers";
             } else if (tp & 0x0020) {
                 // treasure (upper z-level)
+                if (!treasures) continue;
                 object = treasures.item(tp & 0x0F);
                 key = "treasureProperties";
             } else if (tp & 0x2000) {
                 // treasure (lower z-level)
+                if (!treasures) continue;
                 object = treasures.item((tp & 0x0F00) >> 8);
                 key = "treasureProperties";
             } else {

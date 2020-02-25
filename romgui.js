@@ -513,14 +513,14 @@ ROMPropertyList.prototype.assemblyHTML = function(object, options) {
 
         if (assembly instanceof ROMArray) {
             // array of properties
-            var arrayHTML = this.arrayHTML(assembly, {name: object.assembly[key].name, index: options.index});
+            var arrayHTML = this.arrayHTML(assembly, {name: object.assembly[key].name, index: options.index, key: options.key});
             if (!arrayHTML) continue;
             divs = divs.concat(arrayHTML);
             this.observer.startObserving(assembly, this.showProperties);
 
         } else {
             // single property
-            var propertyHTML = this.propertyHTML(assembly, {name: object.assembly[key].name, index: options.index});
+            var propertyHTML = this.propertyHTML(assembly, {name: object.assembly[key].name, index: options.index, key: options.key});
             if (!propertyHTML) continue;
             divs.push(propertyHTML);
             this.observer.startObserving(assembly, this.showProperties);
@@ -590,7 +590,11 @@ ROMPropertyList.prototype.propertyHTML = function(object, options) {
     if (object.hidden || object.invalid) return null;
     
     options = options || {};
-    options.key = options.key || object.key || "undefined";
+    if (options.key && object.key) {
+        options.key += "-" + object.key;
+    } else {
+        options.key = object.key || "undefined";
+    }
     options.name = options.name || object.name;
     if (isNumber(options.index)) {
         options.name += " " + options.index;
@@ -613,6 +617,16 @@ ROMPropertyList.prototype.propertyHTML = function(object, options) {
         var command = script.ref[object.value];
         label = document.createElement('a');
         label.href = "javascript:propertyList.select(\"" + object.script + "\"); scriptList.selectRef(" + command.ref + ");";
+    } else if (object.pointerTo && object.parsePath(object.pointerTo) && object.value instanceof ROMAssembly) {
+        // create a label with a link to the pointer target
+        object.parsePath(object.pointerTo);
+        var target = object.value;
+        label = document.createElement('a');
+        if (target.parent instanceof ROMArray) {
+            label.href = "javascript:propertyList.select(\"" + target.parent.path + "[" + target.i + "]\");";
+        } else {
+            label.href = "javascript:propertyList.select(\"" + target.path + "\");";
+        }
     } else if (object instanceof ROMString && object.language) {
         label = document.createElement('a');
         label.href = "javascript:propertyList.select(\"stringTable." + object.parent.key + "[" + object.i + "]\");";
@@ -639,6 +653,9 @@ ROMPropertyList.prototype.propertyHTML = function(object, options) {
         
     } else if (object instanceof ROMProperty && object.script) {
         controlDiv = this.scriptControlHTML(object, options);
+        
+    } else if (object instanceof ROMProperty && object.pointerTo) {
+        controlDiv = this.pointerControlHTML(object, options);
         
     } else if (object instanceof ROMProperty) {
         controlDiv = this.numberControlHTML(object, options);
@@ -815,6 +832,7 @@ ROMPropertyList.prototype.listControlHTML = function(object, options) {
 
     // create an option for each valid string in the table
     var stringTable = this.rom.stringTable[object.stringTable];
+    if (!stringTable) return null;
     var min = (object.min * object.multiplier) + object.offset;
     var max = (object.max * object.multiplier) + object.offset;
     for (var i = min; i <= max; i += object.multiplier) {
@@ -968,6 +986,66 @@ ROMPropertyList.prototype.stringControlHTML = function(object, options) {
     return controlDiv;
 }
 
+ROMPropertyList.prototype.pointerControlHTML = function(object, options) {
+    // create a div for the control
+    var controlDiv = document.createElement('div');
+    controlDiv.classList.add("property-control-div");
+
+    // property with a drop down list of strings
+    var input = document.createElement('select');
+    controlDiv.appendChild(input);
+    input.id = options.controlID;
+    input.disabled = object.disabled;
+    input.classList.add("property-control");
+    input.onchange = function() {
+        var numberValue = Number(this.value);
+        if (isNumber(numberValue)) {
+            object.setValue(value);
+        } else {
+            var target = object.parsePath(this.value);
+            if (target) object.setValue(target);
+        }
+        document.getElementById(this.id).focus();
+    };
+
+    // create an option for each valid pointer
+    var targetObject = this.rom.parsePath(object.pointerTo);
+    var stringTable = this.rom.stringTable[targetObject.stringTable];
+    var value = null;
+    for (var i = 0; i < targetObject.array.length; i++) {
+
+        var arrayItem = targetObject.item(i);
+        var objectPath = targetObject.path + "[" + i + "]";
+        if (object.value === arrayItem) value = objectPath;
+        
+        var optionString = (stringTable && stringTable.hideIndex) ? "" : i.toString() + ": ";
+        if (stringTable && stringTable.string[i]) {
+            optionString += stringTable.string[i].fString(40);
+        } else {
+            optionString += arrayItem.name + " " + i;
+        }
+
+        var option = document.createElement('option');
+        option.value = objectPath;
+        option.innerHTML = optionString;
+        input.appendChild(option);
+    }
+    
+    // create options for special values
+    var specialKeys = Object.keys(object.special);
+    for (var i = 0; i < specialKeys.length; i++) {
+        var specialValue = Number(specialKeys[i]);
+        var option = document.createElement('option');
+        if (object.value === specialValue) value = specialValue;
+        option.value = specialValue;
+        option.innerHTML = object.special[specialValue];
+        input.appendChild(option);
+    }
+    if (value !== null) input.value = value;
+
+    return controlDiv;
+}
+
 ROMPropertyList.prototype.arrayLengthControlHTML = function(object, options) {
     // create a div for the control
     var controlDiv = document.createElement('div');
@@ -996,7 +1074,11 @@ ROMPropertyList.prototype.arrayHTML = function(object, options) {
     if (object.hidden || object.invalid) return null;
     
     options = options || {};
-    options.key = options.key || object.key || "undefined";
+    if (options.key && object.key) {
+        options.key += "-" + object.key;
+    } else {
+        options.key = object.key || "undefined";
+    }
     if (isNumber(options.index)) options.key += "-" + options.index;
     options.name = options.name || object.name;
     options.propertyID = "property-" + options.key;
@@ -1015,7 +1097,7 @@ ROMPropertyList.prototype.arrayHTML = function(object, options) {
     
     // create the length control
     if (object.min !== object.max) {
-        var lengthDiv = this.propertyHTML(object, {name: "Array Size"});
+        var lengthDiv = this.propertyHTML(object, {name: "Array Size", index: options.index});
         divs.push(lengthDiv);
     }
     
@@ -1024,7 +1106,7 @@ ROMPropertyList.prototype.arrayHTML = function(object, options) {
         var element = object.item(i);
         
         if (element instanceof ROMData) {
-            var assemblyHTML = this.assemblyHTML(element, {index: i});
+            var assemblyHTML = this.assemblyHTML(element, {index: i, key: options.key});
             divs = divs.concat(assemblyHTML);
             
         } else if (element instanceof ROMArray) {
@@ -1032,7 +1114,7 @@ ROMPropertyList.prototype.arrayHTML = function(object, options) {
             divs = divs.concat(arrayHTML);
 
         } else {
-            var propertyHTML = this.propertyHTML(element, {index: i});
+            var propertyHTML = this.propertyHTML(element, {index: i, key: options.key});
             divs.push(propertyHTML);
         }
     }

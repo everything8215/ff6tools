@@ -733,7 +733,10 @@
                     "length": 12
                 }
             },
-            "pointerTable": "entranceTriggerPointers[%i].pointer"
+            "pointerObject": {
+                "arrayPath": "entranceTriggerPointers",
+                "pointerPath": "pointer"
+            }
         },
         "entranceTriggerPointers": {
             "type": "array",
@@ -2998,7 +3001,10 @@
             "array": {
                 "length": 547
             },
-            "pointerTable": "treasurePointers[%i].pointer",
+            "pointerObject": {
+                "arrayPath": "treasurePointers",
+                "pointerPath": "pointer"
+            },
             "assembly": {
                 "type": "array",
                 "assembly": {

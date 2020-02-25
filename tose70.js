@@ -1,3 +1,8 @@
+//
+// tose70.js
+// created 2/10/2020
+//
+
 function Tose70Encoder() {}
 
 Tose70Encoder.prototype.encode = function(data) {
@@ -611,25 +616,18 @@ Tose70Encoder.prototype.putString = function(string) {
 }
 
 Tose70Encoder.prototype.deltaMod = function(data) {
-    if (this.m3 === 1) {
-        // nybble delta mod
-        return this.deltaMod1(data);
-    } else if (this.m3 === 2) {
-        // byte delta mod
-        return this.deltaMod2(data);
-    } else if (this.m3 === 3) {
-        // word delta mod
-        return this.deltaMod3(data);
-    } else if (this.m3 === 4) {
-        // even/odd byte delta mod
-        return this.deltaMod4(data);
-    } else {
-        // no delta mod
-        return new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+    
+    switch (this.m3) {
+        case 1: return this.deltaMod1(data);
+        case 2: return this.deltaMod2(data);
+        case 3: return this.deltaMod3(data);
+        case 4: return this.deltaMod4(data);
+        default: return new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
     }
 }
 
 Tose70Encoder.prototype.deltaMod1 = function(data) {
+    // nybble delta mod
     var src = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
     var s = 0;
     var dest = new Uint8Array(data.length);
@@ -650,6 +648,7 @@ Tose70Encoder.prototype.deltaMod1 = function(data) {
 }
 
 Tose70Encoder.prototype.deltaMod2 = function(data) {
+    // byte delta mod
     var src = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
     var s = 0;
     var dest = new Uint8Array(data.length);
@@ -663,6 +662,7 @@ Tose70Encoder.prototype.deltaMod2 = function(data) {
 }
 
 Tose70Encoder.prototype.deltaMod3 = function(data) {
+    // word delta mod
     var src = new Uint16Array(data.buffer, data.byteOffset, Math.ceil(data.byteLength / 2));
     var s = 0;
     var dest = new Uint16Array(data.length);
@@ -676,6 +676,7 @@ Tose70Encoder.prototype.deltaMod3 = function(data) {
 }
 
 Tose70Encoder.prototype.deltaMod4 = function(data) {
+    // even/odd byte delta mod
     var src = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
     var s = 0;
     var dest = new Uint8Array(data.length);
@@ -754,13 +755,13 @@ Tose70Decoder.prototype.decode = function(data) {
     
     // do post-decoding
     if (m3 === 1) {
-        this.postDecode1();
+        this.deltaMod1();
     } else if (m3 === 2) {
-        this.postDecode2();
+        this.deltaMod2();
     } else if (m3 === 3) {
-        this.postDecode3();
+        this.deltaMod3();
     } else if (m3 === 4) {
-        this.postDecode4();
+        this.deltaMod4();
     }
     
     data = data.subarray(0, this.s * 4);
@@ -1007,7 +1008,7 @@ Tose70Decoder.prototype.putLine4 = function() {
     this.putValue();
 }
 
-Tose70Decoder.prototype.postDecode1 = function() {
+Tose70Decoder.prototype.deltaMod1 = function() {
     this.d = 0;
     var previous = 0;
     var hi, lo;
@@ -1021,7 +1022,7 @@ Tose70Decoder.prototype.postDecode1 = function() {
     }
 }
 
-Tose70Decoder.prototype.postDecode2 = function() {
+Tose70Decoder.prototype.deltaMod2 = function() {
     this.d = 0;
     var previous = 0;
     while (this.d < this.length) {
@@ -1030,7 +1031,7 @@ Tose70Decoder.prototype.postDecode2 = function() {
     }
 }
 
-Tose70Decoder.prototype.postDecode3 = function() {
+Tose70Decoder.prototype.deltaMod3 = function() {
     this.d = 0;
     var previous = 0;
     var current = 0;
@@ -1044,7 +1045,7 @@ Tose70Decoder.prototype.postDecode3 = function() {
     }
 }
 
-Tose70Decoder.prototype.postDecode4 = function() {
+Tose70Decoder.prototype.deltaMod4 = function() {
     this.d = 0;
     var previous1 = 0;
     var previous2 = 0;

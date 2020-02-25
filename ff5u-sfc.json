@@ -2570,7 +2570,10 @@
             "array": {
                 "length": 384
             },
-            "pointerTable": "monsterGraphicsProperties[%i].graphicsPointer"
+            "pointerObject": {
+                "arrayPath": "monsterGraphicsProperties",
+                "pointerPath": "graphicsPointer"
+            }
         },
         "monsterGraphicsMap": {
             "type": "data",
@@ -3434,7 +3437,10 @@
             "array": {
                 "length": 528
             },
-            "pointerTable": "treasurePointers[%i].pointer",
+            "pointerObject": {
+                "arrayPath": "treasurePointers",
+                "pointerPath": "pointer"
+            },
             "assembly": {
                 "type": "array",
                 "assembly": {
@@ -3617,7 +3623,7 @@
                         "type": "property",
                         "name": "Treasure",
                         "begin": 0,
-                        "offset": "0xD13210",
+                        "offset": "0x113210",
                         "multiplier": 4
                     }
                 },

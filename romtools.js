@@ -2595,23 +2595,25 @@ function ROMProperty(rom, definition, parent) {
     this.flag = (definition.flag === true);
     this.signed = (definition.signed === true);
     this.script = definition.script;
+    this.pointerTo = definition.pointerTo;
     this.link = definition.link;
     this.msb = definition.msb;
+    this.default = definition.default;
     
     this.special = {};
     var special = definition.special || {};
     var specialKeys = Object.keys(special);
-    for (var i = 0; i < specialKeys.length; i++) {
-        var key = specialKeys[i];
+    for (var k = 0; k < specialKeys.length; k++) {
+        var key = specialKeys[k];
         var index = Number(key);
         if (!isNumber(index)) continue;
         this.special[index] = special[key];
     }
 
     // calculate the bit index
-    for (var i = 0; ; i++) {
-        if (((1 << i) & this.mask) == 0) continue;
-        this.bit = i;
+    for (var b = 0; b < 32; b++) {
+        if (((1 << b) & this.mask) === 0) continue;
+        this.bit = b;
         break;
     }
     
@@ -2619,6 +2621,7 @@ function ROMProperty(rom, definition, parent) {
     this.width = 0;
     for (var m = this.mask >> this.bit; m !== 0; m >>= 1) this.width++;
     
+    // set minimum and maximum values
     this.min = Number(definition.min);
     this.max = Number(definition.max)
     if (this.signed) {
@@ -2629,17 +2632,19 @@ function ROMProperty(rom, definition, parent) {
         this.max = this.max || (this.mask >> this.bit);
     }
     
+    // default to the minimum value
+    this.value = isNumber(this.default) ? this.default : this.min;
+    
+    // calculate the data length
     var length = 1;
     var mask = this.mask;
-    while (mask & (~0 ^ 0xFF)) {
+    while (mask & (~0 ^ 0xFF) && length < 4) {
         mask >>= 8;
-        length += 1;
+        length++;
     }
     
-    this.value = this.min;
-    
     // set the range
-    this.range.end = this.range.begin + length;
+    this.range.length = length;
 }
 
 ROMProperty.prototype = Object.create(ROMAssembly.prototype);
@@ -2661,8 +2666,10 @@ Object.defineProperty(ROMProperty.prototype, "definition", { get: function() {
     if (this.flag) definition.flag = true;
     if (this.signed) definition.signed = true;
     if (this.script) definition.script = this.script;
+    if (this.pointerTo) definition.pointerTo = this.pointerTo;
     if (this.link) definition.link = this.link;
     if (this.msb) definition.msb = this.msb;
+    if (this.default) definition.default = this.default;
     if (Object.keys(this.special).length != 0) definition.special = this.special;
     if (this.min !== 0) definition.min = this.min;
     if (this.max !== (this.mask >> this.bit)) definition.max = this.max;
@@ -2672,8 +2679,14 @@ Object.defineProperty(ROMProperty.prototype, "definition", { get: function() {
 
 ROMProperty.prototype.assemble = function(data) {
     
-    // modify the value if needed
     var value = this.value;
+    if (this.pointerTo && !isNumber(value)) {
+        // calculate pointer to object
+        value = value.range.begin;
+        if (this.value.parent instanceof ROMArray) value += this.value.parent.range.begin;
+    }
+    
+    // modify the value if needed
     if (this.bool) value = value ? 1 : 0;
     value -= this.offset;
     value = Math.floor(value / this.multiplier);
@@ -2685,7 +2698,10 @@ ROMProperty.prototype.assemble = function(data) {
     if (this.invert) value ^= this.mask; 
     
     // disassemble to get any adjacent data
-    if (data) ROMAssembly.prototype.disassemble.call(this, data);
+    if (data) {
+        ROMAssembly.prototype.disassemble.call(this, data);
+        this.lazyData = null; // need to encode data
+    }
     
     var mask = (~this.mask) >>> 0;
     for (var i = 0; i < this.data.length; i++) {
@@ -2753,19 +2769,11 @@ ROMProperty.prototype.setValue = function(value) {
 
     function redo() {
         assembly.value = value;
-//        if (assembly.msb) {
-//            var msb = eval(assembly.msb);
-//            msb.value = value >> assembly.width;
-//        }
         assembly.notifyObservers();
         if (assembly.script) fixReferences(oldValue, value);
     }
     function undo() {
         assembly.value = oldValue;
-//        if (assembly.msb) {
-//            var msb = eval(assembly.msb);
-//            msb.value = oldValue >> assembly.width;
-//        }
         assembly.notifyObservers();
         if (assembly.script) fixReferences(value, oldValue);
     }
@@ -2798,7 +2806,6 @@ function ROMArray(rom, definition, parent) {
         if (isNumber(min)) this.min = min;
     }
     
-    // determine if elements are strictly sequential or shared
     this.hideCategory = (definition.hideCategory === true);
     this.isFragmented = (definition.isFragmented === true);
     this.isSequential = (definition.isSequential === true);
@@ -2806,26 +2813,25 @@ function ROMArray(rom, definition, parent) {
     this.autoBank = (definition.autoBank === true);
     this.terminator = definition.terminator;
     this.pointerAlign = Number(definition.pointerAlign) || 1;
+    this.isAbsolute = false;
     
     // create the prototype assembly
     this.assembly = this.createPrototype(definition.assembly);
     
-    if (!definition.pointerTable) return;
-    
-    // create the pointer table
-    if (isString(definition.pointerTable)) {
-        // link to an external pointer table
-        this.pointerTable = definition.pointerTable;
-        this.pointerOffset = definition.pointerTable.offset;
+    if (definition.pointerObject) {
+        // custom pointers in an external object
+        this.pointerObject = definition.pointerObject;
+        var offset = Number(this.pointerOffset);
+        if (!isNumber(offset) || offset === 0) this.isAbsolute = true;
         
     } else if (definition.pointerTable) {
-        // pointer table definition
+        // standard pointer table
+        this.pointerTable = this.createPointerTable(definition.pointerTable);
         this.pointerOffset = definition.pointerTable.offset;
         this.pointerLength = Number(definition.pointerTable.pointerLength) || this.rom.pointerLength;
-        this.pointerTable = this.createPointerTable(definition.pointerTable);
+        var offset = Number(this.pointerOffset);
+        if (!isNumber(offset) || offset === 0) this.isAbsolute = true;
     }
-    
-    this.isAbsolute = (this.pointerTable && this.parent === this.rom && !this.pointerOffset);
 }
 
 ROMArray.prototype = Object.create(ROMAssembly.prototype);
@@ -2859,12 +2865,11 @@ Object.defineProperty(ROMArray.prototype, "definition", { get: function() {
         definition.assembly.length = this.assembly.range.length;
     if (Object.keys(definition.assembly).length === 0) delete definition.assembly;
     
-    if (!this.pointerTable) return definition;
+    if (this.pointerObject) {
+        // custom pointers in an external object
+        definition.pointerObject = this.pointerObject;
 
-    if (isString(this.pointerTable)) {
-        // non-standard pointer table
-        definition.pointerTable = this.pointerTable;
-    } else {
+    } else if (this.pointerTable) {
         // standard pointer table
         var pointerTableDefinition = this.pointerTable.definition;
         delete pointerTableDefinition.key;
@@ -2943,6 +2948,9 @@ ROMArray.prototype.relocate = function(begin, end) {
 
 ROMArray.prototype.assemble = function(data) {
 
+    // fragmented assemblies get assembled by the parent
+    if (this.isFragmented) return true;
+
     var length = 0;
     var i, assembly, pointer, pointerObject;
     
@@ -2963,15 +2971,15 @@ ROMArray.prototype.assemble = function(data) {
             assembly.assemble();
             var assemblyData = assembly.lazyData;
             
-            pointer = -1;
+            pointer = null;
             for (var p = 0; p < pointers.length; p++) {
                 // look for a duplicate item
                 pointer = pointers[p];
                 if (duplicates[pointer] && compareTypedArrays(duplicates[pointer], assemblyData)) break;
-                pointer = -1;
+                pointer = null;
             }
             
-            if (pointer === -1) {
+            if (pointer === null) {
                 // no duplicate found
                 pointer = length;
                 duplicates[pointer] = assemblyData;
@@ -2984,13 +2992,8 @@ ROMArray.prototype.assemble = function(data) {
 
             // for auto-bank arrays, duplicates must be sequential
             if (this.autoBank && Object.keys(duplicates).length > 1) duplicates = {};
-            
-//            if (this.autoBank && Math.floor(pointer / this.rom.bankSize()) !== Math.floor(length / this.rom.bankSize())) duplicates = {};
         }
     }
-    
-    // fragmented assemblies get assembled by the parent
-    if (this.isFragmented) return true;
     
     // create an array and assemble each item
     this.data = new Uint8Array(length);
@@ -3002,18 +3005,18 @@ ROMArray.prototype.assemble = function(data) {
 ROMArray.prototype.disassemble = function(data) {
 
     ROMAssembly.prototype.disassemble.call(this, data);
-    
+        
     // disassemble the pointer table
-    if (this.pointerTable instanceof ROMAssembly) this.pointerTable.disassemble(data);
-    
+    if (this.pointerTable) this.pointerTable.disassemble(data);
+        
     // determine the range of each item in the array
+    this.pointers = [];
     var itemRanges = [];
-    var pointers = [];
     var begin, end, pointer;
     if (this.terminator === "\\0") {
         // array of null-terminated strings
         begin = 0;
-        var textEncoding = rom.textEncoding[this.assembly.encoding];
+        var textEncoding = this.rom.textEncoding[this.assembly.encoding];
         while (begin < this.data.length) {
             end = begin + textEncoding.textLength(this.data.subarray(begin));
             itemRanges.push(new ROMRange(begin, end));
@@ -3034,7 +3037,7 @@ ROMArray.prototype.disassemble = function(data) {
             if (itemRanges.length === this.array.length) break;
         }
         
-    } else if (!this.pointerTable) {
+    } else if (!this.pointerTable && !this.pointerObject) {
         // fixed-length items
         var length = this.assembly.range.length || 1;
         
@@ -3052,60 +3055,58 @@ ROMArray.prototype.disassemble = function(data) {
         
     } else if (this.isSequential) {
         // sequential items
-        for (i = 0; i < (this.array.length - 1); i++) {
-            pointer = this.createPointer(i);
-            var nextPointer = this.createPointer(i + 1);
-            begin = pointer.value;
-            end = Math.max(begin, nextPointer.value);
-            itemRanges.push(new ROMRange(begin, end));
-            pointers.push(pointer);
+        var pointerRanges = {};
+        var unsorted = this.pointerObject ? this.readPointerObjects() : this.readPointerTable();
+        for (i = 0; i < (unsorted.length - 1); i++) {
+            pointer = unsorted[i];
+            end = Math.max(pointer, unsorted[i + 1]);
+            var range = new ROMRange(pointer, end);
+            itemRanges.push(range);
+            pointerRanges[begin] = {range: range};
         }
-        pointer = this.createPointer(this.array.length - 1);
-        begin = pointer.value;
-        end = this.range.end;
-        itemRanges.push(new ROMRange(begin, end));
-        pointers.push(pointer);
+        pointer = unsorted[i];
+        var range = new ROMRange(pointer, this.range.end);
+        itemRanges.push(range);
+        pointerRanges[begin] = {range: range};
         
     } else {
-        // shared items
-        var unsorted = [];
-        var bankOffset = 0;
-        var bankSize = this.rom.bankSize();
-        var pointer = 0;
-        var previousPointer = 0;
-        for (i = 0; i < this.array.length; i++) {
-            pointer = this.createPointer(i);
-            pointers.push(pointer);
-            unsorted[i] = pointer.value;
-            
-            // go to the next bank for auto-bank pointers
-            if (!this.autoBank || i === 0) continue;
-            unsorted[i] += bankOffset;
-            if (unsorted[i] < previousPointer) {
-                bankOffset += bankSize;
-                unsorted[i] += bankSize;
-            }
-            previousPointer = unsorted[i];
-        }
-        
-        // sort pointers in reverse order
+        // read pointers
+        var unsorted = this.pointerObject ? this.readPointerObjects() : this.readPointerTable();
+
+        // sort pointers in descending order
         var sorted = unsorted.slice();
         sorted.sort(function(a, b) { return b - a; });
         
         // create an array of ranges corresponding to each pointer
         var pointerRanges = {};
-        end = this.range.end;
+        end = this.isFragmented ? this.rom.range.length : this.range.end;
         for (i = 0; i < sorted.length; i++) {
             begin = sorted[i];
+            // skip duplicates
             if (pointerRanges[begin] !== undefined) continue;
-            pointerRanges[begin] = new ROMRange(begin, end);
+            pointerRanges[begin] = {range: new ROMRange(begin, end)};
             end = begin;
         }
         
-        // create an array of ranges for each item
-        for (i = 0; i < this.array.length; i++) {
-            begin = unsorted[i];
-            itemRanges.push(pointerRanges[begin]);
+        if (this.pointerObject) {
+            // for external pointers, use each pointer only once
+            var filtered = sorted.filter(function(item, pos, self) {
+                return self.indexOf(item) === pos;
+            });
+            // sort in ascending order
+            filtered.sort(function(a, b) { return a - b; });
+            for (i = 0; i < filtered.length; i++) {
+                begin = filtered[i];
+                pointerRanges[begin].i = i;
+                itemRanges.push(pointerRanges[begin].range);
+            }
+        } else {
+            // create an array of ranges for each item
+            for (i = 0; i < this.array.length; i++) {
+                begin = unsorted[i];
+                pointerRanges[begin].i = i;
+                itemRanges.push(pointerRanges[begin].range);
+            }
         }
     }
     
@@ -3129,57 +3130,112 @@ ROMArray.prototype.disassemble = function(data) {
             assembly = this.parent.addAssembly(definition);
             assembly.i = i;
             assembly.fragment = true;
+            // disassemble from the parent
             assembly.disassemble(data);
+            
         } else {
-            if (this.pointerTable) range = range.offset(-this.range.begin);
+            if (this.pointerTable || this.pointerObject) range = range.offset(-this.range.begin);
             definition.range = range.toString();
             assembly = ROMObject.create(this.rom, definition, this);
             assembly.i = i;
+            // disassemble from this object's data
             assembly.disassemble(this.data);
         }
-        
-        if (pointers[i]) {
-            pointers[i].parent = assembly;
-            assembly.reference.push(pointers[i]);
-        }
+
         this.array[i] = assembly;
+        
+        // update pointer references
+        if (this.pointerTable) {
+            var pointer = this.pointers[i];
+            if (!pointer) continue;
+            pointer.parent = assembly;
+            assembly.reference.push(pointer);
+        }
+    }
+    
+    // initialize external pointer targets
+    if (this.pointerObject) {
+        for (i = 0; i < this.pointers.length; i++) {
+            var pointer = this.pointers[i];
+            var pointerRange = pointerRanges[pointer.value];
+            if (!pointerRange) continue;
+            pointer.value = this.item(pointerRange.i);
+        }
     }
 }
 
-ROMArray.pointerMask = [0, 0xFF, 0xFFFF, 0xFFFFFF, 0x7FFFFFFF];
+ROMArray.pointerMask = [1, 0xFF, 0xFFFF, 0xFFFFFF, 0x7FFFFFFF];
 
 ROMArray.prototype.createPointer = function(i) {
     if (!this.pointerTable) return null;
 
     var offset = Number(this.pointerOffset);
-    var isAbsolute = false;
-    if (!isNumber(offset) || offset === 0) {
-        // absolute pointers
-        offset = 0;
-        isAbsolute = true;
-    } else if (this.parent.mapAddress) {
-        // relative pointers
-        offset = this.parent.mapAddress(offset);
-    }
-
+    if (this.parent.mapAddress) offset = this.parent.mapAddress(offset);
+    if (this.isAbsolute) offset = 0;
+    
     // create a new reference
     var definition = {
         offset: offset,
+        begin: i * this.pointerLength,
+        mask: ROMArray.pointerMask[this.pointerLength],
+        target: this.pointerTable,
         relativeTo: (this.isFragmented ? this.rom : this),
-        isAbsolute: isAbsolute
+        isAbsolute: this.isAbsolute
     };
-    
-    if (isString(this.pointerTable)) {
-        var target = this.parsePath(this.pointerTable, this.rom, i);
-        if (!target) return null;
-        definition.target = target;
-    } else {
-        definition.begin = i * this.pointerLength;
-        definition.mask = ROMArray.pointerMask[this.pointerLength];
-        definition.target = this.pointerTable;
-    }
 
     return new ROMReference(this.rom, definition, this);    
+}
+
+ROMArray.prototype.readPointerTable = function() {
+    var unsorted = [];
+    var bankOffset = 0;
+    var bankSize = this.rom.bankSize();
+    var previousPointer = 0;
+    var pointer = 0;
+
+    for (var i = 0; i < this.array.length; i++) {
+        pointer = this.createPointer(i);
+        this.pointers.push(pointer);
+        unsorted[i] = pointer.value;
+
+        // go to the next bank for auto-bank pointers
+        if (!this.autoBank || i === 0) continue;
+        unsorted[i] += bankOffset;
+        if (unsorted[i] < previousPointer) {
+            bankOffset += bankSize;
+            unsorted[i] += bankSize;
+        }
+        previousPointer = unsorted[i];
+    }
+    return unsorted;
+}
+
+ROMArray.prototype.readPointerObjects = function() {
+    if (!this.pointerObject || !this.pointerObject.pointerPath) return;
+    var pointerPath = this.pointerObject.pointerPath;
+    var unsorted = [];
+    var pointer;
+    
+    if (this.pointerObject.arrayPath) {
+        var pointerArray = this.parsePath(this.pointerObject.arrayPath);
+        for (var p = 0; p < pointerArray.array.length; p++) {
+            var pointerObject = pointerArray.item(p);
+            if (!pointerObject) continue;
+            pointer = this.parsePath(pointerPath, pointerObject);
+            if (!(pointer instanceof ROMProperty) || pointer.special[pointer.value]) continue;
+            this.pointers.push(pointer);
+            unsorted.push(pointer.value);
+        }
+    } else {
+        // get pointers from something that is not an array?
+        pointer = this.parsePath(pointerPath, pointerObject);
+        if ((pointer instanceof ROMProperty) && pointer.special[pointer.value]) {
+            this.pointers.push(pointer);
+            unsorted.push(pointer.value);
+        }
+    }
+    
+    return unsorted;
 }
 
 ROMArray.prototype.updateArray = function() {
@@ -4465,7 +4521,17 @@ Object.defineProperty(ROMRange.prototype, "length", {
 });
 
 ROMRange.prototype.toString = function(pad) {
-    return (hexString(this.begin, pad) + "-" + hexString(this.end, pad));
+    if (pad) {
+        return (hexString(this.begin, pad) + "-" + hexString(this.end, pad));
+    } else if (this.end < 0x0100) {
+        return (this.begin + "-" + this.end);
+    } else if (this.end < 0x010000) {
+        return (hexString(this.begin, 4) + "-" + hexString(this.end, 4));
+    } else if (this.end < 0x01000000) {
+        return (hexString(this.begin, 6) + "-" + hexString(this.end, 6));
+    } else {
+        return (hexString(this.begin, 8) + "-" + hexString(this.end, 8));
+    }
 }
 
 ROMRange.parse = function(expression) {

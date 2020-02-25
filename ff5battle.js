@@ -38,6 +38,7 @@ function FF5Battle(rom) {
     this.clickedPoint = null;
     
     this.updateBattleStrings();
+    this.rom.monsterGraphics; // load monster graphics
 }
 
 FF5Battle.prototype = Object.create(ROMEditor.prototype);
@@ -391,7 +392,8 @@ FF5Battle.prototype.drawMonster = function(slot) {
         var gfxProperties = this.rom.monsterGraphicsProperties.item(m.id);
 
         // decode the graphics
-        var gfx = this.rom.monsterGraphics.item(m.id);
+        var gfx = gfxProperties.graphicsPointer.value;
+//        var gfx = this.rom.monsterGraphics.item(m.id);
         if (this.rom.isSFC) {
             var format = gfxProperties.is3bpp.value ? "snes3bpp" : "snes4bpp";
             if (gfx.format !== format) {

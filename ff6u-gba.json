@@ -102,6 +102,9 @@
                 }, {
                     "name": "Lore",
                     "path": "initialLore"
+                }, {
+                    "name": "Level Progression",
+                    "path": "characterLevelProgression"
                 }
             ]
         }, {
@@ -1549,6 +1552,79 @@
                     "18": "Kefka vs. Esper",
                     "19": "Kefka vs. Gestahl",
                     "20": "Kefka vs. Leo"
+                }
+            }
+        },
+        "characterExpProgression": {
+            "type": "array",
+            "name": "Character Experience Progression",
+            "editor": "FF6LevelProgression",
+            "range": "0x0862ABC8-0x0862AC8C",
+            "array": {
+                "length": 98,
+                "max": 98
+            },
+            "assembly": {
+                "type": "data",
+                "length": 2,
+                "assembly": {
+                    "exp": {
+                        "type": "property",
+                        "name": "Experience",
+                        "mask": "0xFFFF",
+                        "multiplier": 8
+                    },
+                    "hp": {
+                        "type": "assembly",
+                        "external": "characterHPProgression[%i].hp"
+                    },
+                    "mp": {
+                        "type": "assembly",
+                        "external": "characterMPProgression[%i].mp"
+                    }
+                }
+            }
+        },
+        "characterHPProgression": {
+            "type": "array",
+            "name": "Character HP Progression",
+            "range": "0x0862EC28-0x0862EC8C",
+            "array": {
+                "length": 98,
+                "max": 98
+            },
+            "assembly": {
+                "type": "data",
+                "length": 1,
+                "assembly": {
+                    "hp": {
+                        "type": "property",
+                        "name": "HP"
+                    }
+                }
+            }
+        },
+        "characterLevelProgression": {
+            "type": "assembly",
+            "name": "characterLevelProgression",
+            "editor": "FF6LevelProgression"
+        },
+        "characterMPProgression": {
+            "type": "array",
+            "name": "Character MP Progression",
+            "range": "0x0862AA54-0x0862AAB8",
+            "array": {
+                "length": 98,
+                "max": 98
+            },
+            "assembly": {
+                "type": "data",
+                "length": 1,
+                "assembly": {
+                    "mp": {
+                        "type": "property",
+                        "name": "MP"
+                    }
                 }
             }
         },
@@ -4482,7 +4558,10 @@
                 "type": "assembly",
                 "format": "linear4bpp"
             },
-            "pointerTable": "mapSpritePointers[%i].pointer"
+            "pointerObject": {
+                "arrayPath": "mapSpritePointers",
+                "pointerPath": "pointer"
+            }
         },
         "mapSpriteLayouts": {
             "type": "array",
@@ -4904,7 +4983,10 @@
             "array": {
                 "length": 459
             },
-            "pointerTable": "monsterGraphicsProperties[%i].graphicsPointer",
+            "pointerObject": {
+                "arrayPath": "monsterGraphicsProperties",
+                "pointerPath": "graphicsPointer"
+            },
             "stringTable": {
                 "length": 0,
                 "hideIndex": true,
@@ -4918,7 +5000,10 @@
             "array": {
                 "length": 459
             },
-            "pointerTable": "monsterGraphicsProperties[%i].mapPointer"
+            "pointerObject": {
+                "arrayPath": "monsterGraphicsProperties",
+                "pointerPath": "mapPointer"
+            }
         },
         "monsterGraphicsProperties": {
             "type": "array",

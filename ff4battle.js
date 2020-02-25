@@ -149,7 +149,7 @@ FF4Battle.prototype.updateBattleStringsGBA = function() {
         // count up the monsters
         var monsterList = {};
         var index, count;
-        for (var m = 0; m < (battleMonster.array.length - 1); m++) {
+        for (var m = 0; m < battleMonster.array.length; m++) {
             index = battleMonster.item(m).monster.value;
             count = monsterList[index];
             monsterList[index] = (count || 0) + 1;
@@ -385,7 +385,7 @@ FF4Battle.prototype.monsterInSlot = function(slot) {
 
 FF4Battle.prototype.monsterInSlotGBA = function(slot) {
     var battleMonster = this.rom.battleMonster.item(this.b);
-    if (slot >= battleMonster.array.length) return null;
+    if (slot > battleMonster.array.length) return null;
     var monster = battleMonster.item(slot - 1);
     
     var m = monster.monster.value;

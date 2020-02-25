@@ -97,6 +97,9 @@
                 }, {
                     "name": "Lore",
                     "path": "initialLore"
+                }, {
+                    "name": "Level Progression",
+                    "path": "characterLevelProgression"
                 }
             ]
         }, {
@@ -1657,9 +1660,82 @@
                 }
             }
         },
+        "characterExpProgression": {
+            "type": "array",
+            "name": "Character Experience Progression",
+            "editor": "FF6LevelProgression",
+            "range": "0xED8220-0xED82E4",
+            "array": {
+                "length": 98,
+                "max": 98
+            },
+            "assembly": {
+                "type": "data",
+                "length": 2,
+                "assembly": {
+                    "exp": {
+                        "type": "property",
+                        "name": "Experience",
+                        "mask": "0xFFFF",
+                        "multiplier": 8
+                    },
+                    "hp": {
+                        "type": "assembly",
+                        "external": "characterHPProgression[%i].hp"
+                    },
+                    "mp": {
+                        "type": "assembly",
+                        "external": "characterMPProgression[%i].mp"
+                    }
+                }
+            }
+        },
+        "characterHPProgression": {
+            "type": "array",
+            "name": "Character HP Progression",
+            "range": "0xE6F4A0-0xE6F502",
+            "array": {
+                "length": 98,
+                "max": 98
+            },
+            "assembly": {
+                "type": "data",
+                "length": 1,
+                "assembly": {
+                    "hp": {
+                        "type": "property",
+                        "name": "HP"
+                    }
+                }
+            }
+        },
+        "characterLevelProgression": {
+            "type": "assembly",
+            "name": "characterLevelProgression",
+            "editor": "FF6LevelProgression"
+        },
+        "characterMPProgression": {
+            "type": "array",
+            "name": "Character MP Progression",
+            "range": "0xE6F502-0xE6F564",
+            "array": {
+                "length": 98,
+                "max": 98
+            },
+            "assembly": {
+                "type": "data",
+                "length": 1,
+                "assembly": {
+                    "mp": {
+                        "type": "property",
+                        "name": "MP"
+                    }
+                }
+            }
+        },
         "characterNames": {
             "type": "array",
-            "name": "Character Names",
+            "name": "Character Name",
             "range": "0xC478C0-0xC47A40",
             "array": {
                 "length": 64,
@@ -1717,16 +1793,17 @@
                 "assembly": {
                     "characterName": {
                         "type": "assembly",
+                        "name": "Name",
                         "external": "characterNames[%i]"
                     },
                     "hp": {
                         "type": "property",
-                        "name": "HP",
+                        "name": "Base HP",
                         "begin": 0
                     },
                     "mp": {
                         "type": "property",
-                        "name": "MP",
+                        "name": "Base MP",
                         "begin": 1
                     },
                     "command1": {
@@ -4490,7 +4567,10 @@
                 "type": "assembly",
                 "format": "snes4bpp"
             },
-            "pointerTable": "mapSpritePointers[%i].pointer"
+            "pointerObject": {
+                "arrayPath": "mapSpritePointers",
+                "pointerPath": "pointer"
+            }
         },
         "mapSpriteLayouts": {
             "type": "array",
@@ -4945,7 +5025,10 @@
             "array": {
                 "length": 416
             },
-            "pointerTable": "monsterGraphicsProperties[%i].graphicsPointer",
+            "pointerObject": {
+                "arrayPath": "monsterGraphicsProperties",
+                "pointerPath": "graphicsPointer"
+            },
             "stringTable": {
                 "length": 0,
                 "hideIndex": true,
