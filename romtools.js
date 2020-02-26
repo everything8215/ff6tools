@@ -119,7 +119,7 @@ ROMObject.prototype.parsePath = function(path, relativeTo, index) {
             subEnd = subString.indexOf(']');
             if (subStart === -1 || subEnd < subStart) break;
             var sub = subString.substring(subStart + 1, subEnd);
-            subString = subString.substring(subEnd);
+            subString = subString.substring(subEnd + 1);
             var i = Number(sub);
             if (!isNumber(i)) {
                 try {

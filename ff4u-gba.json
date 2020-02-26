@@ -257,7 +257,7 @@
             "name": "Character Level Progression",
             "range": "0x080E7834-0x080EBE14",
             "array": {
-                "length": 13
+                "length": 14
             },
             "assembly": {
                 "type": "array",
@@ -279,9 +279,9 @@
                         },
                         "hpMax": {
                             "type": "property",
-                            "name": "HP",
+                            "name": "Max HP",
                             "begin": 1,
-                            "mask": "0xFFFF"
+                            "mask": "0xFF"
                         },
                         "mp": {
                             "type": "property",
@@ -291,7 +291,7 @@
                         },
                         "mpMax": {
                             "type": "property",
-                            "name": "MP",
+                            "name": "Max MP",
                             "begin": 3,
                             "mask": "0xFF"
                         },
@@ -299,31 +299,36 @@
                             "type": "property",
                             "name": "Strength",
                             "begin": 8,
-                            "mask": "0xFF"
+                            "mask": "0xFF",
+                            "signed": true
                         },
                         "agility": {
                             "type": "property",
                             "name": "Agility",
                             "begin": 9,
-                            "mask": "0xFF"
+                            "mask": "0xFF",
+                            "signed": true
                         },
                         "stamina": {
                             "type": "property",
                             "name": "Stamina",
                             "begin": 10,
-                            "mask": "0xFF"
+                            "mask": "0xFF",
+                            "signed": true
                         },
                         "intellect": {
                             "type": "property",
                             "name": "Intellect",
                             "begin": 11,
-                            "mask": "0xFF"
+                            "mask": "0xFF",
+                            "signed": true
                         },
                         "spirit": {
                             "type": "property",
                             "name": "Sprit",
                             "begin": 12,
-                            "mask": "0xFF"
+                            "mask": "0xFF",
+                            "signed": true
                         }
                     }
                 }
@@ -468,6 +473,7 @@
             "assembly": {
                 "type": "data",
                 "length": 32,
+                "editor": "FF4LevelProgression",
                 "assembly": {
                     "title": {
                         "type": "property",
@@ -491,6 +497,7 @@
                         "type": "property",
                         "name": "Level",
                         "begin": 0,
+                        "min": 0,
                         "max": 69
                     },
                     "hp": {
@@ -515,9 +522,9 @@
                         "name": "Agility",
                         "begin": 7
                     },
-                    "vitality": {
+                    "stamina": {
                         "type": "property",
-                        "name": "Vitality",
+                        "name": "Stamina",
                         "begin": 8
                     },
                     "intellect": {
@@ -530,11 +537,16 @@
                         "name": "Spirit",
                         "begin": 10
                     },
-                    "experience": {
+                    "exp": {
                         "type": "property",
                         "name": "Experience",
                         "begin": 12,
                         "mask": "0xFFFFFF"
+                    },
+                    "expLastLevel": {
+                        "type": "assembly",
+                        "name": "Exp. at Last Level",
+                        "external": "characterLevelProgression[%i][0].exp"
                     },
                     "rightHand": {
                         "type": "property",
@@ -639,7 +651,7 @@
                 }
             },
             "stringTable": {
-                "default": "Character Stats %i",
+                "default": "Character Properties %i",
                 "string": {
                     "0": "Cecil (Dark Knight)",
                     "1": "Kain",

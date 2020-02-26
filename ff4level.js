@@ -38,6 +38,7 @@ function FF4LevelProgression(rom) {
     this.div.onmousemove = function(e) { levelProg.mouseMove(e) };
     
     this.initLevelProg();
+    this.resetObserver();
 }
 
 FF4LevelProgression.prototype = Object.create(ROMEditor.prototype);
@@ -98,21 +99,23 @@ FF4LevelProgression.prototype.mouseMove = function(e) {
     for (var s = 0; s < 8; s++) {
         if (!this.showStat[s]) continue;
         
-        var statName = FF4LevelProgression.stats[s].name;
-        var statKey = FF4LevelProgression.stats[s].key;
-        var multiplier = FF4LevelProgression.stats[s].multiplier;
+        var statProperties = this.statProperties(s);
         
-        var avgValue = this.selectedPoint[statKey].avg;
-        var minValue = this.selectedPoint[statKey].min;
-        var maxValue = this.selectedPoint[statKey].max;
+        var avgValue = this.selectedPoint[statProperties.key].avg;
+        var minValue = this.selectedPoint[statProperties.key].min;
+        var maxValue = this.selectedPoint[statProperties.key].max;
 
-        statLabel += "\n" + statName + ": " + Math.round(avgValue);
+        if (avgValue > 10000) {
+            statLabel += "\n" + statProperties.name + ": " + Math.round(avgValue).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        } else {
+            statLabel += "\n" + statProperties.name + ": " + Math.round(avgValue);
+        }
         if (minValue !== maxValue) {
             statLabel += " (" + minValue + "–" + maxValue + ")";
         }
 
-        if (closestValue === undefined || Math.abs(avgValue / multiplier - point.y) < Math.abs(closestValue - point.y)) {
-            closestValue = avgValue / multiplier;
+        if (closestValue === undefined || Math.abs(avgValue / statProperties.multiplier - point.y) < Math.abs(closestValue - point.y)) {
+            closestValue = avgValue / statProperties.multiplier;
         }
     }
 
@@ -162,79 +165,89 @@ FF4LevelProgression.prototype.show = function() {
     }
     
     for (var s = 0; s < 8; s++) {
-        var statName = FF4LevelProgression.stats[s].name;
+        var statName = this.statProperties(s).name;
         this.addTwoState("show" + statName, statFunction(s), statName, this.showStat[s]);
     }
     this.addTwoState("showRange", function(checked) { levelProg.showRange = checked; levelProg.drawChart(); }, "Min/Max", this.showRange);
     this.addTwoState("showLegend", function(checked) { levelProg.showLegend = checked; levelProg.drawChart(); }, "Legend", this.showLegend);
 }
 
-FF4LevelProgression.stats = [
-    {
-        name: "Experience",
-        axis: "Experience (×100,000)",
-        key: "exp",
-        color: "hsla(0, 0%, 0%, 1.0)",
-        fillColor: "hsla(0, 0%, 0%, 0.25)",
-        multiplier: 100000,
-        max: 9999999
-    }, {
-        name: "HP",
-        axis: "HP (×100)",
-        key: "hp",
-        color: "hsla(100, 100%, 30%, 1.0)",
-        fillColor: "hsla(100, 100%, 30%, 0.25)",
-        multiplier: 100,
-        max: 9999
-    }, {
-        name: "MP",
-        axis: "MP (×10)",
-        key: "mp",
-        color: "hsla(220, 100%, 35%, 1.0)",
-        fillColor: "hsla(220, 100%, 60%, 0.25)",
-        multiplier: 10,
-        max: 999
-    }, {
-        name: "Strength",
-        key: "strength",
-        color: "hsla(0, 100%, 40%, 1.0)",
-        fillColor: "hsla(0, 100%, 40%, 0.25)",
-        multiplier: 1,
-        max: 99
-    }, {
-        name: "Agility",
-        key: "agility",
-        color: "hsla(50, 100%, 35%, 1.0)",
-        fillColor: "hsla(50, 100%, 35%, 0.25)",
-        multiplier: 1,
-        max: 99
-    }, {
-        name: "Vitality",
-        key: "vitality",
-        color: "hsla(170, 100%, 35%, 1.0)",
-        fillColor: "hsla(170, 100%, 35%, 0.25)",
-        multiplier: 1,
-        max: 99
-    }, {
-        name: "Wisdom",
-        key: "wisdom",
-        color: "hsla(270, 100%, 35%, 1.0)",
-        fillColor: "hsla(270, 100%, 35%, 0.25)",
-        multiplier: 1,
-        max: 99
-    }, {
-        name: "Will",
-        key: "will",
-        color: "hsla(320, 100%, 35%, 1.0)",
-        fillColor: "hsla(320, 100%, 35%, 0.25)",
-        multiplier: 1,
-        max: 99
+FF4LevelProgression.prototype.statProperties = function(s) {
+    switch (s) {
+        case 0: return {
+            name: "Experience",
+            axis: "Experience (×100,000)",
+            key: "exp",
+            color: "hsla(0, 0%, 0%, 1.0)",
+            fillColor: "hsla(0, 0%, 0%, 0.25)",
+            multiplier: 100000,
+            max: 9999999
+        };
+        case 1: return {
+            name: "HP",
+            axis: "HP (×100)",
+            key: "hp",
+            color: "hsla(100, 100%, 30%, 1.0)",
+            fillColor: "hsla(100, 100%, 30%, 0.25)",
+            multiplier: 100,
+            max: 9999
+        };
+        case 2: return {
+            name: "MP",
+            axis: "MP (×10)",
+            key: "mp",
+            color: "hsla(220, 100%, 35%, 1.0)",
+            fillColor: "hsla(220, 100%, 60%, 0.25)",
+            multiplier: 10,
+            max: 999
+        };
+        case 3: return {
+            name: "Strength",
+            key: "strength",
+            color: "hsla(0, 100%, 40%, 1.0)",
+            fillColor: "hsla(0, 100%, 40%, 0.25)",
+            multiplier: 1,
+            max: 99
+        };
+        case 4: return {
+            name: "Agility",
+            key: "agility",
+            color: "hsla(50, 100%, 35%, 1.0)",
+            fillColor: "hsla(50, 100%, 35%, 0.25)",
+            multiplier: 1,
+            max: 99
+        };
+        case 5: return {
+            name: this.rom.isSFC ? "Vitality" : "Stamina",
+            key: this.rom.isSFC ? "vitality" : "stamina",
+            color: "hsla(170, 100%, 35%, 1.0)",
+            fillColor: "hsla(170, 100%, 35%, 0.25)",
+            multiplier: 1,
+            max: 99
+        };
+        case 6: return {
+            name: this.rom.isSFC ? "Wisdom" : "Intellect",
+            key: this.rom.isSFC ? "wisdom" : "intellect",
+            color: "hsla(270, 100%, 35%, 1.0)",
+            fillColor: "hsla(270, 100%, 35%, 0.25)",
+            multiplier: 1,
+            max: 99
+        };
+        case 7: return {
+            name: this.rom.isSFC ? "Will" : "Spirit",
+            key: this.rom.isSFC ? "will" : "spirit",
+            color: "hsla(320, 100%, 35%, 1.0)",
+            fillColor: "hsla(320, 100%, 35%, 0.25)",
+            multiplier: 1,
+            max: 99
+        };
+        default: return null;
     }
-]
+}
 
 FF4LevelProgression.highLevelStatsDefiniton = {
     "key": "highLevelStats",
-    "name": "Random Stats for Level 70-99",
+    "name": "Random Stats for Level 71-99",
     "type": "array",
     "range": "5-13",
     "array": {
@@ -286,6 +299,8 @@ FF4LevelProgression.highLevelStatsDefiniton = {
 }
 
 FF4LevelProgression.prototype.initLevelProg = function() {
+    if (this.rom.isGBA) return;
+    
     var levelProgData = this.rom.characterLevelProgression;
     var levelProgPointers = this.rom.characterLevelPointer;
     var characterStatsData = this.rom.characterStats;
@@ -314,37 +329,55 @@ FF4LevelProgression.prototype.initLevelProg = function() {
         lastLevelStats.range.end += 8;
         lastLevelStats.disassemble(levelStats.data);
     }
-    this.resetObserver();
 }
 
 FF4LevelProgression.prototype.resetObserver = function() {
     var levelProg = this;
     function changeStartingLevel(c) {
-        return function() {
-            levelProg.changeStartingLevel(c);
+        if (this.rom.isGBA) {
+            return function() {
+                levelProg.changeStartingLevelGBA(c);
+            }
+        } else {
+            return function() {
+                levelProg.changeStartingLevel(c);
+            }
         }
     }
 
     // start observing the character's starting level so we can update the level progression data
     var c;
-    for (c = 0; c < this.rom.characterStats.array.length; c++) {
-        var characterStats = this.rom.characterStats.item(c);
-        this.observer.startObserving(characterStats.level, changeStartingLevel(c));
-    }
-    for (c = 0; c < this.rom.characterPartyAdd.array.length; c++) {
-        this.observer.startObserving(this.rom.characterPartyAdd.item(c), this.updatePointerTable);
-    }
-    for (c = 0; c < this.rom.characterPartyRemove.array.length; c++) {
-        this.observer.startObserving(this.rom.characterPartyRemove.item(c), this.updatePointerTable);
+    if (this.rom.isGBA) {
+        for (c = 0; c < this.rom.characterProperties.array.length; c++) {
+            var characterProperties = this.rom.characterProperties.item(c);
+            this.observer.startObserving(characterProperties.level, changeStartingLevel(c));
+            this.observer.startObserving(characterProperties.hp, changeStartingLevel(c));
+            this.observer.startObserving(characterProperties.mp, changeStartingLevel(c));
+            this.observer.startObserving(characterProperties.strength, changeStartingLevel(c));
+            this.observer.startObserving(characterProperties.agility, changeStartingLevel(c));
+            this.observer.startObserving(characterProperties.stamina, changeStartingLevel(c));
+            this.observer.startObserving(characterProperties.intellect, changeStartingLevel(c));
+            this.observer.startObserving(characterProperties.spirit, changeStartingLevel(c));
+        }
+    } else {
+        for (c = 0; c < this.rom.characterStats.array.length; c++) {
+            var characterStats = this.rom.characterStats.item(c);
+            this.observer.startObserving(characterStats.level, changeStartingLevel(c));
+        }
+        for (c = 0; c < this.rom.characterPartyAdd.array.length; c++) {
+            this.observer.startObserving(this.rom.characterPartyAdd.item(c), this.updatePointerTable);
+        }
+        for (c = 0; c < this.rom.characterPartyRemove.array.length; c++) {
+            this.observer.startObserving(this.rom.characterPartyRemove.item(c), this.updatePointerTable);
+        }
     }
 }
 
 FF4LevelProgression.prototype.changeStartingLevel = function(c) {
     var characterStats = this.rom.characterStats.item(c);
-    var level = characterStats.level.value;
-    var id = characterStats.properties.value;
-    var levelStats = this.rom.characterLevelProgression.item(id);
+    var levelStats = this.rom.characterLevelProgression.item(c);
     
+    var level = characterStats.level.value;
     this.observer.stopObservingAll();
 
     while (level < (70 - levelStats.array.length)) {
@@ -363,7 +396,48 @@ FF4LevelProgression.prototype.changeStartingLevel = function(c) {
     this.loadCharacter(c);
 }
 
+FF4LevelProgression.prototype.changeStartingLevelGBA = function(c) {
+    // update stats in level progression data
+    var characterProperties = this.rom.characterProperties.item(c);
+    var levelStats = this.rom.characterLevelProgression.item(c);
+    var startingLevel = this.rom.characterStartingLevel.item(c);
+
+    var level = characterProperties.level.value;
+    this.observer.stopObservingAll();
+
+    this.rom.beginAction();
+    while (level < (100 - levelStats.array.length)) {
+        var newLevel = levelStats.blankAssembly();
+        levelStats.array.splice(0, 0, newLevel);
+    }
+    
+    while (level > (100 - levelStats.array.length)) {
+        levelStats.array.splice(0, 1);
+    }
+    levelStats.markAsDirty();
+    levelStats.updateArray();
+    levelStats.notifyObservers();
+    
+    startingLevel.level.setValue(level);
+    var firstLevelStats = levelStats.item(0);
+    firstLevelStats.hp.setValue(0);
+    firstLevelStats.hpMax.setValue(0);
+    firstLevelStats.mp.setValue(0);
+    firstLevelStats.mpMax.setValue(0);
+    firstLevelStats.strength.setValue(characterProperties.strength.value);
+    firstLevelStats.agility.setValue(characterProperties.agility.value);
+    firstLevelStats.stamina.setValue(characterProperties.stamina.value);
+    firstLevelStats.intellect.setValue(characterProperties.intellect.value);
+    firstLevelStats.spirit.setValue(characterProperties.spirit.value);
+    this.rom.endAction();
+
+    this.loadCharacter(c);
+}
+    
 FF4LevelProgression.prototype.updatePointerTable = function() {
+    
+    if (this.rom.isGBA) return;
+    
     var characterStatsData = this.rom.characterStats;
     var levelProgData = this.rom.characterLevelProgression;
     
@@ -409,13 +483,6 @@ FF4LevelProgression.prototype.updatePointerTable = function() {
     }
 }
 
-FF4LevelProgression.prototype.getStats = function(level) {
-    
-    var startingLevel = this.characterStats.level.value;
-    level = Math.min(level - startingLevel - 1, this.levelProgData.array.length - 1);
-    return this.levelProgData.item(level);
-}
-
 FF4LevelProgression.prototype.loadCharacter = function(c) {
     
     this.tooltip.removeAttribute("data-balloon-visible");
@@ -423,7 +490,7 @@ FF4LevelProgression.prototype.loadCharacter = function(c) {
     this.observer.stopObservingAll();
     this.resetObserver();
 
-    this.characterStats = this.rom.characterStats.item(c);
+    this.characterStats = this.rom.isSFC ? this.rom.characterStats.item(c) : this.rom.characterProperties.item(c);
     if (!this.characterStats) return;
     this.c = c;
     this.levelProgData = this.rom.characterLevelProgression.item(c);
@@ -437,7 +504,20 @@ FF4LevelProgression.prototype.loadCharacter = function(c) {
     this.updateStats();
 }
 
+FF4LevelProgression.prototype.getStats = function(level) {
+    
+    if (this.rom.isGBA) level++;
+    var startingLevel = this.characterStats.level.value;
+    level = Math.min(level - startingLevel - 1, this.levelProgData.array.length - 1);
+    return this.levelProgData.item(level);
+}
+
 FF4LevelProgression.prototype.updateStats = function() {
+    
+    if (this.rom.isGBA) {
+        this.updateStatsGBA();
+        return;
+    }
     
     // todo: clean this up, it's a mess
     var level = this.characterStats.level.value;
@@ -591,6 +671,144 @@ FF4LevelProgression.prototype.updateStats = function() {
     this.drawChart();
 }
 
+FF4LevelProgression.prototype.updateStatsGBA = function() {
+    
+    // todo: clean this up, it's a mess
+    var level = this.characterStats.level.value;
+    var levelStats = this.getStats(level);
+    var exp = levelStats.exp.value;
+    var minHP = this.characterStats.hp.value;
+    var maxHP = minHP;
+    var minMP = this.characterStats.mp.value;
+    var maxMP = minMP;
+    var strength = {avg: this.characterStats.strength.value};
+    var agility = {avg: this.characterStats.agility.value};
+    var stamina = {avg: this.characterStats.stamina.value};
+    var intellect = {avg: this.characterStats.intellect.value};
+    var spirit = {avg: this.characterStats.spirit.value};
+    
+    this.chartData = [{
+        level: level,
+        exp: {avg: exp},
+        hp: {min: minHP, max: maxHP, avg: minHP},
+        mp: {min: minMP, max: maxMP, avg: minMP},
+        strength: {avg: strength.avg},
+        agility: {avg: agility.avg},
+        stamina: {avg: stamina.avg},
+        intellect: {avg: intellect.avg},
+        spirit: {avg: spirit.avg},
+        object: this.characterStats
+    }];
+
+    for (level++; level <= 70; level++) {
+        levelStats = this.getStats(level);
+        
+        exp = levelStats.exp.value;
+        minHP = Math.min(minHP + levelStats.hp.value, 9999);
+        maxHP = Math.min(maxHP + levelStats.hpMax.value, 9999);
+        minMP = Math.min(minMP + levelStats.mp.value, 9999);
+        maxMP = Math.min(maxMP + levelStats.mpMax.value, 999);
+        strength.avg = levelStats.strength.value;
+        agility.avg = levelStats.agility.value;
+        stamina.avg = levelStats.stamina.value;
+        intellect.avg = levelStats.intellect.value;
+        spirit.avg = levelStats.spirit.value;
+
+        this.chartData.push({
+            level: level,
+            exp: {avg: exp},
+            hp: {min: minHP, max: maxHP, avg: (minHP + maxHP) / 2},
+            mp: {min: minMP, max: maxMP, avg: (minMP + maxMP) / 2},
+            strength: {min: strength.avg, max: strength.avg, avg: strength.avg},
+            agility: {min: agility.avg, max: agility.avg, avg: agility.avg},
+            stamina: {min: stamina.avg, max: stamina.avg, avg: stamina.avg},
+            intellect: {min: intellect.avg, max: intellect.avg, avg: intellect.avg},
+            spirit: {min: spirit.avg, max: spirit.avg, avg: spirit.avg},
+            object: levelStats
+        });
+    }
+    
+    // get min, max, and average random stat bonuses for high levels
+    var strengthMod = {min: 0, max: 0, avg: 0};
+    var agilityMod = {min: 0, max: 0, avg: 0};
+    var staminaMod = {min: 0, max: 0, avg: 0};
+    var intellectMod = {min: 0, max: 0, avg: 0};
+    var spiritMod = {min: 0, max: 0, avg: 0};
+    
+    for (var s = 0; s < 8; s++) {
+        levelStats = this.getStats(71 + s);
+        strengthMod.min = Math.min(strengthMod.min, levelStats.strength.value);
+        strengthMod.max = Math.max(strengthMod.max, levelStats.strength.value);
+        strengthMod.avg += levelStats.strength.value / 8;
+        agilityMod.min = Math.min(agilityMod.min, levelStats.agility.value);
+        agilityMod.max = Math.max(agilityMod.max, levelStats.agility.value);
+        agilityMod.avg += levelStats.agility.value / 8;
+        staminaMod.min = Math.min(staminaMod.min, levelStats.stamina.value);
+        staminaMod.max = Math.max(staminaMod.max, levelStats.stamina.value);
+        staminaMod.avg += levelStats.stamina.value / 8;
+        intellectMod.min = Math.min(intellectMod.min, levelStats.intellect.value);
+        intellectMod.max = Math.max(intellectMod.max, levelStats.intellect.value);
+        intellectMod.avg += levelStats.intellect.value / 8;
+        spiritMod.min = Math.min(spiritMod.min, levelStats.spirit.value);
+        spiritMod.max = Math.max(spiritMod.max, levelStats.spirit.value);
+        spiritMod.avg += levelStats.spirit.value / 8;
+    }
+
+    strength.min = strength.avg;
+    strength.max = strength.avg;
+    agility.min = agility.avg;
+    agility.max = agility.avg;
+    stamina.min = stamina.avg;
+    stamina.max = stamina.avg;
+    intellect.min = intellect.avg;
+    intellect.max = intellect.avg;
+    spirit.min = spirit.avg;
+    spirit.max = spirit.avg;
+    
+    for (; level <= 99; level++) {
+        
+        levelStats = this.getStats(level);
+        
+        exp = levelStats.exp.value;
+        minHP = Math.min(minHP + levelStats.hp.value, 9999);
+        maxHP = Math.min(maxHP + levelStats.hpMax.value, 9999);
+        minMP = Math.min(minMP + levelStats.mp.value, 9999);
+        maxMP = Math.min(maxMP + levelStats.mpMax.value, 999);
+
+        strength.min = Math.max(0, Math.min(strength.min + strengthMod.min, 99));
+        strength.max = Math.max(0, Math.min(strength.max + strengthMod.max, 99));
+        strength.avg = Math.max(0, Math.min(strength.avg + strengthMod.avg, 99));
+        agility.min = Math.max(0, Math.min(agility.min + agilityMod.min, 99));
+        agility.max = Math.max(0, Math.min(agility.max + agilityMod.max, 99));
+        agility.avg = Math.max(0, Math.min(agility.avg + agilityMod.avg, 99));
+        stamina.min = Math.max(0, Math.min(stamina.min + staminaMod.min, 99));
+        stamina.max = Math.max(0, Math.min(stamina.max + staminaMod.max, 99));
+        stamina.avg = Math.max(0, Math.min(stamina.avg + staminaMod.avg, 99));
+        intellect.min = Math.max(0, Math.min(intellect.min + intellectMod.min, 99));
+        intellect.max = Math.max(0, Math.min(intellect.max + intellectMod.max, 99));
+        intellect.avg = Math.max(0, Math.min(intellect.avg + intellectMod.avg, 99));
+        spirit.min = Math.max(0, Math.min(spirit.min + spiritMod.min, 99));
+        spirit.max = Math.max(0, Math.min(spirit.max + spiritMod.max, 99));
+        spirit.avg = Math.max(0, Math.min(spirit.avg + spiritMod.avg, 99));
+        
+        this.chartData.push({
+            level: level,
+            exp: {avg: exp},
+            hp: {min: minHP, max: maxHP, avg: (minHP + maxHP) / 2},
+            mp: {min: minMP, max: maxMP, avg: (minMP + maxMP) / 2},
+            strength: {min: strength.min, max: strength.max, avg: strength.avg},
+            agility: {min: agility.min, max: agility.max, avg: agility.avg},
+            stamina: {min: stamina.min, max: stamina.max, avg: stamina.avg},
+            intellect: {min: intellect.min, max: intellect.max, avg: intellect.avg},
+            spirit: {min: spirit.min, max: spirit.max, avg: spirit.avg},
+            object: levelStats
+        });
+    }
+    
+    this.resize();
+    this.drawChart();
+}
+
 FF4LevelProgression.prototype.drawChart = function() {
     
     this.resize();
@@ -666,22 +884,21 @@ FF4LevelProgression.prototype.drawChart = function() {
 
 FF4LevelProgression.prototype.drawStatRange = function(stat, ctx) {
     // draw the data
-    var statKey = FF4LevelProgression.stats[stat].key;
-    var multiplier = FF4LevelProgression.stats[stat].multiplier;
-    var startPoint = this.pointToCanvas(this.chartData[0].level, this.chartData[0][statKey].min / multiplier);
+    var statProperties = this.statProperties(stat);
+    var startPoint = this.pointToCanvas(this.chartData[0].level, this.chartData[0][statProperties.key].min / statProperties.multiplier);
 
-    ctx.fillStyle = FF4LevelProgression.stats[stat].fillColor;
+    ctx.fillStyle = statProperties.fillColor;
     ctx.beginPath();
     ctx.moveTo(startPoint.x, startPoint.y)
     
     for (var p = 1; p < this.chartData.length; p++) {
         var dataValue = this.chartData[p];
-        var point = this.pointToCanvas(dataValue.level, dataValue[statKey].min / multiplier);
+        var point = this.pointToCanvas(dataValue.level, dataValue[statProperties.key].min / statProperties.multiplier);
         ctx.lineTo(point.x, point.y);
     }
     for (p = this.chartData.length - 1; p >= 0 ; p--) {
         dataValue = this.chartData[p];
-        point = this.pointToCanvas(dataValue.level, dataValue[statKey].max / multiplier);
+        point = this.pointToCanvas(dataValue.level, dataValue[statProperties.key].max / statProperties.multiplier);
         ctx.lineTo(point.x, point.y);
     }
     ctx.fill();
@@ -689,11 +906,10 @@ FF4LevelProgression.prototype.drawStatRange = function(stat, ctx) {
 
 FF4LevelProgression.prototype.drawStat = function(stat, ctx) {
     // draw the data
-    var statKey = FF4LevelProgression.stats[stat].key;
-    var multiplier = FF4LevelProgression.stats[stat].multiplier;
-    var startPoint = this.pointToCanvas(this.chartData[0].level, this.chartData[0][statKey].avg / multiplier);
+    var statProperties = this.statProperties(stat);
+    var startPoint = this.pointToCanvas(this.chartData[0].level, this.chartData[0][statProperties.key].avg / statProperties.multiplier);
 
-    ctx.strokeStyle = FF4LevelProgression.stats[stat].color;
+    ctx.strokeStyle = statProperties.color;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     ctx.lineWidth = 2.5;
@@ -702,16 +918,16 @@ FF4LevelProgression.prototype.drawStat = function(stat, ctx) {
     
     for (var p = 1; p < this.chartData.length; p++) {
         var dataValue = this.chartData[p];
-        var point = this.pointToCanvas(dataValue.level, dataValue[statKey].avg / multiplier);
+        var point = this.pointToCanvas(dataValue.level, dataValue[statProperties.key].avg / statProperties.multiplier);
         ctx.lineTo(point.x, point.y);
     }
     ctx.stroke();
     
     // draw the selected point
     if (this.selectedPoint) {
-        point = this.pointToCanvas(this.selectedPoint.level, this.selectedPoint[statKey].avg / multiplier);
+        point = this.pointToCanvas(this.selectedPoint.level, this.selectedPoint[statProperties.key].avg / statProperties.multiplier);
         ctx.beginPath();
-        ctx.fillStyle = FF4LevelProgression.stats[stat].color;
+        ctx.fillStyle = statProperties.color;
         ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI);
         ctx.fill();
     }
@@ -728,7 +944,8 @@ FF4LevelProgression.prototype.drawLegend = function(ctx) {
     ctx.textBaseline = 'top';
     for (var s = 0; s < 8; s++) {
         if (!this.showStat[s]) continue;
-        var name = FF4LevelProgression.stats[s].axis || FF4LevelProgression.stats[s].name;
+        var statProperties = this.statProperties(s);
+        var name = statProperties.axis || statProperties.name;
         var size = ctx.measureText(name);
         maxWidth = Math.max(size.width + 15, maxWidth);
         height += lineHeight;
@@ -762,13 +979,14 @@ FF4LevelProgression.prototype.drawLegend = function(ctx) {
     for (var s = 0; s < 8; s++) {
         if (!this.showStat[s]) continue;
         
-        ctx.fillStyle = FF4LevelProgression.stats[s].color;
+        var statProperties = this.statProperties(s);
+        ctx.fillStyle = statProperties.color;
         ctx.fillRect(x, y + 2, 9, 9);
         ctx.strokeStyle = "black";
         ctx.strokeRect(x - 0.5, y + 1.5, 10, 10);
         
         ctx.fillStyle = "black";
-        var name = FF4LevelProgression.stats[s].axis || FF4LevelProgression.stats[s].name;
+        var name = statProperties.axis || statProperties.name;
         ctx.fillText(name, x + 15, y);
         y += lineHeight;
     }
