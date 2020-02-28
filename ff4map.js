@@ -212,6 +212,10 @@ FF4Map.prototype.mouseDown = function(e) {
             }
             this.isDragging = false;
         }
+        if (this.rom.isGBA && this.selectedTrigger) {
+            if (this.selectedTrigger.key === "treasureProperties") this.isDragging = false;
+            if (this.selectedTrigger.key === "entranceTriggers") this.isDragging = false;
+        }
     } else if (this.clickButton === 2) {
         this.selectTiles();
         this.isDragging = true;
@@ -1170,6 +1174,7 @@ FF4Map.prototype.loadTriggersGBA = function() {
     for (i = 0; i < triggers.array.length; i++) {
         var trigger = triggers.item(i);
         if (trigger.triggerType.value !== 0) {
+            this.fixNPCGBA(trigger);
             this.triggers.push(trigger);
             continue;
         }
@@ -1189,21 +1194,27 @@ FF4Map.prototype.loadTriggersGBA = function() {
                 // exit (upper z-level)
                 if (!exits) continue;
                 object = exits.item(tp & 0x0F);
+                if (!object) continue;
                 key = "entranceTriggers";
             } else if (tp & 0x4000) {
                 // exit (lower z-level)
                 if (!exits) continue;
                 object = exits.item((tp & 0x0F00) >> 8);
+                if (!object) continue;
                 key = "entranceTriggers";
             } else if (tp & 0x0020) {
                 // treasure (upper z-level)
                 if (!treasures) continue;
                 object = treasures.item(tp & 0x0F);
+                if (!object) continue;
+                this.fixTreasureGBA(object);
                 key = "treasureProperties";
             } else if (tp & 0x2000) {
                 // treasure (lower z-level)
                 if (!treasures) continue;
                 object = treasures.item((tp & 0x0F00) >> 8);
+                if (!object) continue;
+                this.fixTreasureGBA(object);
                 key = "treasureProperties";
             } else {
                 continue;
@@ -1216,6 +1227,29 @@ FF4Map.prototype.loadTriggersGBA = function() {
             });
         }
     }
+}
+
+FF4Map.prototype.fixTreasureGBA = function(treasure) {
+    treasure.triggerType.invalid = true;
+    treasure.graphics.invalid = true;
+    treasure.triggerType.invalid = true;
+    treasure.x.invalid = true;
+    treasure.y.invalid = true;
+    treasure.direction.invalid = true;
+    treasure.unknown_5.invalid = true;
+    treasure.speed.invalid = true;
+    treasure.unknown_7.invalid = true;
+    treasure.event.invalid = true;
+    treasure.event2.invalid = true;
+    treasure.scriptPointer.invalid = true;
+}
+
+FF4Map.prototype.fixNPCGBA = function(treasure) {
+    treasure.eventSwitch.invalid = true;
+    treasure.item.invalid = true;
+    treasure.battle.invalid = true;
+    treasure.gil.invalid = true;
+    treasure.openTile.invalid = true;
 }
 
 FF4Map.prototype.loadEventGBA = function(e) {

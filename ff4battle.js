@@ -575,7 +575,13 @@ FF4Battle.prototype.drawMonsterGBA = function(slot) {
     // decode the graphics
     var graphicsData = this.rom.monsterGraphics.item(m.m * 2 + 1);
     if (!graphicsData.format) {
-        graphicsData.format = ["linear4bpp", "gba-lzss"];
+        if (graphicsData.data[0] === 0x10) {
+            graphicsData.format = ["linear4bpp", "gba-lzss"];
+        } else if (graphicsData.data[0] === 0x70) {
+            graphicsData.format = ["linear4bpp", "tose-70"];
+        } else {
+            graphicsData.format = "gba-lzss";
+        }
         graphicsData.disassemble(graphicsData.parent.data);
     }
 

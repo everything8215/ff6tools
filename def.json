@@ -15,6 +15,10 @@
         "name": "Final Fantasy IV Advance (U)",
         "crc32": ["0xFEEEBDE4"]
     },
+    "ff4e-gba.json": {
+        "name": "Final Fantasy IV Advance (E)",
+        "crc32": ["0x27F2BC67"]
+    },
     "ff5j-sfc.json": {
         "name": "Final Fantasy V (J)",
         "crc32": ["0xC1BC267D", "0x84CC8DBE"]

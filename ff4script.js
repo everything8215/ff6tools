@@ -63,6 +63,14 @@ FF4Script.description = function(command) {
         case "end":
             return "End of Script";
             
+        case "dialog":
+        case "dialogWait":
+        case "dialog0D":
+            var dialog = command.rom.stringTable.dialog.string[command.dialog.value];
+            if (dialog) {
+                return "Display Dialog:<br/>" + dialog.htmlString();
+            }
+            
         case "eventDialog":
             var b = command.bank.value;
             var dialog;
