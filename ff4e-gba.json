@@ -1490,7 +1490,55 @@
             },
             "stringTable": {
                 "length": 46,
-                "default": "Shop Properties %i"
+                "default": "Shop Properties %i",
+                "string": {
+                    "0": "Baron: Weapon Shop",
+                    "1": "Baron: Armor Shop",
+                    "2": "Baron: Item Shop",
+                    "3": "Mist: Weapon Shop",
+                    "4": "Mist: Armor Shop",
+                    "5": "Kaipo: Weapon Shop",
+                    "6": "Kaipo: Armor Shop",
+                    "7": "Kaipo: Item Shop",
+                    "8": "Fabul: Weapon Shop",
+                    "9": "Fabul: Item Shop",
+                    "10": "Mysidia: Weapon Shop",
+                    "11": "Mysidia: Armor Shop",
+                    "12": "Mysidia: Item Shop",
+                    "13": "Agart: Weapon Shop",
+                    "14": "Agart: Armor Shop",
+                    "15": "Agart: Item Shop",
+                    "16": "Mythril: Weapon Shop",
+                    "17": "Mythril: Armor Shop",
+                    "18": "Mythril: Item Shop",
+                    "19": "Troia: Weapon Shop",
+                    "20": "Troia: Armor Shop",
+                    "21": "Troia: Item Shop",
+                    "22": "Eblan: Weapon Shop",
+                    "23": "Eblan: Armor Shop",
+                    "24": "Eblan: Item Shop",
+                    "25": "Dwarf Castle: Weapon Shop",
+                    "26": "Dwarf Castle: Armor Shop",
+                    "27": "Dwarf Castle: Item Shop 1",
+                    "28": "Dwarf Castle: Item Shop 2",
+                    "29": "Tomra: Weapon Shop",
+                    "30": "Tomra: Armor Shop",
+                    "31": "Tomra: Item Shop 1",
+                    "32": "Tomra: Item Shop 2",
+                    "33": "Land of Summons: Weapon Shop",
+                    "34": "Land of Summons: Armor Shop",
+                    "35": "Land of Summons: Item Shop 1",
+                    "36": "Land of Summons: Item Shop 2",
+                    "37": "Kokkol's Smithy: Weapon Shop",
+                    "38": "Hummingway Home: Item Shop",
+                    "39": "Troia: Membership Pass",
+                    "40": "Village of the Moon 1: Item Shop",
+                    "41": "Village of the Moon 1: Weapon Shop",
+                    "42": "Village of the Moon 1: Armor Shop",
+                    "43": "Village of the Moon 2: Item Shop",
+                    "44": "Village of the Moon 2: Weapon Shop",
+                    "45": "Village of the Moon 2: Armor Shop"
+                }
             },
             "pointerTable": {
                 "range": "0x080F3948-0x080F3A00"
@@ -3365,6 +3413,7 @@
                 "0x6B": "À",
                 "0x6E": "Ü",
                 "0x70": "Ç",
+                "0x71": "&",
                 "0x72": "Ö",
                 "0x73": "Œ",
                 "0x74": "Ê",
@@ -3484,6 +3533,6 @@
         }
     },
     "freeSpace": [
-        "0x086DD8D0-0x08800000"
+        "0x087F6308-0x08800000"
     ]
 }
