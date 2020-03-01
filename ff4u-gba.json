@@ -23,6 +23,9 @@
                 {
                     "name": "Event Script",
                     "path": "eventScript"
+                }, {
+                    "name": "Dialog",
+                    "path": "stringTable.dialog"
                 }
             ]
         }, {
@@ -57,6 +60,14 @@
                 }, {
                     "name": "Attacks",
                     "path": "attackProperties"
+                }
+            ]
+        }, {
+            "name": "Item",
+            "list": [
+                {
+                    "name": "Item Properties",
+                    "path": "itemProperties"
                 }, {
                     "name": "Shops",
                     "path": "shopProperties"
@@ -674,6 +685,87 @@
                 }
             }
         },
+        "equipmentProperties": {
+            "type": "array",
+            "name": "Equipment Properties",
+            "range": "0x080E5A10-0x080E64D8",
+            "array": {
+                "length": 230
+            },
+            "assembly": {
+                "type": "data",
+                "length": 12,
+                "assembly": {
+                    "attack": {
+                        "type": "property",
+                        "name": "Attack",
+                        "begin": 0,
+                        "mask": "0xFF"
+                    },
+                    "accuracy": {
+                        "type": "property",
+                        "name": "Accuracy %",
+                        "begin": 2,
+                        "mask": "0xFF"
+                    },
+                    "magicDefense": {
+                        "type": "property",
+                        "name": "Magic Defense",
+                        "begin": 3,
+                        "mask": "0xFF"
+                    },
+                    "magicEvade": {
+                        "type": "property",
+                        "name": "Magic Evade",
+                        "begin": 4,
+                        "mask": "0xFF"
+                    },
+                    "strength": {
+                        "type": "property",
+                        "name": "Strength",
+                        "begin": 5,
+                        "mask": "0xFF",
+                        "signed": true
+                    },
+                    "agility": {
+                        "type": "property",
+                        "name": "Agility",
+                        "begin": 6,
+                        "mask": "0xFF",
+                        "signed": true
+                    },
+                    "stamina": {
+                        "type": "property",
+                        "name": "Stamina",
+                        "begin": 7,
+                        "mask": "0xFF",
+                        "signed": true
+                    },
+                    "intelligence": {
+                        "type": "property",
+                        "name": "Intelligence",
+                        "begin": 8,
+                        "mask": "0xFF",
+                        "signed": true
+                    },
+                    "spirit": {
+                        "type": "property",
+                        "name": "Spirit",
+                        "begin": 9,
+                        "mask": "0xFF",
+                        "signed": true
+                    },
+                    "equipability": {
+                        "type": "property",
+                        "name": "Equipability",
+                        "begin": 10,
+                        "mask": "0x1FFF",
+                        "flag": true,
+                        "stringTable": "characterProperties"
+                    }
+                }
+            }
+        },
         "eventScript": {
             "type": "array",
             "name": "Event Script",
@@ -699,6 +791,366 @@
                     "0x0242": "Town Baron",
                     "0x02B8": "Village Mist: Bomb Ring",
                     "0x02BB": "Village Mist"
+                }
+            }
+        },
+        "itemProperties": {
+            "type": "array",
+            "name": "Item Properties",
+            "range": "0x080ECBE4-0x080EE548",
+            "array": {
+                "length": 325
+            },
+            "stringTable": "itemNames",
+            "assembly": {
+                "type": "data",
+                "length": 20,
+                "assembly": {
+                    "itemName": {
+                        "type": "assembly",
+                        "name": "Name",
+                        "external": "text[%i+0x0F9D]"
+                    },
+                    "itemDescription": {
+                        "type": "assembly",
+                        "name": "Description",
+                        "external": "text[%i+0x079D]"
+                    },
+                    "itemType": {
+                        "type": "property",
+                        "name": "Type",
+                        "begin": 0,
+                        "mask": "0xFF",
+                        "stringTable": {
+                            "string": {
+                                "0": "None",
+                                "1": "Claw",
+                                "2": "Rod",
+                                "3": "Staff",
+                                "4": "Dark Sword",
+                                "5": "Broadsword",
+                                "6": "Great Sword",
+                                "7": "Spear",
+                                "8": "Dagger",
+                                "9": "Katana",
+                                "10": "Shuriken",
+                                "11": "Boomerang",
+                                "12": "Axe",
+                                "13": "Hammer",
+                                "14": "Instrument",
+                                "15": "Bow",
+                                "16": "Arrow",
+                                "17": "White Staff",
+                                "18": "Whip",
+                                "19": "Shield",
+                                "20": "Helmet",
+                                "21": "Armor",
+                                "22": "Gauntlet",
+                                "23": "White Magic",
+                                "24": "Black Magic",
+                                "25": "Summon Magic"
+                            }
+                        }
+                    },
+                    "price": {
+                        "type": "property",
+                        "name": "Price",
+                        "begin": 4,
+                        "mask": "0x7FFFFFFF"
+                    },
+                    "usage": {
+                        "type": "property",
+                        "name": "Usage",
+                        "begin": 8,
+                        "mask": "0xFFFF",
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "0": "Can Use in Field",
+                                "1": "Can Use in Battle",
+                                "2": "Usage 8.2",
+                                "3": "Usage 8.3",
+                                "4": "Usage 8.4",
+                                "5": "Usage 8.5",
+                                "6": "Two-Handed",
+                                "7": "Usage 8.7",
+                                "8": "Usage 9.0",
+                                "9": "Usage 9.1",
+                                "10": "Usage 9.2",
+                                "11": "Usage 9.3",
+                                "12": "Usage 9.4",
+                                "13": "Usage 9.5",
+                                "14": "Usage 9.6",
+                                "15": "Key Item"
+                            }
+                        }
+                    },
+                    "fieldEffect": {
+                        "type": "property",
+                        "name": "Field Effect",
+                        "begin": 12,
+                        "mask": "0x7FFFFFFF"
+                    },
+                    "spell": {
+                        "type": "property",
+                        "name": "Spell Cast",
+                        "begin": 16,
+                        "mask": "0xFF"
+                    },
+                    "targeting": {
+                        "type": "property",
+                        "name": "Target",
+                        "begin": 18,
+                        "mask": "0xFF"
+                    },
+                    "attack": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i].attack",
+                        "invalid": "this.parent.itemType.value >= 19 || this.parent.itemType.value === 0 || this.parent.i >= 176"
+                    },
+                    "attackGBA1": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i-76].attack",
+                        "invalid": "this.parent.itemType.value >= 19 || this.parent.itemType.value === 0 || this.parent.i < 252 || this.parent.i >= 269"
+                    },
+                    "attackGBA2": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i-87].attack",
+                        "invalid": "this.parent.itemType.value >= 19 || this.parent.itemType.value === 0 || this.parent.i < 278 || this.parent.i >= 313"
+                    },
+                    "attackGBA3": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i-95].attack",
+                        "invalid": "this.parent.itemType.value >= 19 || this.parent.itemType.value === 0 || this.parent.i < 322"
+                    },
+                    "accuracy": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i].accuracy",
+                        "invalid": "this.parent.itemType.value >= 19 || this.parent.itemType.value === 0 || this.parent.i >= 176"
+                    },
+                    "accuracyGBA1": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i-76].accuracy",
+                        "invalid": "this.parent.itemType.value >= 19 || this.parent.itemType.value === 0 || this.parent.i < 252 || this.parent.i >= 269"
+                    },
+                    "accuracyGBA2": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i-87].accuracy",
+                        "invalid": "this.parent.itemType.value >= 19 || this.parent.itemType.value === 0 || this.parent.i < 278 || this.parent.i >= 313"
+                    },
+                    "accuracyGBA3": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i-95].accuracy",
+                        "invalid": "this.parent.itemType.value >= 19 || this.parent.itemType.value === 0 || this.parent.i < 322"
+                    },
+                    "defense": {
+                        "type": "assembly",
+                        "name": "Defense",
+                        "external": "equipmentProperties[%i].attack",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value < 19 || this.parent.i >= 176"
+                    },
+                    "defenseGBA1": {
+                        "type": "assembly",
+                        "name": "Defense",
+                        "external": "equipmentProperties[%i-76].attack",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value < 19 || this.parent.i < 252 || this.parent.i >= 269"
+                    },
+                    "defenseGBA2": {
+                        "type": "assembly",
+                        "name": "Defense",
+                        "external": "equipmentProperties[%i-87].attack",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value < 19 || this.parent.i < 278 || this.parent.i >= 313"
+                    },
+                    "defenseGBA3": {
+                        "type": "assembly",
+                        "name": "Defense",
+                        "external": "equipmentProperties[%i-95].attack",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value < 19 || this.parent.i < 322"
+                    },
+                    "evade": {
+                        "type": "assembly",
+                        "name": "Evade",
+                        "external": "equipmentProperties[%i].accuracy",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value < 19 || this.parent.i >= 176"
+                    },
+                    "evadeGBA1": {
+                        "type": "assembly",
+                        "name": "Evade",
+                        "external": "equipmentProperties[%i-76].accuracy",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value < 19 || this.parent.i < 252 || this.parent.i >= 269"
+                    },
+                    "evadeGBA2": {
+                        "type": "assembly",
+                        "name": "Evade",
+                        "external": "equipmentProperties[%i-87].accuracy",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value < 19 || this.parent.i < 278 || this.parent.i >= 313"
+                    },
+                    "evadeGBA3": {
+                        "type": "assembly",
+                        "name": "Evade",
+                        "external": "equipmentProperties[%i-95].accuracy",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value < 19 || this.parent.i < 322"
+                    },
+                    "magicDefense": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i].magicDefense",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value < 19 || this.parent.i >= 176"
+                    },
+                    "magicDefenseGBA1": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i-76].magicDefense",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value < 19 || this.parent.i < 252 || this.parent.i >= 269"
+                    },
+                    "magicDefenseGBA2": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i-87].magicDefense",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value < 19 || this.parent.i < 278 || this.parent.i >= 313"
+                    },
+                    "magicDefenseGBA3": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i-95].magicDefense",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value < 19 || this.parent.i < 322"
+                    },
+                    "magicEvade": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i].magicEvade",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value < 19 || this.parent.i >= 176"
+                    },
+                    "magicEvadeGBA1": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i-76].magicEvade",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value < 19 || this.parent.i < 252 || this.parent.i >= 269"
+                    },
+                    "magicEvadeGBA2": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i-87].magicEvade",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value < 19 || this.parent.i < 278 || this.parent.i >= 313"
+                    },
+                    "magicEvadeGBA3": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i-95].magicEvade",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value < 19 || this.parent.i < 322"
+                    },
+                    "strength": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i].strength",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i >= 176"
+                    },
+                    "strengthGBA1": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i-76].strength",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i < 252 || this.parent.i >= 269"
+                    },
+                    "strengthGBA2": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i-87].strength",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i < 278 || this.parent.i >= 313"
+                    },
+                    "strengthGBA3": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i-95].strength",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i < 322"
+                    },
+                    "agility": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i].agility",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i >= 176"
+                    },
+                    "agilityGBA1": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i-76].agility",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i < 252 || this.parent.i >= 269"
+                    },
+                    "agilityGBA2": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i-87].agility",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i < 278 || this.parent.i >= 313"
+                    },
+                    "agilityGBA3": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i-95].agility",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i < 322"
+                    },
+                    "stamina": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i].stamina",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i >= 176"
+                    },
+                    "staminaGBA1": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i-76].stamina",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i < 252 || this.parent.i >= 269"
+                    },
+                    "staminaGBA2": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i-87].stamina",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i < 278 || this.parent.i >= 313"
+                    },
+                    "staminaGBA3": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i-95].stamina",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i < 322"
+                    },
+                    "intelligence": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i].intelligence",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i >= 176"
+                    },
+                    "intelligenceGBA1": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i-76].intelligence",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i < 252 || this.parent.i >= 269"
+                    },
+                    "intelligenceGBA2": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i-85].intelligence",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i < 278 || this.parent.i >= 313"
+                    },
+                    "intelligenceGBA3": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i-95].intelligence",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i < 322"
+                    },
+                    "spirit": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i].spirit",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i >= 176"
+                    },
+                    "spiritGBA1": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i-76].spirit",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i < 252 || this.parent.i >= 269"
+                    },
+                    "spiritGBA2": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i-85].spirit",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i < 278 || this.parent.i >= 313"
+                    },
+                    "spiritGBA3": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i-95].spirit",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i < 322"
+                    },
+                    "equipability": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i].equipability",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i >= 176"
+                    },
+                    "equipabilityGBA1": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i-76].equipability",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i < 252 || this.parent.i >= 269"
+                    },
+                    "equipabilityGBA2": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i-85].equipability",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i < 278 || this.parent.i >= 313"
+                    },
+                    "equipabilityGBA3": {
+                        "type": "assembly",
+                        "external": "equipmentProperties[%i-95].equipability",
+                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i < 322"
+                    }
                 }
             }
         },
@@ -1478,6 +1930,7 @@
                                     "name": "Item",
                                     "begin": 0,
                                     "mask": "0xFFFF",
+                                    "link": "itemProperties[%i]",
                                     "stringTable": "itemNames"
                                 }
                             }
@@ -2073,20 +2526,50 @@
                     "opcode": "0x18",
                     "length": 1
                 },
-                "unknown_19": {
-                    "name": "Command 0x19",
+                "selectItem": {
+                    "name": "Item Selection Window",
                     "opcode": "0x19",
-                    "length": 12
+                    "length": 12,
+                    "assembly": {
+                        "item": {
+                            "type": "property",
+                            "name": "Item",
+                            "begin": 1,
+                            "mask": "0xFFFF",
+                            "link": "itemProperties[%i]",
+                            "stringTable": "itemNames"
+                        }
+                    }
                 },
                 "giveItem": {
                     "name": "Give Item",
                     "opcode": "0x1A",
-                    "length": 3
+                    "length": 3,
+                    "assembly": {
+                        "item": {
+                            "type": "property",
+                            "name": "Item",
+                            "begin": 1,
+                            "mask": "0xFFFF",
+                            "link": "itemProperties[%i]",
+                            "stringTable": "itemNames"
+                        }
+                    }
                 },
                 "takeItem": {
                     "name": "Take Item",
                     "opcode": "0x1B",
-                    "length": 3
+                    "length": 3,
+                    "assembly": {
+                        "item": {
+                            "type": "property",
+                            "name": "Item",
+                            "begin": 1,
+                            "mask": "0xFFFF",
+                            "link": "itemProperties[%i]",
+                            "stringTable": "itemNames"
+                        }
+                    }
                 },
                 "cinematicEffect": {
                     "name": "Cinematic Effect",
@@ -2760,12 +3243,32 @@
                 "battle": {
                     "name": "Battle",
                     "opcode": "0x7F",
-                    "length": 3
+                    "length": 3,
+                    "assembly": {
+                        "battle": {
+                            "type": "property",
+                            "name": "Battle",
+                            "begin": 1,
+                            "mask": "0xFFFF",
+                            "link": "battleProperties[%i]",
+                            "stringTable": "battleProperties"
+                        }
+                    }
                 },
                 "battle80": {
                     "name": "Battle 0x80",
                     "opcode": "0x80",
-                    "length": 8
+                    "length": 8,
+                    "assembly": {
+                        "battle": {
+                            "type": "property",
+                            "name": "Battle",
+                            "begin": 1,
+                            "mask": "0xFFFF",
+                            "link": "battleProperties[%i]",
+                            "stringTable": "battleProperties"
+                        }
+                    }
                 },
                 "unknown_81": {
                     "name": "Command 0x81",
