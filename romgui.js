@@ -833,24 +833,42 @@ ROMPropertyList.prototype.listControlHTML = function(object, options) {
     // create an option for each valid string in the table
     var stringTable = this.rom.stringTable[object.stringTable];
     if (!stringTable) return null;
-    var min = (object.min * object.multiplier) + object.offset;
-    var max = (object.max * object.multiplier) + object.offset;
-    for (var i = min; i <= max; i += object.multiplier) {
-
+    
+    var indexList = [];
+    var keys = Object.keys(stringTable.string);
+    for (var k = 0; k < keys.length; k++) {
+        var key = Number(keys[k]);
+        if (!isNumber(key)) continue;
+        indexList.push(key);
+    }
+    
+    var keys = Object.keys(object.special);
+    for (var k = 0; k < keys.length; k++) {
+        var key = Number(keys[k]);
+        if (!isNumber(key)) continue;
+        indexList.push(key);
+    }
+    
+    // sort the list from low to high
+    indexList = indexList.sort(function(a,b) {return a - b;});
+    
+    for (var i = 0; i < indexList.length; i++) {
+        
+        var index = indexList[i];
         var optionString = "";
         if (!stringTable.hideIndex) {
-            optionString += i.toString() + ": ";
+            optionString += index.toString() + ": ";
         }
-        if (object.special[i]) {
-            optionString += object.special[i];
-        } else if (stringTable.string[i]) {
-            optionString += stringTable.string[i].fString(40);
+        if (object.special[index]) {
+            optionString += object.special[index];
+        } else if (stringTable.string[index]) {
+            optionString += stringTable.string[index].fString(40);
         } else {
             continue;
         }
 
         var option = document.createElement('option');
-        option.value = i;
+        option.value = index;
         option.innerHTML = optionString;
         input.appendChild(option);
     }

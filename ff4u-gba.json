@@ -794,6 +794,70 @@
                 }
             }
         },
+        "itemFlags": {
+            "type": "array",
+            "name": "Item Flags",
+            "range": "0x080EC1BC-0x080ECBE4",
+            "array": {
+                "length": 325
+            },
+            "stringTable": "itemNames",
+            "assembly": {
+                "type": "data",
+                "length": 8,
+                "assembly": {
+                    "element": {
+                        "type": "property",
+                        "name": "Element",
+                        "begin": 0,
+                        "mask": "0xFF",
+                        "flag": true,
+                        "stringTable": "element"
+                    },
+                    "monsterType": {
+                        "type": "property",
+                        "name": "Monster Type",
+                        "begin": 6,
+                        "mask": "0xFF",
+                        "flag": true,
+                        "stringTable": "monsterType"
+                    },
+                    "status1": {
+                        "type": "property",
+                        "name": "Status",
+                        "begin": 2,
+                        "mask": "0xFFFF",
+                        "flag": true,
+                        "stringTable": "status"
+                    },
+                    "status2": {
+                        "type": "property",
+                        "name": "",
+                        "begin": 4,
+                        "mask": "0xFFFF",
+                        "flag": true,
+                        "stringTable": {
+                            "length": 16,
+                            "default": "<stringTable.status[%i+16]>"
+                        }
+                    },
+                    "flags": {
+                        "type": "property",
+                        "name": "Flags",
+                        "begin": 7,
+                        "mask": "0xFF",
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "0": "Metallic",
+                                "1": "Can Throw",
+                                "2": "No Back Row Penalty"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "itemProperties": {
             "type": "array",
             "name": "Item Properties",
@@ -858,38 +922,33 @@
                         "begin": 4,
                         "mask": "0x7FFFFFFF"
                     },
-                    "usage": {
-                        "type": "property",
-                        "name": "Usage",
-                        "begin": 8,
-                        "mask": "0xFFFF",
-                        "flag": true,
-                        "stringTable": {
-                            "string": {
-                                "0": "Can Use in Field",
-                                "1": "Can Use in Battle",
-                                "2": "Usage 8.2",
-                                "3": "Usage 8.3",
-                                "4": "Usage 8.4",
-                                "5": "Usage 8.5",
-                                "6": "Two-Handed",
-                                "7": "Usage 8.7",
-                                "8": "Usage 9.0",
-                                "9": "Usage 9.1",
-                                "10": "Usage 9.2",
-                                "11": "Usage 9.3",
-                                "12": "Usage 9.4",
-                                "13": "Usage 9.5",
-                                "14": "Usage 9.6",
-                                "15": "Key Item"
-                            }
-                        }
-                    },
                     "fieldEffect": {
                         "type": "property",
                         "name": "Field Effect",
                         "begin": 12,
-                        "mask": "0x7FFFFFFF"
+                        "mask": "0x7FFFFFFF",
+                        "stringTable": {
+                            "hideIndex": true,
+                            "string": {
+                                "0": "None",
+                                "0x08056D99": "Remove Status Effect",
+                                "0x08056E15": "Teach Summon",
+                                "0x08056F91": "Emergency Exit",
+                                "0x08056FFD": "Dwarven Bread",
+                                "0x08057031": "Siren",
+                                "0x08057069": "Magazine",
+                                "0x080570A9": "Gysahl Whistle",
+                                "0x080570E5": "Cottage",
+                                "0x08057125": "Tent",
+                                "0x08057164": "Increase Max MP",
+                                "0x08057191": "Increase Max HP",
+                                "0x080571E1": "Phoenix Down",
+                                "0x08057225": "Megalixir",
+                                "0x08057279": "Elixir",
+                                "0x080572A9": "Restore MP",
+                                "0x08057301": "Restore HP"
+                            }
+                        }
                     },
                     "spell": {
                         "type": "property",
@@ -1150,6 +1209,53 @@
                         "type": "assembly",
                         "external": "equipmentProperties[%i-95].equipability",
                         "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i < 322"
+                    },
+                    "element": {
+                        "type": "assembly",
+                        "external": "itemFlags[%i].element"
+                    },
+                    "monsterType": {
+                        "type": "assembly",
+                        "external": "itemFlags[%i].monsterType"
+                    },
+                    "status1": {
+                        "type": "assembly",
+                        "external": "itemFlags[%i].status1"
+                    },
+                    "status2": {
+                        "type": "assembly",
+                        "external": "itemFlags[%i].status2"
+                    },
+                    "flags": {
+                        "type": "assembly",
+                        "external": "itemFlags[%i].flags"
+                    },
+                    "usage": {
+                        "type": "property",
+                        "name": "Usage",
+                        "begin": 8,
+                        "mask": "0xFFFF",
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "0": "Can Use in Field",
+                                "1": "Can Use in Battle",
+                                "2": "Usage 8.2",
+                                "3": "Usage 8.3",
+                                "4": "Usage 8.4",
+                                "5": "Usage 8.5",
+                                "6": "Two-Handed",
+                                "7": "Usage 8.7",
+                                "8": "Usage 9.0",
+                                "9": "Usage 9.1",
+                                "10": "Usage 9.2",
+                                "11": "Usage 9.3",
+                                "12": "Usage 9.4",
+                                "13": "Usage 9.5",
+                                "14": "Usage 9.6",
+                                "15": "Key Item"
+                            }
+                        }
                     }
                 }
             }
@@ -2496,10 +2602,21 @@
                         }
                     }
                 },
-                "unknown_12": {
-                    "name": "Command 0x12",
+                "dialog12": {
+                    "name": "Display Dialog 0x12",
                     "opcode": "0x12",
-                    "length": 5
+                    "length": 5,
+                    "assembly": {
+                        "dialog": {
+                            "type": "property",
+                            "name": "Dialog",
+                            "begin": 1,
+                            "mask": "0xFFFF",
+                            "link": "stringTable.dialog[%i]",
+                            "stringTable": "dialog"
+
+                        }
+                    }
                 },
                 "unknown_13": {
                     "name": "Command 0x13",
@@ -3167,20 +3284,45 @@
                         }
                     }
                 },
-                "unknown_72": {
-                    "name": "Command 0x72",
+                "partyAdd": {
+                    "name": "Add Character to Party",
                     "opcode": "0x72",
-                    "length": 2
+                    "length": 2,
+                    "assembly": {
+                        "character": {
+                            "type": "property",
+                            "name": "Character",
+                            "begin": 1,
+                            "link": "characterProperties[%i]",
+                            "stringTable": "characterProperties"
+                        }
+                    }
                 },
-                "unknown_73": {
-                    "name": "Command 0x73",
-                    "opcode": "0x73",
-                    "length": 2
-                },
-                "unknown_74": {
-                    "name": "Command 0x74",
-                    "opcode": "0x74",
-                    "length": 2
+                "partyRemove": {
+                    "name": "Remove Character from Party",
+                    "opcode": ["0x73", "0x74"],
+                    "length": 2,
+                    "assembly": {
+                        "removeType": {
+                            "type": "property",
+                            "name": "Type",
+                            "begin": 0,
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0x73": "Permanent",
+                                    "0x74": "Temporary"
+                                }
+                            }
+                        },
+                        "character": {
+                            "type": "property",
+                            "name": "Character",
+                            "begin": 1,
+                            "link": "characterProperties[%i]",
+                            "stringTable": "characterProperties"
+                        }
+                    }
                 },
                 "learnSpell": {
                     "name": "Learn Spell",
@@ -3251,7 +3393,10 @@
                             "begin": 1,
                             "mask": "0xFFFF",
                             "link": "battleProperties[%i]",
-                            "stringTable": "battleProperties"
+                            "stringTable": "battleProperties",
+                            "special": {
+                                "0xFFFF": "Monster-in-a-box"
+                            }
                         }
                     }
                 },
@@ -3266,7 +3411,10 @@
                             "begin": 1,
                             "mask": "0xFFFF",
                             "link": "battleProperties[%i]",
-                            "stringTable": "battleProperties"
+                            "stringTable": "battleProperties",
+                            "special": {
+                                "0xFFFF": "Monster-in-a-box"
+                            }
                         }
                     }
                 },
@@ -3325,10 +3473,59 @@
                     "opcode": "0x8B",
                     "length": 2
                 },
-                "unknown_8C": {
-                    "name": "Command 0x8C",
+                "characterEquipment": {
+                    "name": "Set Character Equipment",
                     "opcode": "0x8C",
-                    "length": 12
+                    "length": 12,
+                    "assembly": {
+                        "character": {
+                            "type": "property",
+                            "name": "Character",
+                            "begin": 1,
+                            "link": "characterProperties[%i]",
+                            "stringTable": "characterProperties"
+                        },
+                        "rightHand": {
+                            "type": "property",
+                            "name": "Right Hand",
+                            "begin": 2,
+                            "mask": "0xFF",
+                            "stringTable": "itemNames",
+                            "link": "itemProperties[%i]"
+                        },
+                        "leftHand": {
+                            "type": "property",
+                            "name": "Left Hand",
+                            "begin": 4,
+                            "mask": "0xFFFF",
+                            "stringTable": "itemNames",
+                            "link": "itemProperties[%i]"
+                        },
+                        "helmet": {
+                            "type": "property",
+                            "name": "Helmet",
+                            "begin": 6,
+                            "mask": "0xFFFF",
+                            "stringTable": "itemNames",
+                            "link": "itemProperties[%i]"
+                        },
+                        "armor": {
+                            "type": "property",
+                            "name": "Armor",
+                            "begin": 8,
+                            "mask": "0xFFFF",
+                            "stringTable": "itemNames",
+                            "link": "itemProperties[%i]"
+                        },
+                        "shield": {
+                            "type": "property",
+                            "name": "Shield",
+                            "begin": 10,
+                            "mask": "0xFFFF",
+                            "stringTable": "itemNames",
+                            "link": "itemProperties[%i]"
+                        }
+                    }
                 },
                 "unknown_8D": {
                     "name": "Command 0x8D",
@@ -3959,6 +4156,20 @@
             "length": 6287,
             "link": "text[%i]"
         },
+        "element": {
+            "name": "Element Name",
+            "length": 8,
+            "string": {
+                "0": "Fire",
+                "1": "Ice",
+                "2": "Lightning",
+                "3": "Darkness",
+                "4": "Holy",
+                "5": "Flying",
+                "6": "Drain/Absorb",
+                "7": "Very Strong/Weak"
+            }
+        },
         "itemNames": {
             "name": "Item Names",
             "length": 325,
@@ -3969,10 +4180,61 @@
             "length": 283,
             "link": "text[%i+0x112B]"
         },
+        "monsterType": {
+            "name": "Monster Type",
+            "string": {
+                "0": "Dragon",
+                "1": "Machine/Mech",
+                "2": "Reptile",
+                "3": "Spirit/Ghoul",
+                "4": "Giant",
+                "5": "Slime",
+                "6": "Human/Mage",
+                "7": "Undead"
+            }
+        },
         "spellName": {
             "name": "Spell Name",
             "length": 72,
             "link": "text[%i+0x12F5]"
+        },
+        "status": {
+            "name": "Status",
+            "default": "Status %i",
+            "string": {
+                "0": "Poison",
+                "1": "Darkness",
+                "2": "Mute",
+                "3": "Pig",
+                "4": "Small",
+                "5": "Toad",
+                "6": "Stone",
+                "7": "Swoon",
+                "8": "1/3 Petrified",
+                "9": "2/3 Petrified",
+                "10": "Berserk",
+                "11": "Charm",
+                "12": "Sleep",
+                "13": "Paralyze",
+                "14": "Float",
+                "15": "Curse",
+                "16": "Count",
+                "17": "Jump",
+                "18": "Twin",
+                "19": "Charge/Focus",
+                "20": "Defend",
+                "21": "Egg",
+                "22": "Stop",
+                "23": "Magnetized",
+                "24": "Critical",
+                "25": "Cover",
+                "26": "Image 1",
+                "27": "Image 2",
+                "28": "Barrier",
+                "29": "Wall",
+                "30": "HP Leak",
+                "31": "Hide"
+            }
         }
     },
     "freeSpace": [

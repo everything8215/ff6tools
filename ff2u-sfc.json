@@ -83,11 +83,7 @@
                     "name": "Monster Condition Scripts",
                     "path": "monsterConditionScript"
                 }, {
-                    "name": "Monster Dialog",
-                    "path": "monsterDialog"
-                }, {
-                    "name": "Attack Messages",
-                    "path": "attackMessage"
+                    "path": "monsterItems"
                 }
             ]
         }, {
@@ -3758,7 +3754,7 @@
             "name": "Monster Agility Properties",
             "range": "0x0EA620-0x0EA6A0",
             "array": {
-                "length": 224
+                "length": 64
             },
             "assembly": {
                 "type": "data",
@@ -3777,7 +3773,7 @@
                 }
             },
             "stringTable": {
-                "length": 224,
+                "length": 64,
                 "default": "Monster Agility %i",
                 "string": {
                     "0": "[1...2]",
@@ -3843,8 +3839,7 @@
                     "60": "89",
                     "61": "53",
                     "62": "111",
-                    "63": "69",
-                    "64-224": "0"
+                    "63": "69"
                 }
             }
         },
@@ -4122,7 +4117,7 @@
         "monsterBossProperties": {
             "type": "array",
             "name": "Boss Graphics Properties",
-            "range": "0x0FCE00-0x0FCF3F",
+            "range": "0x0FCE00-0x0FCF40",
             "array": {
                 "length": 64
             },
@@ -5111,6 +5106,15 @@
                 "range": "0x0EA6A0-0x0EA860",
                 "offset": "0x0E0000"
             },
+            "reference": [
+                {
+                    "begin": "0x038FE5",
+                    "mask": "0xFFFF"
+                }, {
+                    "begin": "0x038FEE",
+                    "mask": "0xFFFFFF"
+                }
+            ],
             "stringTable": "monsterName"
         },
         "monsterScript": {
@@ -5616,7 +5620,7 @@
         "npcProperties": {
             "type": "array",
             "name": "NPC Properties",
-            "range": "0x138300-0x1396E8",
+            "range": "0x138300-0x139700",
             "canRelocate": true,
             "array": {
                 "length": 384
@@ -8854,6 +8858,11 @@
         }
     },
     "freeSpace": [
+        "0x0EB439-0x0EB6C0",
+        "0x0FC3C8-0x0FC600",
+        "0x0FC62F-0x0FC700",
+        "0x12E68B-0x138000",
+        "0x13A293-0x13A300",
         "0x16C355-0x16C480",
         "0x16E042-0x16E180",
         "0x16EB54-0x16EB80",

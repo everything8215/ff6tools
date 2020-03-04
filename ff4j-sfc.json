@@ -76,11 +76,7 @@
                 }, {
                     "path": "monsterConditionScript"
                 }, {
-                    "name": "Monster Dialog",
-                    "path": "monsterDialog"
-                }, {
-                    "name": "Attack Message",
-                    "path": "attackMessage"
+                    "path": "monsterItems"
                 }
             ]
         }, {
@@ -1749,7 +1745,7 @@
         "eventScript": {
             "type": "array",
             "name": "Event Script",
-            "range": "0x128200-0x12E68B",
+            "range": "0x128200-0x12E67B",
             "array": {
                 "length": 256
             },
@@ -3589,7 +3585,7 @@
             "name": "Monster Agility Properties",
             "range": "0x0EA620-0x0EA6A0",
             "array": {
-                "length": 224
+                "length": 64
             },
             "assembly": {
                 "type": "data",
@@ -3608,11 +3604,11 @@
                 }
             },
             "stringTable": {
-                "length": 224,
+                "length": 64,
                 "default": "Monster Agility %i",
                 "string": {
                     "0": "[1...2]",
-                    "1": "30",
+                    "1": "[106...111]",
                     "2": "[1...2]",
                     "3": "[1...3]",
                     "4": "[2...4]",
@@ -3658,12 +3654,12 @@
                     "44": "[41...44]",
                     "45": "[42...45]",
                     "46": "[43...46]",
-                    "47": "65",
+                    "47": "80",
                     "48": "5",
                     "49": "31",
                     "50": "9",
                     "51": "8",
-                    "52": "66",
+                    "52": "86",
                     "53": "4",
                     "54": "15",
                     "55": "18",
@@ -3671,10 +3667,10 @@
                     "57": "7",
                     "58": "27",
                     "59": "38",
-                    "60": "89",
+                    "60": "99",
                     "61": "53",
                     "62": "111",
-                    "63": "69"
+                    "63": "101"
                 }
             }
         },
@@ -3952,7 +3948,7 @@
         "monsterBossProperties": {
             "type": "array",
             "name": "Boss Graphics Properties",
-            "range": "0x0FCE00-0x0FCF3F",
+            "range": "0x0FCE00-0x0FCF40",
             "array": {
                 "length": 64
             },
@@ -4593,6 +4589,76 @@
                         "stringTable": "itemNames"
                     }
                 }
+            },
+            "stringTable": {
+                "length": 64,
+                "default": "Monster Items %i",
+                "string": {
+                    "0": "Cure1",
+                    "1": "Cure1/Cure2",
+                    "2": "Heal/Tent",
+                    "3": "Heal",
+                    "4": "Heal",
+                    "5": "Fire Arrows",
+                    "6": "Ice Arrows",
+                    "7": "Lit Arrows",
+                    "8": "Cure1",
+                    "9": "Poison Arrows",
+                    "10": "Ether1",
+                    "11": "Cure2/Ether1",
+                    "12": "Silver/Cure2/Cure3",
+                    "13": "Cure1",
+                    "14": "Heal",
+                    "15": "Cure2/Cure3/Elixir/Glass",
+                    "16": "Cure1/Cure2",
+                    "17": "Cure1/Cure2/Heal",
+                    "18": "Leather/Cure2/Cabin",
+                    "19": "Cap/Leather/Cure2",
+                    "20": "Cure1/Cursed Ring",
+                    "21": "Tent/Cabin",
+                    "22": "Charm/RubyRing",
+                    "23": "Flame/Fire",
+                    "24": "Tent",
+                    "25": "Cabin/Ogre/Poison/RuneAxe",
+                    "26": "Cure2",
+                    "27": "Cure1",
+                    "28": "Ether1",
+                    "29": "Cure2/Cure3/Medusa",
+                    "30": "Silver",
+                    "31": "Heal/Samurai Arrows",
+                    "32": "Cure2/Headband/Strength/Zeus",
+                    "33": "Cure1",
+                    "34": "Cure/Rune/Silence",
+                    "35": "Cure1",
+                    "36": "Cure1",
+                    "37": "Cure1",
+                    "38": "Rod/Silver/Ether1/Ether2",
+                    "39": "Ether1/Lilith",
+                    "40": "Ether2/Elixir/Ninja/Pink",
+                    "41": "Artemis/Heroine",
+                    "42": "Earth/Zeus",
+                    "43": "Ether1/Ether2/Elixir/Protect",
+                    "44": "Cure2/Shuriken/Dragoon",
+                    "45": "Murasame",
+                    "46": "FireBomb/Dragoon/Crystal",
+                    "47": "Headband/Strength/Power/Avenger",
+                    "48": "Heal/Ether2/Life/Ribbon",
+                    "49": "Heal",
+                    "50": "Cure2",
+                    "51": "Cure1/Cursed Ring",
+                    "52": "Cure1",
+                    "53": "Cure1/Cure2",
+                    "54": "Cure2/CatClaw",
+                    "55": "Medusa",
+                    "56": "Imp Spell",
+                    "57": "Life",
+                    "58": "Bomb Spell",
+                    "59": "Mage Spell",
+                    "60": "Tower Key",
+                    "61": "Cure1",
+                    "62": "Life",
+                    "63": "Elixir"
+                }
             }
         },
         "monsterName": {
@@ -4711,6 +4777,7 @@
                         "type": "property",
                         "name": "Attack",
                         "begin": 3,
+                        "stringTable": "monsterAttackDefense",
                         "link": "monsterAttackDefense[%i]"
                     },
                     "magicAttack": {
@@ -4722,12 +4789,14 @@
                         "type": "property",
                         "name": "Defense",
                         "begin": 4,
+                        "stringTable": "monsterAttackDefense",
                         "link": "monsterAttackDefense[%i]"
                     },
                     "magicDefense": {
                         "type": "property",
                         "name": "Magic Defense",
                         "begin": 5,
+                        "stringTable": "monsterAttackDefense",
                         "link": "monsterAttackDefense[%i]"
                     },
                     "agility": {
@@ -4735,6 +4804,7 @@
                         "name": "Agility",
                         "begin": 6,
                         "mask": "0x3F",
+                        "stringTable": "monsterAgility",
                         "link": "monsterAgility[%i]"
                     },
                     "items": {
@@ -4742,6 +4812,7 @@
                         "name": "Items",
                         "begin": 7,
                         "mask": "0x3F",
+                        "stringTable": "monsterItems",
                         "link": "monsterItems[%i]"
                     },
                     "itemRate": {
@@ -5355,7 +5426,7 @@
         "npcProperties": {
             "type": "array",
             "name": "NPC Properties",
-            "range": "0x138300-0x13971E",
+            "range": "0x138300-0x139800",
             "array": {
                 "length": 384
             },
@@ -5459,7 +5530,7 @@
         "npcScript": {
             "type": "array",
             "name": "NPC Script",
-            "range": "0x139C00-0x13A293",
+            "range": "0x139C00-0x13A28B",
             "array": {
                 "length": 512
             },
@@ -8477,5 +8548,16 @@
                 "31": "Cinematic ?"
             }
         }
-    }
+    },
+    "freeSpace": [
+        "0x0EB439-0x0EB6C0",
+        "0x0FC3C8-0x0FC600",
+        "0x0FC62F-0x0FC700",
+        "0x12E67B-0x138000",
+        "0x13A28B-0x13A300",
+        "0x16C354-0x16C480",
+        "0x16E042-0x16E180",
+        "0x16EB54-0x16EB80",
+        "0x19FD29-0x1A8000"
+    ]
 }

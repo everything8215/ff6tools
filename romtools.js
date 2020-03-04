@@ -928,7 +928,7 @@ ROMData.prototype.cleanUpFreeSpace = function() {
             range1.end = Math.max(range1.end, range2.end);
             range2.end = range2.begin;
         }
-        range1.end = Math.min(range1.end, this.range.length);
+//        range1.end = Math.min(range1.end, this.data.length);
         if (range1.isEmpty) continue;
         cleanSpace.push(range1);
     }
