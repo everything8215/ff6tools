@@ -5843,7 +5843,7 @@
                             "type": "property",
                             "name": "Spell",
                             "begin": 0,
-                            "stringTable": "spellNames"
+                            "stringTable": "attackNames"
                         }
                     }
                 }
@@ -5868,7 +5868,7 @@
                             "type": "property",
                             "name": "Spell",
                             "begin": 1,
-                            "stringTable": "spellNames"
+                            "stringTable": "attackNames"
                         },
                         "level": {
                             "type": "property",
