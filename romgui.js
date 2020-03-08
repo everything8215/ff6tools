@@ -608,15 +608,16 @@ ROMPropertyList.prototype.propertyHTML = function(object, options) {
     var label;
     if (object instanceof ROMProperty && object.link) {
         // create a label with a link
-        var link = object.link.replace("%i", object.value);
+        var link = object.parseIndex(object.link, object.value);
         label = document.createElement('a');
         label.href = "javascript:propertyList.select(\"" + link + "\");";
     } else if (object instanceof ROMProperty && object.script) {
         // create a label with a script link
-        var script = this.rom[object.script];
-        var command = script.ref[object.value];
+        var script = object.parsePath(object.script);
+        if (!script) return null;
+        var command = script.ref[object.value] || script.command[0];
         label = document.createElement('a');
-        label.href = "javascript:propertyList.select(\"" + object.script + "\"); scriptList.selectRef(" + command.ref + ");";
+        label.href = "javascript:propertyList.select(\"" + object.parseSubscripts(object.parseIndex(object.script)) + "\"); scriptList.selectRef(" + command.ref + ");";
     } else if (object.pointerTo && object.parsePath(object.pointerTo) && object.value instanceof ROMAssembly) {
         // create a label with a link to the pointer target
         object.parsePath(object.pointerTo);
@@ -883,8 +884,9 @@ ROMPropertyList.prototype.scriptControlHTML = function(object, options) {
     controlDiv.classList.add("property-control-div");
 
     // property linked to a script
-    var script = this.rom[object.script];
-    var command = script.ref[object.value];
+    var script = object.parsePath(object.script);
+    if (!script) return null;
+    var command = script.ref[object.value] || script.command[0];
     var input = document.createElement('input');
     controlDiv.appendChild(input);
     input.classList.add("property-control");

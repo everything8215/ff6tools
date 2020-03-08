@@ -774,26 +774,176 @@
             "name": "Event Script",
             "range": "0x084B3BEC-0x084EA7EC",
             "array": {
-                "length": 1243
+                "length": 1241
             },
             "assembly": {
                 "type": "script",
                 "encoding": "event"
             },
             "pointerTable": {
-                "range": "0x084B2884-0x084B3BEC",
+                "range": "0x084B2888-0x084B3BEC",
                 "offset": "0x084B3BEC"
             },
             "stringTable": {
                 "name": "Event Scripts",
-                "length": 1243,
+                "length": 1241,
                 "default": "Event %i",
+                "hideIndex": true,
                 "string": {
-                    "0x008B": "Castle Baron",
-                    "0x008C": "Castle Baron: Cid Intro",
-                    "0x0242": "Town Baron",
-                    "0x02B8": "Village Mist: Bomb Ring",
-                    "0x02BB": "Village Mist"
+                    "0": "Treasure",
+                    "1": "Empty Treasure Chest",
+                    "2": "Game Start",
+                    "6": "Default Map Event (Screen Wipe)",
+                    "7": "Restore HP and Status",
+                    "8": "Restore MP",
+                    "10": "Namingway",
+                    "11": "Inn",
+                    "13": "Big Chocobo",
+                    "15": "Fireplace",
+                    "138": "Castle Baron",
+                    "139": "Castle Baron (Cid Intro)",
+                    "173": "Damcyan Castle - Basement",
+                    "174": "Damcyan Castle",
+                    "176": "Damcyan Castle - First Floor",
+                    "177": "Damcyan Castle - Second Floor",
+                    "178": "Damcyan Castle - Third Floor (Scene 1)",
+                    "179": "Damcyan Castle - Third Floor (Scene 2)",
+                    "180": "Damcyan Castle - Third Floor",
+                    "181": "Damcyan Castle - Dungeons",
+                    "272": "Fabul Castle",
+                    "273": "Fabul Castle (Battle)",
+                    "274": "Fabul Castle - First Floor",
+                    "275": "Fabul Castle - First Floor (Battle)",
+                    "276": "Fabul Castle - Second Floor",
+                    "277": "Fabul Castle - Second Floor (Battle)",
+                    "278": "Fabul Castle - Throne Room",
+                    "279": "Fabul Castle - Throne Room (Meet King)",
+                    "280": "Fabul Castle - Throne Room (Battle 1)",
+                    "281": "Fabul Castle - Throne Room (Battle 2)",
+                    "282": "Fabul Castle - Throne Room (Battle 3)",
+                    "283": "Fabul Castle - Throne Room (Battle 4)",
+                    "284": "Fabul Castle - Inn",
+                    "285": "Fabul Castle - Armor & Weapons Shop",
+                    "286": "Fabul Castle - Infirmary",
+                    "287": "Fabul Castle - Yang's Room",
+                    "288": "Fabul Castle - Barracks",
+                    "289": "Fabul Castle - Pub",
+                    "290": "Fabul Castle - Pub (Dancer)",
+                    "291": "Fabul Castle - King's Room",
+                    "292": "Fabul Castle - King's Room (After Battle)",
+                    "293": "Fabul Castle - Crystal Room",
+                    "294": "Fabul Castle - Crystal Room (Golbez)",
+                    "295": "Fabul Docks",
+                    "296": "Ship to Baron/Leviathan Attack",
+                    "297": "Cecil on Mysidia Beach",
+                    "356": "Mysidia - Crystal Room",
+                    "357": "Antlion Cave - B1",
+                    "358": "Antlion Cave - Save Point",
+                    "359": "Antlion Nest",
+                    "360": "Cave of Bahamut - B1",
+                    "361": "Cave of Bahamut - B2",
+                    "362": "Cave of Bahamut - B2 (After Behemoth Battle)",
+                    "363": "Cave of Bahamut - B3",
+                    "364": "Sylvan Cave (Sylph House)",
+                    "365": "Sylvan Cave - B1",
+                    "366": "Sylvan Cave - B2/B3",
+                    "412": "Cave of Summons - B1",
+                    "413": "Cave of Summons - B4",
+                    "414": "Land of Summons (Outside)",
+                    "415": "Land of Summons (Item Shops)",
+                    "416": "Land of Summons (Inn)",
+                    "418": "Land of Summons (Save Point)",
+                    "419": "Land of Summons (Armor Shop)",
+                    "420": "Land of Summons (Weapon Shop)",
+                    "421": "Land of Summons (Library)",
+                    "422": "Land of Summons (Library Basement)",
+                    "423": "Land of Summons (Leviathan's Room)",
+                    "424": "Land of Summons - B6",
+                    "425": "Mist Cave",
+                    "428": "Chocobo",
+                    "429": "Chocobo Forest",
+                    "430": "White Chocobo",
+                    "431": "Chocobo Village",
+                    "444": "Adamant Grotto",
+                    "445": "Adamant Grotto (Tail Guy)",
+                    "446": "Adamant Grotto (Tail Guy's Son)",
+                    "447": "Kokkol's Smithy - 1F",
+                    "448": "Kokkol's Smithy - 2F",
+                    "449": "Kokkol's Smithy - Outside",
+                    "452": "Mysidia - Outside",
+                    "453": "Mysidia - Outside (NPC 1)",
+                    "454": "Mysidia - Outside (NPC 2)",
+                    "455": "Mysidia - Outside (NPC 3)",
+                    "456": "Mysidia - Outside (NPC 4)",
+                    "457": "Mysidia - Outside (NPC 5)",
+                    "458": "Mysidia - Outside (NPC 6)",
+                    "459": "Mysidia - Outside (Devil's Road NPC)",
+                    "460": "Mysidia - Outside (NPC 7)",
+                    "461": "Mysidia - Weapon Shop",
+                    "462": "Mysidia - Armor Shop",
+                    "463": "Mysidia - Item Shop",
+                    "464": "Mysidia - Pub",
+                    "465": "Mysidia - Inn",
+                    "466": "Mysidia - Manor of Prayers",
+                    "467": "Mysidia - Manor of Prayers (Scene 1)",
+                    "468": "Mysidia - Manor of Prayers (Scene 2)",
+                    "469": "Mysidia - Manor of Prayers (Scene 3)",
+                    "470": "Mysidia - Hall of Prayers",
+                    "471": "Mysidia - Hall of Prayers (Party Change)",
+                    "472": "Mysidia - Devil's Road",
+                    "473": "Mt. Hobs - West",
+                    "474": "Mt. Hobs - Station Five",
+                    "475": "Mt. Hobs - Summit",
+                    "476": "Mt. Hobs - Summit (Mom Bomb)",
+                    "477": "Mt. Hobs - Summit (Yang Joins)",
+                    "478": "Mt. Hobs - East",
+                    "491": "Hummingway Home",
+                    "492": "Hummingway Home (Dialog 1)",
+                    "493": "Hummingway Home (Dialog 2)",
+                    "494": "Hummingway Home (Dialog 3)",
+                    "495": "Hummingway Home (Normal Hummingway)",
+                    "496": "Hummingway Home (Shop)",
+                    "497": "Lunar Whale",
+                    "498": "Debug Room",
+                    "499": "Red Wings Intro 1",
+                    "500": "Red Wings Intro 2",
+                    "501": "Red Wings Intro 3",
+                    "502": "Red Wings Intro 4",
+                    "503": "Mysidia Intro",
+                    "577": "Town Baron",
+                    "578": "Town Baron - Item Shop",
+                    "579": "Town Baron - Armor Shop",
+                    "580": "Town Baron - Weapon Shop",
+                    "581": "Town Baron - Rosa's House",
+                    "582": "Town Baron - Cid's House",
+                    "583": "Town Baron - Inn",
+                    "584": "Town Baron - Inn (Yang 1)",
+                    "585": "Town Baron - Inn (Yang 2)",
+                    "586": "Town Baron - Inn (Yang 3)",
+                    "587": "Town Baron - Devil's Road",
+                    "588": "Town Baron - Training Room",
+                    "589": "Default Cave (Into the Darkness)",
+                    "590": "Kaipo",
+                    "591": "Kaipo (Edward Cutscene)",
+                    "593": "Kaipo (Inn)",
+                    "594": "Kaipo (Pub)",
+                    "595": "Kaipo (Armor Shop)",
+                    "596": "Kaipo (Weapon Shop)",
+                    "597": "Kaipo (House w/ Rosa)",
+                    "649": "Lunar Path 1",
+                    "650": "Lunar Path 2",
+                    "651": "Underground Waterway (Tellah Intro)",
+                    "652": "Underground Waterway (Save Point)",
+                    "653": "Underground Waterway (Camp)",
+                    "654": "Underground Waterway - N.",
+                    "655": "Waterfall",
+                    "656": "Sunken Lake - B2",
+                    "657": "Sunken Lake - B1",
+                    "695": "Village Mist (Bomb Ring)",
+                    "698": "Village Mist (Normal)",
+                    "699": "Village Mist (Inn)",
+                    "700": "Village Mist (Weapon Shop)",
+                    "701": "Village Mist (Armor Shop)"
                 }
             }
         },
@@ -1509,7 +1659,7 @@
                     },
                     "exitPointer": {
                         "type": "property",
-                        "name": "Exit Pointer",
+                        "name": "Exits",
                         "begin": 8,
                         "mask": "0x7FFFFFFF",
                         "pointerTo": "mapExit",
@@ -1522,7 +1672,9 @@
                         "name": "Treasures",
                         "begin": 12,
                         "mask": "0x0FFF",
-                        "offset": 402
+                        "offset": 402,
+                        "stringTable": "mapTriggers",
+                        "link": "mapTriggerPointers[%i].triggerPointer.value"
                     },
                     "unknown_14": {
                         "type": "property",
@@ -1531,11 +1683,13 @@
                         "mask": "0x0FFF",
                         "offset": 402
                     },
-                    "npcs": {
+                    "events": {
                         "type": "property",
-                        "name": "NPCs",
+                        "name": "Events",
                         "begin": 16,
-                        "mask": "0x0FFF"
+                        "mask": "0x0FFF",
+                        "stringTable": "mapTriggers",
+                        "link": "mapTriggerPointers[%i].triggerPointer.value"
                     },
                     "unknown_18": {
                         "type": "property",
@@ -1671,7 +1825,8 @@
                             "type": "property",
                             "name": "Event Switch",
                             "begin": 0,
-                            "mask": "0xFFFF"
+                            "mask": "0xFFFF",
+                            "stringTable": "eventSwitch"
                         },
                         "item": {
                             "type": "property",
@@ -1756,32 +1911,38 @@
                             "begin": 7,
                             "mask": "0xFF"
                         },
-                        "event": {
-                            "type": "property",
-                            "name": "Event",
-                            "begin": 8,
-                            "mask": "0xFFFF",
-                            "stringTable": "eventScript",
-                            "link": "eventScript[%i]",
-                            "invalid": "this.parent.event2.value !== 0"
-                        },
                         "event2": {
                             "type": "property",
                             "name": "Event",
                             "begin": 10,
                             "mask": "0xFFFF",
+                            "offset": -1,
                             "stringTable": "eventScript",
                             "link": "eventScript[%i]",
                             "special": {
-                                "0": "No Script Pointer"
+                                "-1": "No Script Pointer"
                             }
+                        },
+                        "event": {
+                            "type": "property",
+                            "name": "Event",
+                            "begin": 8,
+                            "mask": "0xFFFF",
+                            "offset": -1,
+                            "stringTable": "eventScript",
+                            "link": "eventScript[%i]",
+                            "special": {
+                                "-1": "No Event"
+                            },
+                            "invalid": "this.parent.event2.value !== -1"
                         },
                         "scriptPointer": {
                             "type": "property",
                             "name": "Script Pointer",
                             "begin": 8,
                             "mask": "0xFFFF",
-                            "invalid": "this.parent.event2.value === 0"
+                            "invalid": "this.parent.event2.value === -1",
+                            "script": "this.rom.eventScript[this.parent.event2.value]"
                         }
                     }
                 }
@@ -1789,6 +1950,10 @@
             "pointerObject": {
                 "arrayPath": "mapTriggerPointers",
                 "pointerPath": "triggerPointer"
+            },
+            "stringTable": {
+                "length": 595,
+                "default": "Map Triggers %i"
             }
         },
         "mapTriggerPointers": {
@@ -2487,21 +2652,25 @@
             "command": {
                 "unknown_00": {
                     "name": "Command 0x00",
+                    "category": "Unknown",
                     "opcode": "0x00",
                     "length": 1
                 },
                 "unknown_01": {
                     "name": "Command 0x01",
+                    "category": "Unknown",
                     "opcode": "0x01",
                     "length": 1
                 },
                 "unknown_02": {
                     "name": "Command 0x02",
+                    "category": "Unknown",
                     "opcode": "0x02",
                     "length": 1
                 },
                 "loadMap": {
                     "name": "Load Map",
+                    "category": "Control",
                     "opcode": ["0x03", "0x04"],
                     "length": 6,
                     "assembly": {
@@ -2532,36 +2701,43 @@
                 },
                 "end": {
                     "name": "End of Script",
+                    "category": "Control",
                     "opcode": "0x05",
                     "length": 1
                 },
                 "unknown_06": {
                     "name": "Command 0x06",
+                    "category": "Unknown",
                     "opcode": "0x06",
                     "length": 5
                 },
                 "unknown_07": {
                     "name": "Command 0x07",
+                    "category": "Unknown",
                     "opcode": "0x07",
                     "length": 1
                 },
                 "unknown_08": {
                     "name": "Command 0x08",
+                    "category": "Unknown",
                     "opcode": "0x08",
                     "length": 1
                 },
                 "unknown_09": {
                     "name": "Command 0x09",
+                    "category": "Unknown",
                     "opcode": "0x09",
                     "length": 1
                 },
                 "unknown_0A": {
                     "name": "Command 0x0A",
+                    "category": "Unknown",
                     "opcode": "0x0A",
                     "length": 1
                 },
                 "dialog0D": {
                     "name": "Display Dialog 0x0B/0x0D",
+                    "category": "Dialog",
                     "opcode": ["0x0B", "0x0D"],
                     "length": 5,
                     "assembly": {
@@ -2577,6 +2753,7 @@
                 },
                 "dialog": {
                     "name": "Display Dialog",
+                    "category": "Dialog",
                     "opcode": ["0x0C", "0x0E", "0x0F", "0x10"],
                     "length": 3,
                     "assembly": {
@@ -2592,6 +2769,7 @@
                 },
                 "dialogWait": {
                     "name": "Display Dialog and Wait",
+                    "category": "Dialog",
                     "opcode": "0x11",
                     "length": 7,
                     "assembly": {
@@ -2608,6 +2786,7 @@
                 },
                 "dialog12": {
                     "name": "Display Dialog 0x12",
+                    "category": "Dialog",
                     "opcode": "0x12",
                     "length": 5,
                     "assembly": {
@@ -2624,31 +2803,37 @@
                 },
                 "unknown_13": {
                     "name": "Command 0x13",
+                    "category": "Unknown",
                     "opcode": "0x13",
                     "length": 1
                 },
                 "showGil": {
                     "name": "Show Gil",
+                    "category": "Dialog",
                     "opcode": "0x14",
                     "length": 1
                 },
                 "yesNo": {
                     "name": "Show Yes/No Box",
+                    "category": "Dialog",
                     "opcode": "0x15",
                     "length": 3
                 },
                 "takeGil": {
                     "name": "Take Gil",
+                    "category": "Inventory",
                     "opcode": "0x17",
                     "length": 5
                 },
                 "unknown_18": {
                     "name": "Command 0x18",
+                    "category": "Unknown",
                     "opcode": "0x18",
                     "length": 1
                 },
                 "selectItem": {
                     "name": "Item Selection Window",
+                    "category": "Inventory",
                     "opcode": "0x19",
                     "length": 12,
                     "assembly": {
@@ -2664,6 +2849,7 @@
                 },
                 "giveItem": {
                     "name": "Give Item",
+                    "category": "Inventory",
                     "opcode": "0x1A",
                     "length": 3,
                     "assembly": {
@@ -2679,6 +2865,7 @@
                 },
                 "takeItem": {
                     "name": "Take Item",
+                    "category": "Inventory",
                     "opcode": "0x1B",
                     "length": 3,
                     "assembly": {
@@ -2694,120 +2881,203 @@
                 },
                 "cinematicEffect": {
                     "name": "Cinematic Effect",
+                    "category": "Screen",
                     "opcode": "0x1C",
                     "length": 5
                 },
                 "unknown_1D": {
                     "name": "Command 0x1D",
+                    "category": "Unknown",
                     "opcode": "0x1D",
                     "length": 4
                 },
                 "jump": {
                     "name": "Jump",
+                    "category": "Control",
                     "opcode": "0x1E",
                     "length": 5,
                     "assembly": {
-                        "scriptPointer": {
-                            "type": "property",
-                            "name": "Script Pointer",
-                            "begin": 1,
-                            "mask": "0xFFFF"
-                        },
-                        "event": {
+                        "event2": {
                             "type": "property",
                             "name": "Event",
                             "begin": 3,
                             "mask": "0xFFFF",
+                            "offset": -1,
+                            "stringTable": "eventScript",
+                            "link": "eventScript[%i]",
                             "special": {
-                                "0xFFFF": "Current Event"
+                                "-1": "No Script Pointer",
+                                "0xFFFE": "Current Event"
                             }
+                        },
+                        "event": {
+                            "type": "property",
+                            "name": "Event",
+                            "begin": 1,
+                            "mask": "0xFFFF",
+                            "offset": -1,
+                            "stringTable": "eventScript",
+                            "link": "eventScript[%i]",
+                            "invalid": "this.parent.event2.value !== -1"
+                        },
+                        "scriptPointer": {
+                            "type": "property",
+                            "name": "Script Pointer",
+                            "begin": 1,
+                            "mask": "0xFFFF",
+                            "script": "this.rom.eventScript[this.parent.event2.value]",
+                            "invalid": "this.parent.event2.value === -1 || this.parent.event2.value === 0xFFFE"
+                        },
+                        "scriptPointerCurrent": {
+                            "type": "property",
+                            "name": "Script Pointer",
+                            "begin": 1,
+                            "mask": "0xFFFF",
+                            "script": "this.parent.parent",
+                            "invalid": "this.parent.event2.value !== 0xFFFE"
                         }
                     }
                 },
                 "loop": {
                     "name": "Loop",
+                    "category": "Control",
                     "opcode": "0x1F",
                     "length": 5,
                     "assembly": {
-                        "scriptPointer": {
-                            "type": "property",
-                            "name": "Script Pointer",
-                            "begin": 1,
-                            "mask": "0xFFFF"
-                        },
-                        "event": {
+                        "event2": {
                             "type": "property",
                             "name": "Event",
                             "begin": 3,
                             "mask": "0xFFFF",
+                            "offset": -1,
+                            "stringTable": "eventScript",
+                            "link": "eventScript[%i]",
                             "special": {
-                                "0xFFFF": "Current Event"
+                                "-1": "No Script Pointer",
+                                "0xFFFE": "Current Event"
                             }
+                        },
+                        "event": {
+                            "type": "property",
+                            "name": "Event",
+                            "begin": 1,
+                            "mask": "0xFFFF",
+                            "offset": -1,
+                            "stringTable": "eventScript",
+                            "link": "eventScript[%i]",
+                            "invalid": "this.parent.event2.value !== -1"
+                        },
+                        "scriptPointer": {
+                            "type": "property",
+                            "name": "Script Pointer",
+                            "begin": 1,
+                            "mask": "0xFFFF",
+                            "script": "this.rom.eventScript[this.parent.event2.value]",
+                            "invalid": "this.parent.event2.value === -1 || this.parent.event2.value === 0xFFFE"
+                        },
+                        "scriptPointerCurrent": {
+                            "type": "property",
+                            "name": "Script Pointer",
+                            "begin": 1,
+                            "mask": "0xFFFF",
+                            "script": "this.parent.parent",
+                            "invalid": "this.parent.event2.value !== 0xFFFE"
                         }
                     }
                 },
                 "unknown_20": {
                     "name": "Command 0x20",
+                    "category": "Unknown",
                     "opcode": "0x20",
                     "length": 4
                 },
                 "setVariable": {
                     "name": "Set Variable",
+                    "category": "Control",
                     "opcode": "0x21",
                     "length": 5
                 },
                 "unknown_22": {
                     "name": "Command 0x22",
+                    "category": "Unknown",
                     "opcode": "0x22",
                     "length": 1
                 },
                 "unknown_23": {
                     "name": "Command 0x23",
+                    "category": "Unknown",
                     "opcode": "0x23",
                     "length": 9
                 },
                 "unknown_25": {
                     "name": "Command 0x25",
+                    "category": "Unknown",
                     "opcode": "0x25",
                     "length": 9
                 },
                 "unknown_26": {
                     "name": "Command 0x26",
+                    "category": "Unknown",
                     "opcode": "0x26",
                     "length": 7
                 },
                 "unknown_27": {
                     "name": "Command 0x27",
+                    "category": "Unknown",
                     "opcode": "0x27",
                     "length": 3
                 },
                 "unknown_28": {
                     "name": "Command 0x28",
+                    "category": "Unknown",
                     "opcode": "0x28",
                     "length": 3
                 },
                 "unknown_29": {
                     "name": "Command 0x29",
+                    "category": "Unknown",
                     "opcode": "0x29",
                     "length": 3
                 },
                 "unknown_2A": {
                     "name": "Command 0x2A",
+                    "category": "Unknown",
                     "opcode": "0x2A",
                     "length": 3
                 },
                 "setSwitch": {
                     "name": "Set Switch",
+                    "category": "Control",
                     "opcode": "0x2F",
-                    "length": 3
+                    "length": 3,
+                    "assembly": {
+                        "switch": {
+                            "type": "property",
+                            "name": "Switch",
+                            "begin": 1,
+                            "mask": "0xFFFF",
+                            "stringTable": "eventSwitch"
+                        }
+                    }
                 },
                 "clearSwitch": {
                     "name": "Clear Switch",
+                    "category": "Control",
                     "opcode": "0x30",
-                    "length": 3
+                    "length": 3,
+                    "assembly": {
+                        "switch": {
+                            "type": "property",
+                            "name": "Switch",
+                            "begin": 1,
+                            "mask": "0xFFFF",
+                            "stringTable": "eventSwitch"
+                        }
+                    }
                 },
                 "jumpSwitch": {
                     "name": "Jump Based on Switch",
+                    "category": "Control",
                     "opcode": "0x31",
                     "length": 8,
                     "assembly": {
@@ -2820,52 +3090,83 @@
                             "type": "property",
                             "name": "Switch",
                             "begin": 2,
-                            "mask": "0xFFFF"
+                            "mask": "0xFFFF",
+                            "stringTable": "eventSwitch"
+                        },
+                        "event2": {
+                            "type": "property",
+                            "name": "Event",
+                            "begin": 6,
+                            "mask": "0xFFFF",
+                            "offset": -1,
+                            "stringTable": "eventScript",
+                            "link": "eventScript[%i]",
+                            "special": {
+                                "-1": "No Script Pointer",
+                                "0xFFFE": "Current Event"
+                            }
+                        },
+                        "event": {
+                            "type": "property",
+                            "name": "Event",
+                            "begin": 4,
+                            "mask": "0xFFFF",
+                            "offset": -1,
+                            "stringTable": "eventScript",
+                            "link": "eventScript[%i]",
+                            "invalid": "this.parent.event2.value !== -1"
                         },
                         "scriptPointer": {
                             "type": "property",
                             "name": "Script Pointer",
                             "begin": 4,
-                            "mask": "0xFFFF"
-                        },
-                        "event": {
-                            "type": "property",
-                            "name": "Event",
-                            "begin": 6,
                             "mask": "0xFFFF",
-                            "special": {
-                                "0xFFFF": "Current Event"
-                            }
+                            "script": "this.rom.eventScript[this.parent.event2.value]",
+                            "invalid": "this.parent.event2.value === -1 || this.parent.event2.value === 0xFFFE"
+                        },
+                        "scriptPointerCurrent": {
+                            "type": "property",
+                            "name": "Script Pointer",
+                            "begin": 4,
+                            "mask": "0xFFFF",
+                            "script": "this.parent.parent",
+                            "invalid": "this.parent.event2.value !== 0xFFFE"
                         }
                     }
                 },
                 "unknown_32": {
                     "name": "Command 0x32",
+                    "category": "Unknown",
                     "opcode": "0x32",
                     "length": 4
                 },
                 "unknown_33": {
                     "name": "Command 0x33",
+                    "category": "Unknown",
                     "opcode": "0x33",
                     "length": 3
                 },
                 "unknown_34": {
                     "name": "Command 0x34",
+                    "category": "Unknown",
                     "opcode": "0x34",
                     "length": 3
                 },
                 "unknown_35": {
                     "name": "Command 0x35",
+                    "category": "Unknown",
                     "opcode": "0x35",
                     "length": 6
                 },
                 "unknown_36": {
                     "name": "Command 0x36",
+                    "category": "Unknown",
                     "opcode": "0x36",
                     "length": 4
                 },
                 "wait": {
                     "name": "Wait",
+                    "category": "Control",
                     "opcode": "0x37",
                     "length": 3,
                     "assembly": {
@@ -2879,21 +3180,25 @@
                 },
                 "objectAction": {
                     "name": "Set Object Action",
+                    "category": "Object",
                     "opcode": "0x38",
                     "length": 2
                 },
                 "unknown_39": {
                     "name": "Command 0x39",
+                    "category": "Unknown",
                     "opcode": "0x39",
                     "length": 5
                 },
                 "unknown_3A": {
                     "name": "Command 0x3A",
+                    "category": "Unknown",
                     "opcode": "0x3A",
                     "length": 1
                 },
                 "moveObject": {
                     "name": "Move Object",
+                    "category": "Object",
                     "opcode": "0x3B",
                     "length": 4,
                     "assembly": {
@@ -2916,26 +3221,31 @@
                 },
                 "unknown_3C": {
                     "name": "Command 0x3C",
+                    "category": "Unknown",
                     "opcode": "0x3C",
                     "length": 13
                 },
                 "unknown_3D": {
                     "name": "Command 0x3D",
+                    "category": "Unknown",
                     "opcode": "0x3D",
                     "length": 3
                 },
                 "unknown_3E": {
                     "name": "Command 0x3E",
+                    "category": "Unknown",
                     "opcode": "0x3E",
                     "length": 3
                 },
                 "unknown_3F": {
                     "name": "Command 0x3F",
+                    "category": "Unknown",
                     "opcode": "0x3F",
                     "length": 4
                 },
                 "unknown_40": {
                     "name": "Command 0x40",
+                    "category": "Unknown",
                     "opcode": "0x40",
                     "length": 4,
                     "assembly": {
@@ -2958,6 +3268,7 @@
                 },
                 "queueObject": {
                     "name": "Queue for Object",
+                    "category": "Object",
                     "opcode": "0x41",
                     "length": 7,
                     "assembly": {
@@ -2967,35 +3278,62 @@
                             "begin": 1,
                             "mask": "0xFFFF"
                         },
-                        "scriptPointer": {
-                            "type": "property",
-                            "name": "Script Pointer",
-                            "begin": 3,
-                            "mask": "0xFFFF"
-                        },
-                        "event": {
+                        "event2": {
                             "type": "property",
                             "name": "Event",
                             "begin": 5,
                             "mask": "0xFFFF",
+                            "offset": -1,
+                            "stringTable": "eventScript",
+                            "link": "eventScript[%i]",
                             "special": {
-                                "0xFFFF": "Current Event"
+                                "-1": "No Script Pointer",
+                                "0xFFFE": "Current Event"
                             }
+                        },
+                        "event": {
+                            "type": "property",
+                            "name": "Event",
+                            "begin": 3,
+                            "mask": "0xFFFF",
+                            "offset": -1,
+                            "stringTable": "eventScript",
+                            "link": "eventScript[%i]",
+                            "invalid": "this.parent.event2.value !== -1"
+                        },
+                        "scriptPointer": {
+                            "type": "property",
+                            "name": "Script Pointer",
+                            "begin": 3,
+                            "mask": "0xFFFF",
+                            "script": "this.rom.eventScript[this.parent.event2.value]",
+                            "invalid": "this.parent.event2.value === -1 || this.parent.event2.value === 0xFFFE"
+                        },
+                        "scriptPointerCurrent": {
+                            "type": "property",
+                            "name": "Script Pointer",
+                            "begin": 3,
+                            "mask": "0xFFFF",
+                            "script": "this.parent.parent",
+                            "invalid": "this.parent.event2.value !== 0xFFFE"
                         }
                     }
                 },
                 "unknown_42": {
                     "name": "Command 0x42",
+                    "category": "Unknown",
                     "opcode": "0x42",
                     "length": 7
                 },
                 "unknown_43": {
                     "name": "Command 0x43",
+                    "category": "Unknown",
                     "opcode": "0x43",
                     "length": 5
                 },
                 "waitObject": {
                     "name": "Wait for Object",
+                    "category": "Object",
                     "opcode": "0x44",
                     "length": 3,
                     "assembly": {
@@ -3009,81 +3347,97 @@
                 },
                 "unknown_45": {
                     "name": "Command 0x45",
+                    "category": "Unknown",
                     "opcode": "0x45",
                     "length": 3
                 },
                 "stopObjectAnimation": {
                     "name": "Stop Object Animation",
+                    "category": "Object",
                     "opcode": "0x46",
                     "length": 3
                 },
                 "unknown_47": {
                     "name": "Command 0x47",
+                    "category": "Unknown",
                     "opcode": "0x47",
                     "length": 3
                 },
                 "objectDirection": {
                     "name": "Set Object Facing Direction",
+                    "category": "Object",
                     "opcode": ["0x49", "0x4B"],
                     "length": 4
                 },
                 "partyDirection": {
                     "name": "Set Party Facing Direction",
+                    "category": "Object",
                     "opcode": ["0x4A", "0x4C"],
                     "length": 2
                 },
                 "objectTurn": {
                     "name": "Turn Object",
+                    "category": "Object",
                     "opcode": "0x4D",
                     "length": 5
                 },
                 "unknown_4E": {
                     "name": "Command 0x4E",
+                    "category": "Unknown",
                     "opcode": "0x4E",
                     "length": 1
                 },
                 "setScreenColor": {
                     "name": "Set Screen Color",
+                    "category": "Screen",
                     "opcode": "0x4F",
                     "length": 3
                 },
                 "fadeScreenColor": {
                     "name": "Fade Screen Color",
+                    "category": "Screen",
                     "opcode": "0x50",
                     "length": 6
                 },
                 "fadeInOut": {
                     "name": "Fade In/Out",
+                    "category": "Screen",
                     "opcode": ["0x51", "0x52"],
                     "length": 2
                 },
                 "unknown_55": {
                     "name": "Command 0x55",
+                    "category": "Unknown",
                     "opcode": "0x55",
                     "length": 2
                 },
                 "unknown_56": {
                     "name": "Command 0x56",
+                    "category": "Unknown",
                     "opcode": "0x56",
                     "length": 2
                 },
                 "flashScreen": {
                     "name": "Flash Screen",
+                    "category": "Screen",
                     "opcode": "0x57",
                     "length": 11
                 },
                 "waitFlash": {
                     "name": "Wait for Flash Screen",
+                    "category": "Screen",
                     "opcode": "0x58",
                     "length": 1
                 },
                 "waitWipe": {
                     "name": "Wait for Screen Wipe",
+                    "category": "Screen",
                     "opcode": "0x59",
                     "length": 1
                 },
                 "screenWipe": {
                     "name": "Screen Wipe",
+                    "category": "Screen",
                     "opcode": "0x5B-0x5D",
                     "length": 1,
                     "assembly": {
@@ -3104,41 +3458,49 @@
                 },
                 "unknown_5D": {
                     "name": "Command 0x5D",
+                    "category": "Unknown",
                     "opcode": "0x5D",
                     "length": 1
                 },
                 "unknown_5E": {
                     "name": "Command 0x5E",
+                    "category": "Unknown",
                     "opcode": "0x5E",
                     "length": 3
                 },
                 "deleteObject": {
                     "name": "Delete Object",
+                    "category": "Object",
                     "opcode": "0x5F",
                     "length": 3
                 },
                 "showHideObject": {
                     "name": "Show/Hide Object",
+                    "category": "Object",
                     "opcode": ["0x60", "0x61"],
                     "length": 5
                 },
                 "unknown_62": {
                     "name": "Command 0x62",
+                    "category": "Unknown",
                     "opcode": "0x62",
                     "length": 4
                 },
                 "unknown_63": {
                     "name": "Command 0x63",
+                    "category": "Unknown",
                     "opcode": "0x63",
                     "length": 4
                 },
                 "unknown_64": {
                     "name": "Command 0x64",
+                    "category": "Unknown",
                     "opcode": "0x64",
                     "length": 2
                 },
                 "createObject": {
                     "name": "Create Object",
+                    "category": "Object",
                     "opcode": ["0x65", "0x66"],
                     "length": 17,
                     "assembly": {
@@ -3168,25 +3530,50 @@
                             "name": "Direction",
                             "begin": 5
                         },
-                        "scriptPointer": {
-                            "type": "property",
-                            "name": "Script Pointer",
-                            "begin": 9,
-                            "mask": "0xFFFF"
-                        },
-                        "event": {
+                        "event2": {
                             "type": "property",
                             "name": "Event",
                             "begin": 11,
                             "mask": "0xFFFF",
+                            "offset": -1,
+                            "stringTable": "eventScript",
+                            "link": "eventScript[%i]",
                             "special": {
-                                "0xFFFF": "Current Event"
+                                "-1": "No Script Pointer",
+                                "0xFFFE": "Current Event"
                             }
+                        },
+                        "event": {
+                            "type": "property",
+                            "name": "Event",
+                            "begin": 9,
+                            "mask": "0xFFFF",
+                            "offset": -1,
+                            "stringTable": "eventScript",
+                            "link": "eventScript[%i]",
+                            "invalid": "this.parent.event2.value !== -1"
+                        },
+                        "scriptPointer": {
+                            "type": "property",
+                            "name": "Script Pointer",
+                            "begin": 9,
+                            "mask": "0xFFFF",
+                            "script": "this.rom.eventScript[this.parent.event2.value]",
+                            "invalid": "this.parent.event2.value === -1 || this.parent.event2.value === 0xFFFE"
+                        },
+                        "scriptPointerCurrent": {
+                            "type": "property",
+                            "name": "Script Pointer",
+                            "begin": 9,
+                            "mask": "0xFFFF",
+                            "script": "this.parent.parent",
+                            "invalid": "this.parent.event2.value !== 0xFFFE"
                         }
                     }
                 },
                 "jumpPosition": {
                     "name": "Jump Based on Party Position",
+                    "category": "Control",
                     "opcode": "0x67",
                     "length": 9,
                     "assembly": {
@@ -3205,35 +3592,62 @@
                             "name": "Direction",
                             "begin": 3
                         },
-                        "scriptPointer": {
-                            "type": "property",
-                            "name": "Script Pointer",
-                            "begin": 5,
-                            "mask": "0xFFFF"
-                        },
-                        "event": {
+                        "event2": {
                             "type": "property",
                             "name": "Event",
                             "begin": 7,
                             "mask": "0xFFFF",
+                            "offset": -1,
+                            "stringTable": "eventScript",
+                            "link": "eventScript[%i]",
                             "special": {
-                                "0xFFFF": "Current Event"
+                                "-1": "No Script Pointer",
+                                "0xFFFE": "Current Event"
                             }
+                        },
+                        "event": {
+                            "type": "property",
+                            "name": "Event",
+                            "begin": 5,
+                            "mask": "0xFFFF",
+                            "offset": -1,
+                            "stringTable": "eventScript",
+                            "link": "eventScript[%i]",
+                            "invalid": "this.parent.event2.value !== -1"
+                        },
+                        "scriptPointer": {
+                            "type": "property",
+                            "name": "Script Pointer",
+                            "begin": 5,
+                            "mask": "0xFFFF",
+                            "script": "this.rom.eventScript[this.parent.event2.value]",
+                            "invalid": "this.parent.event2.value === -1 || this.parent.event2.value === 0xFFFE"
+                        },
+                        "scriptPointerCurrent": {
+                            "type": "property",
+                            "name": "Script Pointer",
+                            "begin": 5,
+                            "mask": "0xFFFF",
+                            "script": "this.parent.parent",
+                            "invalid": "this.parent.event2.value !== 0xFFFE"
                         }
                     }
                 },
                 "unknown_68": {
                     "name": "Command 0x68",
+                    "category": "Unknown",
                     "opcode": "0x68",
                     "length": 5
                 },
                 "unknown_69": {
                     "name": "Command 0x69",
+                    "category": "Unknown",
                     "opcode": "0x69",
                     "length": 7
                 },
                 "unknown_6A": {
                     "name": "Command 0x6A",
+                    "category": "Unknown",
                     "opcode": "0x6A",
                     "length": 5,
                     "assembly": {
@@ -3261,21 +3675,25 @@
                 },
                 "unknown_6B": {
                     "name": "Command 0x6B",
+                    "category": "Unknown",
                     "opcode": "0x6B",
                     "length": 3
                 },
                 "changeBackground": {
                     "name": "Change Background",
+                    "category": "Screen",
                     "opcode": "0x6C-0x70",
                     "length": 8
                 },
                 "unknown_70": {
                     "name": "Command 0x70",
+                    "category": "Unknown",
                     "opcode": "0x70",
                     "length": 3
                 },
                 "shop": {
                     "name": "Shop",
+                    "category": "Inventory",
                     "opcode": "0x71",
                     "length": 2,
                     "assembly": {
@@ -3290,6 +3708,7 @@
                 },
                 "partyAdd": {
                     "name": "Add Character to Party",
+                    "category": "Character",
                     "opcode": "0x72",
                     "length": 2,
                     "assembly": {
@@ -3304,6 +3723,7 @@
                 },
                 "partyRemove": {
                     "name": "Remove Character from Party",
+                    "category": "Character",
                     "opcode": ["0x73", "0x74"],
                     "length": 2,
                     "assembly": {
@@ -3330,11 +3750,13 @@
                 },
                 "learnSpell": {
                     "name": "Learn Spell",
+                    "category": "Character",
                     "opcode": "0x75",
                     "length": 7
                 },
                 "playSong": {
                     "name": "Play Song",
+                    "category": "Sound",
                     "opcode": "0x76",
                     "length": 3,
                     "assembly": {
@@ -3348,46 +3770,55 @@
                 },
                 "unknown_77": {
                     "name": "Command 0x77",
+                    "category": "Unknown",
                     "opcode": "0x77",
                     "length": 3
                 },
                 "soundEffect": {
                     "name": "Play Sound Effect",
+                    "category": "Sound",
                     "opcode": "0x78",
                     "length": 3
                 },
                 "stopMusic": {
                     "name": "Stop Music",
+                    "category": "Sound",
                     "opcode": "0x79",
                     "length": 1
                 },
                 "unknown_7A": {
                     "name": "Command 0x7A",
+                    "category": "Unknown",
                     "opcode": "0x7A",
                     "length": 1
                 },
                 "unknown_7B": {
                     "name": "Command 0x7B",
+                    "category": "Unknown",
                     "opcode": "0x7B",
                     "length": 1
                 },
                 "unknown_7C": {
                     "name": "Command 0x7C",
+                    "category": "Unknown",
                     "opcode": "0x7C",
                     "length": 1
                 },
                 "unknown_7D": {
                     "name": "Command 0x7D",
+                    "category": "Unknown",
                     "opcode": "0x7D",
                     "length": 1
                 },
                 "unknown_7E": {
                     "name": "Command 0x7E",
+                    "category": "Unknown",
                     "opcode": "0x7E",
                     "length": 1
                 },
                 "battle": {
                     "name": "Battle",
+                    "category": "Battle",
                     "opcode": "0x7F",
                     "length": 3,
                     "assembly": {
@@ -3406,6 +3837,7 @@
                 },
                 "battle80": {
                     "name": "Battle 0x80",
+                    "category": "Battle",
                     "opcode": "0x80",
                     "length": 8,
                     "assembly": {
@@ -3424,496 +3856,617 @@
                 },
                 "unknown_81": {
                     "name": "Command 0x81",
+                    "category": "Unknown",
                     "opcode": "0x81",
                     "length": 4
                 },
                 "unknown_82": {
                     "name": "Command 0x82",
+                    "category": "Unknown",
                     "opcode": "0x82",
                     "length": 2
                 },
                 "unknown_83": {
                     "name": "Command 0x83",
+                    "category": "Unknown",
                     "opcode": "0x83",
                     "length": 2
                 },
                 "unknown_84": {
                     "name": "Command 0x84",
+                    "category": "Unknown",
                     "opcode": "0x84",
                     "length": 2
                 },
                 "unknown_85": {
                     "name": "Command 0x85",
+                    "category": "Unknown",
                     "opcode": "0x85",
                     "length": 2
                 },
                 "unknown_86": {
                     "name": "Command 0x86",
+                    "category": "Unknown",
                     "opcode": "0x86",
                     "length": 1
                 },
                 "unknown_87": {
                     "name": "Command 0x87",
+                    "category": "Unknown",
                     "opcode": "0x87",
                     "length": 2
                 },
                 "unknown_88": {
                     "name": "Command 0x88",
+                    "category": "Unknown",
                     "opcode": "0x88",
                     "length": 4
                 },
                 "unknown_89": {
                     "name": "Command 0x89",
+                    "category": "Unknown",
                     "opcode": "0x89",
                     "length": 1
                 },
                 "unknown_8A": {
                     "name": "Command 0x8A",
+                    "category": "Unknown",
                     "opcode": "0x8A",
                     "length": 1
                 },
                 "unknown_8B": {
                     "name": "Command 0x8B",
+                    "category": "Unknown",
                     "opcode": "0x8B",
                     "length": 2
                 },
                 "unknown_8C": {
                     "name": "Command 0x8C",
+                    "category": "Unknown",
                     "opcode": "0x8C",
                     "length": 12
                 },
                 "unknown_8D": {
                     "name": "Command 0x8D",
+                    "category": "Unknown",
                     "opcode": "0x8D",
                     "length": 4
                 },
                 "unknown_8E": {
                     "name": "Command 0x8E",
+                    "category": "Unknown",
                     "opcode": "0x8E",
                     "length": 4
                 },
                 "unknown_8F": {
                     "name": "Command 0x8F",
+                    "category": "Unknown",
                     "opcode": "0x8F",
                     "length": 1
                 },
                 "unknown_90": {
                     "name": "Command 0x90",
+                    "category": "Unknown",
                     "opcode": "0x90",
                     "length": 1
                 },
                 "unknown_91": {
                     "name": "Command 0x91",
+                    "category": "Unknown",
                     "opcode": "0x91",
                     "length": 1
                 },
                 "unknown_92": {
                     "name": "Command 0x92",
+                    "category": "Unknown",
                     "opcode": "0x92",
                     "length": 4
                 },
                 "unknown_93": {
                     "name": "Command 0x93",
+                    "category": "Unknown",
                     "opcode": "0x93",
                     "length": 1
                 },
                 "unknown_94": {
                     "name": "Command 0x94",
+                    "category": "Unknown",
                     "opcode": "0x94",
                     "length": 1
                 },
                 "unknown_95": {
                     "name": "Command 0x94",
+                    "category": "Unknown",
                     "opcode": "0x95",
                     "length": 4
                 },
                 "unknown_96": {
                     "name": "Command 0x96",
+                    "category": "Unknown",
                     "opcode": "0x96",
                     "length": 14
                 },
-                "unknown_97": {
-                    "name": "Command 0x97",
-                    "opcode": "0x97",
-                    "length": 4
-                },
-                "unknown_98": {
-                    "name": "Command 0x98",
-                    "opcode": "0x98",
-                    "length": 4
+                "jumpCharacter": {
+                    "name": "Jump if Character Present",
+                    "category": "Control",
+                    "opcode": ["0x97", "0x98"],
+                    "length": 4,
+                    "assembly": {
+                        "condition": {
+                            "type": "property",
+                            "name": "Condition",
+                            "begin": 0,
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0x97": "Character Is Present",
+                                    "0x98": "Character Is Not Present"
+                                }
+                            }
+                        },
+                        "character": {
+                            "type": "property",
+                            "name": "Character",
+                            "begin": 1,
+                            "link": "characterProperties[%i]",
+                            "stringTable": "characterProperties"
+                        },
+                        "scriptPointer": {
+                            "type": "property",
+                            "name": "Script Pointer",
+                            "begin": 2,
+                            "mask": "0xFFFF",
+                            "script": "this.parent.parent"
+                        }
+                    }
                 },
                 "unknown_99": {
                     "name": "Command 0x99",
+                    "category": "Unknown",
                     "opcode": "0x99",
                     "length": 7
                 },
                 "unknown_9A": {
                     "name": "Command 0x9A",
+                    "category": "Unknown",
                     "opcode": "0x9A",
                     "length": 6
                 },
                 "unknown_9B": {
                     "name": "Command 0x9B",
+                    "category": "Unknown",
                     "opcode": "0x9B",
                     "length": 1
                 },
                 "unknown_9C": {
                     "name": "Command 0x9C",
+                    "category": "Unknown",
                     "opcode": "0x9C",
                     "length": 3
                 },
                 "unknown_9E": {
                     "name": "Command 0x9E",
+                    "category": "Unknown",
                     "opcode": "0x9E",
                     "length": 4
                 },
                 "unknown_9F": {
                     "name": "Command 0x9F",
+                    "category": "Unknown",
                     "opcode": "0x9F",
                     "length": 7
                 },
                 "unknown_A2": {
                     "name": "Command 0xA2",
+                    "category": "Unknown",
                     "opcode": "0xA2",
                     "length": 3
                 },
                 "unlearnSpell": {
                     "name": "Unlearn Spell",
+                    "category": "Character",
                     "opcode": "0xA3",
                     "length": 4
                 },
                 "return": {
                     "name": "Return from Subroutine",
+                    "category": "Control",
                     "opcode": "0xA5",
                     "length": 1
                 },
                 "unknown_A6": {
                     "name": "Command 0xA6",
+                    "category": "Unknown",
                     "opcode": "0xA6",
                     "length": 1
                 },
                 "unknown_A7": {
                     "name": "Command 0xA7",
+                    "category": "Unknown",
                     "opcode": "0xA7",
                     "length": 1
                 },
                 "unknown_A8": {
                     "name": "Command 0xA8",
+                    "category": "Unknown",
                     "opcode": "0xA8",
                     "length": 1
                 },
                 "unknown_A9": {
                     "name": "Command 0xA9",
+                    "category": "Unknown",
                     "opcode": "0xA9",
                     "length": 1
                 },
                 "unknown_AB": {
                     "name": "Command 0xAB",
+                    "category": "Unknown",
                     "opcode": "0xAB",
                     "length": 2
                 },
                 "unknown_AA": {
                     "name": "Command 0xAA",
+                    "category": "Unknown",
                     "opcode": "0xAA",
                     "length": 1
                 },
                 "unknown_AC": {
                     "name": "Command 0xAC",
+                    "category": "Unknown",
                     "opcode": "0xAC",
                     "length": 1
                 },
                 "unknown_AD": {
                     "name": "Command 0xAD",
+                    "category": "Unknown",
                     "opcode": "0xAD",
                     "length": 65
                 },
                 "unknown_AE": {
                     "name": "Command 0xAE",
+                    "category": "Unknown",
                     "opcode": "0xAE",
                     "length": 1
                 },
                 "unknown_AF": {
                     "name": "Command 0xAF",
+                    "category": "Unknown",
                     "opcode": "0xAF",
                     "length": 1
                 },
                 "unknown_B0": {
                     "name": "Command 0xB0",
+                    "category": "Unknown",
                     "opcode": "0xB0",
                     "length": 5
                 },
                 "unknown_B1": {
                     "name": "Command 0xB1",
+                    "category": "Unknown",
                     "opcode": "0xB1",
                     "length": 6
                 },
                 "unknown_B3": {
                     "name": "Command 0xB3",
+                    "category": "Unknown",
                     "opcode": "0xB3",
                     "length": 7
                 },
                 "unknown_B4": {
                     "name": "Command 0xB4",
+                    "category": "Unknown",
                     "opcode": "0xB4",
                     "length": 6
                 },
                 "unknown_B6": {
                     "name": "Command 0xB6",
+                    "category": "Unknown",
                     "opcode": "0xB6",
                     "length": 5
                 },
                 "unknown_B7": {
                     "name": "Command 0xB7",
+                    "category": "Unknown",
                     "opcode": "0xB7",
                     "length": 3
                 },
                 "unknown_B8": {
                     "name": "Command 0xB8",
+                    "category": "Unknown",
                     "opcode": "0xB8",
                     "length": 4
                 },
                 "unknown_B9": {
                     "name": "Command 0xB9",
+                    "category": "Unknown",
                     "opcode": "0xB9",
                     "length": 2
                 },
                 "unknown_BA": {
                     "name": "Command 0xBA",
+                    "category": "Unknown",
                     "opcode": "0xBA",
                     "length": 4
                 },
                 "unknown_BB": {
                     "name": "Command 0xBB",
+                    "category": "Unknown",
                     "opcode": "0xBB",
                     "length": 1
                 },
                 "unknown_BC": {
                     "name": "Command 0xBC",
+                    "category": "Unknown",
                     "opcode": "0xBC",
                     "length": 7
                 },
                 "unknown_BD": {
                     "name": "Command 0xBD",
+                    "category": "Unknown",
                     "opcode": "0xBD",
                     "length": 5
                 },
                 "unknown_BE": {
                     "name": "Command 0xBE",
+                    "category": "Unknown",
                     "opcode": "0xBE",
                     "length": 2
                 },
                 "unknown_BF": {
                     "name": "Command 0xBF",
+                    "category": "Unknown",
                     "opcode": "0xBF",
                     "length": 2
                 },
                 "unknown_C0": {
                     "name": "Command 0xC0",
+                    "category": "Unknown",
                     "opcode": "0xC0",
                     "length": 1
                 },
                 "unknown_C1": {
                     "name": "Command 0xC1",
+                    "category": "Unknown",
                     "opcode": "0xC1",
                     "length": 1
                 },
                 "unknown_C2": {
                     "name": "Command 0xC2",
+                    "category": "Unknown",
                     "opcode": "0xC2",
                     "length": 2
                 },
                 "unknown_C3": {
                     "name": "Command 0xC3",
+                    "category": "Unknown",
                     "opcode": "0xC3",
                     "length": 2
                 },
                 "unknown_C4": {
                     "name": "Command 0xC4",
+                    "category": "Unknown",
                     "opcode": "0xC4",
                     "length": 2
                 },
                 "unknown_C5": {
                     "name": "Command 0xC5",
+                    "category": "Unknown",
                     "opcode": "0xC5",
                     "length": 3
                 },
                 "unknown_C6": {
                     "name": "Command 0xC6",
+                    "category": "Unknown",
                     "opcode": "0xC6",
                     "length": 3
                 },
                 "unknown_C7": {
                     "name": "Command 0xC7",
+                    "category": "Unknown",
                     "opcode": "0xC7",
                     "length": 3
                 },
                 "unknown_C8": {
                     "name": "Command 0xC8",
+                    "category": "Unknown",
                     "opcode": "0xC8",
                     "length": 3
                 },
                 "unknown_C9": {
                     "name": "Command 0xC9",
+                    "category": "Unknown",
                     "opcode": "0xC9",
                     "length": 4
                 },
                 "unknown_CA": {
                     "name": "Command 0xCA",
+                    "category": "Unknown",
                     "opcode": "0xCA",
                     "length": 2
                 },
                 "unknown_CB": {
                     "name": "Command 0xCB",
+                    "category": "Unknown",
                     "opcode": "0xCB",
                     "length": 5
                 },
                 "unknown_CD": {
                     "name": "Command 0xCD",
+                    "category": "Unknown",
                     "opcode": "0xCD",
                     "length": 3
                 },
                 "unknown_CE": {
                     "name": "Command 0xCE",
+                    "category": "Unknown",
                     "opcode": "0xCE",
                     "length": 1
                 },
                 "unknown_CF": {
                     "name": "Command 0xCF",
+                    "category": "Unknown",
                     "opcode": "0xCF",
                     "length": 3
                 },
                 "unknown_D0": {
                     "name": "Command 0xD0",
+                    "category": "Unknown",
                     "opcode": "0xD0",
                     "length": 3
                 },
                 "unknown_D1": {
                     "name": "Command 0xD1",
+                    "category": "Unknown",
                     "opcode": "0xD1",
                     "length": 4
                 },
                 "unknown_D2": {
                     "name": "Command 0xD2",
+                    "category": "Unknown",
                     "opcode": "0xD2",
                     "length": 1
                 },
                 "unknown_D3": {
                     "name": "Command 0xD3",
+                    "category": "Unknown",
                     "opcode": "0xD3",
                     "length": 1
                 },
                 "unknown_D4": {
                     "name": "Command 0xD4",
+                    "category": "Unknown",
                     "opcode": "0xD4",
                     "length": 1
                 },
                 "unknown_D5": {
                     "name": "Command 0xD5",
+                    "category": "Unknown",
                     "opcode": "0xD5",
                     "length": 2
                 },
                 "unknown_D6": {
                     "name": "Command 0xD6",
+                    "category": "Unknown",
                     "opcode": "0xD6",
                     "length": 2
                 },
                 "unknown_D7": {
                     "name": "Command 0xD7",
+                    "category": "Unknown",
                     "opcode": "0xD7",
                     "length": 2
                 },
                 "unknown_D8": {
                     "name": "Command 0xD8",
+                    "category": "Unknown",
                     "opcode": "0xD8",
                     "length": 1
                 },
                 "unknown_D9": {
                     "name": "Command 0xD9",
+                    "category": "Unknown",
                     "opcode": "0xD9",
                     "length": 1
                 },
                 "unknown_DA": {
                     "name": "Command 0xDA",
+                    "category": "Unknown",
                     "opcode": "0xDA",
                     "length": 1
                 },
                 "unknown_DB": {
                     "name": "Command 0xDB",
+                    "category": "Unknown",
                     "opcode": "0xDB",
                     "length": 1
                 },
                 "unknown_DC": {
                     "name": "Command 0xDC",
+                    "category": "Unknown",
                     "opcode": "0xDC",
                     "length": 1
                 },
                 "unknown_DD": {
                     "name": "Command 0xDD",
+                    "category": "Unknown",
                     "opcode": "0xDD",
                     "length": 1
                 },
                 "unknown_DE": {
                     "name": "Command 0xDE",
+                    "category": "Unknown",
                     "opcode": "0xDE",
                     "length": 4
                 },
                 "unknown_DF": {
                     "name": "Command 0xDF",
+                    "category": "Unknown",
                     "opcode": "0xDF",
                     "length": 3
                 },
                 "unknown_E0": {
                     "name": "Command 0xE0",
+                    "category": "Unknown",
                     "opcode": "0xE0",
                     "length": 2
                 },
                 "unknown_E1": {
                     "name": "Command 0xE1",
+                    "category": "Unknown",
                     "opcode": "0xE1",
                     "length": 4
                 },
                 "unknown_E2": {
                     "name": "Command 0xE2",
+                    "category": "Unknown",
                     "opcode": "0xE2",
                     "length": 4
                 },
                 "unknown_E3": {
                     "name": "Command 0xE3",
+                    "category": "Unknown",
                     "opcode": "0xE3",
                     "length": 2
                 },
                 "unknown_E4": {
                     "name": "Command 0xE4",
+                    "category": "Unknown",
                     "opcode": "0xE4",
                     "length": 1
                 },
                 "unknown_E3": {
                     "name": "Command 0xE3",
+                    "category": "Unknown",
                     "opcode": "0xE3",
                     "length": 2
                 },
                 "unknown_E5": {
                     "name": "Command 0xE5",
+                    "category": "Unknown",
                     "opcode": "0xE5",
                     "length": 1
                 },
                 "unknown_EA": {
                     "name": "Command 0xEA",
+                    "category": "Unknown",
                     "opcode": "0xEA",
                     "length": 2
                 },
                 "unknown_EE": {
                     "name": "Command 0xEE",
+                    "category": "Unknown",
                     "opcode": "0xEE",
                     "length": 4
                 },
                 "unknown_EF": {
                     "name": "Command 0xEF",
+                    "category": "Unknown",
                     "opcode": "0xEF",
                     "length": 2
                 },
                 "terminator": {
                     "name": "Script Terminator",
+                    "category": "Control",
                     "opcode": "0xFF",
                     "length": 1
                 }
@@ -4122,8 +4675,8 @@
                 "6": "Black Cave",
                 "7": "Underground Exterior",
                 "8": "Dirt Cave",
-                "9": "Underground Cave 1",
-                "10": "Underground Cave 2",
+                "9": "Sylvan Cave",
+                "10": "Cave of Summons",
                 "11": "Moon Cave",
                 "12": "Moon Exterior",
                 "13": "Crystal Room",
@@ -4231,6 +4784,11 @@
                 "6": "Drain/Absorb",
                 "7": "Very Strong/Weak"
             }
+        },
+        "eventSwitch": {
+            "name": "Event Switch",
+            "length": 4096,
+            "default": "Event Switch %i"
         },
         "itemDescription": {
             "name": "Item Description",

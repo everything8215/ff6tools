@@ -1167,26 +1167,36 @@ FF4Map.prototype.loadTriggers = function() {
 FF4Map.prototype.loadTriggersGBA = function() {
     var i;
     this.triggers = [];
+    this.loadedEvents = [];
 
     // load triggers
-    var triggers = this.rom.mapTriggerPointers.item(this.mapProperties.npcs.value).triggerPointer.value;
+    var triggers = this.rom.mapTriggerPointers.item(this.mapProperties.events.value).triggerPointer.value;
     this.observer.startObserving(triggers, this.reloadTriggers);
     for (i = 0; i < triggers.array.length; i++) {
         var trigger = triggers.item(i);
-        if (trigger.triggerType.value !== 0) {
+        if (trigger.triggerType.value === 0) {
+            // map event
+            this.loadEventGBA(trigger);
+            this.fixEventGBA(trigger);
+            
+            var e = trigger.event2.value;
+            if (e === -1) e = trigger.event.value; // no script pointer
+            if (e === -1) continue; // no event
+            
+            scriptList.selectScript(this.rom.eventScript.item(e));
+            
+        } else {
+            // npc
             this.fixNPCGBA(trigger);
             this.triggers.push(trigger);
-            continue;
         }
-        // map event
-        this.loadEventGBA(trigger.event.value);
     }
     
     // load tile properties triggers
     var treasures = this.rom.mapTriggerPointers.item(this.mapProperties.treasures.value).triggerPointer.value;
     var exits = this.mapProperties.exitPointer.value;
-    for (y = 0; y < this.layer[0].h; y++) {
-        for (x = 0; x < this.layer[0].w; x++) {
+    for (var y = 0; y < this.layer[0].h; y++) {
+        for (var x = 0; x < this.layer[0].w; x++) {
             var tp = this.tilePropertiesAtTile(x, y);
             var object = null;
             var key;
@@ -1229,31 +1239,60 @@ FF4Map.prototype.loadTriggersGBA = function() {
     }
 }
 
-FF4Map.prototype.fixTreasureGBA = function(treasure) {
-    treasure.triggerType.invalid = true;
-    treasure.graphics.invalid = true;
-    treasure.triggerType.invalid = true;
-    treasure.x.invalid = true;
-    treasure.y.invalid = true;
-    treasure.direction.invalid = true;
-    treasure.unknown_5.invalid = true;
-    treasure.speed.invalid = true;
-    treasure.unknown_7.invalid = true;
-    treasure.event.invalid = true;
-    treasure.event2.invalid = true;
-    treasure.scriptPointer.invalid = true;
+FF4Map.prototype.fixTreasureGBA = function(trigger) {
+    trigger.triggerType.invalid = true;
+    trigger.graphics.invalid = true;
+    trigger.triggerType.invalid = true;
+    trigger.x.invalid = true;
+    trigger.y.invalid = true;
+    trigger.direction.invalid = true;
+    trigger.unknown_5.invalid = true;
+    trigger.speed.invalid = true;
+    trigger.unknown_7.invalid = true;
+    trigger.event.invalid = true;
+    trigger.event2.invalid = true;
+    trigger.scriptPointer.invalid = true;
 }
 
-FF4Map.prototype.fixNPCGBA = function(treasure) {
-    treasure.eventSwitch.invalid = true;
-    treasure.item.invalid = true;
-    treasure.battle.invalid = true;
-    treasure.gil.invalid = true;
-    treasure.openTile.invalid = true;
+FF4Map.prototype.fixNPCGBA = function(trigger) {
+    trigger.eventSwitch.invalid = true;
+    trigger.item.invalid = true;
+    trigger.battle.invalid = true;
+    trigger.gil.invalid = true;
+    trigger.openTile.invalid = true;
 }
 
-FF4Map.prototype.loadEventGBA = function(e) {
+FF4Map.prototype.fixEventGBA = function(trigger) {
+    trigger.eventSwitch.invalid = true;
+    trigger.item.invalid = true;
+    trigger.battle.invalid = true;
+    trigger.gil.invalid = true;
+    trigger.openTile.invalid = true;
+    trigger.triggerType.invalid = true;
+    trigger.graphics.invalid = true;
+    trigger.triggerType.invalid = true;
+    trigger.x.invalid = true;
+    trigger.y.invalid = true;
+    trigger.direction.invalid = true;
+    trigger.unknown_5.invalid = true;
+    trigger.speed.invalid = true;
+    trigger.unknown_7.invalid = true;
+    trigger.event2.invalid = true;
+    trigger.scriptPointer.invalid = true;
+}
+
+FF4Map.prototype.loadEventGBA = function(object) {
+    
+    var e = object.event2.value;
+    if (e === 0xFFFE) return; // current event
+    if (e === -1) e = object.event.value; // no script pointer
+    if (e === -1) return; // no event
+    if (this.loadedEvents.includes(e)) return; // event already loaded
+    this.loadedEvents.push(e);
+    
     var event = this.rom.eventScript.item(e);
+    if (!event) return;
+    
     for (var c = 0; c < event.command.length; c++) {
         var command = event.command[c];
         if (command.key === "createObject") {
@@ -1262,11 +1301,12 @@ FF4Map.prototype.loadEventGBA = function(e) {
             this.triggers.push(command);
         }
         
-        if (command.scriptPointer !== undefined &&
-            command.scriptPointer.value !== e &&
-            command.event.value === 0) {
+        if (command.scriptPointer && command.event2) {
+//        if (command.scriptPointer !== undefined &&
+//            command.scriptPointer.value !== e &&
+//            command.event.value === 0) {
             // load nested events
-            this.loadEventGBA(command.scriptPointer.value);
+            this.loadEventGBA(command);
         }
     }
 }

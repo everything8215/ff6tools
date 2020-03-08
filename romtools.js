@@ -88,19 +88,54 @@ Object.defineProperty(ROMObject.prototype, "path", { get: function() {
     return this.parent.path + "." + this.key;
 }});
 
-
-ROMObject.prototype.parsePath = function(path, relativeTo, index) {
+ROMObject.prototype.parseIndex = function(path, index) {
     if (!isNumber(index)) index = this.i;
     if (!isNumber(index)) index = this.value;
     if (isNumber(index)) path = path.replace(/%i/g, index.toString());
+    return path;
+}
 
-    var components = path.split(".");
+ROMObject.prototype.parseSubscripts = function(path) {
+    // parse array subscripts
+    var subscripts = path.split("[");
+    var parsedPath = "";
+    for (var s = 0; s < subscripts.length; s++) {
+        var subscript = subscripts[s];
+        var end = subscript.indexOf(']');
+        if (end === -1) {
+            parsedPath += subscript;
+            continue;
+        }
+        var subscriptString = subscript.substring(0, end);
+        var i = Number(subscriptString);
+        if (!isNumber(i)) i = this.parsePath(subscriptString);
+        if (!isNumber(i)) {
+            try {
+                i = eval(subscriptString);
+            } catch (e) {
+                return null;
+            }
+        }
+        parsedPath += "[" + i.toString() + "]" + subscript.substring(end + 1);
+    }
+    return parsedPath;
+}
+
+ROMObject.prototype.parsePath = function(path, relativeTo, index) {
+
+    path = this.parseSubscripts(this.parseIndex(path, index));
+    
     var object = relativeTo || this.rom;
+    var components = path.split(".");
     for (var c = 0; c < components.length; c++) {
         
         var key = components[c];
-
-        if (!object) return null;
+        if (key === "this") {
+            object = this;
+            continue;
+        } else if (!object) {
+            return null;
+        }
             
         var subStart = key.indexOf('[');
         var subEnd = key.indexOf(']');
@@ -121,13 +156,13 @@ ROMObject.prototype.parsePath = function(path, relativeTo, index) {
             var sub = subString.substring(subStart + 1, subEnd);
             subString = subString.substring(subEnd + 1);
             var i = Number(sub);
-            if (!isNumber(i)) {
-                try {
-                    i = eval(sub);
-                } catch (e) {
-                    return null;
-                }
-            }
+//            if (!isNumber(i)) {
+//                try {
+//                    i = eval(sub);
+//                } catch (e) {
+//                    return null;
+//                }
+//            }
             if (object instanceof ROMArray) {
                 // ROMArray entry
                 object = object.item(i);
