@@ -289,13 +289,13 @@ FF4Battle.prototype.loadBattle = function(b) {
         this.observer.stopObserving(this.battleProperties);
         this.b = b;
         this.battleProperties = this.rom.battleProperties.item(b);
-        this.backAttack = false;
-        if (this.rom.isSFC && this.battleProperties.flags1.value & 0x01) this.backAttack = true;
-        if (this.rom.isGBA && this.battleProperties.flags.value & 0x04) this.backAttack = true;
-        if (this.rom.isGBA && this.battleProperties.background.value !== 0) this.bg = this.battleProperties.background.value - 1;
         this.observer.startObserving(this.battleProperties, this.loadBattle);
     }
     
+    this.backAttack = false;
+    if (this.rom.isSFC && this.battleProperties.flags1.value & 0x01) this.backAttack = true;
+    if (this.rom.isGBA && this.battleProperties.flags.value & 0x04) this.backAttack = true;
+    if (this.rom.isGBA && this.battleProperties.background.value !== 0) this.bg = this.battleProperties.background.value - 1;
     this.selectedMonster = null;
     this.drawBattle();
 }

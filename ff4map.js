@@ -1296,8 +1296,10 @@ FF4Map.prototype.loadEventGBA = function(object) {
     for (var c = 0; c < event.command.length; c++) {
         var command = event.command[c];
         if (command.key === "createObject") {
+            this.observer.startObserving(command, this.reloadTriggers);
             this.triggers.push(command);
         } else if (command.key === "jumpPosition") {
+            this.observer.startObserving(command, this.reloadTriggers);
             this.triggers.push(command);
         }
         
