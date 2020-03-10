@@ -1133,7 +1133,7 @@
                         "name": "Title",
                         "external": "characterTitle[%i]"
                     },
-                    "cat-spellList": "Spell Lists",
+                    "cat-spellListBattle": "Spell Lists (Battle)",
                     "white": {
                         "type": "property",
                         "begin": 0,
@@ -1163,6 +1163,19 @@
                         "special": {
                             "0xFF": "None"
                         }
+                    },
+                    "cat-spellListMenu": "Spell Lists (Menu)",
+                    "whiteMenu": {
+                        "type": "assembly",
+                        "external": "characterSpellListMenu[%i].white"
+                    },
+                    "blackMenu": {
+                        "type": "assembly",
+                        "external": "characterSpellListMenu[%i].black"
+                    },
+                    "summonMenu": {
+                        "type": "assembly",
+                        "external": "characterSpellListMenu[%i].summon"
                     }
                 }
             },
@@ -1485,6 +1498,72 @@
                         "name": "Battle Commands",
                         "external": "characterBattleCommands[%i]"
                     }
+                }
+            }
+        },
+        "characterSpellListMenu": {
+            "type": "array",
+            "name": "Character Spell List (Menu)",
+            "range": "0x14FFA2-0x14FFCC",
+            "array": {
+                "length": 14
+            },
+            "assembly": {
+                "type": "data",
+                "length": 3,
+                "assembly": {
+                    "white": {
+                        "type": "property",
+                        "begin": 0,
+                        "name": "White",
+                        "stringTable": "spellList",
+                        "link": "spellList[%i]",
+                        "special": {
+                            "0xFF": "None"
+                        }
+                    },
+                    "black": {
+                        "type": "property",
+                        "begin": 1,
+                        "name": "Black",
+                        "stringTable": "spellList",
+                        "link": "spellList[%i]",
+                        "special": {
+                            "0xFF": "None"
+                        }
+                    },
+                    "summon": {
+                        "type": "property",
+                        "begin": 2,
+                        "name": "Summon",
+                        "stringTable": "spellList",
+                        "link": "spellList[%i]",
+                        "special": {
+                            "0xFF": "None"
+                        }
+                    }
+                }
+            },
+            "stringTable": {
+                "name": "Character Job",
+                "length": 16,
+                "default": "Character Job %i",
+                "string": {
+                    "0": "Cecil (Dark Knight)",
+                    "1": "Kain",
+                    "2": "Rydia (Girl)",
+                    "3": "Tellah",
+                    "4": "Edward",
+                    "5": "Rosa",
+                    "6": "Yang",
+                    "7": "Palom",
+                    "8": "Porom",
+                    "9": "Cecil (Paladin)",
+                    "10": "Cid",
+                    "11": "Rydia (Adult)",
+                    "12": "Edge",
+                    "13": "FuSoYa",
+                    "15": "Golbez"
                 }
             }
         },

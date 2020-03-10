@@ -1657,6 +1657,12 @@
                         "begin": 6,
                         "mask": "0xFFFF"
                     },
+                    "parallax": {
+                        "type": "property",
+                        "name": "Parallax",
+                        "begin": 20,
+                        "mask": "0xFF"
+                    },
                     "exitPointer": {
                         "type": "property",
                         "name": "Exits",
@@ -1706,12 +1712,6 @@
                         "name": "Unknown 18",
                         "begin": 18,
                         "mask": "0xFFFF"
-                    },
-                    "unknown_20": {
-                        "type": "property",
-                        "name": "Unknown 20",
-                        "begin": 20,
-                        "mask": "0xFF"
                     },
                     "unknown_21": {
                         "type": "property",
@@ -2112,7 +2112,7 @@
                     "5": "Castle Baron - Throne Room",
                     "6": "Castle Baron - Black Magic Research Lab",
                     "7": "Castle Baron - White Magic Research Lab",
-                    "8": "Castle Baron - Stairay (Rosa)",
+                    "8": "Castle Baron - Stairway (Rosa)",
                     "9": "Castle Baron - Dungeons",
                     "10": "Castle Baron - Barracks",
                     "11": "Castle Baron - West Tower (Cecil's Maid)",
@@ -3119,12 +3119,6 @@
                     "opcode": "0x05",
                     "length": 1
                 },
-                "unknown_06": {
-                    "name": "Command 0x06",
-                    "category": "Unknown",
-                    "opcode": "0x06",
-                    "length": 5
-                },
                 "unknown_07": {
                     "name": "Command 0x07",
                     "category": "Unknown",
@@ -3162,6 +3156,18 @@
                             "mask": "0xFFFF",
                             "link": "stringTable.dialog[%i]",
                             "stringTable": "dialog"
+                        },
+                        "dialogType": {
+                            "type": "property",
+                            "name": "Type",
+                            "begin": 0,
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0x0B": "0x0B",
+                                    "0x0D": "0x0D"
+                                }
+                            }
                         }
                     }
                 },
@@ -3178,6 +3184,20 @@
                             "mask": "0xFFFF",
                             "link": "stringTable.dialog[%i]",
                             "stringTable": "dialog"
+                        },
+                        "dialogType": {
+                            "type": "property",
+                            "name": "Type",
+                            "begin": 0,
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0x0C": "0x0C",
+                                    "0x0E": "0x0E",
+                                    "0x0F": "0x0F",
+                                    "0x10": "0x10"
+                                }
+                            }
                         }
                     }
                 },
@@ -3194,7 +3214,12 @@
                             "mask": "0xFFFF",
                             "link": "stringTable.dialog[%i]",
                             "stringTable": "dialog"
-
+                        },
+                        "duration": {
+                            "type": "property",
+                            "name": "Duration",
+                            "begin": 5,
+                            "mask": "0xFFFF"
                         }
                     }
                 },
@@ -3211,7 +3236,12 @@
                             "mask": "0xFFFF",
                             "link": "stringTable.dialog[%i]",
                             "stringTable": "dialog"
-
+                        },
+                        "duration": {
+                            "type": "property",
+                            "name": "Duration",
+                            "begin": 3,
+                            "mask": "0xFFFF"
                         }
                     }
                 },
@@ -3231,13 +3261,36 @@
                     "name": "Show Yes/No Box",
                     "category": "Dialog",
                     "opcode": "0x15",
-                    "length": 3
+                    "length": 3,
+                    "assembly": {
+                        "scriptPointer": {
+                            "type": "property",
+                            "name": "Jump if Yes",
+                            "begin": 1,
+                            "mask": "0xFFFF",
+                            "script": "this.parent.parent"
+                        }
+                    }
                 },
                 "takeGil": {
                     "name": "Take Gil",
                     "category": "Inventory",
                     "opcode": "0x17",
-                    "length": 5
+                    "length": 5,
+                    "assembly": {
+                        "variable": {
+                            "type": "property",
+                            "name": "Variable",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        },
+                        "unknown3": {
+                            "type": "property",
+                            "name": "Unknown 3",
+                            "begin": 3,
+                            "mask": "0xFFFF"
+                        }
+                    }
                 },
                 "unknown_18": {
                     "name": "Command 0x18",
@@ -3258,6 +3311,97 @@
                             "mask": "0xFFFF",
                             "link": "itemProperties[%i]",
                             "stringTable": "itemNames"
+                        },
+                        "unknown11": {
+                            "type": "property",
+                            "name": "Unkown 11",
+                            "begin": 11
+                        },
+                        "cat_wrong": "Incorrect Item",
+                        "event2_wrong": {
+                            "type": "property",
+                            "name": "Event",
+                            "begin": 5,
+                            "mask": "0xFFFF",
+                            "offset": -1,
+                            "stringTable": "eventScript",
+                            "link": "eventScript[%i]",
+                            "special": {
+                                "-1": "No Script Pointer",
+                                "0xFFFE": "Current Event"
+                            }
+                        },
+                        "event_wrong": {
+                            "type": "property",
+                            "name": "Event",
+                            "begin": 3,
+                            "mask": "0xFFFF",
+                            "offset": -1,
+                            "stringTable": "eventScript",
+                            "link": "eventScript[%i]",
+                            "invalid": "this.parent.event2_wrong.value !== -1",
+                            "special": {
+                                "-1": "No Event"
+                            }
+                        },
+                        "scriptPointer_wrong": {
+                            "type": "property",
+                            "name": "Script Pointer",
+                            "begin": 3,
+                            "mask": "0xFFFF",
+                            "script": "this.rom.eventScript[this.parent.event2_wrong.value]",
+                            "invalid": "this.parent.event2_wrong.value === -1 || this.parent.event2_wrong.value === 0xFFFE"
+                        },
+                        "scriptPointerCurrent_wrong": {
+                            "type": "property",
+                            "name": "Script Pointer",
+                            "begin": 3,
+                            "mask": "0xFFFF",
+                            "script": "this.parent.parent",
+                            "invalid": "this.parent.event2_wrong.value !== 0xFFFE"
+                        },
+                        "cat_right": "Correct Item",
+                        "event2_right": {
+                            "type": "property",
+                            "name": "Event",
+                            "begin": 9,
+                            "mask": "0xFFFF",
+                            "offset": -1,
+                            "stringTable": "eventScript",
+                            "link": "eventScript[%i]",
+                            "special": {
+                                "-1": "No Script Pointer",
+                                "0xFFFE": "Current Event"
+                            }
+                        },
+                        "event_right": {
+                            "type": "property",
+                            "name": "Event",
+                            "begin": 7,
+                            "mask": "0xFFFF",
+                            "offset": -1,
+                            "stringTable": "eventScript",
+                            "link": "eventScript[%i]",
+                            "invalid": "this.parent.event2_right.value !== -1",
+                            "special": {
+                                "-1": "No Event"
+                            }
+                        },
+                        "scriptPointer_right": {
+                            "type": "property",
+                            "name": "Script Pointer",
+                            "begin": 7,
+                            "mask": "0xFFFF",
+                            "script": "this.rom.eventScript[this.parent.event2_right.value]",
+                            "invalid": "this.parent.event2_right.value === -1 || this.parent.event2_right.value === 0xFFFE"
+                        },
+                        "scriptPointerCurrent_right": {
+                            "type": "property",
+                            "name": "Script Pointer",
+                            "begin": 7,
+                            "mask": "0xFFFF",
+                            "script": "this.parent.parent",
+                            "invalid": "this.parent.event2_right.value !== 0xFFFE"
                         }
                     }
                 },
@@ -3296,14 +3440,57 @@
                 "cinematicEffect": {
                     "name": "Cinematic Effect",
                     "category": "Screen",
-                    "opcode": "0x1C",
-                    "length": 5
+                    "opcode": ["0x06", "0x1C"],
+                    "length": 5,
+                    "assembly": {
+                        "effectType": {
+                            "type": "property",
+                            "name": "Type",
+                            "begin": 0,
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0x06": "0x06",
+                                    "0x1C": "0x1C"
+                                }
+                            }
+                        },
+                        "effect": {
+                            "type": "property",
+                            "name": "Effect",
+                            "begin": 1,
+                            "mask": "0xFFFF",
+                            "stringTable": {
+                                "length": 261,
+                                "default": "Effect %i"
+                            }
+                        },
+                        "unknown3": {
+                            "type": "property",
+                            "name": "Unknown 3",
+                            "begin": 3,
+                            "mask": "0xFFFF"
+                        }
+                    }
                 },
                 "unknown_1D": {
                     "name": "Command 0x1D",
                     "category": "Unknown",
                     "opcode": "0x1D",
-                    "length": 4
+                    "length": 4,
+                    "assembly": {
+                        "unknown1": {
+                            "type": "property",
+                            "name": "Unknown 1",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        },
+                        "unknown3": {
+                            "type": "property",
+                            "name": "Unknown 3",
+                            "begin": 3
+                        }
+                    }
                 },
                 "jump": {
                     "name": "Jump",
@@ -3409,13 +3596,40 @@
                     "name": "Command 0x20",
                     "category": "Unknown",
                     "opcode": "0x20",
-                    "length": 4
+                    "length": 4,
+                    "assembly": {
+                        "unknown1": {
+                            "type": "property",
+                            "name": "Unknown 1",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        },
+                        "unknown3": {
+                            "type": "property",
+                            "name": "Unknown 3",
+                            "begin": 3
+                        }
+                    }
                 },
                 "setVariable": {
                     "name": "Set Variable",
                     "category": "Control",
                     "opcode": "0x21",
-                    "length": 5
+                    "length": 5,
+                    "assembly": {
+                        "variable": {
+                            "type": "property",
+                            "name": "Variable",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        },
+                        "value": {
+                            "type": "property",
+                            "name": "Value",
+                            "begin": 3,
+                            "mask": "0xFFFF"
+                        }
+                    }
                 },
                 "unknown_22": {
                     "name": "Command 0x22",
@@ -3427,43 +3641,190 @@
                     "name": "Command 0x23",
                     "category": "Unknown",
                     "opcode": "0x23",
-                    "length": 9
+                    "length": 9,
+                    "assembly": {
+                        "unknown1": {
+                            "type": "property",
+                            "name": "Unknown 1",
+                            "begin": 1
+                        },
+                        "unknown2": {
+                            "type": "property",
+                            "name": "Unknown 2",
+                            "begin": 2
+                        },
+                        "unknown3": {
+                            "type": "property",
+                            "name": "Unknown 3",
+                            "begin": 3,
+                            "mask": "0xFFFF"
+                        },
+                        "unknown5": {
+                            "type": "property",
+                            "name": "Unknown 5",
+                            "begin": 5
+                        },
+                        "unknown6": {
+                            "type": "property",
+                            "name": "Unknown 6",
+                            "begin": 6
+                        },
+                        "scriptPointer": {
+                            "type": "property",
+                            "name": "Script Pointer",
+                            "begin": 7,
+                            "mask": "0xFFFF",
+                            "script": "this.parent.parent"
+                        }
+                    }
                 },
-                "unknown_25": {
-                    "name": "Command 0x25",
-                    "category": "Unknown",
+                "jumpCondition": {
+                    "name": "Conditional Jump",
+                    "category": "Control",
                     "opcode": "0x25",
-                    "length": 9
+                    "length": 9,
+                    "assembly": {
+                        "condition": {
+                            "type": "property",
+                            "name": "Condition",
+                            "begin": 3,
+                            "mask": "0xFFFF",
+                            "stringTable": {
+                                "length": 64,
+                                "default": "Condition %i",
+                                "string": {
+                                    "40": "Item in Inventory",
+                                    "45": "Character Present"
+                                }
+                            }
+                        },
+                        "state": {
+                            "type": "property",
+                            "name": "State",
+                            "begin": 1,
+                            "mask": "0xFFFF",
+                            "stringTable": {
+                                "string": {
+                                    "0": "True",
+                                    "1": "False"
+                                }
+                            }
+                        },
+                        "value": {
+                            "type": "property",
+                            "name": "Value",
+                            "begin": 5,
+                            "mask": "0xFFFF",
+                            "invalid": "this.parent.condition.value === 40 || this.parent.condition.value === 45"
+                        },
+                        "item": {
+                            "type": "property",
+                            "name": "Item",
+                            "begin": 5,
+                            "mask": "0xFFFF",
+                            "link": "itemProperties[%i]",
+                            "stringTable": "itemNames",
+                            "invalid": "this.parent.condition.value !== 40"
+                        },
+                        "character": {
+                            "type": "property",
+                            "name": "Character",
+                            "begin": 5,
+                            "mask": "0xFFFF",
+                            "link": "characterProperties[%i]",
+                            "stringTable": "characterNames",
+                            "invalid": "this.parent.condition.value !== 45"
+                        },
+                        "scriptPointer": {
+                            "type": "property",
+                            "name": "Script Pointer",
+                            "begin": 7,
+                            "mask": "0xFFFF",
+                            "script": "this.parent.parent"
+                        }
+                    }
                 },
                 "unknown_26": {
                     "name": "Command 0x26",
                     "category": "Unknown",
                     "opcode": "0x26",
-                    "length": 7
+                    "length": 7,
+                    "assembly": {
+                        "unknown1": {
+                            "type": "property",
+                            "name": "Unknown 1",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        },
+                        "unknown3": {
+                            "type": "property",
+                            "name": "Unknown 3",
+                            "begin": 3,
+                            "mask": "0xFFFF"
+                        },
+                        "unknown5": {
+                            "type": "property",
+                            "name": "Unknown 5",
+                            "begin": 5,
+                            "mask": "0xFFFF"
+                        }
+                    }
                 },
                 "unknown_27": {
                     "name": "Command 0x27",
                     "category": "Unknown",
                     "opcode": "0x27",
-                    "length": 3
+                    "length": 3,
+                    "assembly": {
+                        "unknown1": {
+                            "type": "property",
+                            "name": "Unknown 1",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        }
+                    }
                 },
                 "unknown_28": {
                     "name": "Command 0x28",
                     "category": "Unknown",
                     "opcode": "0x28",
-                    "length": 3
+                    "length": 3,
+                    "assembly": {
+                        "unknown1": {
+                            "type": "property",
+                            "name": "Unknown 1",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        }
+                    }
                 },
                 "unknown_29": {
                     "name": "Command 0x29",
                     "category": "Unknown",
                     "opcode": "0x29",
-                    "length": 3
+                    "length": 3,
+                    "assembly": {
+                        "unknown1": {
+                            "type": "property",
+                            "name": "Unknown 1",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        }
+                    }
                 },
                 "unknown_2A": {
                     "name": "Command 0x2A",
                     "category": "Unknown",
                     "opcode": "0x2A",
-                    "length": 3
+                    "length": 3,
+                    "assembly": {
+                        "unknown1": {
+                            "type": "property",
+                            "name": "Unknown 1",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        }
+                    }
                 },
                 "setSwitch": {
                     "name": "Set Switch",
@@ -3561,31 +3922,93 @@
                     "name": "Command 0x32",
                     "category": "Unknown",
                     "opcode": "0x32",
-                    "length": 4
+                    "length": 4,
+                    "assembly": {
+                        "unknown1": {
+                            "type": "property",
+                            "name": "Unknown 1",
+                            "begin": 1
+                        },
+                        "unknown2": {
+                            "type": "property",
+                            "name": "Unknown 2",
+                            "begin": 2,
+                            "mask": "0xFFFF"
+                        }
+                    }
                 },
                 "unknown_33": {
                     "name": "Command 0x33",
                     "category": "Unknown",
                     "opcode": "0x33",
-                    "length": 3
+                    "length": 3,
+                    "assembly": {
+                        "unknown1": {
+                            "type": "property",
+                            "name": "Unknown 1",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        }
+                    }
                 },
                 "unknown_34": {
                     "name": "Command 0x34",
                     "category": "Unknown",
                     "opcode": "0x34",
-                    "length": 3
+                    "length": 3,
+                    "assembly": {
+                        "unknown1": {
+                            "type": "property",
+                            "name": "Unknown 1",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        }
+                    }
                 },
                 "unknown_35": {
                     "name": "Command 0x35",
                     "category": "Unknown",
                     "opcode": "0x35",
-                    "length": 6
+                    "length": 6,
+                    "assembly": {
+                        "unknown1": {
+                            "type": "property",
+                            "name": "Unknown 1",
+                            "begin": 1
+                        },
+                        "unknown2": {
+                            "type": "property",
+                            "name": "Unknown 2",
+                            "begin": 2,
+                            "mask": "0xFFFF"
+                        },
+                        "scriptPointer": {
+                            "type": "property",
+                            "name": "Script Pointer",
+                            "begin": 4,
+                            "mask": "0xFFFF",
+                            "script": "this.parent.parent"
+                        }
+                    }
                 },
                 "unknown_36": {
                     "name": "Command 0x36",
                     "category": "Unknown",
                     "opcode": "0x36",
-                    "length": 4
+                    "length": 4,
+                    "assembly": {
+                        "unknown1": {
+                            "type": "property",
+                            "name": "Unknown 1",
+                            "begin": 1
+                        },
+                        "unknown2": {
+                            "type": "property",
+                            "name": "Unknown 2",
+                            "begin": 2,
+                            "mask": "0xFFFF"
+                        }
+                    }
                 },
                 "wait": {
                     "name": "Wait",
@@ -3605,13 +4028,34 @@
                     "name": "Set Object Action",
                     "category": "Object",
                     "opcode": "0x38",
-                    "length": 2
+                    "length": 2,
+                    "assembly": {
+                        "action": {
+                            "type": "property",
+                            "name": "Action",
+                            "begin": 1
+                        }
+                    }
                 },
                 "unknown_39": {
                     "name": "Command 0x39",
                     "category": "Unknown",
                     "opcode": "0x39",
-                    "length": 5
+                    "length": 5,
+                    "assembly": {
+                        "unknown1": {
+                            "type": "property",
+                            "name": "Unknown 1",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        },
+                        "unknown3": {
+                            "type": "property",
+                            "name": "Unknown 3",
+                            "begin": 3,
+                            "mask": "0xFFFF"
+                        }
+                    }
                 },
                 "unknown_3A": {
                     "name": "Command 0x3A",
@@ -3646,25 +4090,80 @@
                     "name": "Command 0x3C",
                     "category": "Unknown",
                     "opcode": "0x3C",
-                    "length": 13
+                    "length": 13,
+                    "assembly": {
+                        "unknown3": {
+                            "type": "property",
+                            "name": "Unknown 3",
+                            "begin": 3,
+                            "mask": "0xFFFF",
+                            "signed": true
+                        },
+                        "unknown6": {
+                            "type": "property",
+                            "name": "Unknown 6",
+                            "begin": 6
+                        },
+                        "unknown9": {
+                            "type": "property",
+                            "name": "Unknown 9",
+                            "begin": 9,
+                            "mask": "0xFFFF"
+                        },
+                        "unknown11": {
+                            "type": "property",
+                            "name": "Unknown 11",
+                            "begin": 11,
+                            "mask": "0xFFFF"
+                        }
+                    }
                 },
                 "unknown_3D": {
                     "name": "Command 0x3D",
                     "category": "Unknown",
                     "opcode": "0x3D",
-                    "length": 3
+                    "length": 3,
+                    "assembly": {
+                        "unknown1": {
+                            "type": "property",
+                            "name": "Object",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        }
+                    }
                 },
                 "unknown_3E": {
                     "name": "Command 0x3E",
                     "category": "Unknown",
                     "opcode": "0x3E",
-                    "length": 3
+                    "length": 3,
+                    "assembly": {
+                        "unknown1": {
+                            "type": "property",
+                            "name": "Object",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        }
+                    }
                 },
                 "unknown_3F": {
                     "name": "Command 0x3F",
                     "category": "Unknown",
                     "opcode": "0x3F",
-                    "length": 4
+                    "length": 4,
+                    "assembly": {
+                        "unknown1": {
+                            "type": "property",
+                            "name": "Object",
+                            "begin": 1
+                        },
+                        "unknown2": {
+                            "type": "property",
+                            "name": "Object",
+                            "begin": 2,
+                            "mask": "0xFFFF"
+                        }
+                    }
                 },
                 "unknown_40": {
                     "name": "Command 0x40",
@@ -3692,9 +4191,21 @@
                 "queueObject": {
                     "name": "Queue for Object",
                     "category": "Object",
-                    "opcode": "0x41",
+                    "opcode": ["0x41", "0x42"],
                     "length": 7,
                     "assembly": {
+                        "queueType": {
+                            "type": "property",
+                            "name": "Type",
+                            "begin": 0,
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0x41": "0x41",
+                                    "0x42": "0x42"
+                                }
+                            }
+                        },
                         "object": {
                             "type": "property",
                             "name": "Object",
@@ -3745,17 +4256,55 @@
                         }
                     }
                 },
-                "unknown_42": {
-                    "name": "Command 0x42",
-                    "category": "Unknown",
-                    "opcode": "0x42",
-                    "length": 7
-                },
                 "unknown_43": {
                     "name": "Command 0x43",
                     "category": "Unknown",
                     "opcode": "0x43",
-                    "length": 5
+                    "length": 5,
+                    "assembly": {
+                        "event2": {
+                            "type": "property",
+                            "name": "Event",
+                            "begin": 3,
+                            "mask": "0xFFFF",
+                            "offset": -1,
+                            "stringTable": "eventScript",
+                            "link": "eventScript[%i]",
+                            "special": {
+                                "-1": "No Script Pointer",
+                                "0xFFFE": "Current Event"
+                            }
+                        },
+                        "event": {
+                            "type": "property",
+                            "name": "Event",
+                            "begin": 1,
+                            "mask": "0xFFFF",
+                            "offset": -1,
+                            "stringTable": "eventScript",
+                            "link": "eventScript[%i]",
+                            "invalid": "this.parent.event2.value !== -1",
+                            "special": {
+                                "-1": "No Event"
+                            }
+                        },
+                        "scriptPointer": {
+                            "type": "property",
+                            "name": "Script Pointer",
+                            "begin": 1,
+                            "mask": "0xFFFF",
+                            "script": "this.rom.eventScript[this.parent.event2.value]",
+                            "invalid": "this.parent.event2.value === -1 || this.parent.event2.value === 0xFFFE"
+                        },
+                        "scriptPointerCurrent": {
+                            "type": "property",
+                            "name": "Script Pointer",
+                            "begin": 1,
+                            "mask": "0xFFFF",
+                            "script": "this.parent.parent",
+                            "invalid": "this.parent.event2.value !== 0xFFFE"
+                        }
+                    }
                 },
                 "waitObject": {
                     "name": "Wait for Object",
@@ -3775,37 +4324,123 @@
                     "name": "Command 0x45",
                     "category": "Unknown",
                     "opcode": "0x45",
-                    "length": 3
+                    "length": 3,
+                    "assembly": {
+                        "object": {
+                            "type": "property",
+                            "name": "Object",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        }
+                    }
                 },
                 "stopObjectAnimation": {
                     "name": "Stop Object Animation",
                     "category": "Object",
                     "opcode": "0x46",
-                    "length": 3
+                    "length": 3,
+                    "assembly": {
+                        "object": {
+                            "type": "property",
+                            "name": "Object",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        }
+                    }
                 },
                 "unknown_47": {
                     "name": "Command 0x47",
                     "category": "Unknown",
                     "opcode": "0x47",
-                    "length": 3
+                    "length": 3,
+                    "assembly": {
+                        "object": {
+                            "type": "property",
+                            "name": "Object",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        }
+                    }
                 },
                 "objectDirection": {
                     "name": "Set Object Facing Direction",
                     "category": "Object",
                     "opcode": ["0x49", "0x4B"],
-                    "length": 4
+                    "length": 4,
+                    "assembly": {
+                        "directionType": {
+                            "type": "property",
+                            "name": "Type",
+                            "begin": 0,
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0x49": "0x49",
+                                    "0x4B": "0x4B"
+                                }
+                            }
+                        },
+                        "object": {
+                            "type": "property",
+                            "name": "Object",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        },
+                        "direction": {
+                            "type": "property",
+                            "name": "Direction",
+                            "begin": 3
+                        }
+                    }
                 },
                 "partyDirection": {
                     "name": "Set Party Facing Direction",
                     "category": "Object",
                     "opcode": ["0x4A", "0x4C"],
-                    "length": 2
+                    "length": 2,
+                    "assembly": {
+                        "directionType": {
+                            "type": "property",
+                            "name": "Type",
+                            "begin": 0,
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0x4A": "0x4A",
+                                    "0x4C": "0x4C"
+                                }
+                            }
+                        },
+                        "direction": {
+                            "type": "property",
+                            "name": "Direction",
+                            "begin": 3
+                        }
+                    }
                 },
                 "objectTurn": {
                     "name": "Turn Object",
                     "category": "Object",
                     "opcode": "0x4D",
-                    "length": 5
+                    "length": 5,
+                    "assembly": {
+                        "object": {
+                            "type": "property",
+                            "name": "Object",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        },
+                        "direction": {
+                            "type": "property",
+                            "name": "Direction",
+                            "begin": 3
+                        },
+                        "speed": {
+                            "type": "property",
+                            "name": "Speed",
+                            "begin": 4
+                        }
+                    }
                 },
                 "unknown_4E": {
                     "name": "Command 0x4E",
@@ -3817,7 +4452,15 @@
                     "name": "Set Screen Color",
                     "category": "Screen",
                     "opcode": "0x4F",
-                    "length": 3
+                    "length": 3,
+                    "assembly": {
+                        "color": {
+                            "type": "property",
+                            "name": "Color",
+                            "begin": 3,
+                            "mask": "0xFFFF"
+                        }
+                    }
                 },
                 "fadeScreenColor": {
                     "name": "Fade Screen Color",
@@ -3829,7 +4472,26 @@
                     "name": "Fade In/Out",
                     "category": "Screen",
                     "opcode": ["0x51", "0x52"],
-                    "length": 2
+                    "length": 2,
+                    "assembly": {
+                        "fadeType": {
+                            "type": "property",
+                            "name": "Type",
+                            "begin": 0,
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0x51": "Fade In",
+                                    "0x52": "Fade Out"
+                                }
+                            }
+                        },
+                        "speed": {
+                            "type": "property",
+                            "name": "Speed",
+                            "begin": 1
+                        }
+                    }
                 },
                 "unknown_55": {
                     "name": "Command 0x55",
@@ -3864,10 +4526,10 @@
                 "screenWipe": {
                     "name": "Screen Wipe",
                     "category": "Screen",
-                    "opcode": "0x5B-0x5D",
+                    "opcode": "0x5A-0x5D",
                     "length": 1,
                     "assembly": {
-                        "inOut": {
+                        "wipeType": {
                             "type": "property",
                             "name": "In/Out",
                             "begin": 0,
@@ -3892,19 +4554,49 @@
                     "name": "Command 0x5E",
                     "category": "Unknown",
                     "opcode": "0x5E",
-                    "length": 3
+                    "length": 3,
+                    "assembly": {
+                        "object": {
+                            "type": "property",
+                            "name": "Object",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        }
+                    }
                 },
                 "deleteObject": {
                     "name": "Delete Object",
                     "category": "Object",
                     "opcode": "0x5F",
-                    "length": 3
+                    "length": 3,
+                    "assembly": {
+                        "object": {
+                            "type": "property",
+                            "name": "Object",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        }
+                    }
                 },
                 "showHideObject": {
                     "name": "Show/Hide Object",
                     "category": "Object",
                     "opcode": ["0x60", "0x61"],
-                    "length": 5
+                    "length": 5,
+                    "assembly": {
+                        "showHide": {
+                            "type": "property",
+                            "name": "Show/Hide",
+                            "begin": 0,
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0x60": "Show",
+                                    "0x61": "Hide"
+                                }
+                            }
+                        }
+                    }
                 },
                 "unknown_62": {
                     "name": "Command 0x62",
@@ -4110,13 +4802,68 @@
                     "name": "Command 0x6B",
                     "category": "Unknown",
                     "opcode": "0x6B",
-                    "length": 3
+                    "length": 3,
+                    "assembly": {
+                        "unknown1": {
+                            "type": "property",
+                            "name": "Unknown 1",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        }
+                    }
                 },
                 "changeBackground": {
                     "name": "Change Background",
                     "category": "Screen",
                     "opcode": "0x6C-0x70",
-                    "length": 8
+                    "length": 8,
+                    "assembly": {
+                        "bgType": {
+                            "type": "property",
+                            "name": "Type",
+                            "begin": 0,
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0x6C": "Relative (Background)",
+                                    "0x6D": "Relative (Tile Properties)",
+                                    "0x6E": "Absolute (Layer 1)",
+                                    "0x6F": "Absolute (Tile Properties)"
+                                }
+                            }
+                        },
+                        "x": {
+                            "type": "property",
+                            "name": "X",
+                            "begin": 1
+                        },
+                        "y": {
+                            "type": "property",
+                            "name": "Y",
+                            "begin": 2
+                        },
+                        "layer": {
+                            "type": "property",
+                            "name": "Layer",
+                            "begin": 3
+                        },
+                        "width": {
+                            "type": "property",
+                            "name": "Width",
+                            "begin": 4
+                        },
+                        "height": {
+                            "type": "property",
+                            "name": "Height",
+                            "begin": 5
+                        },
+                        "tilePointer": {
+                            "type": "property",
+                            "name": "Tile Pointer",
+                            "begin": 6,
+                            "mask": "0xFFFF"
+                        }
+                    }
                 },
                 "unknown_70": {
                     "name": "Command 0x70",

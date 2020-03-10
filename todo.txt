@@ -15,6 +15,7 @@ general
  * array insert/remove
  * disable automatic snes header update
  * import/export binary data
+ * import custom tbl file
 
 gui
 ---
