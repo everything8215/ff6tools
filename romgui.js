@@ -1182,6 +1182,8 @@ ROMPropertyList.prototype.showEditor = function(object) {
     
     var editDiv = document.getElementById('edit-div');
     if (!editDiv.contains(editor.div)) {
+        if (this.activeEditor && this.activeEditor.hide) this.activeEditor.hide();
+        this.activeEditor = editor;
         editDiv.innerHTML = "";
         editDiv.appendChild(editor.div);
     }

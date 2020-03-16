@@ -43,6 +43,7 @@ function FF6Battle(rom) {
     
     this.rom.monsterGraphics; // load monster graphics
     this.rom.monsterPalette; // load monster palettes
+    this.rom.monsterGraphicsMap; // load monster graphics maps
     this.updateBattleStrings();
 }
 
@@ -58,14 +59,16 @@ FF6Battle.Type = {
 
 FF6Battle.prototype.updateBattleStrings = function() {
     
-//    var paletteStringTable = this.rom.stringTable.monsterPalette;
-//    for (var m = 0; m < this.rom.monsterGraphicsProperties.array.length; m++) {
+//    var stringTable = this.rom.stringTable.monsterPalette;
+//    for (var m = 0; m < (this.rom.monsterGraphicsProperties.array.length - 36); m++) {
 //        
-//        var graphicsProperties = this.rom.monsterGraphicsProperties.item(m);
-//        var i = graphicsProperties.palette.target.i;
-//        var string = paletteStringTable.string[i];
+//        var g = m;
+//        if (m >= 384) g += 36;
+//        var graphicsProperties = this.rom.monsterGraphicsProperties.item(g);
+//        var i = graphicsProperties.palette.value.i;
+//        var string = stringTable.string[i];
 //        if (!string) {
-//            paletteStringTable.setString(i, "<stringTable.monsterName[" + m.toString() + "]>");
+//            stringTable.setString(i, "<stringTable.monsterName[" + m.toString() + "]>");
 //        } else {
 //            // duplicate monsters using the same graphics
 //            string.value += ", <stringTable.monsterName[" + m.toString() + "]>";
@@ -73,8 +76,8 @@ FF6Battle.prototype.updateBattleStrings = function() {
 //    }
 //
 //    var bigString = "";
-//    for (var s = 0; s < paletteStringTable.string.length; s++) {
-//        var string = paletteStringTable.string[s];
+//    for (var s = 0; s < stringTable.string.length; s++) {
+//        var string = stringTable.string[s];
 //        if (!string) continue;
 //        bigString += '"' + s + '": "' + string.fString() + '",\n';
 //    }
@@ -301,6 +304,10 @@ FF6Battle.prototype.show = function() {
     this.addTwoState("showVRAM", function(checked) { vram.show(checked); }, "VRAM", this.showVRAM);
 }
 
+FF6Battle.prototype.hide = function() {
+    this.observer.stopObservingAll();
+}
+
 FF6Battle.prototype.loadBattle = function(b) {
     b = Number(b);
     if (isNumber(b) && this.b !== b) {
@@ -506,9 +513,10 @@ FF6Battle.prototype.mapForMonster = function(m) {
             if (!map) return null;
             map = map.data;
         } else {
-            var mapBegin = this.rom.mapAddress(gfxProperties.mapPointer.value);
-            var mapEnd = mapBegin + 32;
-            map = this.rom.data.subarray(mapBegin, mapEnd);
+            map = gfxProperties.mapPointer.value.data;
+//            var mapBegin = this.rom.mapAddress(gfxProperties.mapPointer.value);
+//            var mapEnd = mapBegin + 32;
+//            map = this.rom.data.subarray(mapBegin, mapEnd);
         }
         map = new Uint16Array(map.buffer, map.byteOffset, map.byteLength / 2);
     } else {
@@ -518,9 +526,10 @@ FF6Battle.prototype.mapForMonster = function(m) {
             if (!map) return null;
             map = map.data;
         } else {
-            var mapBegin = this.rom.mapAddress(gfxProperties.mapPointer.value);
-            var mapEnd = mapBegin + 8;
-            map = this.rom.data.subarray(mapBegin, mapEnd);
+            map = gfxProperties.mapPointer.value.data;
+//            var mapBegin = this.rom.mapAddress(gfxProperties.mapPointer.value);
+//            var mapEnd = mapBegin + 8;
+//            map = this.rom.data.subarray(mapBegin, mapEnd);
         }
     }
     
@@ -908,15 +917,6 @@ FF6BattleVRAM.prototype.show = function(show) {
 
     document.getElementById("toolbox-buttons").classList.add('hidden');
 }
-
-//FF6BattleVRAM.prototype.show = function() {
-//    this.div = document.getElementById('toolbox-div');
-//    this.div.classList.remove('hidden');
-//    this.div.innerHTML = "";
-//    this.div.appendChild(this.canvas);
-//
-//    document.getElementById("toolbox-buttons").classList.add('hidden');
-//}
 
 FF6BattleVRAM.prototype.mouseDown = function(e) {
     var x = Math.floor(e.offsetX / this.zoom);

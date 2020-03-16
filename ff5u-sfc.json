@@ -2725,7 +2725,9 @@
                 "type": "array",
                 "length": 8,
                 "array": {
-                    "length": 8
+                    "length": 8,
+                    "min": 8,
+                    "max": 8
                 },
                 "assembly": {
                     "type": "data",

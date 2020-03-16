@@ -564,6 +564,10 @@ FF5Map.prototype.show = function() {
 
 }
 
+FF5Map.prototype.hide = function() {
+    this.observer.stopObservingAll();
+}
+
 FF5Map.prototype.loadMap = function(m) {
     
     var layerButtons = document.getElementsByClassName("toolbox-button");

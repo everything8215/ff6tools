@@ -219,6 +219,10 @@ FF5Battle.prototype.show = function() {
     this.addList("showBackground", "Background", bgNames, onChangeBG, bgSelected);
 }
 
+FF5Battle.prototype.hide = function() {
+    this.observer.stopObservingAll();
+}
+
 FF5Battle.prototype.loadBattle = function(b) {
     b = Number(b);
     if (isNumber(b) && this.b !== b) {

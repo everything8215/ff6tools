@@ -714,6 +714,10 @@ FF6Map.prototype.show = function() {
     this.addZoom(this.zoom, function() { map.changeZoom(); });
 }
 
+FF6Map.prototype.hide = function() {
+    this.observer.stopObservingAll();
+}
+
 FF6Map.prototype.loadMap = function(m) {
     
     var layerButtons = document.getElementsByClassName("toolbox-button");

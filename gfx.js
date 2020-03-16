@@ -42,6 +42,7 @@ GFX.PaletteFormat = {
 
 GFX.TileFormat = {
     default: "default",
+    gba8bppTile: "gba8bppTile",
     gba4bppTile: "gba4bppTile",
     gba2bppTile: "gba2bppTile",
     nesBGTile: "nesBGTile",
@@ -73,23 +74,12 @@ GFX.Z = {
 GFX.decode = function(data, format) {
         
     switch (format) {
-        case GFX.GraphicsFormat.linear4bpp:
-            return GFX.decodeLinear4bpp(data);
-
-        case GFX.GraphicsFormat.snes4bpp:
-            return GFX.decodeSNES4bpp(data);
-
-        case GFX.GraphicsFormat.snes3bpp:
-            return GFX.decodeSNES3bpp(data);
-
-        case GFX.GraphicsFormat.snes2bpp:
-            return GFX.decodeSNES2bpp(data);
-
-        case GFX.PaletteFormat.bgr555:
-            return GFX.decodeBGR555(data);
-            
-        default:
-            return data;
+        case GFX.GraphicsFormat.linear4bpp: return GFX.decodeLinear4bpp(data);
+        case GFX.GraphicsFormat.snes4bpp: return GFX.decodeSNES4bpp(data);
+        case GFX.GraphicsFormat.snes3bpp: return GFX.decodeSNES3bpp(data);
+        case GFX.GraphicsFormat.snes2bpp: return GFX.decodeSNES2bpp(data);
+        case GFX.PaletteFormat.bgr555: return GFX.decodeBGR555(data);            
+        default: return data;
     }
 }
 
@@ -537,6 +527,19 @@ GFX.PPU.prototype.renderPPU = function(dest, x, y, width, height) {
         ++lx;
     }
 
+    function updateTileGBA8bpp() {
+        var row = (ly >> 3) % layer.rows;
+        var col = (lx >> 3) % layer.cols;
+        t = layer.tiles[col + row * layer.cols];
+        p = 0; // palette
+        z = 0; // z-level
+        h = 0; // horizontal flip
+        v = 0; // vertical flip
+        t = (t & 0xFF) << 6; // tile index
+        ty = (v ? (7 - (ly & 7)) : (ly & 7)) << 3;
+        m = 255;
+    }
+
     function updateTileGBA4bpp() {
         var row = (ly >> 3) % layer.rows;
         var col = (lx >> 3) % layer.cols;
@@ -668,24 +671,13 @@ GFX.PPU.prototype.renderPPU = function(dest, x, y, width, height) {
             layer = ppu.layers[l];
             if (layer.sub) {
                 switch (layer.format) {
-                    case GFX.TileFormat.gba2bppTile:
-                        updateTile = updateTileGBA2bpp;
-                        break;
-                    case GFX.TileFormat.gba4bppTile:
-                        updateTile = updateTileGBA4bpp;
-                        break;
-                    case GFX.TileFormat.snes2bppTile:
-                        updateTile = updateTileSNES2bpp;
-                        break;
-                    case GFX.TileFormat.snes4bppTile:
-                        updateTile = updateTileSNES4bpp;
-                        break;
-                    case GFX.TileFormat.snesSpriteTile:
-                        updateTile = updateTileSNESSprite;
-                        break;
-                    case GFX.TileFormat.nesBGTile:
-                        updateTile = updateTileNESBG;
-                        break;
+                    case GFX.TileFormat.gba2bppTile: updateTile = updateTileGBA2bpp; break;
+                    case GFX.TileFormat.gba4bppTile: updateTile = updateTileGBA4bpp; break;
+                    case GFX.TileFormat.gba8bppTile: updateTile = updateTileGBA8bpp; break;
+                    case GFX.TileFormat.snes2bppTile: updateTile = updateTileSNES2bpp; break;
+                    case GFX.TileFormat.snes4bppTile: updateTile = updateTileSNES4bpp; break;
+                    case GFX.TileFormat.snesSpriteTile: updateTile = updateTileSNESSprite; break;
+                    case GFX.TileFormat.nesBGTile: updateTile = updateTileNESBG; break;
                 }
                 renderLayerLine();
             }
@@ -708,24 +700,13 @@ GFX.PPU.prototype.renderPPU = function(dest, x, y, width, height) {
             layer = ppu.layers[l];
             if (layer.main) {
                 switch (layer.format) {
-                    case GFX.TileFormat.gba2bppTile:
-                        updateTile = updateTileGBA2bpp;
-                        break;
-                    case GFX.TileFormat.gba4bppTile:
-                        updateTile = updateTileGBA4bpp;
-                        break;
-                    case GFX.TileFormat.snes2bppTile:
-                        updateTile = updateTileSNES2bpp;
-                        break;
-                    case GFX.TileFormat.snes4bppTile:
-                        updateTile = updateTileSNES4bpp;
-                        break;
-                    case GFX.TileFormat.snesSpriteTile:
-                        updateTile = updateTileSNESSprite;
-                        break;
-                    case GFX.TileFormat.nesBGTile:
-                        updateTile = updateTileNESBG;
-                        break;
+                    case GFX.TileFormat.gba2bppTile: updateTile = updateTileGBA2bpp; break;
+                    case GFX.TileFormat.gba4bppTile: updateTile = updateTileGBA4bpp; break;
+                    case GFX.TileFormat.gba8bppTile: updateTile = updateTileGBA8bpp; break;
+                    case GFX.TileFormat.snes2bppTile: updateTile = updateTileSNES2bpp; break;
+                    case GFX.TileFormat.snes4bppTile: updateTile = updateTileSNES4bpp; break;
+                    case GFX.TileFormat.snesSpriteTile: updateTile = updateTileSNESSprite; break;
+                    case GFX.TileFormat.nesBGTile: updateTile = updateTileNESBG; break;
                 }
                 math = layer.math ? ppuMath : GFX.mathNone;
                 renderLayerLine();
@@ -746,287 +727,6 @@ GFX.PPU.prototype.renderPPU = function(dest, x, y, width, height) {
 
     return;
 }
-
-//GFX.PPU.prototype.renderPPUx = function(dest, x, y, width, height) {
-//    
-//    // declare this variable so i can access the ppu inside closures
-//    var ppu = this;
-//
-//    x = x || 0;
-//    y = y || 0;
-//    width = width || ppu.width;
-//    height = height || ppu.height;
-//    
-//    // 32-bit destination, 32-bit palette
-//    dest = new Uint32Array(dest.buffer, dest.byteOffset);
-//    ppu.pal = new Uint32Array(ppu.pal.buffer, ppu.pal.byteOffset);
-//
-//    // line buffers
-//    var main = dest;
-//    var sub = new Uint32Array(dest.length);
-//    var zBuffer = new Uint8Array(dest.length);
-//
-//    var d = 0; // destination buffer location
-//    var l; // layer index
-//    var layer;
-//    
-//    var ly, lx;
-//    var tx, ty;
-//    var dx, dy, poo;
-//    var i, c, s, t, p, z, h, v, m;
-//    
-//    // color math as determined by ppu
-//    var math = GFX.mathNone;
-//    var ppuMath = GFX.mathNone;
-//    if (ppu.subtract) {
-//        ppuMath = ppu.half ? GFX.mathHalfSub : GFX.mathSub;
-//    } else {
-//        ppuMath = ppu.half ? GFX.mathHalfAdd : GFX.mathAdd;
-//    }
-//    
-//    // tile format based on layer
-//    var updateTile;
-//    
-//    // pixel rendering function
-//    var renderPixel;
-//
-//    function renderPixelSub() {
-//        i = d + dx + dy;
-//        if (layer.z[z] > zBuffer[i]) {
-//            c = layer.gfx[t + ty + tx];
-//            if (c & m) {
-//                zBuffer[i] = layer.z[z];
-//                sub[i] = ppu.pal[p + c];
-//            }
-//        }
-//        ++dx;
-//    }
-//
-//    function renderPixelMain() {
-//        i = d + dx + dy;
-//        if (layer.z[z] > zBuffer[i]) {
-//            c = layer.gfx[t + ty + tx];
-//            if (c & m) {
-//                zBuffer[i] = layer.z[z];
-//                s = sub[i];
-//                if (s) {
-//                    main[i] = math(ppu.pal[p + c], s);
-//                } else {
-//                    main[i] = ppu.pal[p + c];
-//                }
-//            }
-//        }
-//        ++dx;
-//    }
-//
-//    function updateTileGBA4bpp() {
-//        var row = (ly >> 3) % layer.rows;
-//        var col = (lx >> 3) % layer.cols;
-//        t = layer.tiles[col + row * layer.cols];
-//        p = (t & 0x7000) >> 8; // palette
-//        z = (t & 0x8000) >> 15; // z-level
-//        h = (t & 0x0400); // horizontal flip
-//        v = (t & 0x0800); // vertical flip
-//        t = (t & 0x03FF) << 6; // tile index
-//        m = 15;
-//    }
-//
-//    function updateTileGBA2bpp() {
-//        var row = (ly >> 3) % layer.rows;
-//        var col = (lx >> 3) % layer.cols;
-//        t = layer.tiles[col + row * layer.cols];
-//        p = (t & 0x7000) >> 10; // palette
-//        z = (t & 0x8000) >> 15; // z-level
-//        h = (t & 0x0400); // horizontal flip
-//        v = (t & 0x0800); // vertical flip
-//        t = (t & 0x03FF) << 6; // tile index
-//        m = 3;
-//    }
-//
-//    function updateTileSNES4bpp() {
-//        var row = (ly >> 3) % layer.rows;
-//        var col = (lx >> 3) % layer.cols;
-//        t = layer.tiles[col + row * layer.cols];
-//        p = (t & 0x1C00) >> 6; // palette
-//        z = (t & 0x2000) >> 13; // z-level
-//        h = (t & 0x4000); // horizontal flip
-//        v = (t & 0x8000); // vertical flip
-//        t = (t & 0x03FF) << 6; // tile index
-//        m = 15;
-//    }
-//
-//    function updateTileSNES2bpp() {
-//        var row = (ly >> 3) % layer.rows;
-//        var col = (lx >> 3) % layer.cols;
-//        t = layer.tiles[col + row * layer.cols];
-//        p = (t & 0x1C00) >> 8; // palette
-//        z = (t & 0x2000) >> 13; // z-level
-//        h = (t & 0x4000); // horizontal flip
-//        v = (t & 0x8000); // vertical flip
-//        t = (t & 0x03FF) << 6; // tile index
-//        m = 3;
-//    }
-//    
-//    function updateTileSNESSprite() {
-//        var row = (ly >> 3) % layer.rows;
-//        var col = (lx >> 3) % layer.cols;
-//        t = layer.tiles[col + row * layer.cols];
-//        p = (t & 0x0E00) >> 5; // palette
-//        z = (t & 0x3000) >> 12; // z-level
-//        h = (t & 0x4000); // horizontal flip
-//        v = (t & 0x8000); // vertical flip
-//        t = (t & 0x01FF) << 6; // tile index
-//        m = 15;
-//    }
-//
-//    function updateTileNESBG() {
-//        var row = (ly >> 3) % layer.rows;
-//        var col = (lx >> 3) % layer.cols;
-//        t = layer.tiles[col + row * layer.cols]; // tile index
-//        p = layer.attr[t]; // palette index (from attribute table)
-//        m = 3;
-//    }
-//
-//    function renderTile() {
-//        updateTile();
-//        dy = 0;
-//        if (v) {
-//            ty = 56;
-//            while (ty >= 0) {
-//                dx = poo;
-//                if (h) {
-//                    tx = 7;
-//                    while (tx >= 0) {
-//                        renderPixel();
-//                        --tx;
-//                    }
-//                } else {
-//                    tx = 0;
-//                    while (tx < 8) {
-//                        renderPixel();
-//                        ++tx;
-//                    }
-//                }
-//                ty -= 8;
-//                dy += width;
-//            }
-//        } else {
-//            ty = 0;
-//            while (ty < 64) {
-//                dx = poo;
-//                if (h) {
-//                    tx = 7;
-//                    while (tx >= 0) {
-//                        renderPixel();
-//                        --tx;
-//                    }
-//                } else {
-//                    tx = 0;
-//                    while (tx < 8) {
-//                        renderPixel();
-//                        ++tx;
-//                    }
-//                }
-//                ty += 8;
-//                dy += width;
-//            }
-//        }
-//    }
-//    
-//    function renderLayer() {
-//        
-//        ly = y + layer.y; // y location in layer (ignoring flip)
-//        while (ly < 0) ly += 0x1000;
-//        var lyf = ly + height;
-//        d = 0;
-//        
-//        // draw mid rows
-//        while (ly < lyf) {
-//            lx = x + layer.x; // x location in layer (ignoring flip)
-//            while (lx < 0) lx += 0x1000;
-//            var lxf = lx + width;
-//
-//            poo = 0;
-//            while (lx < lxf) {
-//                renderTile();
-//                lx += 8;
-//                poo += 8;
-//            }
-//            ly += 8;
-//            d += width * 8;
-//        }
-//    }
-//                    
-//    // render subscreen layers
-//    renderPixel = renderPixelSub;
-//    for (l = 0; l < 4; l++) {
-//        layer = ppu.layers[l];
-//        if (layer.sub) {
-//            switch (layer.format) {
-//                case GFX.TileFormat.gba2bppTile:
-//                    updateTile = updateTileGBA2bpp;
-//                    break;
-//                case GFX.TileFormat.gba4bppTile:
-//                    updateTile = updateTileGBA4bpp;
-//                    break;
-//                case GFX.TileFormat.snes2bppTile:
-//                    updateTile = updateTileSNES2bpp;
-//                    break;
-//                case GFX.TileFormat.snes4bppTile:
-//                    updateTile = updateTileSNES4bpp;
-//                    break;
-//                case GFX.TileFormat.snesSpriteTile:
-//                    updateTile = updateTileSNESSprite;
-//                    break;
-//                case GFX.TileFormat.nesBGTile:
-//                    updateTile = updateTileNESBG;
-//                    break;
-//            }
-//            renderLayer();
-//        }
-//    }
-//
-//    // clear the z-level
-//    zBuffer.fill(0);
-//
-//    // render the back area
-//    if (ppu.back) {
-//        c = ppu.pal[0];
-//        main.fill(c);
-//    }
-//
-//    // render main screen layers
-//    renderPixel = renderPixelMain;
-//    for (l = 0; l < 4; l++) {
-//        layer = ppu.layers[l];
-//        if (layer.main) {
-//            switch (layer.format) {
-//                case GFX.TileFormat.gba2bppTile:
-//                    updateTile = updateTileGBA2bpp;
-//                    break;
-//                case GFX.TileFormat.gba4bppTile:
-//                    updateTile = updateTileGBA4bpp;
-//                    break;
-//                case GFX.TileFormat.snes2bppTile:
-//                    updateTile = updateTileSNES2bpp;
-//                    break;
-//                case GFX.TileFormat.snes4bppTile:
-//                    updateTile = updateTileSNES4bpp;
-//                    break;
-//                case GFX.TileFormat.snesSpriteTile:
-//                    updateTile = updateTileSNESSprite;
-//                    break;
-//                case GFX.TileFormat.nesBGTile:
-//                    updateTile = updateTileNESBG;
-//                    break;
-//            }
-//            math = layer.math ? ppuMath : GFX.mathNone;
-//            renderLayer();
-//        }
-//    }
-//
-//    return;
-//}
 
 GFX.mathNone = function(c1) {
     return c1;

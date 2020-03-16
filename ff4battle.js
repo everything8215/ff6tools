@@ -282,6 +282,10 @@ FF4Battle.prototype.show = function() {
     if (this.rom.isSFC) this.addTwoState("showVRAM", function(checked) { vram.show(checked); }, "VRAM", this.showVRAM);
 }
 
+FF4Battle.prototype.hide = function() {
+    this.observer.stopObservingAll();
+}
+
 FF4Battle.prototype.loadBattle = function(b) {
     b = Number(b);
     if (isNumber(b) && this.b !== b) {
