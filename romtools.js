@@ -1796,6 +1796,26 @@ ROM.dataFormat = {
             return dest.slice(0, d);
         }
     },
+    "ff4a-world-tile-properties": {
+        encode: function(data) {
+        },
+        decode: function(data) {
+            var src = data;
+            var s = 0; // source pointer
+            var dest = new Uint8Array(256);
+            var d = 0; // destination pointer
+            var start, end, value;
+
+            while (s < src.length) {
+                start = src[s++];
+                end = src[s++];
+                if (start === 0 && end === 0) break;
+                value = src[s++] | (src[s++] << 8);
+                while (start <= end) dest[start++] = value;
+            }
+            return dest;
+        }
+    },
     "ff5-battlebg": {
         encode: function(data) {
             return data;
@@ -2389,6 +2409,7 @@ ROM.dataFormat = {
                 }
             }
 
+            data = data.subarray(0, s);
             return dest.slice(0, d);
         }
     }
@@ -3064,9 +3085,10 @@ ROMArray.prototype.disassemble = function(data) {
         begin = 0;
         end = 0;
         var i = 0;
+        var length = this.assembly.range.length || 1;
         while (end < this.data.length) {
-            while (this.data[end] !== terminator && end < this.data.length) end++;
-            end++;
+            while (this.data[end] !== terminator && end < this.data.length) end += length;
+            end += length;
             itemRanges.push(new ROMRange(begin, end));
             begin = end;
             if (itemRanges.length === this.array.length) break;
@@ -3119,6 +3141,7 @@ ROMArray.prototype.disassemble = function(data) {
             begin = sorted[i];
             // skip duplicates
             if (pointerRanges[begin] !== undefined) continue;
+            if (this.assembly.range.length) end = begin + this.assembly.range.length;
             pointerRanges[begin] = {range: new ROMRange(begin, end)};
             end = begin;
         }
@@ -3154,6 +3177,7 @@ ROMArray.prototype.disassemble = function(data) {
 
     // create each array item
     var definition = this.assembly.definition;
+    this.array = [];
     for (i = 0; i < itemRanges.length; i++) {
         var range = itemRanges[i];
         if (this.isAbsolute) range = this.rom.mapRange(range);
@@ -3245,18 +3269,28 @@ ROMArray.prototype.readPointerTable = function() {
     return unsorted;
 }
 
-ROMArray.prototype.readPointerObjects = function() {
-    if (!this.pointerObject || !this.pointerObject.pointerPath) return;
-    var pointerPath = this.pointerObject.pointerPath;
+ROMArray.prototype.readPointerObjects = function(pointerObject) {
+    
+    pointerObject = pointerObject || this.pointerObject;
     var unsorted = [];
+    if (isArray(pointerObject)) {
+        // read pointer objects recursively
+        for (var i = 0; i < this.pointerObject.length; i++) {
+            unsorted = unsorted.concat(this.readPointerObjects(this.pointerObject[i]));
+        }
+        return unsorted;
+    }
+    
+    if (!pointerObject || !pointerObject.pointerPath) return;
+    var pointerPath = pointerObject.pointerPath;
     var pointer;
     
-    if (this.pointerObject.arrayPath) {
-        var pointerArray = this.parsePath(this.pointerObject.arrayPath);
+    if (pointerObject.arrayPath) {
+        var pointerArray = this.parsePath(pointerObject.arrayPath);
         for (var p = 0; p < pointerArray.array.length; p++) {
-            var pointerObject = pointerArray.item(p);
-            if (!pointerObject) continue;
-            pointer = this.parsePath(pointerPath, pointerObject);
+            var pointerItem = pointerArray.item(p);
+            if (!pointerItem) continue;
+            pointer = this.parsePath(pointerPath, pointerItem);
             if (!(pointer instanceof ROMProperty) || pointer.special[pointer.value]) continue;
             this.pointers.push(pointer);
             unsorted.push(pointer.value);
