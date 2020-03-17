@@ -39,7 +39,7 @@ function FF4Map(rom) {
     this.menu = document.getElementById("menu");
 
     this.mapProperties = null;
-    this.m = 0; // map index
+    this.m = null; // map index
     this.l = 0; // selected layer
     this.zoom = 1.0; // zoom multiplier
     this.selection = new Uint8Array([0x73, 0, 0, 1, 1, 0]);
@@ -51,6 +51,7 @@ function FF4Map(rom) {
                   new FF4MapLayer(rom, FF4MapLayer.Type.layer2)];
     this.selectedLayer = this.layer[0];
     this.worldLayer = new FF4MapLayer(rom, FF4MapLayer.Type.world);
+    this.worldLayer2 = new FF4MapLayer(rom, FF4MapLayer.Type.world);
     this.triggers = [];
     this.showCursor = false;
     this.showLayer1 = true;
@@ -81,6 +82,13 @@ function FF4Map(rom) {
     
     this.rom.mapTriggers;
     this.rom.mapExit;
+    this.rom.worldGraphics1;
+    this.rom.worldGraphics2;
+    this.rom.worldPalette;
+    this.rom.worldTileset;
+    this.rom.worldTileset2;
+    this.rom.worldLayout;
+    this.rom.worldLayout2;
     this.initBattleGroups();
 }
 
@@ -347,6 +355,7 @@ FF4Map.prototype.updateMenu = function() {
 }
 
 FF4Map.prototype.openMenu = function(e) {
+    if (this.rom.isGBA) return;
     if (this.l !== 3) return; // no menu unless editing triggers
     this.updateMenu();
     
@@ -448,7 +457,9 @@ FF4Map.prototype.selectTilePropertiesGBA = function(x, y) {
     
     var tileProperties = this.tilePropertiesAtTile(x, y);
     
-    if (tileProperties & 0x40) {
+    if (this.isWorld) {
+        propertyList.select(tileProperties);
+    } else if (tileProperties & 0x40) {
         propertyList.select(this.rom.mapExit.item(this.m).item(tileProperties & 0x0F));
     } else if (tileProperties & 0x4000) {
         propertyList.select(this.rom.mapExit.item(this.m).item((tileProperties >> 8) & 0x0F));
@@ -461,29 +472,49 @@ FF4Map.prototype.tilePropertiesAtTile = function(x, y, layer) {
     layer = layer || FF4MapLayer.Type.layer1;
     var tileProperties;
     
-    if (this.rom.isGBA) {
-        var tp = this.mapProperties.tileProperties.value;
+    var tp, w, h, t, tile, layout;
+    if (this.rom.isGBA && this.isWorld && this.w === 2) {
+        layout = this.rom.moonTileProperties;
+        w = this.layer[0].w;
+        h = this.layer[0].h;
+        tile = x + y * w;
+        return layout.data[tile] | (layout.data[tile + w * h] << 8);
+        
+    } else if (this.rom.isGBA && this.isWorld) {
+        if (this.w === 3) {
+            tp = this.rom.worldTileProperties.item(0);
+        } else {
+            tp = this.rom.worldTileProperties.item(this.w);
+        }
+        w = this.layer[0].w;
+        h = this.layer[0].h;
+        t = x + y * w;
+        tile = this.layer[0].layout.data[t] || this.layer[1].layout.data[t]
+        return tp.item(tile);
+
+    } else if (this.rom.isGBA) {
+        tp = this.mapProperties.tileProperties.value;
         if (tp === 0xFFFF) return 0;
-        var layout = this.rom.mapGraphicsData.item(tp & 0x0FFF);
+        layout = this.rom.mapGraphicsData.item(tp & 0x0FFF);
         if (!layout.format) {
             layout.format = "tose-70";
             layout.disassemble(layout.parent.lazyData);
         }
-        var w = this.layer[0].w;
-        var h = this.layer[0].h;
-        var tile = x + y * w;
+        w = this.layer[0].w;
+        h = this.layer[0].h;
+        tile = x + y * w;
         return layout.data[tile] | (layout.data[tile + w * h] << 8);
         
     } else if (layer === FF4MapLayer.Type.layer1) {
-        var layout = this.layer[0].layout.data || this.layer[0].layout;
-        var tile = layout[x + y * 64];
-        var tileProperties = this.rom.mapTileProperties.item(this.mapProperties.graphics.value).item(tile);
+        layout = this.layer[0].layout.data || this.layer[0].layout;
+        tile = layout[x + y * 64];
+        tileProperties = this.rom.mapTileProperties.item(this.mapProperties.graphics.value).item(tile);
         return (tileProperties.data[0] | tileProperties.data[1] << 8);
         
     } else if (layer === FF4MapLayer.Type.world) {
-        var layout = this.worldLayer.layout.data || this.worldLayer.layout;
-        var tile = layout[x + y * 64];
-        var tileProperties = this.rom.worldTileProperties.item(this.m - 251).item(tile);
+        layout = this.worldLayer.layout.data || this.worldLayer.layout;
+        tile = layout[x + y * 64];
+        tileProperties = this.rom.worldTileProperties.item(this.m - 251).item(tile);
         return (tileProperties.data[0] | tileProperties.data[1] << 8);
         
     } else {
@@ -496,7 +527,7 @@ FF4Map.prototype.selectLayer = function(l) {
     l = Number(l);
     if (isNumber(l)) this.l = l;
     
-    if (this.isWorld) {
+    if (this.isWorld && this.rom.isSFC) {
         this.selectedLayer = this.worldLayer;
     } else {
         this.selectedLayer = this.layer[this.l]
@@ -508,6 +539,9 @@ FF4Map.prototype.selectLayer = function(l) {
 }
 
 FF4Map.prototype.selectWorldBattle = function(x, y) {
+    
+    if (this.rom.isGBA) return;
+    
     x >>= 5;
     y >>= 5;
 
@@ -539,10 +573,10 @@ FF4Map.prototype.changeLayer = function(id) {
     this[id] = document.getElementById(id).checked;
     var map = this.rom.mapProperties.item(this.m);
     this.ppu.layers[0].main = this.showLayer1;
-    if (!this.isWorld) {
-        if (this.rom.isSFC) {
-            this.ppu.layers[0].sub = this.showLayer1 && this.mapProperties.addition.value;
-        }
+    if (!this.isWorld && this.rom.isSFC) {
+        this.ppu.layers[0].sub = this.showLayer1 && this.mapProperties.addition.value;
+        this.ppu.layers[1].main = this.showLayer2;
+    } else if (this.rom.isGBA && this.ppu.layers[1].tiles) {
         this.ppu.layers[1].main = this.showLayer2;
     }
     this.invalidateMap();
@@ -611,15 +645,8 @@ FF4Map.prototype.drawCursor = function() {
         w = 16 * this.zoom;
         h = 16 * this.zoom;
 
-        if (this.selectedTrigger.vertical) {
-            var length = this.selectedTrigger.length.value;
-            var vertical = this.selectedTrigger.vertical.value;
-            if (vertical) {
-                h = 16 * this.zoom * (length);
-            } else {
-                w = 16 * this.zoom * (length);
-            }
-        }
+        if (this.selectedTrigger.width) w *= this.selectedTrigger.width.value;
+        if (this.selectedTrigger.height) h *= this.selectedTrigger.height.value;
 
         switch (this.selectedTrigger.key) {
             case "eventTriggers":
@@ -627,6 +654,7 @@ FF4Map.prototype.drawCursor = function() {
             case "mapTriggers":
                 c = "rgba(0, 0, 255, 1.0)";
                 break;
+            case "worldTriggers":
             case "entranceTriggers":
                 c = "rgba(255, 0, 0, 1.0)";
                 break;
@@ -686,6 +714,10 @@ FF4Map.prototype.show = function() {
     this.addTwoState("showTriggers", function() { map.changeLayer("showTriggers"); }, "Triggers", this.showTriggers);
     this.addTwoState("showScreen", function() { map.changeLayer("showScreen"); }, "Screen", this.showScreen);
     this.addZoom(this.zoom, function() { map.changeZoom(); });
+}
+
+FF4Map.prototype.hide = function() {
+    this.observer.stopObservingAll();
 }
 
 FF4Map.prototype.loadMap = function(m) {
@@ -841,19 +873,21 @@ FF4Map.prototype.loadMapGBA = function(m) {
 
     // set the map index
     m = Number(m);
+    
     if (isNumber(m) && this.m !== m) {
         // map changed
         this.m = m;
         this.observer.stopObservingAll();
-        if (this.m < 3) {
-            this.isWorld = true;
-            this.loadWorldMap(this.m);
-            return;
-        }
         this.isWorld = false;
         this.mapProperties = this.rom.mapProperties.item(this.m);
         this.observer.startObserving(this.mapProperties, this.loadMap);
-    }    
+    }
+
+    if (this.m < 3 || this.m === 0x015E) {
+        this.isWorld = true;
+        this.loadWorldMapGBA(this.m);
+        return;
+    }
 
     // get map properties
     var map = this.mapProperties;
@@ -901,14 +935,14 @@ FF4Map.prototype.loadMapGBA = function(m) {
     var h = layout.data[2] | (layout.data[3] << 8);
     
     // load first layer
-    this.layer[0].loadLayout({layout: layout, tileset: tileset, w: w, h: h});
+    this.layer[0].loadLayout({type: FF4MapLayer.Type.layer1, layout: layout, tileset: tileset, w: w, h: h});
 
     // load second layer
     if (layout.data.length < (4 + w * h * 2)) {
         // no second layer
         layout = new Uint8Array(w * h);
     }
-    this.layer[1].loadLayout({layout: layout, tileset: tileset, w: w, h: h});
+    this.layer[1].loadLayout({type: FF4MapLayer.Type.layer2, layout: layout, tileset: tileset, w: w, h: h});
 
     // set up the ppu
     this.ppu = new GFX.PPU();
@@ -1020,6 +1054,98 @@ FF4Map.prototype.loadWorldMap = function(m) {
     
     this.invalidateMap();
     this.selectedTrigger = null;
+    this.loadTriggers();
+    this.scroll();
+
+    this.tileset.loadMap(m);
+}
+
+FF4Map.prototype.loadWorldMapGBA = function(m) {
+    
+    this.w = m;
+    if (m === 0x015E) this.w = 3; // overworld map for cid's trial
+    
+    var layerButtons = document.getElementsByClassName("toolbox-button");
+    layerButtons[1].disabled = false;
+    layerButtons[2].disabled = false;
+
+    this.observer.stopObservingAll();
+    this.mapProperties = this.rom.worldProperties.item(this.w);
+    this.observer.startObserving(this.mapProperties, this.loadMap);
+    propertyList.select(this.mapProperties);
+    
+    var width = this.mapProperties.width.value >> 4;
+    var height = this.mapProperties.height.value >> 4;
+
+    // load graphics
+    var gfx = new Uint8Array(0x10000);
+    var graphics1 = this.mapProperties.graphics1.value;
+    if (graphics1) gfx.set(graphics1.data.subarray(8));
+    var graphics2 = this.mapProperties.graphics2.value;
+    if (graphics2) gfx.set(graphics2.data.subarray(8), 0x4000);
+    
+    // load palette
+    var pal = new Uint32Array(0x200);
+    var palette = this.mapProperties.palette.value;
+    if (palette) pal.set(palette.data.subarray(4));
+    pal[0] = 0xFF000000;
+
+    // load tileset
+    var tileset1 = this.mapProperties.tileset1.value.data;
+    var layout1 = this.mapProperties.layout1.value
+    if (layout1 && tileset1) {
+        if (layout1.range.length !== width * height) {
+            layout1.range.length = width * height;
+            layout1.disassemble(this.rom.data);
+        }
+        this.layer[0].loadLayout({type: FF4MapLayer.Type.world, layout: layout1, tileset: tileset1, w: width, h: height});
+    }
+
+    var tileset2 = this.mapProperties.tileset2.value;
+    if (tileset2) tileset2 = tileset2.data;
+    var layout2 = this.mapProperties.layout2.value
+    if (tileset2 && layout2) {
+        if (layout2.range.length !== width * height) {
+            layout2.range.length = width * height;
+            layout2.disassemble(this.rom.data);
+        }
+        this.layer[1].loadLayout({type: FF4MapLayer.Type.world, layout: layout2, tileset: tileset2, w: width, h: height});
+    }
+    
+    // set up the ppu
+    this.ppu = new GFX.PPU();
+    this.ppu.pal = pal;
+    this.ppu.width = width * 16;
+    this.ppu.height = height * 16;
+    this.ppu.back = true;
+
+    // layer 1
+    this.ppu.layers[0].format = GFX.TileFormat.gba8bppTile;
+    this.ppu.layers[0].cols = width * 2;
+    this.ppu.layers[0].rows = height * 2;
+    this.ppu.layers[0].z[0] = GFX.Z.snes1L;
+    this.ppu.layers[0].z[1] = GFX.Z.snes1H;
+    this.ppu.layers[0].gfx = gfx.subarray(0x0000);
+    this.ppu.layers[0].tiles = this.layer[0].tiles;
+    this.ppu.layers[0].main = this.showLayer1 && layout1 && tileset1; // layer 1 always in main screen
+
+    this.ppu.layers[1].format = GFX.TileFormat.gba8bppTile;
+    this.ppu.layers[1].cols = width * 2;
+    this.ppu.layers[1].rows = height * 2;
+    this.ppu.layers[1].z[0] = GFX.Z.snes2L;
+    this.ppu.layers[1].z[1] = GFX.Z.snes2H;
+    this.ppu.layers[1].gfx = gfx.subarray(0x4000);
+    this.ppu.layers[1].tiles = this.layer[1].tiles;
+    this.ppu.layers[1].main = this.showLayer2 && layout2 && tileset2;
+    
+    this.scrollDiv.style.width = (this.ppu.width * this.zoom).toString() + "px";
+    this.scrollDiv.style.height = (this.ppu.height * this.zoom).toString() + "px";
+    this.mapCanvas.width = this.ppu.width;
+    this.mapCanvas.height = this.ppu.height;
+    
+    this.invalidateMap();
+    this.selectedTrigger = null;
+    this.triggers = [];
     this.loadTriggers();
     this.scroll();
 
@@ -1165,6 +1291,11 @@ FF4Map.prototype.loadTriggers = function() {
 }
 
 FF4Map.prototype.loadTriggersGBA = function() {
+    if (this.isWorld) {
+        this.loadWorldTriggersGBA();
+        return;
+    }
+
     var i;
     this.triggers = [];
     this.loadedEvents = [];
@@ -1226,6 +1357,91 @@ FF4Map.prototype.loadTriggersGBA = function() {
                 if (!object) continue;
                 this.fixTreasureGBA(object);
                 key = "treasureProperties";
+            } else {
+                continue;
+            }
+            this.triggers.push({
+                key: key,
+                x: {value: x},
+                y: {value: y},
+                object: object
+            });
+        }
+    }
+}
+
+FF4Map.prototype.loadWorldTriggersGBA = function() {
+
+    this.triggers = [];
+    this.loadedEvents = [];
+
+//    // load world map events
+//    var event = this.rom.eventScript.item(66);
+//    if (!event) return;
+//
+//    for (var c = 0; c < event.command.length; c++) {
+//        var command = event.command[c];
+//        if (command.key === "createObject") {
+//            this.observer.startObserving(command, this.reloadTriggers);
+//            this.triggers.push(command);
+//        } else if (command.key === "jumpPosition") {
+//            this.observer.startObserving(command, this.reloadTriggers);
+//            this.triggers.push(command);
+//        }
+//
+//        if (command.scriptPointer && command.event2) {
+//            // load nested events
+//            this.loadEventGBA(command);
+//        }
+//    }
+
+    if (this.w === 2) {
+        this.loadMoonTriggersGBA();
+        return;
+    }
+
+    // load triggers
+    var worldTriggersIndex = 0;
+    if (this.w === 1) worldTriggersIndex = 1;
+    if (this.w === 3) worldTriggersIndex = 2;
+    var triggers = this.rom.worldTriggers;
+    this.observer.startObserving(triggers, this.reloadTriggers);
+    
+    var currentIndex = 0;
+    for (var i = 0; i < triggers.array.length; i++) {
+        var trigger = triggers.item(i);
+        if (trigger.data[0] === 0) {
+            currentIndex++;
+            continue;
+        }
+        if (worldTriggersIndex !== currentIndex) continue;
+        this.triggers.push(trigger);
+    }
+}
+
+FF4Map.prototype.loadMoonTriggersGBA = function() {
+
+    // load tile properties triggers
+    var exits = this.rom.worldExit;
+    for (var y = 0; y < this.layer[0].h; y++) {
+        for (var x = 0; x < this.layer[0].w; x++) {
+            var tp = this.tilePropertiesAtTile(x, y);
+            var object = null;
+            var key;
+            if (tp & 0x0040) {
+                // exit (upper z-level)
+                if (!exits) continue;
+                tp = tp & 0x0F;
+                object = exits.item(tp + 37);
+                if (!object) continue;
+                key = "entranceTriggers";
+            } else if (tp & 0x4000) {
+                // exit (lower z-level)
+                if (!exits) continue;
+                tp = (tp & 0x0F00) >> 8;
+                object = exits.item(tp + 37);
+                if (!object) continue;
+                key = "entranceTriggers";
             } else {
                 continue;
             }
@@ -1304,9 +1520,6 @@ FF4Map.prototype.loadEventGBA = function(object) {
         }
         
         if (command.scriptPointer && command.event2) {
-//        if (command.scriptPointer !== undefined &&
-//            command.scriptPointer.value !== e &&
-//            command.event.value === 0) {
             // load nested events
             this.loadEventGBA(command);
         }
@@ -1454,10 +1667,30 @@ FF4Map.prototype.drawTriggers = function() {
         var c = "purple";
         switch (trigger.key) {
             case "jumpPosition":
+                c = "rgba(0, 0, 255, 0.5)";
+                for (var y = 0; y < trigger.height.value; y++) {
+                    for (var x = 0; x < trigger.width.value; x++) {
+                        drawTriggerRect(trigger.x.value + x, trigger.y.value + y, c);
+                    }
+                }
+                continue;
             case "eventTriggers":
             case "mapTriggers":
                 c = "rgba(0, 0, 255, 0.5)";
                 break;
+            case "worldTriggers":
+                for (var y = 0; y < trigger.height.value; y++) {
+                    for (var x = 0; x < trigger.width.value; x++) {
+                        var tp = this.tilePropertiesAtTile(trigger.x.value + x, trigger.y.value + y);
+                        if (tp.tileType.value === 1 || tp.tileType.value >= 4) {
+                            c = "rgba(255, 0, 0, 0.5)";
+                        } else {
+                            c = "rgba(0, 0, 0, 0)"; // not a valid trigger tile
+                        }
+                        drawTriggerRect(trigger.x.value + x, trigger.y.value + y, c);
+                    }
+                }
+                continue;
             case "entranceTriggers":
                 c = "rgba(255, 0, 0, 0.5)";
                 break;
@@ -1512,15 +1745,8 @@ FF4Map.prototype.triggersAt = function (x, y) {
         top = trigger.y.value * 16 * zoom;
         bottom = top + 16 * zoom;
         
-        if (trigger.vertical) {
-            length = trigger.length.value;
-            vertical = trigger.vertical.value;
-            if (vertical) {
-                bottom = top + 16 * zoom * (length);
-            } else {
-                right = left + 16 * zoom * (length);
-            }
-        }
+        if (trigger.width) right = left + 16 * zoom * trigger.width.value;
+        if (trigger.height) bottom = top + 16 * zoom * trigger.height.value;
         
         if (x >= left && x < right && y >= top && y < bottom)
             triggers.push(trigger);        
@@ -1938,8 +2164,8 @@ FF4MapTileset.prototype.loadMap = function(m) {
     this.ppu.back = true;
 
     if (this.rom.isGBA) {
-        this.layer[0].loadLayout({layout: layout, tileset: this.map.layer[0].tileset, w: 16, h: 16});
-        this.layer[1].loadLayout({layout: layout, tileset: this.map.layer[1].tileset, w: 16, h: 16});
+        this.layer[0].loadLayout({type: this.map.layer[0].type, layout: layout, tileset: this.map.layer[0].tileset, w: 16, h: 16});
+        this.layer[1].loadLayout({type: this.map.layer[1].type, layout: layout, tileset: this.map.layer[1].tileset, w: 16, h: 16});
         
         // layer 1
         this.ppu.layers[0].format = GFX.TileFormat.gba4bppTile;
@@ -1993,7 +2219,7 @@ FF4MapTileset.prototype.loadMap = function(m) {
         this.ppu.layers[1].gfx = this.map.ppu.layers[1].gfx;
         this.ppu.layers[1].tiles = this.layer[1].tiles;
     }
-    
+     
     this.selectLayer(this.map.l);
 }
 
@@ -2012,6 +2238,7 @@ FF4MapLayer.Type = {
 
 FF4MapLayer.prototype.loadLayout = function(definition) {
 
+    if (definition.type) this.type = definition.type;
     this.layout = definition.layout;
     this.tileset = definition.tileset;
     this.w = definition.w;
@@ -2041,7 +2268,10 @@ FF4MapLayer.prototype.setLayout = function(layout) {
     for (var row = 0; row < clippedH; row++) {
         var ls = 5 + row * w;
         var ld = x + (y + row) * this.w;
-        if (this.rom.isGBA) {
+        if (this.rom.isGBA && this.type === "world") {
+            if (ld + clippedW > this.layout.data.length) break;
+            this.layout.setData(layout.slice(ls, ls + clippedW), ld);
+        } else if (this.rom.isGBA) {
             if (ld + clippedW > this.layout.data.length) break;
             ld += 4;
             if (this.type === FF4MapLayer.Type.layer2) ld += this.w * this.h;
@@ -2071,7 +2301,9 @@ FF4MapLayer.prototype.getLayout = function(col, row, cols, rows) {
     selection.set([0x73, col, row, cols, rows]);
     for (var y = 0; y < rows; y++) {
         for (var x = 0; x < cols; x++) {
-            if (this.rom.isGBA) {
+            if (this.rom.isGBA && this.type === "world") {
+                selection[5 + x + y * cols] = layout[x + clippedCol + (y + clippedRow) * this.w];
+            } else if (this.rom.isGBA) {
                 var offset = 4;
                 if (this.type === FF4MapLayer.Type.layer2) offset += this.w * this.h;
                 selection[5 + x + y * cols] = layout[x + clippedCol + (y + clippedRow) * this.w + offset];
@@ -2102,7 +2334,11 @@ FF4MapLayer.prototype.decodeLayout = function(x, y, w, h) {
             this.decodeMapLayout(x, y, w, h);
             break;
         case FF4MapLayer.Type.world:
-            this.decodeWorldLayout(x, y, w, h);
+            if (this.rom.isSFC) {
+                this.decodeWorldLayout(x, y, w, h);
+            } else {
+                this.decodeWorldLayoutGBA(x, y, w, h);
+            }
             break;
         default:
             break;
@@ -2119,7 +2355,7 @@ FF4MapLayer.prototype.decodeMapLayout = function(x, y, w, h) {
     if (this.rom.isSFC) {
         for (row = 0; row < h; row++) {
             for (col = 0; col < w; col++) {
-                tile = layout[l + col] * 2;   
+                tile = layout[l + col] * 2;
                 i = t + col * 2;
                 if (i > this.tiles.length) return;
                 this.tiles[i + 0] = this.tileset[tile + 0x0000] | (this.tileset[tile + 0x0001] << 8);
@@ -2173,7 +2409,6 @@ FF4MapLayer.prototype.decodeWorldLayout = function(x, y, w, h) {
         var p = this.paletteAssignment[t] << 6;
         tileset[i] = t | p;
     }
-    
     var layout = this.layout;
     if (layout[0] instanceof ROMAssembly) {
         layout = new Uint8Array(0x10000);
@@ -2181,13 +2416,14 @@ FF4MapLayer.prototype.decodeWorldLayout = function(x, y, w, h) {
             layout.set(this.layout[i].data, i * this.w);
         }
     }
+    
     var l = x + y * this.w;
     var t = x * 2 + y * this.w * 4;
     var row, col, tile;
 
     for (row = 0; row < h; row++) {
         for (col = 0; col < w; col++) {
-            tile = layout[l + col];   
+            tile = layout[l + col];
             if (tile > 0x7F) tile = 0;
             i = t + col * 2;
             if (i > this.tiles.length) return;
@@ -2196,6 +2432,29 @@ FF4MapLayer.prototype.decodeWorldLayout = function(x, y, w, h) {
             i += this.w * 2;
             this.tiles[i + 0] = tileset[tile + 0x0100];
             this.tiles[i + 1] = tileset[tile + 0x0180];
+        }
+        t += this.w * 4;
+        l += this.w;
+    }
+}
+
+FF4MapLayer.prototype.decodeWorldLayoutGBA = function(x, y, w, h) {
+
+    var l = x + y * this.w;
+    var t = x * 2 + y * this.w * 4;
+    var row, col, tile, i;
+    var layout = this.layout.data || this.layout;
+
+    for (row = 0; row < h; row++) {
+        for (col = 0; col < w; col++) {
+            tile = layout[l + col] * 4;
+            i = t + col * 2;
+            if (i > this.tiles.length) return;
+            this.tiles[i + 0] = this.tileset[tile + 0];
+            this.tiles[i + 1] = this.tileset[tile + 1];
+            i += this.w * 2;
+            this.tiles[i + 0] = this.tileset[tile + 2];
+            this.tiles[i + 1] = this.tileset[tile + 3];
         }
         t += this.w * 4;
         l += this.w;

@@ -27,4 +27,4 @@ https://www.ff6hacking.com/wiki/doku.php?id=ff3:ff3us:util:ff6tools
 
 ## Acknowledgments
 
-The following people contributed to FF6Tools, either indirectly by creating documents and tools that were used for reference or directly via chatting on forums (in no particular order): madsiur, Geiger/Evil Peer, Cless, Master ZED, Imzogelmo, Terrii Senshi, Mnrogar, Yousei, Lord J, Novalia Spirit, Corundum, giangurgolo, Disch, Ben Siron, PKT Paladin, Kea, JCE3000GT, samurai goroh, Lenophis, m06, Squall_FF8, Warrax, Tenkarider
+The following people contributed to FF6Tools, either indirectly by creating documents and tools that were used for reference or directly via chatting on forums (in no particular order): madsiur, Geiger/Evil Peer, Cless, Master ZED, Imzogelmo, Terrii Senshi, Mnrogar, Yousei, Lord J, Novalia Spirit, Corundum, giangurgolo, Disch, Ben Siron, PKT Paladin, Kea, JCE3000GT, samurai goroh, Lenophis, m06, Squall_FF8, Warrax, Tenkarider, Grimoire LD

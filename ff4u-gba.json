@@ -362,42 +362,42 @@
                 "type": "data",
                 "length": 16,
                 "assembly": {
-                    "white": {
+                    "whiteInitial": {
                         "type": "property",
                         "name": "Initial White Magic",
                         "begin": 0,
                         "mask": "0x7FFFFFFF",
-                        "pointerTo": "spellListInitialWhite",
+                        "pointerTo": "spellListInitial",
                         "special": {
                             "0": "None"
                         }
                     },
-                    "black": {
+                    "blackInitial": {
                         "type": "property",
                         "name": "Initial Black Magic",
                         "begin": 4,
                         "mask": "0x7FFFFFFF",
-                        "pointerTo": "spellListInitialBlack",
+                        "pointerTo": "spellListInitial",
                         "special": {
                             "0": "None"
                         }
                     },
-                    "summon": {
+                    "summonInitial": {
                         "type": "property",
                         "name": "Initial Summon Magic",
                         "begin": 8,
                         "mask": "0x7FFFFFFF",
-                        "pointerTo": "spellListInitialSummon",
+                        "pointerTo": "spellListInitial",
                         "special": {
                             "0": "None"
                         }
                     },
-                    "ninjutsu": {
+                    "ninjutsuInitial": {
                         "type": "property",
                         "name": "Initial Ninjutsu Magic",
                         "begin": 12,
                         "mask": "0x7FFFFFFF",
-                        "pointerTo": "spellListInitialNinjutsu",
+                        "pointerTo": "spellListInitial",
                         "special": {
                             "0": "None"
                         }
@@ -416,42 +416,42 @@
                 "type": "data",
                 "length": 16,
                 "assembly": {
-                    "white": {
+                    "whiteLearned": {
                         "type": "property",
                         "name": "Learned White Magic",
                         "begin": 0,
                         "mask": "0x7FFFFFFF",
-                        "pointerTo": "spellListLearnedWhite",
+                        "pointerTo": "spellListLearned",
                         "special": {
                             "0": "None"
                         }
                     },
-                    "black": {
+                    "blackLearned": {
                         "type": "property",
                         "name": "Learned Black Magic",
                         "begin": 4,
                         "mask": "0x7FFFFFFF",
-                        "pointerTo": "spellListLearnedBlack",
+                        "pointerTo": "spellListLearned",
                         "special": {
                             "0": "None"
                         }
                     },
-                    "summon": {
+                    "summonLearned": {
                         "type": "property",
                         "name": "Learned Summon Magic",
                         "begin": 8,
                         "mask": "0x7FFFFFFF",
-                        "pointerTo": "spellListLearnedSummon",
+                        "pointerTo": "spellListLearned",
                         "special": {
                             "0": "None"
                         }
                     },
-                    "ninjutsu": {
+                    "ninjutsuLearned": {
                         "type": "property",
                         "name": "Learned Ninjutsu Magic",
                         "begin": 12,
                         "mask": "0x7FFFFFFF",
-                        "pointerTo": "spellListLearnedNinjutsu",
+                        "pointerTo": "spellListLearned",
                         "special": {
                             "0": "None"
                         }
@@ -622,45 +622,45 @@
                     "initialSpellListWhite": {
                         "type": "assembly",
                         "name": "Initial",
-                        "external": "characterSpellListInitial[%i].white"
+                        "external": "characterSpellListInitial[%i].whiteInitial"
                     },
                     "learnedSpellListWhite": {
                         "type": "assembly",
                         "name": "Learned",
-                        "external": "characterSpellListLearned[%i].white"
+                        "external": "characterSpellListLearned[%i].whiteLearned"
                     },
                     "cat-black": "Black Magic",
                     "initialSpellListBlack": {
                         "type": "assembly",
                         "name": "Initial",
-                        "external": "characterSpellListInitial[%i].black"
+                        "external": "characterSpellListInitial[%i].blackInitial"
                     },
                     "learnedSpellListBlack": {
                         "type": "assembly",
                         "name": "Learned",
-                        "external": "characterSpellListLearned[%i].black"
+                        "external": "characterSpellListLearned[%i].blackLearned"
                     },
                     "cat-summon": "Summon Magic",
                     "initialSpellListSummon": {
                         "type": "assembly",
                         "name": "Initial",
-                        "external": "characterSpellListInitial[%i].summon"
+                        "external": "characterSpellListInitial[%i].summonInitial"
                     },
                     "learnedSpellListSummon": {
                         "type": "assembly",
                         "name": "Learned",
-                        "external": "characterSpellListLearned[%i].summon"
+                        "external": "characterSpellListLearned[%i].summonLearned"
                     },
                     "cat-ninjutsu": "Ninjutsu Magic",
                     "initialSpellListNinjutsu": {
                         "type": "assembly",
                         "name": "Initial",
-                        "external": "characterSpellListInitial[%i].ninjutsu"
+                        "external": "characterSpellListInitial[%i].ninjutsuInitial"
                     },
                     "learnedSpellListNinjutsu": {
                         "type": "assembly",
                         "name": "Learned",
-                        "external": "characterSpellListLearned[%i].ninjutsu"
+                        "external": "characterSpellListLearned[%i].ninjutsuLearned"
                     }
                 }
             },
@@ -790,15 +790,51 @@
                     "0": "Treasure",
                     "1": "Empty Treasure Chest",
                     "2": "Game Start",
+                    "3": "Intro - Arriving at Castle Baron",
+                    "4": "Devil's Road - Mysidia to Baron",
+                    "5": "Devil's Road - Baron to Mysidia",
                     "6": "Default Map Event (Screen Wipe)",
-                    "7": "Restore HP and Status",
+                    "7": "Restore HP & Status",
                     "8": "Restore MP",
+                    "9": "Restore HP & MP",
                     "10": "Namingway",
                     "11": "Inn",
                     "13": "Big Chocobo",
-                    "15": "Fireplace",
+                    "15": "Fireplace 1",
+                    "16": "Fireplace 2",
+                    "57": "Magazine",
+                    "66": "World Maps",
                     "138": "Castle Baron",
                     "139": "Castle Baron (Cid Intro)",
+                    "144": "Castle Baron (Baigan Intro)",
+                    "145": "Castle Baron - First Floor",
+                    "146": "Castle Baron - First Floor (Kain & Cecil Intro)",
+                    "147": "Castle Baron - First Floor (Baigan Battle)",
+                    "148": "Castle Baron - Second Floor",
+                    "149": "Castle Baron - Second Floor (Kain & Cecil Intro)",
+                    "150": "Castle Baron - Second Floor (Cid Reveals Airship)",
+                    "151": "Castle Baron - Third Floor",
+                    "152": "Castle Baron - Third Floor (Twins' Sacrifice)",
+                    "153": "Castle Baron - Third Floor (Use Gold Needle)",
+                    "154": "Castle Baron - Throne Room",
+                    "155": "Castle Baron - Throne Room (Cagnazzo Battle)",
+                    "156": "Castle Baron - Throne Room (Cagnazzo Death)",
+                    "157": "Castle Baron - Black Magic Research Lab",
+                    "158": "Castle Baron - White Magic Research Lab",
+                    "159": "Castle Baron - Stairway (Rosa)",
+                    "160": "Castle Baron - Dungeons",
+                    "161": "Castle Baron - Barracks",
+                    "162": "Castle Baron - West Tower (Cecil's Maid)",
+                    "163": "Castle Baron - Cecil's Chamber",
+                    "164": "Castle Baron - Cecil's Chamber (Sleeping)",
+                    "165": "Castle Baron - Treasure Room",
+                    "166": "Castle Baron - Hallway to Odin",
+                    "167": "Castle Baron - Odin's Room",
+                    "168": "Castle Baron - Attaching the Hook",
+                    "169": "Castle Baron - Stairway to Enterprise",
+                    "170": "Castle Baron - Acquire Enterprise",
+                    "171": "Enterprise - Heading to Troia",
+                    "172": "Enterprise - Kain Scene 1",
                     "173": "Damcyan Castle - Basement",
                     "174": "Damcyan Castle",
                     "176": "Damcyan Castle - First Floor",
@@ -807,6 +843,64 @@
                     "179": "Damcyan Castle - Third Floor (Scene 2)",
                     "180": "Damcyan Castle - Third Floor",
                     "181": "Damcyan Castle - Dungeons",
+                    "191": "Dwarf Castle - First Floor",
+                    "192": "Dwarf Castle - First Floor (Dwarf 1)",
+                    "193": "Dwarf Castle - First Floor (Dwarf 2)",
+                    "194": "Dwarf Castle - First Floor (Dwarf 3)",
+                    "195": "Dwarf Castle - First Floor (Dwarf 4)",
+                    "196": "Dwarf Castle - First Floor (Dwarf 5)",
+                    "197": "Dwarf Castle - First Floor (Dwarf 6)",
+                    "198": "Dwarf Castle - First Floor (Dwarf 7)",
+                    "199": "Dwarf Castle - First Floor (Luca)",
+                    "200": "Dwarf Castle - Throne Room",
+                    "201": "Dwarf Castle - Throne Room (King Giott)",
+                    "202": "Dwarf Castle - Throne Room (Luca)",
+                    "203": "Dwarf Castle - Throne Room (Dwarf 1)",
+                    "204": "Dwarf Castle - Throne Room (Dwarf 2)",
+                    "205": "Dwarf Castle - Throne Room (Dwarf 3)",
+                    "206": "Dwarf Castle - Throne Room (Dwarf 4)",
+                    "207": "Dwarf Castle - Crystal Room",
+                    "219": "Dwarf Castle - Lali Ho Pub",
+                    "220": "Dwarf Castle - B1",
+                    "221": "Dwarf Castle - B1 (Dwarf 1)",
+                    "222": "Dwarf Castle - B1 (Dwarf 2)",
+                    "223": "Dwarf Castle - B1 (Dwarf 3)",
+                    "224": "Dwarf Castle - Infirmary",
+                    "225": "Dwarf Castle - Infirmary (Cid 1)",
+                    "226": "Dwarf Castle - Infirmary (Cid 2)",
+                    "227": "Dwarf Castle - Infirmary (Dwarf 1)",
+                    "228": "Dwarf Castle - Infirmary (Dwarf 2)",
+                    "229": "Dwarf Castle - Infirmary (Dwarf 3)",
+                    "230": "Dwarf Castle - Infirmary (Dwarf 4)",
+                    "231": "Dwarf Castle - Dev Team Office",
+                    "232": "Dwarf Castle - Dev Team Office (Sakaguchi)",
+                    "233": "Dwarf Castle - Dev Team Office (Matsumura)",
+                    "234": "Dwarf Castle - Dev Team Office (Hoshino)",
+                    "235": "Dwarf Castle - Dev Team Office (Taka)",
+                    "236": "Dwarf Castle - Dev Team Office (R. Tanaka)",
+                    "237": "Dwarf Castle - Dev Team Office (Nakada)",
+                    "238": "Dwarf Castle - Dev Team Office (Adachi)",
+                    "239": "Dwarf Castle - Dev Team Office (Adachi)",
+                    "240": "Dwarf Castle - Dev Team Office (S. Tanaka)",
+                    "241": "Dwarf Castle - Dev Team Office (Dobashi)",
+                    "242": "Dwarf Castle - Dev Team Office (K. Koizumi)",
+                    "243": "Dwarf Castle - Music Room",
+                    "244": "Dwarf Castle - Music Room (M. Akao)",
+                    "245": "Dwarf Castle - Music Room (A. Ueda)",
+                    "246": "Dwarf Castle - Music Room (N. Uematsu)",
+                    "247": "Dwarf Castle - Music Room (K. Ito)",
+                    "248": "Dwarf Castle - Break Room",
+                    "249": "Dwarf Castle - Break Room (Flyer)",
+                    "250": "Dwarf Castle - Break Room (T. Tokita)",
+                    "251": "Dwarf Castle - Break Room (K. Naria)",
+                    "252": "Dwarf Castle - Tunnel",
+                    "257": "Dwarf Castle - Base",
+                    "258": "Dwarf Castle - Base (Dwarf 1)",
+                    "259": "Dwarf Castle - Base (Dwarf 2)",
+                    "260": "Dwarf Castle - Base (Dwarf 3)",
+                    "261": "Dwarf Castle - Base (Dwarf 4)",
+                    "262": "Dwarf Castle - Base (Dwarf 5)",
+                    "263": "Dwarf Castle - Base (Dwarf 6)",
                     "272": "Fabul Castle",
                     "273": "Fabul Castle (Battle)",
                     "274": "Fabul Castle - First Floor",
@@ -951,7 +1045,6 @@
             "array": {
                 "length": 325
             },
-            "stringTable": "itemNames",
             "assembly": {
                 "type": "data",
                 "length": 8,
@@ -1004,6 +1097,25 @@
                                 "2": "No Back Row Penalty"
                             }
                         }
+                    }
+                }
+            }
+        },
+        "itemPower": {
+            "type": "array",
+            "name": "Item Power",
+            "range": "0x080F65D0-0x080F6715",
+            "array": {
+                "length": 325
+            },
+            "assembly": {
+                "type": "data",
+                "length": 1,
+                "assembly": {
+                    "power": {
+                        "type": "property",
+                        "name": "Power",
+                        "begin": 0
                     }
                 }
             }
@@ -1104,7 +1216,75 @@
                         "type": "property",
                         "name": "Spell Cast",
                         "begin": 16,
-                        "mask": "0xFF"
+                        "mask": "0xFFFF",
+                        "stringTable": {
+                            "string": {
+                                "0": "None",
+                                "1-174": "<stringTable.attackName[%i]>",
+                                "176": "Bomb Fragment",
+                                "177": "Bomb Arm",
+                                "178": "Antarctic Wind",
+                                "179": "Arctic Wind",
+                                "180": "Rage of Zeus",
+                                "181": "Rage of the Gods",
+                                "182": "Stardust",
+                                "183": "Kiss of Lilith",
+                                "184": "Vampire Fang",
+                                "185": "Bacchus's Cider",
+                                "186": "Hermes's Shoes",
+                                "187": "Hourglass",
+                                "188": "Silver Hourglass",
+                                "189": "Gold Hourglass",
+                                "190": "Spider's Silk",
+                                "191": "Decoy",
+                                "192": "Red Fang",
+                                "193": "White Fang",
+                                "194": "Blue Fang",
+                                "195": "Light Curtain",
+                                "196": "Bomb Core",
+                                "197": "Lunar Curtain",
+                                "198": "Bell of Silence",
+                                "199": "Gaia Drum",
+                                "200": "Crystal",
+                                "201": "Coeurl's Whisker",
+                                "202": "Grimoire",
+                                "203": "Bestiary",
+                                "204": "Alarm Clock",
+                                "205": "Unicorn Horn",
+                                "206": "Potion",
+                                "207": "Hi-Potion",
+                                "208": "X-Potion",
+                                "209": "Ether",
+                                "210": "Dry Ether",
+                                "211": "Elixir",
+                                "212": "Phoenix Down",
+                                "213": "Gold Needle",
+                                "214": "Maiden's Kiss",
+                                "215": "Mallet",
+                                "216": "Diet Food",
+                                "217": "Echo Herbs",
+                                "218": "Eye Drops",
+                                "219": "Anitdote",
+                                "220": "Cross",
+                                "221": "Remedy",
+                                "222": "Siren",
+                                "256": "Lunar Odin",
+                                "257": "Lunar Leviathan",
+                                "258": "Lunar Asura",
+                                "259": "Lunar Shiva",
+                                "260": "Lunar Ifrit",
+                                "261": "Lunar Ramuh",
+                                "262": "Lunar Titan",
+                                "263": "Lunar Bahamut",
+                                "264": "Lunar Dragon",
+                                "265": "Megalixir"
+                            }
+                        }
+                    },
+                    "power": {
+                        "type": "assembly",
+                        "name": "Spell Power",
+                        "external": "itemPower[%i].power"
                     },
                     "targeting": {
                         "type": "property",
@@ -1390,14 +1570,14 @@
                             "string": {
                                 "0": "Can Use in Field",
                                 "1": "Can Use in Battle",
-                                "2": "Usage 8.2",
+                                "2": "Tent/Cottage",
                                 "3": "Usage 8.3",
                                 "4": "Usage 8.4",
                                 "5": "Usage 8.5",
                                 "6": "Two-Handed",
                                 "7": "Usage 8.7",
                                 "8": "Usage 9.0",
-                                "9": "Usage 9.1",
+                                "9": "Increase Max HP/MP",
                                 "10": "Usage 9.2",
                                 "11": "Usage 9.3",
                                 "12": "Usage 9.4",
@@ -1598,6 +1778,17 @@
                             "type": "property",
                             "name": "Y Destination",
                             "begin": 3
+                        },
+                        "direction": {
+                            "type": "property",
+                            "name": "Direction",
+                            "begin": 4
+                        },
+                        "unknown_6": {
+                            "type": "property",
+                            "name": "Unknown 6",
+                            "begin": 6,
+                            "mask": "0xFFFF"
                         }
                     }
                 }
@@ -1727,7 +1918,28 @@
                 "length": 499,
                 "default": "Map %i",
                 "string": {
-                    "0-350": "<text[%i+0x0917]>"
+                    "0-344": "<text[%i+0x0917]>",
+                    "349": "Debug Room",
+                    "350": "Cid's Trial - Overworld",
+                    "351": "Kain's Trial - Lunar Ruins",
+                    "361": "Cecil's Trial - Lunar Ruins",
+                    "377": "Cid's Trial - Lunar Ruins",
+                    "378": "Cid's Trial - Troia",
+                    "379": "Cid's Trial - Fabul",
+                    "380": "Cid's Trial - Kaipo",
+                    "381": "Cid's Trial - Agart",
+                    "382": "Cid's Trial - Mysidia",
+                    "383": "Cid's Trial - Airship",
+                    "384": "Edge's Trial - Lunar Ruins",
+                    "390": "Edward's Trial - Lunar Ruins",
+                    "397": "Palom & Porom's Trial - Lunar Ruins",
+                    "413": "Rosa's Trial - Lunar Ruins",
+                    "416": "Rydia's Trial - Lunar Ruins",
+                    "418": "Yang's Trial - Lunar Ruins",
+                    "420": "Lunar Ruins - Zeromus EG",
+                    "423": "Cave of Trials - Mt. Ordeals Entrance",
+                    "424": "Cave of Trials - Mirror Room",
+                    "425-433": "<text[%i+0x08CE]>"
                 }
             }
         },
@@ -1839,115 +2051,115 @@
                     "30": "Soldier 1",
                     "31": "Soldier 2",
                     "32": "Soldier 3",
-                    "33": "Soldier 4",
-                    "34": "Bald Man 1",
-                    "35": "Bald Man 2",
-                    "36": "Bald Man 3",
-                    "37": "Woman 1",
-                    "38": "Woman 2",
-                    "39": "Woman 3",
-                    "40": "White Mage 1",
-                    "41": "White Mage 2",
-                    "42": "Black Mage 1",
-                    "43": "Black Mage 2",
-                    "44": "Chocobo 1",
-                    "45": "Chocobo 2",
-                    "46": "Chocobo 3",
-                    "47": "Chocobo 4",
-                    "48": "Engineer 1",
-                    "49": "Engineer 2",
-                    "50": "Engineer 3",
-                    "51": "King 1",
-                    "52": "King 2",
-                    "53": "King 3",
-                    "54": "Old Man 1",
-                    "55": "Old Man 2",
-                    "56": "Old Man 3",
-                    "57": "Boy 1",
-                    "58": "Boy 2",
-                    "59": "Boy 3",
-                    "60": "Girl 1",
-                    "61": "Girl 2",
-                    "62": "Girl 3",
-                    "63": "Dancer 1",
-                    "64": "Dancer 2",
-                    "65": "Dancer 3",
-                    "66": "Dancer 4",
-                    "67": "Dancer 5",
-                    "68": "Dancer 6",
-                    "72": "Man 1",
-                    "73": "Man 2",
-                    "74": "Man 3",
-                    "75": "Cleric 1",
-                    "76": "Cleric 2",
-                    "77": "Cleric 3",
-                    "78": "Monk 1",
-                    "79": "Monk 2",
-                    "80": "Monk 3",
-                    "81": "Merchant 1",
-                    "82": "Merchant 2",
-                    "83": "Merchant 3",
-                    "84": "Namingway 1",
-                    "85": "Namingway 2",
-                    "86": "Namingway 3",
-                    "87": "Big Chocobo",
-                    "88": "Bomb 1",
-                    "89": "Bomb 2",
-                    "90": "Anna (Dead)",
-                    "91": "Scholar 1",
-                    "92": "Scholar 2",
-                    "93": "Ship",
-                    "94": "Tank",
-                    "95": "Crystal 1",
-                    "96": "Flame",
-                    "97": "Smoke 1",
-                    "98": "Smoke 2",
-                    "99": "Water Splash",
-                    "100": "Anna",
-                    "101": "Sparkle",
-                    "102": "Monster 1",
-                    "103": "Monster 2",
-                    "104": "Monster 3",
-                    "105": "Explosion 1",
-                    "106": "Explosion 2",
-                    "107": "Lightning",
-                    "108": "Cabin",
-                    "109": "Tent",
-                    "110": "Sylph",
-                    "111": "Cagnazzo",
-                    "112": "Stone Palom/Porom",
-                    "115": "Dwarf King",
-                    "116": "Dwarf Girl",
-                    "117": "Dwarf 1",
-                    "118": "Dwarf 2",
-                    "119": "Dwarf 3",
-                    "120": "Zemus",
-                    "121": "Magus Sisters 1",
-                    "122": "Magus Sisters 2",
-                    "123": "Magus Sisters 3",
-                    "124": "Antlion",
-                    "126": "Bahamut",
-                    "128": "Barbariccia",
-                    "129": "Doll",
-                    "130": "Golbez' Hand",
-                    "131": "Dr. Lugae",
-                    "132": "Rubicante",
-                    "133": "Tentacles",
-                    "134": "Ragnarok",
-                    "135": "Murasame/Masamune",
-                    "136": "Holy Lance",
-                    "137": "Pendulum",
-                    "138": "Ice Barrier",
-                    "142": "Crystal 2",
-                    "143": "Crystal 3",
-                    "144": "Crystal 4",
-                    "148": "Sword of Legend",
-                    "149": "Flame 1",
-                    "150": "Flame 2",
-                    "156": "Heart Bubble",
-                    "158": "Zzz Bubble",
-                    "162": "Zeromus",
-                    "163": "Dancer Foot"
+                    "33": "Bald Man 1",
+                    "34": "Bald Man 2",
+                    "35": "Bald Man 3",
+                    "36": "Woman 1",
+                    "37": "Woman 2",
+                    "38": "Woman 3",
+                    "39": "White Mage 1",
+                    "40": "White Mage 2",
+                    "41": "Black Mage 1",
+                    "42": "Black Mage 2",
+                    "43": "Chocobo 1",
+                    "44": "Chocobo 2",
+                    "45": "Chocobo 3",
+                    "46": "Chocobo 4",
+                    "47": "Engineer 1",
+                    "48": "Engineer 2",
+                    "49": "Engineer 3",
+                    "50": "King 1",
+                    "51": "King 2",
+                    "52": "King 3",
+                    "53": "Old Man 1",
+                    "54": "Old Man 2",
+                    "55": "Old Man 3",
+                    "56": "Boy 1",
+                    "57": "Boy 2",
+                    "58": "Boy 3",
+                    "59": "Girl 1",
+                    "60": "Girl 2",
+                    "61": "Girl 3",
+                    "62": "Dancer 1",
+                    "63": "Dancer 2",
+                    "64": "Dancer 3",
+                    "65": "Dancer 4",
+                    "66": "Dancer 5",
+                    "67": "Dancer 6",
+                    "71": "Man 1",
+                    "72": "Man 2",
+                    "73": "Man 3",
+                    "74": "Cleric 1",
+                    "75": "Cleric 2",
+                    "76": "Cleric 3",
+                    "77": "Monk 1",
+                    "78": "Monk 2",
+                    "79": "Monk 3",
+                    "80": "Merchant 1",
+                    "81": "Merchant 2",
+                    "82": "Merchant 3",
+                    "83": "Namingway 1",
+                    "84": "Namingway 2",
+                    "85": "Namingway 3",
+                    "86": "Big Chocobo",
+                    "87": "Bomb 1",
+                    "88": "Bomb 2",
+                    "89": "Anna (Dead)",
+                    "90": "Scholar 1",
+                    "91": "Scholar 2",
+                    "92": "Ship",
+                    "93": "Tank",
+                    "94": "Crystal 1",
+                    "95": "Flame",
+                    "96": "Smoke 1",
+                    "97": "Smoke 2",
+                    "98": "Water Splash",
+                    "99": "Anna",
+                    "100": "Sparkle",
+                    "101": "Monster 1",
+                    "102": "Monster 2",
+                    "103": "Monster 3",
+                    "104": "Explosion 1",
+                    "105": "Explosion 2",
+                    "106": "Lightning",
+                    "107": "Cabin",
+                    "108": "Tent",
+                    "109": "Sylph",
+                    "110": "Cagnazzo",
+                    "111": "Stone Palom/Porom",
+                    "114": "Dwarf King",
+                    "115": "Dwarf Girl",
+                    "116": "Dwarf 1",
+                    "117": "Dwarf 2",
+                    "118": "Dwarf 3",
+                    "119": "Zemus",
+                    "120": "Magus Sisters 1",
+                    "121": "Magus Sisters 2",
+                    "122": "Magus Sisters 3",
+                    "123": "Antlion",
+                    "125": "Bahamut",
+                    "127": "Barbariccia",
+                    "128": "Doll",
+                    "129": "Golbez' Hand",
+                    "130": "Dr. Lugae",
+                    "131": "Rubicante",
+                    "132": "Tentacles",
+                    "133": "Ragnarok",
+                    "134": "Murasame/Masamune",
+                    "135": "Holy Lance",
+                    "136": "Pendulum",
+                    "137": "Ice Barrier",
+                    "141": "Crystal 2",
+                    "142": "Crystal 3",
+                    "143": "Crystal 4",
+                    "147": "Sword of Legend",
+                    "148": "Flame 1",
+                    "149": "Flame 2",
+                    "155": "Heart Bubble",
+                    "157": "Zzz Bubble",
+                    "161": "Zeromus",
+                    "162": "Dancer Foot",
+                    "164": "Giant of Babel"
                 }
             }
         },
@@ -2379,14 +2591,14 @@
                     "triggerPointer": {
                         "type": "property",
                         "name": "Pointer",
-                        "start": 0,
+                        "begin": 0,
                         "mask": "0x7FFFFFFF",
                         "pointerTo": "mapTriggers"
                     },
                     "count": {
                         "type": "property",
                         "name": "Count",
-                        "start": 4,
+                        "begin": 4,
                         "mask": "0xFFFF"
                     }
                 }
@@ -2576,6 +2788,11 @@
                 }
             }
         },
+        "moonTileProperties": {
+            "type": "assembly",
+            "name": "Moon Tile Properties",
+            "range": "0x0833B5A8-0x0833D5A8"
+        },
         "shopProperties": {
             "type": "array",
             "name": "Shop Properties",
@@ -2677,12 +2894,12 @@
                 "range": "0x080F0DE4-0x080F0E9C"
             }
         },
-        "spellListInitialBlack": {
+        "spellListInitial": {
             "type": "array",
-            "name": "Initial Black Magic",
+            "name": "Initial Magic",
             "isFragmented": true,
             "array": {
-                "length": 3
+                "length": 10
             },
             "assembly": {
                 "type": "array",
@@ -2701,130 +2918,42 @@
                     }
                 }
             },
-            "pointerObject": {
-                "arrayPath": "characterSpellListInitial",
-                "pointerPath": "black"
-            },
-            "stringTable": {
-                "string": {
-                    "0": "Tellah",
-                    "1": "Palom",
-                    "2": "FuSoYa"
+            "pointerObject": [
+                {
+                    "arrayPath": "characterSpellListInitial",
+                    "pointerPath": "blackInitial"
+                }, {
+                    "arrayPath": "characterSpellListInitial",
+                    "pointerPath": "whiteInitial"
+                }, {
+                    "arrayPath": "characterSpellListInitial",
+                    "pointerPath": "summonInitial"
+                }, {
+                    "arrayPath": "characterSpellListInitial",
+                    "pointerPath": "ninjutsuInitial"
                 }
-            }
-        },
-        "spellListInitialNinjutsu": {
-            "type": "array",
-            "name": "Initial Ninjutsu Magic",
-            "isFragmented": true,
-            "array": {
-                "length": 1
-            },
-            "assembly": {
-                "type": "array",
-                "hideCategory": true,
-                "format": "terminated(0xFF)",
-                "assembly": {
-                    "type": "data",
-                    "length": 1,
-                    "assembly": {
-                        "spell": {
-                            "type": "property",
-                            "name": "Spell",
-                            "begin": 0,
-                            "stringTable": "spellName"
-                        }
-                    }
-                }
-            },
-            "pointerObject": {
-                "arrayPath": "characterSpellListInitial",
-                "pointerPath": "ninjutsu"
-            },
-            "stringTable": {
-                "string": {
-                    "0": "Edge"
-                }
-            }
-        },
-        "spellListInitialSummon": {
-            "type": "array",
-            "name": "Initial Summon Magic",
-            "isFragmented": true,
-            "array": {
-                "length": 1
-            },
-            "assembly": {
-                "type": "array",
-                "hideCategory": true,
-                "format": "terminated(0xFF)",
-                "assembly": {
-                    "type": "data",
-                    "length": 1,
-                    "assembly": {
-                        "spell": {
-                            "type": "property",
-                            "name": "Spell",
-                            "begin": 0,
-                            "stringTable": "spellName"
-                        }
-                    }
-                }
-            },
-            "pointerObject": {
-                "arrayPath": "characterSpellListInitial",
-                "pointerPath": "summon"
-            },
-            "stringTable": {
-                "string": {
-                    "0": "Rydia"
-                }
-            }
-        },
-        "spellListInitialWhite": {
-            "type": "array",
-            "name": "Initial White Magic",
-            "isFragmented": true,
-            "array": {
-                "length": 5
-            },
-            "assembly": {
-                "type": "array",
-                "hideCategory": true,
-                "format": "terminated(0xFF)",
-                "assembly": {
-                    "type": "data",
-                    "length": 1,
-                    "assembly": {
-                        "spell": {
-                            "type": "property",
-                            "name": "Spell",
-                            "begin": 0,
-                            "stringTable": "spellName"
-                        }
-                    }
-                }
-            },
-            "pointerObject": {
-                "arrayPath": "characterSpellListInitial",
-                "pointerPath": "white"
-            },
+            ],
             "stringTable": {
                 "string": {
                     "0": "Cecil (Paladin)",
                     "1": "Rosa",
-                    "2": "Tellah",
-                    "3": "Porom",
-                    "4": "FuSoYa"
+                    "2": "Rydia (Summon)",
+                    "3": "Tellah (White)",
+                    "4": "Tellah (Black)",
+                    "5": "Palom",
+                    "6": "Porom",
+                    "7": "Edge",
+                    "8": "FuSoYa (White)",
+                    "9": "FuSoYa (Black)"
                 }
             }
         },
-        "spellListLearnedBlack": {
+        "spellListLearned": {
             "type": "array",
-            "name": "Learned Black Magic",
+            "name": "Learned Magic",
             "isFragmented": true,
             "array": {
-                "length": 2
+                "length": 7
             },
             "assembly": {
                 "type": "array",
@@ -2861,172 +2990,30 @@
                     }
                 }
             },
-            "pointerObject": {
-                "arrayPath": "characterSpellListLearned",
-                "pointerPath": "black"
-            },
-            "stringTable": {
-                "string": {
-                    "0": "Rydia",
-                    "1": "Palom"
+            "pointerObject": [
+                {
+                    "arrayPath": "characterSpellListLearned",
+                    "pointerPath": "blackLearned"
+                }, {
+                    "arrayPath": "characterSpellListLearned",
+                    "pointerPath": "whiteLearned"
+                }, {
+                    "arrayPath": "characterSpellListLearned",
+                    "pointerPath": "summonLearned"
+                }, {
+                    "arrayPath": "characterSpellListLearned",
+                    "pointerPath": "ninjutsuLearned"
                 }
-            }
-        },
-        "spellListLearnedNinjutsu": {
-            "type": "array",
-            "name": "Learned Ninjutsu Magic",
-            "isFragmented": true,
-            "array": {
-                "length": 1
-            },
-            "assembly": {
-                "type": "array",
-                "hideCategory": true,
-                "format": "terminated(0xFF)",
-                "terminator": 0,
-                "assembly": {
-                    "type": "data",
-                    "isSequential": true,
-                    "assembly": {
-                        "spells": {
-                            "type": "array",
-                            "hideCategory": true,
-                            "format": "terminated(0)",
-                            "name": "Spells",
-                            "begin": 1,
-                            "assembly": {
-                                "type": "data",
-                                "length": 1,
-                                "assembly": {
-                                    "spell": {
-                                        "type": "property",
-                                        "name": "Spell",
-                                        "stringTable": "spellName"
-                                    }
-                                }
-                            }
-                        },
-                        "level": {
-                            "type": "property",
-                            "name": "Level",
-                            "begin": 0
-                        }
-                    }
-                }
-            },
-            "pointerObject": {
-                "arrayPath": "characterSpellListLearned",
-                "pointerPath": "ninjutsu"
-            },
-            "stringTable": {
-                "string": {
-                    "0": "Edge"
-                }
-            }
-        },
-        "spellListLearnedSummon": {
-            "type": "array",
-            "name": "Learned Summon Magic",
-            "isFragmented": true,
-            "array": {
-                "length": 0
-            },
-            "assembly": {
-                "type": "array",
-                "hideCategory": true,
-                "format": "terminated(0xFF)",
-                "terminator": 0,
-                "assembly": {
-                    "type": "data",
-                    "isSequential": true,
-                    "assembly": {
-                        "spells": {
-                            "type": "array",
-                            "hideCategory": true,
-                            "format": "terminated(0)",
-                            "name": "Spells",
-                            "begin": 1,
-                            "assembly": {
-                                "type": "data",
-                                "length": 1,
-                                "assembly": {
-                                    "spell": {
-                                        "type": "property",
-                                        "name": "Spell",
-                                        "stringTable": "spellName"
-                                    }
-                                }
-                            }
-                        },
-                        "level": {
-                            "type": "property",
-                            "name": "Level",
-                            "begin": 0
-                        }
-                    }
-                }
-            },
-            "pointerObject": {
-                "arrayPath": "characterSpellListLearned",
-                "pointerPath": "summon"
-            },
-            "stringTable": {
-                "string": {
-                }
-            }
-        },
-        "spellListLearnedWhite": {
-            "type": "array",
-            "name": "Learned White Magic",
-            "isFragmented": true,
-            "array": {
-                "length": 4
-            },
-            "assembly": {
-                "type": "array",
-                "hideCategory": true,
-                "format": "terminated(0xFF)",
-                "terminator": 0,
-                "assembly": {
-                    "type": "data",
-                    "isSequential": true,
-                    "assembly": {
-                        "spells": {
-                            "type": "array",
-                            "hideCategory": true,
-                            "format": "terminated(0)",
-                            "name": "Spells",
-                            "begin": 1,
-                            "assembly": {
-                                "type": "data",
-                                "length": 1,
-                                "assembly": {
-                                    "spell": {
-                                        "type": "property",
-                                        "name": "Spell",
-                                        "stringTable": "spellName"
-                                    }
-                                }
-                            }
-                        },
-                        "level": {
-                            "type": "property",
-                            "name": "Level",
-                            "begin": 0
-                        }
-                    }
-                }
-            },
-            "pointerObject": {
-                "arrayPath": "characterSpellListLearned",
-                "pointerPath": "white"
-            },
+            ],
             "stringTable": {
                 "string": {
                     "0": "Cecil (Paladin)",
                     "1": "Rosa",
-                    "2": "Rydia",
-                    "3": "Porom"
+                    "2": "Rydia (White)",
+                    "3": "Rydia (Black)",
+                    "4": "Palom",
+                    "5": "Porom",
+                    "6": "Edge"
                 }
             }
         },
@@ -3051,6 +3038,365 @@
                 "name": "Text",
                 "length": 6287,
                 "default": "<text[%i]>"
+            }
+        },
+        "worldExit": {
+            "type": "array",
+            "name": "World Exit",
+            "range": "0x080F2038-0x080F229C",
+            "array": {
+                "length": 51
+            },
+            "assembly": {
+                "type": "data",
+                "length": 12,
+                "assembly": {
+                    "map": {
+                        "type": "property",
+                        "name": "Map",
+                        "begin": 0,
+                        "mask": "0xFFFF",
+                        "link": "mapProperties[%i]",
+                        "stringTable": "mapProperties"
+                    },
+                    "x": {
+                        "type": "property",
+                        "name": "X Destination",
+                        "begin": 2
+                    },
+                    "y": {
+                        "type": "property",
+                        "name": "Y Destination",
+                        "begin": 3
+                    },
+                    "direction": {
+                        "type": "property",
+                        "name": "Direction",
+                        "begin": 4
+                    },
+                    "unknown_6": {
+                        "type": "property",
+                        "name": "Unknown 6",
+                        "begin": 6,
+                        "mask": "0xFFFF"
+                    }
+                }
+            }
+        },
+        "worldGraphics": {
+            "type": "array",
+            "name": "World Graphics",
+            "isFragmented": true,
+            "array": {
+                "length": 5
+            },
+            "assembly": {
+                "format": "gba-lzss"
+            },
+            "pointerObject": [
+                {
+                    "arrayPath": "worldProperties",
+                    "pointerPath": "graphics1"
+                }, {
+                    "arrayPath": "worldProperties",
+                    "pointerPath": "graphics2"
+                }
+            ],
+            "stringTable": {
+                "length": 7,
+                "default": "World Graphics %i"
+            }
+        },
+        "worldLayout": {
+            "type": "array",
+            "name": "World Layout",
+            "isFragmented": true,
+            "array": {
+                "length": 8
+            },
+            "pointerObject": [
+                {
+                    "arrayPath": "worldProperties",
+                    "pointerPath": "layout1"
+                }, {
+                    "arrayPath": "worldProperties",
+                    "pointerPath": "layout2"
+                }
+            ],
+            "stringTable": {
+                "length": 5,
+                "default": "World Layout %i"
+            }
+        },
+        "worldPalette": {
+            "type": "array",
+            "name": "World Palette",
+            "isFragmented": true,
+            "array": {
+                "length": 4
+            },
+            "assembly": {
+                "length": "0x0108",
+                "format": "bgr555"
+            },
+            "pointerObject": {
+                "arrayPath": "worldProperties",
+                "pointerPath": "palette"
+            },
+            "stringTable": {
+                "length": 5,
+                "default": "World Palette %i"
+            }
+        },
+        "worldProperties": {
+            "type": "array",
+            "name": "World Properties",
+            "range": "0x080F2560-0x080F2704",
+            "array": {
+                "length": 5
+            },
+            "assembly": {
+                "type": "data",
+                "length": 84,
+                "assembly": {
+                    "graphics1": {
+                        "type": "property",
+                        "name": "Graphics 1",
+                        "begin": 0,
+                        "mask": "0x7FFFFFFF",
+                        "special": {
+                            "0": "None"
+                        },
+                        "pointerTo": "worldGraphics"
+                    },
+                    "graphics2": {
+                        "type": "property",
+                        "name": "Graphics 2",
+                        "begin": 4,
+                        "mask": "0x7FFFFFFF",
+                        "special": {
+                            "0": "None"
+                        },
+                        "pointerTo": "worldGraphics"
+                    },
+                    "palette": {
+                        "type": "property",
+                        "name": "Palette",
+                        "begin": 8,
+                        "mask": "0x7FFFFFFF",
+                        "special": {
+                            "0": "None"
+                        },
+                        "pointerTo": "worldPalette"
+                    },
+                    "tileset1": {
+                        "type": "property",
+                        "name": "Tileset 1",
+                        "begin": 12,
+                        "mask": "0x7FFFFFFF",
+                        "special": {
+                            "0": "None"
+                        },
+                        "pointerTo": "worldTileset"
+                    },
+                    "tileset2": {
+                        "type": "property",
+                        "name": "Tileset 2",
+                        "begin": 16,
+                        "mask": "0x7FFFFFFF",
+                        "special": {
+                            "0": "None"
+                        },
+                        "pointerTo": "worldTileset"
+                    },
+                    "layout1": {
+                        "type": "property",
+                        "name": "Layout 1",
+                        "begin": 20,
+                        "mask": "0x7FFFFFFF",
+                        "special": {
+                            "0": "None"
+                        },
+                        "pointerTo": "worldLayout"
+                    },
+                    "layout2": {
+                        "type": "property",
+                        "name": "Layout 2",
+                        "begin": 24,
+                        "mask": "0x7FFFFFFF",
+                        "special": {
+                            "0": "None"
+                        },
+                        "pointerTo": "worldLayout"
+                    },
+                    "graphics3": {
+                        "type": "property",
+                        "name": "Graphics 3",
+                        "begin": 28,
+                        "mask": "0x7FFFFFFF",
+                        "special": {
+                            "0": "None"
+                        }
+                    },
+                    "palette3": {
+                        "type": "property",
+                        "name": "Palette 3",
+                        "begin": 32,
+                        "mask": "0x7FFFFFFF",
+                        "special": {
+                            "0": "None"
+                        }
+                    },
+                    "layout3": {
+                        "type": "property",
+                        "name": "Layout 3",
+                        "begin": 36,
+                        "mask": "0x7FFFFFFF",
+                        "special": {
+                            "0": "None"
+                        }
+                    },
+                    "graphics4": {
+                        "type": "property",
+                        "name": "Graphics 4",
+                        "begin": 40,
+                        "mask": "0x7FFFFFFF",
+                        "special": {
+                            "0": "None"
+                        }
+                    },
+                    "width": {
+                        "type": "property",
+                        "name": "Width",
+                        "begin": 52,
+                        "mask": "0xFFFF"
+                    },
+                    "height": {
+                        "type": "property",
+                        "name": "Height",
+                        "begin": 54,
+                        "mask": "0xFFFF"
+                    },
+                    "layout3Length": {
+                        "type": "property",
+                        "name": "Layout 3 Length",
+                        "begin": 56,
+                        "mask": "0xFFFF"
+                    }
+                }
+            }
+        },
+        "worldTileset": {
+            "type": "array",
+            "name": "World Tileset",
+            "isFragmented": true,
+            "array": {
+                "length": 6
+            },
+            "assembly": {
+                "length": "0x0400"
+            },
+            "pointerObject": [
+                {
+                    "arrayPath": "worldProperties",
+                    "pointerPath": "tileset1"
+                }, {
+                    "arrayPath": "worldProperties",
+                    "pointerPath": "tileset2"
+                }
+            ],
+            "stringTable": {
+                "length": 5,
+                "default": "World Tileset %i"
+            }
+        },
+        "worldTileProperties": {
+            "type": "array",
+            "name": "World Tile Properties",
+            "range": "0x080F22C4-0x080F24F0",
+            "array": {
+                "length": 5
+            },
+            "assembly": {
+                "type": "array",
+                "format": "ff4a-world-tile-properties",
+                "array": {
+                    "length": 256
+                },
+                "assembly": {
+                    "type": "data",
+                    "length": 1,
+                    "assembly": {
+                        "tileType": {
+                            "type": "property",
+                            "name": "Tile Type",
+                            "stringTable": {
+                                "string": {
+                                    "0": "Grass/Field",
+                                    "1": "Forest",
+                                    "2": "Desert",
+                                    "3": "Beach",
+                                    "4": "Castle",
+                                    "5": "Town",
+                                    "6": "Cave Entrance",
+                                    "7": "Mountain Path"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "pointerTable": {
+                "range": "0x080F22B0-0x080F22C4"
+            },
+            "stringTable": {
+                "length": 5,
+                "default": "World Tile Properties %i"
+            }
+        },
+        "worldTriggers": {
+            "type": "array",
+            "name": "World Triggers",
+            "range": "0x080F1E58-0x080F2038",
+            "array": {
+                "length": 60
+            },
+            "assembly": {
+                "type": "data",
+                "length": 8,
+                "assembly": {
+                    "x": {
+                        "type": "property",
+                        "name": "X Position",
+                        "begin": 0,
+                        "mask": "0xFF"
+                    },
+                    "y": {
+                        "type": "property",
+                        "name": "Y Position",
+                        "begin": 1,
+                        "mask": "0xFF"
+                    },
+                    "width": {
+                        "type": "property",
+                        "name": "Width",
+                        "begin": 2,
+                        "mask": "0xFF"
+                    },
+                    "height": {
+                        "type": "property",
+                        "name": "Height",
+                        "begin": 3,
+                        "mask": "0xFF"
+                    },
+                    "exit": {
+                        "type": "property",
+                        "name": "Exit",
+                        "begin": 4,
+                        "mask": "0xFF",
+                        "link": "worldExit[%i]"
+                    }
+                }
             }
         }
     },
@@ -4704,10 +5050,15 @@
                             "name": "Y Position",
                             "begin": 2
                         },
-                        "direction": {
+                        "width": {
                             "type": "property",
-                            "name": "Direction",
+                            "name": "Width",
                             "begin": 3
+                        },
+                        "height": {
+                            "type": "property",
+                            "name": "Height",
+                            "begin": 4
                         },
                         "event2": {
                             "type": "property",
