@@ -12,6 +12,9 @@
             "name": "Map",
             "list": [
                 {
+                    "name": "World Map",
+                    "path": "worldMap"
+                }, {
                     "name": "Maps",
                     "path": "mapProperties"
                 }, {
@@ -735,7 +738,7 @@
             "range": "0x048080-0x06AC9A",
             "isSequential": true,
             "array": {
-                "length": 64
+                "length": 61
             },
             "assembly": {
                 "format": "ff1-map"
@@ -779,7 +782,7 @@
             "name": "Map Properties",
             "range": "0x00ACC0-0x00AD00",
             "array": {
-                "length": 64
+                "length": 61
             },
             "assembly": {
                 "type": "data",
@@ -827,7 +830,6 @@
             },
             "stringTable": {
                 "default": "Map %i",
-                "length": 64,
                 "string": {
 					"0x00": "Coneria",
                     "0x01": "Provoka",
@@ -2443,6 +2445,11 @@
                 "range": "0x018000-0x018200",
                 "offset": "0x010000"
             }
+        },
+        "worldMap": {
+            "type": "assembly",
+            "name": "World Map",
+            "editor": "FF1Map"
         },
         "worldPalette": {
             "type": "assembly",

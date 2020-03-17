@@ -534,7 +534,13 @@ FF1Map.prototype.drawCursor = function() {
 FF1Map.prototype.selectObject = function(object) {
     this.show();
     this.tileset.show();
-    this.loadMap(object.i);
+    if (object.key === "worldMap") {
+        this.isWorld = true;
+        this.loadWorldMap();
+    } else {
+        this.isWorld = false;
+        this.loadMap(object.i);
+    }
 }
 
 FF1Map.prototype.show = function() {
@@ -561,11 +567,6 @@ FF1Map.prototype.loadMap = function(m) {
         // map changed
         this.m = m;
         this.observer.stopObservingAll();
-        if (this.m === 0x3F) {
-            this.isWorld = true;
-            this.loadWorldMap(this.m);
-            return;
-        }
         this.isWorld = false;
         this.mapProperties = this.rom.mapProperties.item(this.m);
         this.observer.startObserving(this.mapProperties, this.loadMap);
