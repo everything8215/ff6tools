@@ -342,7 +342,7 @@
                         },
                         "spirit": {
                             "type": "property",
-                            "name": "Sprit",
+                            "name": "Spirit",
                             "begin": 12,
                             "mask": "0xFF",
                             "signed": true
@@ -673,7 +673,7 @@
                     "0": "Cecil (Dark Knight)",
                     "1": "Kain",
                     "2": "Rosa",
-                    "3": "Rydia (Child)",
+                    "3": "Rydia",
                     "4": "Cid",
                     "5": "Tellah",
                     "6": "Edward",

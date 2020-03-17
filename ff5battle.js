@@ -37,8 +37,10 @@ function FF5Battle(rom) {
     this.monsterPoint = null;
     this.clickedPoint = null;
     
-    this.updateBattleStrings();
     this.rom.monsterGraphics; // load monster graphics
+    this.rom.monsterPalette; // load monster palettes
+
+    this.updateBattleStrings();
 }
 
 FF5Battle.prototype = Object.create(ROMEditor.prototype);
@@ -82,6 +84,30 @@ FF5Battle.prototype.constructor = FF5Battle;
 
 FF5Battle.prototype.updateBattleStrings = function() {
     
+//    var stringTable = this.rom.stringTable["monsterGraphicsMap.large"];
+//    for (var m = 0; m < this.rom.monsterGraphicsProperties.array.length; m++) {
+//        
+//        var g = m;
+//        var graphicsProperties = this.rom.monsterGraphicsProperties.item(g);
+//        if (!graphicsProperties.useLargeMap.value) continue;
+//        var i = graphicsProperties.largeMap.value;
+//        var string = stringTable.string[i];
+//        if (!string) {
+//            stringTable.setString(i, "<stringTable.monsterName[" + m.toString() + "]>");
+//        } else {
+//            // duplicate monsters using the same graphics
+//            string.value += ", <stringTable.monsterName[" + m.toString() + "]>";
+//        }
+//    }
+//
+//    var bigString = "";
+//    for (var s = 0; s < stringTable.string.length; s++) {
+//        var string = stringTable.string[s];
+//        if (!string) continue;
+//        bigString += '"' + s + '": "' + string.fString() + '",\n';
+//    }
+//    console.log(bigString);
+
     for (var b = 0; b < this.rom.battleProperties.array.length; b++) {
         var battleProperties = this.rom.battleProperties.item(b);
         var isBoss = battleProperties.flags.value & 0x20;
@@ -351,10 +377,10 @@ FF5Battle.prototype.mapForMonster = function(m) {
 
     // load graphics map and set up tile data
     var size, mask, row, map;
-    if (gfxProperties.largeMap.value) {
+    if (gfxProperties.useLargeMap.value) {
         size = 16; mask = 0x8000;
         if (this.rom.isSFC) {
-            map = this.rom.monsterGraphicsMap.large.item(gfxProperties.map.value).data;
+            map = this.rom.monsterGraphicsMap.large.item(gfxProperties.largeMap.value).data;
         } else {
             var mapBegin = this.rom.mapAddress(gfxProperties.mapPointer.value);
             var mapEnd = mapBegin + 32;
@@ -364,7 +390,7 @@ FF5Battle.prototype.mapForMonster = function(m) {
     } else {
         size = 8; mask = 0x80;
         if (this.rom.isSFC) {
-            map = this.rom.monsterGraphicsMap.small.item(gfxProperties.map.value).data;
+            map = this.rom.monsterGraphicsMap.small.item(gfxProperties.smallMap.value).data;
         } else {
             var mapBegin = this.rom.mapAddress(gfxProperties.mapPointer.value);
             var mapEnd = mapBegin + 8;
@@ -416,14 +442,14 @@ FF5Battle.prototype.drawMonster = function(slot) {
         h = map.size;
 
         // load palette
-        var p = gfxProperties.palette.value;
+//        var p = gfxProperties.palette.value;
         pal = new Uint32Array(16);
         if (this.battleProperties.gfxFlags.value & 4) {
             // use underwater palette
             pal.set(this.rom.monsterPaletteUnderwater.data);
         } else {
-            pal.set(this.rom.monsterPalette.item(p).data);
-            if (!gfxProperties.is3bpp.value) pal.set(this.rom.monsterPalette.item(p + 1).data, 8);
+            pal.set(gfxProperties.palette.value.data.subarray(0, 16));
+//            if (!gfxProperties.is3bpp.value) pal.set(this.rom.monsterPalette.item(p + 1).data, 8);
         }
     } else {
         // decode the graphics
