@@ -211,8 +211,13 @@ FF4Battle.prototype.mouseMove = function(e) {
     var monsterY = this.selectedMonster.y.value;
     var newX = (this.monsterPoint.x + dx) & ~7;
     var newY = (this.monsterPoint.y + dy) & ~7;
-    newX = Math.min(136, Math.max(16, newX));
-    newY = Math.min(128, Math.max(0, newY));
+    if (this.rom.isGBA) {
+        newX = Math.min(136, Math.max(8, newX));
+        newY = Math.min(144, Math.max(16, newY));
+    } else {
+        newX = Math.min(144, Math.max(16, newX));
+        newY = Math.min(128, Math.max(0, newY));
+    }
     
     if (newX === monsterX && newY === monsterY) return;
     

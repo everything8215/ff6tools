@@ -806,6 +806,7 @@
                     "15": "Fireplace 1",
                     "16": "Fireplace 2",
                     "57": "Magazine",
+                    "66": "World Maps",
                     "138": "Castle Baron",
                     "139": "Castle Baron (Cid Intro)",
                     "144": "Castle Baron (Baigan Intro)",
@@ -903,6 +904,8 @@
                     "261": "Dwarf Castle - Base (Dwarf 4)",
                     "262": "Dwarf Castle - Base (Dwarf 5)",
                     "263": "Dwarf Castle - Base (Dwarf 6)",
+                    "270": "Eblan Castle",
+                    "271": "Eblan Castle - Second Floor",
                     "272": "Fabul Castle",
                     "273": "Fabul Castle (Battle)",
                     "274": "Fabul Castle - First Floor",
@@ -929,6 +932,32 @@
                     "295": "Fabul Docks",
                     "296": "Ship to Baron/Leviathan Attack",
                     "297": "Cecil on Mysidia Beach",
+                    "298": "Troia Castle",
+                    "299": "Troia Castle (Soldier 1)",
+                    "300": "Troia Castle (Soldier 2)",
+                    "301": "Troia Castle (Soldier 3)",
+                    "302": "Troia Castle (Soldier 4)",
+                    "303": "Troia Castle (Frog 1)",
+                    "304": "Troia Castle (Frog 2)",
+                    "305": "Troia Castle (Frog 3)",
+                    "306": "Troia Castle - First Floor",
+                    "307": "Troia Castle - First Floor (NPC 1)",
+                    "308": "Troia Castle - First Floor (NPC 2)",
+                    "309": "Troia Castle - First Floor (NPC 3)",
+                    "310": "Troia Castle - First Floor (NPC 4)",
+                    "311": "Troia Castle - First Floor (NPC 5)",
+                    "312": "Troia Castle - First Floor (NPC 6)",
+                    "313": "Troia Castle - First Floor (NPC 7)",
+                    "314": "Troia Castle - Second Floor",
+                    "315": "Troia Castle - Second Floor (Earth Crystal)",
+                    "315-342": "Troia Castle - Second Floor (NPCs)",
+                    "342": "Troia Castle - Infirmary",
+                    "343-351": "Troia Castle - Infirmary (NPCs)",
+                    "351": "Troia Castle - Dungeon",
+                    "352": "Troia Castle - Dungeon (Guard)",
+                    "353": "Troia Castle - Treasure Room",
+                    "354": "Enterprise - Kain Scene 2",
+                    "355": "Troia Castle - Default Event",
                     "356": "Mysidia - Crystal Room",
                     "357": "Antlion Cave - B1",
                     "358": "Antlion Cave - Save Point",
@@ -953,10 +982,15 @@
                     "423": "Land of Summons (Leviathan's Room)",
                     "424": "Land of Summons - B6",
                     "425": "Mist Cave",
+                    "427": "Old Waterway - Save Point",
                     "428": "Chocobo",
-                    "429": "Chocobo Forest",
+                    "429": "Chocobo Forest 1",
                     "430": "White Chocobo",
                     "431": "Chocobo Village",
+                    "432": "Chocobo Forest 2",
+                    "433": "Chocobo Forest 3",
+                    "434": "Chocobo Forest 4",
+                    "435": "Chocobo Forest 5",
                     "444": "Adamant Grotto",
                     "445": "Adamant Grotto (Tail Guy)",
                     "446": "Adamant Grotto (Tail Guy's Son)",
@@ -990,6 +1024,11 @@
                     "476": "Mt. Hobs - Summit (Mom Bomb)",
                     "477": "Mt. Hobs - Summit (Yang Joins)",
                     "478": "Mt. Hobs - East",
+                    "479": "Mt. Ordeals - Entryway",
+                    "487": "Mt. Ordeals - Station Three",
+                    "488": "Mt. Ordeals - Station Seven",
+                    "489": "Mt. Ordeals - Summit",
+                    "490": "Mt. Ordeals - Mirror Room",
                     "491": "Hummingway Home",
                     "492": "Hummingway Home (Dialog 1)",
                     "493": "Hummingway Home (Dialog 2)",
@@ -1032,11 +1071,56 @@
                     "655": "Waterfall",
                     "656": "Sunken Lake - B2",
                     "657": "Sunken Lake - B1",
+                    "660": "Agart",
+                    "661": "Agart (NPC 1)",
+                    "662": "Agart (NPC 2)",
+                    "663": "Agart (NPC 3)",
+                    "664": "Agart (NPC 4)",
+                    "665": "Agart (NPC 5)",
+                    "666": "Agart (NPC 6)",
+                    "667": "Agart (NPC 7)",
+                    "668": "Agart - Observatory",
+                    "669": "Agart - Observatory (NPC 1)",
+                    "670": "Agart - Observatory (NPC 2)",
+                    "671": "Agart - Observatory (Bookcase 1)",
+                    "672": "Agart - Observatory (Bookcase 2)",
+                    "673": "Agart - Observatory (Bookcase 3)",
+                    "674": "Agart - Observation Room",
+                    "675": "Agart - Observation Room (Corio)",
+                    "676": "Agart - Observation Room (Telescope)",
+                    "677": "Agart - Well",
+                    "678": "Agart - Well (Key Scene)",
+                    "679": "Agart - Inn",
+                    "680": "Agart - Inn (NPC 1)",
+                    "681": "Agart - Inn (NPC 2)",
+                    "682": "Agart - Inn (NPC 3)",
+                    "683": "Agart - Inn (NPC 4)",
+                    "684": "Agart - Inn (NPC 5)",
+                    "685": "Agart - Inn (NPC 6)",
+                    "686": "Agart - Inn (NPC 7)",
+                    "687": "Agart - Inn (Dancer)",
+                    "688": "Agart - Inn (Item Shop)",
+                    "689": "Agart - Inn (Innkeeper)",
+                    "690": "Agart - Weapon Shop",
+                    "691": "Agart - Weapon Shop (Shopkeeper)",
+                    "692": "Agart - Armor Shop",
+                    "693": "Agart - Armor Shop (Shopkeeper)",
                     "695": "Village Mist (Bomb Ring)",
+                    "697": "Village Mist - Clearing",
                     "698": "Village Mist (Normal)",
-                    "699": "Village Mist (Inn)",
-                    "700": "Village Mist (Weapon Shop)",
-                    "701": "Village Mist (Armor Shop)"
+                    "699": "Village Mist - Inn",
+                    "700": "Village Mist - Weapon Shop",
+                    "701": "Village Mist - Armor Shop",
+                    "702": "Mythril",
+                    "703": "Mythril - Inn",
+                    "704": "Mythril - Inn (Innkeeper)",
+                    "705": "Mythril - Armor Shop",
+                    "706": "Mythril - Weapon Shop",
+                    "707": "Mythril - Item Shop/Inn NPCs",
+                    "708": "Mythril - Armor Shop (Shopkeeper)",
+                    "709": "Mythril - Weapon Shop (Shopkeeper)",
+                    "710": "Mythril - Item Shop (Shopkeeper)",
+                    "1117": "Cave of Trials - Mt. Ordeals Entrance"
                 }
             }
         },
@@ -1869,16 +1953,16 @@
                         "begin": 12,
                         "mask": "0x0FFF",
                         "offset": 402,
-                        "stringTable": "mapTriggers",
-                        "link": "mapTriggerPointers[%i].triggerPointer.value"
+                        "stringTable": "mapTriggerPointers",
+                        "link": "mapTriggerPointers[%i]"
                     },
                     "events": {
                         "type": "property",
                         "name": "Events",
                         "begin": 16,
                         "mask": "0x0FFF",
-                        "stringTable": "mapTriggers",
-                        "link": "mapTriggerPointers[%i].triggerPointer.value"
+                        "stringTable": "mapTriggerPointers",
+                        "link": "mapTriggerPointers[%i]"
                     },
                     "battlePointer": {
                         "type": "property",
@@ -2314,7 +2398,38 @@
             },
             "stringTable": {
                 "length": 595,
-                "default": "Map Triggers %i",
+                "default": "Map Triggers %i"
+            }
+        },
+        "mapTriggerPointers": {
+            "type": "array",
+            "name": "Pointers to Map Triggers",
+            "range": "0x080DEEC0-0x080E0158",
+            "array": {
+                "length": 595
+            },
+            "assembly": {
+                "type": "data",
+                "length": 8,
+                "assembly": {
+                    "triggerPointer": {
+                        "type": "property",
+                        "name": "Pointer",
+                        "begin": 0,
+                        "mask": "0x7FFFFFFF",
+                        "pointerTo": "mapTriggers"
+                    },
+                    "count": {
+                        "type": "property",
+                        "name": "Count",
+                        "begin": 4,
+                        "mask": "0xFFFF"
+                    }
+                }
+            },
+            "stringTable": {
+                "length": 595,
+                "default": "Map Trigger Pointers %i",
                 "string": {
                     "0": "No Events",
                     "1": "Castle Baron",
@@ -2579,33 +2694,6 @@
                     "403": "Castle Baron - First Floor (Treasures)",
                     "404": "Castle Baron - Treasure Room (Treasures)",
                     "405-595": "Treasures %i"
-                }
-            }
-        },
-        "mapTriggerPointers": {
-            "type": "array",
-            "name": "Pointers to Map Triggers",
-            "range": "0x080DEEC0-0x080E0158",
-            "array": {
-                "length": 595
-            },
-            "assembly": {
-                "type": "data",
-                "length": 8,
-                "assembly": {
-                    "triggerPointer": {
-                        "type": "property",
-                        "name": "Pointer",
-                        "begin": 0,
-                        "mask": "0x7FFFFFFF",
-                        "pointerTo": "mapTriggers"
-                    },
-                    "count": {
-                        "type": "property",
-                        "name": "Count",
-                        "begin": 4,
-                        "mask": "0xFFFF"
-                    }
                 }
             }
         },
