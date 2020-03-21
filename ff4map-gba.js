@@ -1,14 +1,12 @@
 //
-// ff4map.js
-// created 3/17/2018
+// ff4map-gba.js
+// created 3/21/2020
 //
 
-// Jap translations: http://ff4.wikidot.com/weapons
-
-function FF4Map(rom) {
+function FF4MapGBA(rom) {
     ROMEditor.call(this, rom);
-    this.name = "FF4Map";
-    this.tileset = new FF4MapTileset(rom, this);
+    this.name = "FF4MapGBA";
+    this.tileset = new FF4MapGBATileset(rom, this);
     
     this.div = document.createElement('div');
     this.div.id = 'map-edit';
@@ -47,10 +45,11 @@ function FF4Map(rom) {
     this.clickedRow = null;
     this.clickButton = null;
     this.isDragging = false;
-    this.layer = [new FF4MapLayer(rom, FF4MapLayer.Type.layer1),
-                  new FF4MapLayer(rom, FF4MapLayer.Type.layer2)];
+    this.layer = [new FF4MapGBALayer(rom, FF4MapGBALayer.Type.layer1),
+                  new FF4MapGBALayer(rom, FF4MapGBALayer.Type.layer2)];
     this.selectedLayer = this.layer[0];
-    this.worldLayer = new FF4MapLayer(rom, FF4MapLayer.Type.world);
+    this.worldLayer = new FF4MapGBALayer(rom, FF4MapGBALayer.Type.world);
+    this.worldLayer2 = new FF4MapGBALayer(rom, FF4MapGBALayer.Type.world);
     this.triggers = [];
     this.showCursor = false;
     this.showLayer1 = true;
@@ -79,53 +78,33 @@ function FF4Map(rom) {
     this.scrollDiv.onmouseleave = function(e) { map.mouseLeave(e) };
     this.scrollDiv.oncontextmenu = function(e) { map.openMenu(e); return false; };
     
-    this.initBattleGroups();
+    this.rom.mapTriggers;
+    this.rom.mapExit;
+    this.rom.worldGraphics1;
+    this.rom.worldGraphics2;
+    this.rom.worldPalette;
+    this.rom.worldTileset;
+    this.rom.worldTileset2;
+    this.rom.worldLayout;
+    this.rom.worldLayout2;
 }
 
-FF4Map.prototype = Object.create(ROMEditor.prototype);
-FF4Map.prototype.constructor = FF4Map;
+FF4MapGBA.prototype = Object.create(ROMEditor.prototype);
+FF4MapGBA.prototype.constructor = FF4MapGBA;
 
-FF4Map.prototype.beginAction = function(callback) {
+FF4MapGBA.prototype.beginAction = function(callback) {
     this.rom.beginAction();
     this.rom.doAction(new ROMAction(this.observer, this.observer.wake, this.observer.sleep));
     if (callback) this.rom.doAction(new ROMAction(this, callback, null));
 }
 
-FF4Map.prototype.endAction = function(callback) {
+FF4MapGBA.prototype.endAction = function(callback) {
     if (callback) this.rom.doAction(new ROMAction(this, null, callback));
     this.rom.doAction(new ROMAction(this.observer, this.observer.sleep, this.observer.wake));
     this.rom.endAction();
 }
 
-FF4Map.prototype.initBattleGroups = function() {
-    
-    // set the battle offset for underground and moon maps
-    for (var m = 256; m < 512; m++) {
-        var b = this.rom.mapBattle.item(m).battleGroup.value;
-        if (b === 0) continue;
-        var battleGroup = this.rom.battleGroup.item(b);
-        for (var i = 1; i <= 8; i++) {
-            var battle = battleGroup["battle" + i.toString()];
-            if (battle.offset === 256) continue;
-            battle.offset = 256;
-            battle.value += 256;
-        }
-    }
-    
-    for (m = 64; m < 84; m++) {
-        var b = this.rom.worldBattle.item(m).battleGroup.value;
-        if (b === 0) continue;
-        var battleGroup = this.rom.battleGroupWorld.item(b);
-        for (var i = 1; i <= 8; i++) {
-            var battle = battleGroup["battle" + i.toString()];
-            if (battle.offset === 256) continue;
-            battle.offset = 256;
-            battle.value += 256;
-        }
-    }
-}
-
-FF4Map.prototype.changeZoom = function() {
+FF4MapGBA.prototype.changeZoom = function() {
     
     // save the old scroll location
     var x = this.div.scrollLeft;
@@ -149,7 +128,7 @@ FF4Map.prototype.changeZoom = function() {
     this.scroll();
 }
 
-FF4Map.prototype.scroll = function() {
+FF4MapGBA.prototype.scroll = function() {
     
     this.closeMenu();
 
@@ -173,7 +152,7 @@ FF4Map.prototype.scroll = function() {
     this.drawMap();
 }
 
-FF4Map.prototype.mouseDown = function(e) {
+FF4MapGBA.prototype.mouseDown = function(e) {
 
     this.closeMenu();
     this.clickedCol = ((e.offsetX / this.zoom + this.ppu.layers[this.l].x) % this.ppu.width) >> 4;
@@ -208,6 +187,10 @@ FF4Map.prototype.mouseDown = function(e) {
             }
             this.isDragging = false;
         }
+        if (this.rom.isGBA && this.selectedTrigger) {
+            if (this.selectedTrigger.key === "treasureProperties") this.isDragging = false;
+            if (this.selectedTrigger.key === "entranceTriggers") this.isDragging = false;
+        }
     } else if (this.clickButton === 2) {
         this.selectTiles();
         this.isDragging = true;
@@ -223,7 +206,7 @@ FF4Map.prototype.mouseDown = function(e) {
     this.drawCursor();
 }
 
-FF4Map.prototype.mouseUp = function(e) {
+FF4MapGBA.prototype.mouseUp = function(e) {
 
     if (this.l === 3 && this.selectedTrigger && this.isDragging) {
         // save the new trigger position
@@ -251,7 +234,7 @@ FF4Map.prototype.mouseUp = function(e) {
     this.clickButton = null;
 }
 
-FF4Map.prototype.mouseMove = function(e) {
+FF4MapGBA.prototype.mouseMove = function(e) {
     
     // return if the menu is open
     if (this.menu.classList.contains("active")) return;
@@ -296,7 +279,7 @@ FF4Map.prototype.mouseMove = function(e) {
     this.drawCursor();
 }
 
-FF4Map.prototype.mouseEnter = function(e) {
+FF4MapGBA.prototype.mouseEnter = function(e) {
     
     // show the cursor
     this.showCursor = true;
@@ -306,7 +289,7 @@ FF4Map.prototype.mouseEnter = function(e) {
     this.mouseUp(e);
 }
 
-FF4Map.prototype.mouseLeave = function(e) {
+FF4MapGBA.prototype.mouseLeave = function(e) {
     
     // hide the cursor
     this.showCursor = (this.l === 3);
@@ -315,7 +298,7 @@ FF4Map.prototype.mouseLeave = function(e) {
     this.mouseUp(e);
 }
 
-FF4Map.prototype.updateMenu = function() {
+FF4MapGBA.prototype.updateMenu = function() {
     this.menu.innerHTML = "";
     
     var self = this;
@@ -338,7 +321,8 @@ FF4Map.prototype.updateMenu = function() {
     appendMenuItem("Delete Trigger", !this.selectedTrigger ? null : function() {self.deleteTrigger()});
 }
 
-FF4Map.prototype.openMenu = function(e) {
+FF4MapGBA.prototype.openMenu = function(e) {
+    if (this.rom.isGBA) return;
     if (this.l !== 3) return; // no menu unless editing triggers
     this.updateMenu();
     
@@ -350,11 +334,11 @@ FF4Map.prototype.openMenu = function(e) {
     this.menu.style.top = e.y + "px";
 }
 
-FF4Map.prototype.closeMenu = function() {
+FF4MapGBA.prototype.closeMenu = function() {
     this.menu.classList.remove("menu-active");
 }
 
-FF4Map.prototype.setTiles = function() {
+FF4MapGBA.prototype.setTiles = function() {
     // return if not dragging
     if (!isNumber(this.clickedCol) || !isNumber(this.clickedRow)) return;
 
@@ -375,7 +359,7 @@ FF4Map.prototype.setTiles = function() {
     this.drawMap();
 }
 
-FF4Map.prototype.selectTrigger = function(trigger) {
+FF4MapGBA.prototype.selectTrigger = function(trigger) {
     this.selectedTrigger = trigger;
     propertyList.select(trigger);
     if (!trigger) return;
@@ -395,7 +379,7 @@ FF4Map.prototype.selectTrigger = function(trigger) {
     propertyList.select(trigger);
 }
 
-FF4Map.prototype.selectTiles = function() {
+FF4MapGBA.prototype.selectTiles = function() {
     // return if not dragging
     if (!isNumber(this.clickedCol) || !isNumber(this.clickedRow)) return;
     
@@ -420,61 +404,76 @@ FF4Map.prototype.selectTiles = function() {
     this.tileset.drawCursor();
 }
 
-FF4Map.prototype.selectTileProperties = function(t) {
-    // select tile properties
-    var tileProperties;
-    if (this.selectedLayer.type === FF4MapLayer.Type.layer1) {
-        // layer 1 tile properties determined by graphics index
-        tileProperties = this.rom.mapTileProperties.item(this.mapProperties.graphics.value);
-    } else if (this.selectedLayer.type === FF4MapLayer.Type.world) {
-        // world map tile properties
-        tileProperties = this.rom.worldTileProperties.item(this.m - 251);
-    } else {
-        // return if layer 2
-        return;
+FF4MapGBA.prototype.selectTileProperties = function(x, y) {
+    
+    var tileProperties = this.tilePropertiesAtTile(x, y);
+    
+    if (this.isWorld) {
+        propertyList.select(tileProperties);
+    } else if (tileProperties & 0x40) {
+        propertyList.select(this.rom.mapExit.item(this.m).item(tileProperties & 0x0F));
+    } else if (tileProperties & 0x4000) {
+        propertyList.select(this.rom.mapExit.item(this.m).item((tileProperties >> 8) & 0x0F));
     }
-    propertyList.select(tileProperties.item(t));
+    
+    rom.log("(" + x + "," + y + "): " + hexString(tileProperties, 4, "0x"));
 }
 
-FF4Map.prototype.tilePropertiesAtTile = function(x, y, layer) {
-    layer = layer || FF4MapLayer.Type.layer1;
+FF4MapGBA.prototype.tilePropertiesAtTile = function(x, y, layer) {
+    layer = layer || FF4MapGBALayer.Type.layer1;
     var tileProperties;
     
     var tp, w, h, t, tile, layout;
-    if (layer === FF4MapLayer.Type.layer1) {
-        layout = this.layer[0].layout.data || this.layer[0].layout;
-        tile = layout[x + y * 64];
-        tileProperties = this.rom.mapTileProperties.item(this.mapProperties.graphics.value).item(tile);
-        return (tileProperties.data[0] | tileProperties.data[1] << 8);
+    if (this.isWorld && this.w === 2) {
+        layout = this.rom.moonTileProperties;
+        w = this.layer[0].w;
+        h = this.layer[0].h;
+        tile = x + y * w;
+        return layout.data[tile] | (layout.data[tile + w * h] << 8);
         
-    } else if (layer === FF4MapLayer.Type.world) {
-        layout = this.worldLayer.layout.data || this.worldLayer.layout;
-        tile = layout[x + y * 64];
-        tileProperties = this.rom.worldTileProperties.item(this.m - 251).item(tile);
-        return (tileProperties.data[0] | tileProperties.data[1] << 8);
-        
+    } else if (this.isWorld) {
+        if (this.w === 3) {
+            tp = this.rom.worldTileProperties.item(0);
+        } else {
+            tp = this.rom.worldTileProperties.item(this.w);
+        }
+        w = this.layer[0].w;
+        h = this.layer[0].h;
+        t = x + y * w;
+        tile = this.layer[0].layout.data[t] || this.layer[1].layout.data[t]
+        return tp.item(tile);
+
     } else {
-        return 0;
+        tp = this.mapProperties.tileProperties.value;
+        if (tp === 0xFFFF) return 0;
+        layout = this.rom.mapGraphicsData.item(tp & 0x0FFF);
+        if (!layout.format) {
+            layout.format = "tose-70";
+            layout.disassemble(layout.parent.lazyData);
+        }
+        w = this.layer[0].w;
+        h = this.layer[0].h;
+        tile = x + y * w;
+        return layout.data[tile] | (layout.data[tile + w * h] << 8);
+        
     }
 }
 
-FF4Map.prototype.selectLayer = function(l) {
+FF4MapGBA.prototype.selectLayer = function(l) {
     // set the selected layer
     l = Number(l);
     if (isNumber(l)) this.l = l;
     
-    if (this.isWorld) {
-        this.selectedLayer = this.worldLayer;
-    } else {
-        this.selectedLayer = this.layer[this.l]
-    }
+    this.selectedLayer = this.layer[this.l]
     
     this.showCursor = (this.l === 3);
     this.drawScreen();
     this.drawCursor();
 }
 
-FF4Map.prototype.selectWorldBattle = function(x, y) {
+FF4MapGBA.prototype.selectWorldBattle = function(x, y) {
+    
+    if (this.rom.isGBA) return;
     
     x >>= 5;
     y >>= 5;
@@ -503,19 +502,21 @@ FF4Map.prototype.selectWorldBattle = function(x, y) {
     propertyList.select(battleGroup);
 }
 
-FF4Map.prototype.changeLayer = function(id) {
+FF4MapGBA.prototype.changeLayer = function(id) {
     this[id] = document.getElementById(id).checked;
     var map = this.rom.mapProperties.item(this.m);
     this.ppu.layers[0].main = this.showLayer1;
-    if (!this.isWorld) {
+    if (!this.isWorld && this.rom.isSFC) {
         this.ppu.layers[0].sub = this.showLayer1 && this.mapProperties.addition.value;
+        this.ppu.layers[1].main = this.showLayer2;
+    } else if (this.rom.isGBA && this.ppu.layers[1].tiles) {
         this.ppu.layers[1].main = this.showLayer2;
     }
     this.invalidateMap();
     this.drawMap();
 }
 
-FF4Map.prototype.drawScreen = function() {
+FF4MapGBA.prototype.drawScreen = function() {
 
     this.screenCanvas.style.display = "none";
     if (!this.showScreen) return;
@@ -549,7 +550,7 @@ FF4Map.prototype.drawScreen = function() {
     ctx.fillRect(screenRect.l, screenRect.t, screenRect.w, screenRect.h);
 }
 
-FF4Map.prototype.drawCursor = function() {
+FF4MapGBA.prototype.drawCursor = function() {
     
     this.cursorCanvas.style.display = "none";
     if (!this.showCursor) return;
@@ -581,8 +582,10 @@ FF4Map.prototype.drawCursor = function() {
         if (this.selectedTrigger.height) h *= this.selectedTrigger.height.value;
 
         switch (this.selectedTrigger.key) {
-            case "eventTriggers":
-            case "mapTriggers":
+            case "jumpPosition":
+            case "jumpPositionShort":
+            case "selectDeleteTrigger":
+            case "createObject":
                 c = "rgba(0, 0, 255, 1.0)";
                 break;
             case "worldTriggers":
@@ -592,7 +595,7 @@ FF4Map.prototype.drawCursor = function() {
             case "treasureProperties":
                 c = "rgba(255, 255, 0, 1.0)";
                 break;
-            case "npcProperties":
+            case "mapTriggers":
                 c = "rgba(128, 128, 128, 1.0)";
                 break;
         }
@@ -627,13 +630,13 @@ FF4Map.prototype.drawCursor = function() {
     ctx.strokeRect(x, y, w, h);
 }
 
-FF4Map.prototype.selectObject = function(object) {
+FF4MapGBA.prototype.selectObject = function(object) {
     this.show();
     this.tileset.show();
     this.loadMap(object.i);
 }
 
-FF4Map.prototype.show = function() {
+FF4MapGBA.prototype.show = function() {
 
     var map = this;
 
@@ -646,141 +649,121 @@ FF4Map.prototype.show = function() {
     this.addZoom(this.zoom, function() { map.changeZoom(); });
 }
 
-FF4Map.prototype.hide = function() {
+FF4MapGBA.prototype.hide = function() {
     this.observer.stopObservingAll();
 }
 
-FF4Map.prototype.loadMap = function(m) {
+FF4MapGBA.prototype.loadMap = function(m) {
     
     var layerButtons = document.getElementsByClassName("toolbox-button");
     layerButtons[1].disabled = false;
-    layerButtons[2].disabled = true;
+    layerButtons[2].disabled = false;
 
     // set the map index
     m = Number(m);
-    if (isNumber(m) && this.m !== m || !this.mapProperties) {
+    
+    if (isNumber(m) && this.m !== m) {
         // map changed
         this.m = m;
         this.observer.stopObservingAll();
-        if ((this.m === 0xFB) || (this.m === 0xFC) || (this.m === 0xFD) || (this.m === 0x1FB) || (this.m === 0x1FC) || (this.m === 0x1FD)) {
-            if (this.m > 256) this.m -= 256;
-            this.isWorld = true;
-            this.loadWorldMap(this.m);
-            return;
-        }
         this.isWorld = false;
         this.mapProperties = this.rom.mapProperties.item(this.m);
         this.observer.startObserving(this.mapProperties, this.loadMap);
-    }    
+    }
+
+    if (this.m < 3 || this.m === 0x015E) {
+        this.isWorld = true;
+        this.loadWorldMap(this.m);
+        return;
+    }
 
     // get map properties
     var map = this.mapProperties;
     if (!map) return;
-    
+
+    var mapTileset = this.rom.mapTileset.item(this.mapProperties.tileset.value);
+    if (!mapTileset) return;
+
     // set the map background
-    var battleEditor = propertyList.getEditor("FF4Battle");
-    battleEditor.bg = map.battleBackground.value;
-    battleEditor.altPalette = map.battleBackgroundPalette.value;
+//    var battleEditor = propertyList.getEditor("FF4Battle");
+//    battleEditor.bg = map.battleBackground.value;
+//    battleEditor.altPalette = map.battleBackgroundPalette.value;
 
     // load graphics
-    var gfx = new Uint8Array(0x10000);
-    if ((map.graphics.value === 0) || (map.graphics.value === 15)) {
-        gfx.set(this.rom["mapGraphics" + map.graphics.value].data);
-    } else {
-        var g1 = this.rom["mapGraphics" + map.graphics.value].data;
-        var g2 = this.rom["mapGraphics" + (map.graphics.value + 1)].data;
-        gfx.set(g1, 0);
-        gfx.set(g2, g1.length);
+    var gfx = new Uint32Array(0x100000);
+    var graphicsData = this.rom.mapGraphicsData.item(mapTileset.graphics.value);
+    if (!graphicsData.format) {
+        graphicsData.format = ["linear4bpp", "tose-70"];
+        graphicsData.disassemble(graphicsData.parent.lazyData);
     }
-
-    // load animation graphics
-    var animTable = [0, 0, 0, 2, 3, 6, 7, 10, 10, 10, 10, 10, 13, 13, 13, 16];
-    var animGfx = this.rom.mapAnimationGraphics.data;
-    for (var i = 0; i < 4; i++) {
-        var a = animTable[map.graphics.value] + i;
-        var start = a * 0x0400;
-        var end = start + 0x0100;
-        gfx.set(animGfx.subarray(start, end), 0x4800 + i * 0x0100);
-    }
+    gfx.set(graphicsData.data, 0);
+    gfx.set(graphicsData.data, 0x8000);
 
     // load palette
-    var pal = new Uint32Array(128);
-    if ((map.graphics.value === 0) || (map.graphics.value === 15)) {
-        var pal1 = this.rom.mapPalettes.item(map.palette.value).data;
-        var pal2 = this.rom.mapPalettes.item(map.palette.value + 1).data;
-        for (var p = 0; p < 7; p++) {
-            pal.set(pal1.subarray(p * 8, p * 8 + 8), (p + 1) * 16);
-            pal.set(pal2.subarray(p * 8, p * 8 + 8), (p + 1) * 16 + 8);
-        }
-    } else {
-        var pal1 = this.rom.mapPalettes.item(map.palette.value).data;
-        for (var p = 0; p < 7; p++) {
-            pal.set(pal1.subarray(p * 8, p * 8 + 8), (p + 1) * 16);
-        }
+    var pal = new Uint32Array(512);
+    var paletteData = this.rom.mapGraphicsData.item(mapTileset.palette.value);
+    if (!paletteData.format) {
+        paletteData.format = "bgr555";
+        paletteData.disassemble(paletteData.parent.lazyData);
     }
+    pal.set(paletteData.data, 16);
     pal[0] = 0xFF000000; // set background color to black
 
     var layout, tileset;
-    var tileset = this.rom.mapTilesets.item(map.graphics.value).data;
+    var tileset = this.rom.mapGraphicsData.item(mapTileset.tileset.value).data;
 
     // load and de-interlace tile layouts
-    var l1 = map.layout1.value;
-    if (l1 === 0xFF) {
-        layout = new Uint8Array(0x0400);
-        layout.fill(map.fill);
-    } else {
-        if (map.layoutMSB.value || this.m >= 256) l1 += 256;
-        layout = this.rom.mapLayouts.item(l1);
+    layout = this.rom.mapGraphicsData.item(map.layout.value);
+    if (!layout.format) {
+        // decompress layout data
+        layout.format = "tose-70";
+        layout.disassemble(layout.parent.lazyData);
     }
-    this.layer[0].loadLayout({layout: layout, tileset: tileset, w: 32, h: 32});
+    var w = layout.data[0] | (layout.data[1] << 8);
+    var h = layout.data[2] | (layout.data[3] << 8);
+    
+    // load first layer
+    this.layer[0].loadLayout({type: FF4MapGBALayer.Type.layer1, layout: layout, tileset: tileset, w: w, h: h});
 
-    var l2 = map.layout2.value;
-    if (l2 === 0xFF) {
-        layout = new Uint8Array(0x0400);
-        layout.fill(map.fill);
-    } else {
-        if (map.layoutMSB.value || this.m >= 256) l2 += 256;
-        layout = this.rom.mapLayouts.item(l2);
+    // load second layer
+    if (layout.data.length < (4 + w * h * 2)) {
+        // no second layer
+        layout = new Uint8Array(w * h);
     }
-    this.layer[1].loadLayout({layout: layout, tileset: tileset, w: 32, h: 32});
+    this.layer[1].loadLayout({type: FF4MapGBALayer.Type.layer2, layout: layout, tileset: tileset, w: w, h: h});
 
     // set up the ppu
     this.ppu = new GFX.PPU();
     this.ppu.pal = pal;
-    this.ppu.height = 32 * 16;
-    this.ppu.width = 32 * 16;
+    this.ppu.width = w * 16;
+    this.ppu.height = h * 16;
     this.ppu.back = true;
     this.ppu.subtract = false;
-    this.ppu.half = map.addition.value;
 
     // layer 1
-    this.ppu.layers[0].format = GFX.TileFormat.snes4bppTile;
-    this.ppu.layers[0].cols = this.layer[0].w * 2;
-    this.ppu.layers[0].rows = this.layer[0].h * 2;
-    this.ppu.layers[0].z[0] = GFX.Z.snes1L;
-    this.ppu.layers[0].z[1] = GFX.Z.snes1H;
+    this.ppu.layers[0].format = GFX.TileFormat.gba4bppTile;
+    this.ppu.layers[0].cols = w * 2;
+    this.ppu.layers[0].rows = h * 2;
+    this.ppu.layers[0].z[0] = GFX.Z.snes2L;
+    this.ppu.layers[0].z[1] = GFX.Z.snes2H;
     this.ppu.layers[0].gfx = gfx;
     this.ppu.layers[0].tiles = this.layer[0].tiles;
     this.ppu.layers[0].main = this.showLayer1; // layer 1 always in main screen
-    this.ppu.layers[0].sub = this.showLayer1 && map.addition.value;
-    this.ppu.layers[0].math = map.addition.value;
 
     // layer 2
-    this.ppu.layers[1].format = GFX.TileFormat.snes4bppTile;
-    this.ppu.layers[1].cols = this.layer[1].w * 2;
-    this.ppu.layers[1].rows = this.layer[1].h * 2;
-    this.ppu.layers[1].z[0] = GFX.Z.snes2L;
-    this.ppu.layers[1].z[1] = GFX.Z.snes2H;
+    this.ppu.layers[1].format = GFX.TileFormat.gba4bppTile;
+    this.ppu.layers[1].cols = w * 2;
+    this.ppu.layers[1].rows = h * 2;
+    this.ppu.layers[1].z[0] = GFX.Z.snes1L;
+    this.ppu.layers[1].z[1] = GFX.Z.snes1H;
     this.ppu.layers[1].gfx = gfx;
     this.ppu.layers[1].tiles = this.layer[1].tiles;
     this.ppu.layers[1].main = this.showLayer2;
-    this.ppu.layers[1].sub = false;
-    this.ppu.layers[1].math = map.addition.value;
 
     this.scrollDiv.style.width = (this.ppu.width * this.zoom).toString() + "px";
     this.scrollDiv.style.height = (this.ppu.height * this.zoom).toString() + "px";
-    this.mapCanvas.width = this.ppu.width;
-    this.mapCanvas.height = this.ppu.height;
+    this.mapCanvas.width = w * 16;
+    this.mapCanvas.height = h * 16;
 
     this.invalidateMap();
     this.selectedTrigger = null;
@@ -790,68 +773,84 @@ FF4Map.prototype.loadMap = function(m) {
     this.tileset.loadMap(this.m);
 }
 
-FF4Map.prototype.loadWorldMap = function(m) {
+FF4MapGBA.prototype.loadWorldMap = function(m) {
     
-    if (this.selectedLayer && this.selectedLayer.type === "layer2") {
-        this.selectLayer(0);
-    }
+    this.w = m;
+    if (m === 0x015E) this.w = 3; // overworld map for cid's trial
+    
     var layerButtons = document.getElementsByClassName("toolbox-button");
-    layerButtons[1].disabled = true;
-    layerButtons[2].disabled = true;
+    layerButtons[1].disabled = false;
+    layerButtons[2].disabled = false;
 
-    this.mapProperties = null;
-    propertyList.select(null);
-
-    // set the map background
-    var battleEditor = propertyList.getEditor("FF4Battle");
-    if (this.m === 251) {
-        battleEditor.bg = 0;
-    } else if (this.m === 252) {
-        battleEditor.bg = 15;
-    } else if (this.m === 253) {
-        battleEditor.bg = 5;
-    }
-    battleEditor.altPalette = false;
-
-    // load graphics and layout
-    var w = 0; // world
-    var size = 256;
-    if (m === 0xFC) {
-        w = 1; // underground
-    } else if (m === 0xFD) {
-        w = 2; // moon
-        size = 64;
-    }
-
-    var gfx = this.rom.worldGraphics.item(w).data;
-    var pal = this.rom.worldPalettes.item(w).data;
-    var paletteAssignment = this.rom.worldPaletteAssignments.item(w).data;
-    var tileset = this.rom.worldTilesets.item(w).data;
-
-    var layout = [];
-    for (var i = 0; i < size; i++) {
-        layout.push(rom["worldLayout" + w].item(i));
-    }
+    this.observer.stopObservingAll();
+    this.mapProperties = this.rom.worldProperties.item(this.w);
+    this.observer.startObserving(this.mapProperties, this.loadMap);
+    propertyList.select(this.mapProperties);
     
-    this.worldLayer.loadLayout({layout: layout, tileset: tileset, w: size, h: size, paletteAssignment: paletteAssignment});
+    var width = this.mapProperties.width.value >> 4;
+    var height = this.mapProperties.height.value >> 4;
+
+    // load graphics
+    var gfx = new Uint8Array(0x10000);
+    var graphics1 = this.mapProperties.graphics1.value;
+    if (graphics1) gfx.set(graphics1.data.subarray(8));
+    var graphics2 = this.mapProperties.graphics2.value;
+    if (graphics2) gfx.set(graphics2.data.subarray(8), 0x4000);
+    
+    // load palette
+    var pal = new Uint32Array(0x200);
+    var palette = this.mapProperties.palette.value;
+    if (palette) pal.set(palette.data.subarray(4));
+    pal[0] = 0xFF000000;
+
+    // load tileset
+    var tileset1 = this.mapProperties.tileset1.value.data;
+    var layout1 = this.mapProperties.layout1.value
+    if (layout1 && tileset1) {
+        if (layout1.range.length !== width * height) {
+            layout1.range.length = width * height;
+            layout1.disassemble(this.rom.data);
+        }
+        this.layer[0].loadLayout({type: FF4MapGBALayer.Type.world, layout: layout1, tileset: tileset1, w: width, h: height});
+    }
+
+    var tileset2 = this.mapProperties.tileset2.value;
+    if (tileset2) tileset2 = tileset2.data;
+    var layout2 = this.mapProperties.layout2.value
+    if (tileset2 && layout2) {
+        if (layout2.range.length !== width * height) {
+            layout2.range.length = width * height;
+            layout2.disassemble(this.rom.data);
+        }
+        this.layer[1].loadLayout({type: FF4MapGBALayer.Type.world, layout: layout2, tileset: tileset2, w: width, h: height});
+    }
     
     // set up the ppu
     this.ppu = new GFX.PPU();
     this.ppu.pal = pal;
-    this.ppu.width = size * 16;
-    this.ppu.height = size * 16;
+    this.ppu.width = width * 16;
+    this.ppu.height = height * 16;
     this.ppu.back = true;
 
     // layer 1
-    this.ppu.layers[0].format = GFX.TileFormat.snes4bppTile;
-    this.ppu.layers[0].cols = size * 2;
-    this.ppu.layers[0].rows = size * 2;
+    this.ppu.layers[0].format = GFX.TileFormat.gba8bppTile;
+    this.ppu.layers[0].cols = width * 2;
+    this.ppu.layers[0].rows = height * 2;
     this.ppu.layers[0].z[0] = GFX.Z.snes1L;
     this.ppu.layers[0].z[1] = GFX.Z.snes1H;
-    this.ppu.layers[0].gfx = gfx;
-    this.ppu.layers[0].tiles = this.worldLayer.tiles;
-    this.ppu.layers[0].main = this.showLayer1; // layer 1 always in main screen
+    this.ppu.layers[0].gfx = gfx.subarray(0x0000);
+    this.ppu.layers[0].tiles = this.layer[0].tiles;
+    this.ppu.layers[0].main = this.showLayer1 && layout1 && tileset1; // layer 1 always in main screen
 
+    this.ppu.layers[1].format = GFX.TileFormat.gba8bppTile;
+    this.ppu.layers[1].cols = width * 2;
+    this.ppu.layers[1].rows = height * 2;
+    this.ppu.layers[1].z[0] = GFX.Z.snes2L;
+    this.ppu.layers[1].z[1] = GFX.Z.snes2H;
+    this.ppu.layers[1].gfx = gfx.subarray(0x4000);
+    this.ppu.layers[1].tiles = this.layer[1].tiles;
+    this.ppu.layers[1].main = this.showLayer2 && layout2 && tileset2;
+    
     this.scrollDiv.style.width = (this.ppu.width * this.zoom).toString() + "px";
     this.scrollDiv.style.height = (this.ppu.height * this.zoom).toString() + "px";
     this.mapCanvas.width = this.ppu.width;
@@ -859,13 +858,14 @@ FF4Map.prototype.loadWorldMap = function(m) {
     
     this.invalidateMap();
     this.selectedTrigger = null;
+    this.triggers = [];
     this.loadTriggers();
     this.scroll();
 
     this.tileset.loadMap(m);
 }
 
-FF4Map.prototype.invalidateMap = function(rect) {
+FF4MapGBA.prototype.invalidateMap = function(rect) {
     if (!rect) {
         // invalidate all sectors
         var sectorCount = Math.ceil(this.ppu.width / 256) * Math.ceil(this.ppu.height / 256);
@@ -884,7 +884,7 @@ FF4Map.prototype.invalidateMap = function(rect) {
     }
 }
 
-FF4Map.prototype.drawMap = function() {
+FF4MapGBA.prototype.drawMap = function() {
         
     // update the map canvas
     var mapContext = this.mapCanvas.getContext('2d');
@@ -939,66 +939,246 @@ FF4Map.prototype.drawMap = function() {
     this.drawCursor();
 }
 
-FF4Map.prototype.reloadTriggers = function() {
+FF4MapGBA.prototype.reloadTriggers = function() {
     this.loadTriggers();
     this.drawMap();
 }
 
-FF4Map.prototype.loadTriggers = function() {
+FF4MapGBA.prototype.loadTriggers = function() {
+    this.triggers = [];
+    this.loadedEvents = [];
+
+    if (this.isWorld) {
+        (this.m !== 2) ? this.loadWorldTriggers() : this.loadMoonTriggers();
+        return;
+    }
 
     var i;
-    this.triggers = [];
-
     // load triggers
-    var triggers = this.rom.mapTriggers.item(this.m);
-    if (this.isWorld) triggers = this.rom.worldTriggers.item(this.m - 0xFB);
+    var triggers = this.rom.mapTriggerPointers.item(this.mapProperties.events.value).triggerPointer.value;
     this.observer.startObserving(triggers, this.reloadTriggers);
     for (i = 0; i < triggers.array.length; i++) {
         var trigger = triggers.item(i);
-        if (trigger.map.value === 0xFE) {
-            trigger.key = "treasureProperties";
-            trigger.name = "Treasure Properties";
-            if (this.m >= 256 && trigger.battle.offset !== 0x01E0) {
-                trigger.battle.value += 32;
-                trigger.battle.offset = 0x01E0;
-            }
-        } else if (trigger.map.value === 0xFF) {
-            trigger.key = "eventTriggers";
-            trigger.name = "Event Trigger";
+        if (trigger.triggerType.value === 0) {
+            // map event
+            this.loadEvent(trigger);
+            this.fixEvent(trigger);
+            
+            var e = trigger.event2.value;
+            if (e === -1) e = trigger.event.value; // no script pointer
+            if (e === -1) continue; // no event
+            
+            scriptList.selectScript(this.rom.eventScript.item(e));
+            
         } else {
-            trigger.key = "entranceTriggers";
-            trigger.name = "Entrance Trigger";
-            if (this.m >= 252 && trigger.map.offset !== 256) {
-                trigger.map.value += 256;
-                trigger.map.offset = 256;
-            }
+            // npc
+            this.fixNPC(trigger);
+            this.triggers.push(trigger);
         }
-        this.triggers.push(trigger);
     }
-
-    // load npcs
-    if (this.isWorld) return;
-    var npcIndex = this.mapProperties.npc.value;
-    if (npcIndex === 0 && this.m !== 0) return;
-    var offset = 0;
-    if (this.mapProperties.npcMSB.value || this.m >= 256) {
-        npcIndex += 256;
-        offset = 256;
-    }
-    var npcProperties = this.rom.npcProperties.item(npcIndex);
-    this.observer.startObserving(npcProperties, this.reloadTriggers);
     
-    for (i = 0; i < npcProperties.array.length; i++) {
-        var npc = npcProperties.item(i);
-        if (npc.switch.offset !== offset) {
-            npc.switch.value += offset;
-            npc.switch.offset = offset;
+    // load tile properties triggers
+    var treasures = this.rom.mapTriggerPointers.item(this.mapProperties.treasures.value).triggerPointer.value;
+    var exits = this.mapProperties.exitPointer.value;
+    for (var y = 0; y < this.layer[0].h; y++) {
+        for (var x = 0; x < this.layer[0].w; x++) {
+            var tp = this.tilePropertiesAtTile(x, y);
+            var object = null;
+            var key;
+            if (tp & 0x0040) {
+                // exit (upper z-level)
+                if (!exits) continue;
+                object = exits.item(tp & 0x0F);
+                if (!object) continue;
+                key = "entranceTriggers";
+            } else if (tp & 0x4000) {
+                // exit (lower z-level)
+                if (!exits) continue;
+                object = exits.item((tp & 0x0F00) >> 8);
+                if (!object) continue;
+                key = "entranceTriggers";
+            } else if (tp & 0x0020) {
+                // treasure (upper z-level)
+                if (!treasures) continue;
+                object = treasures.item(tp & 0x0F);
+                if (!object) continue;
+                this.fixTreasure(object);
+                key = "treasureProperties";
+            } else if (tp & 0x2000) {
+                // treasure (lower z-level)
+                if (!treasures) continue;
+                object = treasures.item((tp & 0x0F00) >> 8);
+                if (!object) continue;
+                this.fixTreasure(object);
+                key = "treasureProperties";
+            } else {
+                continue;
+            }
+            this.triggers.push({
+                key: key,
+                x: {value: x},
+                y: {value: y},
+                object: object
+            });
         }
-        this.triggers.push(npc);
     }
 }
 
-FF4Map.prototype.insertTrigger = function(type) {
+FF4MapGBA.prototype.loadWorldTriggers = function() {
+
+//    // load world map events
+//    var event = this.rom.eventScript.item(66);
+//    if (!event) return;
+//
+//    for (var c = 0; c < event.command.length; c++) {
+//        var command = event.command[c];
+//        if (command.key === "createObject") {
+//            this.observer.startObserving(command, this.reloadTriggers);
+//            this.triggers.push(command);
+//        } else if (command.key === "jumpPosition") {
+//            this.observer.startObserving(command, this.reloadTriggers);
+//            this.triggers.push(command);
+//        }
+//
+//        if (command.scriptPointer && command.event2) {
+//            // load nested events
+//            this.loadEvent(command);
+//        }
+//    }
+
+    // load triggers
+    var worldTriggersIndex = 0;
+    if (this.w === 1) worldTriggersIndex = 1;
+    if (this.w === 3) worldTriggersIndex = 2;
+    var triggers = this.rom.worldTriggers;
+    this.observer.startObserving(triggers, this.reloadTriggers);
+    
+    var currentIndex = 0;
+    for (var i = 0; i < triggers.array.length; i++) {
+        var trigger = triggers.item(i);
+        if (trigger.data[0] === 0) {
+            currentIndex++;
+            continue;
+        }
+        if (worldTriggersIndex !== currentIndex) continue;
+        this.triggers.push(trigger);
+    }
+}
+
+FF4MapGBA.prototype.loadMoonTriggers = function() {
+
+    // load tile properties triggers
+    var exits = this.rom.worldExit;
+    for (var y = 0; y < this.layer[0].h; y++) {
+        for (var x = 0; x < this.layer[0].w; x++) {
+            var tp = this.tilePropertiesAtTile(x, y);
+            var object = null;
+            var key;
+            if (tp & 0x0040) {
+                // exit (upper z-level)
+                if (!exits) continue;
+                tp = tp & 0x0F;
+                object = exits.item(tp + 37);
+                if (!object) continue;
+                key = "entranceTriggers";
+            } else if (tp & 0x4000) {
+                // exit (lower z-level)
+                if (!exits) continue;
+                tp = (tp & 0x0F00) >> 8;
+                object = exits.item(tp + 37);
+                if (!object) continue;
+                key = "entranceTriggers";
+            } else {
+                continue;
+            }
+            this.triggers.push({
+                key: key,
+                x: {value: x},
+                y: {value: y},
+                object: object
+            });
+        }
+    }
+}
+
+FF4MapGBA.prototype.fixTreasure = function(trigger) {
+    trigger.triggerType.invalid = true;
+    trigger.graphics.invalid = true;
+    trigger.triggerType.invalid = true;
+    trigger.x.invalid = true;
+    trigger.y.invalid = true;
+    trigger.direction.invalid = true;
+    trigger.unknown_5.invalid = true;
+    trigger.speed.invalid = true;
+    trigger.unknown_7.invalid = true;
+    trigger.event.invalid = true;
+    trigger.event2.invalid = true;
+    trigger.scriptPointer.invalid = true;
+}
+
+FF4MapGBA.prototype.fixNPC = function(trigger) {
+    trigger.eventSwitch.invalid = true;
+    trigger.item.invalid = true;
+    trigger.battle.invalid = true;
+    trigger.gil.invalid = true;
+    trigger.openTile.invalid = true;
+}
+
+FF4MapGBA.prototype.fixEvent = function(trigger) {
+    trigger.eventSwitch.invalid = true;
+    trigger.item.invalid = true;
+    trigger.battle.invalid = true;
+    trigger.gil.invalid = true;
+    trigger.openTile.invalid = true;
+    trigger.triggerType.invalid = true;
+    trigger.graphics.invalid = true;
+    trigger.triggerType.invalid = true;
+    trigger.x.invalid = true;
+    trigger.y.invalid = true;
+    trigger.direction.invalid = true;
+    trigger.unknown_5.invalid = true;
+    trigger.speed.invalid = true;
+    trigger.unknown_7.invalid = true;
+    trigger.event2.invalid = true;
+    trigger.scriptPointer.invalid = true;
+}
+
+FF4MapGBA.prototype.loadEvent = function(object) {
+    
+    var e = object.event2.value;
+    if (e === 0xFFFE) return; // current event
+    if (e === -1) e = object.event.value; // no script pointer
+    if (e === -1) return; // no event
+    if (this.loadedEvents.includes(e)) return; // event already loaded
+    this.loadedEvents.push(e);
+    
+    var event = this.rom.eventScript.item(e);
+    if (!event) return;
+    
+    for (var c = 0; c < event.command.length; c++) {
+        var command = event.command[c];
+        if (command.key === "createObject") {
+            this.observer.startObserving(command, this.reloadTriggers);
+            this.triggers.push(command);
+        } else if (command.key === "jumpPosition") {
+            this.observer.startObserving(command, this.reloadTriggers);
+            this.triggers.push(command);
+        } else if (command.key === "jumpPositionShort") {
+            this.observer.startObserving(command, this.reloadTriggers);
+            this.triggers.push(command);
+        } else if (command.key === "selectDeleteTrigger") {
+            this.observer.startObserving(command, this.reloadTriggers);
+            this.triggers.push(command);
+        }
+        
+        if (command.scriptPointer && command.event2) {
+            // load nested events
+            this.loadEvent(command);
+        }
+    }
+}
+
+FF4MapGBA.prototype.insertTrigger = function(type) {
     
     this.closeMenu();
     
@@ -1033,7 +1213,7 @@ FF4Map.prototype.insertTrigger = function(type) {
     propertyList.select(trigger);
 }
 
-FF4Map.prototype.updateTreasures = function() {
+FF4MapGBA.prototype.updateTreasures = function() {
     var t = 0;
     for (var m = 0; m < this.rom.mapProperties.array.length; m++) {
         if (m === 256) t = 0; // reset to zero for underground/moon treasures
@@ -1045,21 +1225,7 @@ FF4Map.prototype.updateTreasures = function() {
     }
 }
 
-//FF4Map.prototype.logTreasures = function() {
-//    for (var m = 0; m < this.rom.mapProperties.array.length; m++) {
-//        if (m === 256) t = 0; // reset to zero for underground/moon treasures
-//        var t = this.rom.mapProperties.item(m).treasure.value;
-//        var name = this.rom.stringTable["mapProperties"].string[m];
-//        var triggers = this.rom.mapTriggers.item(m);
-//        triggers.array.forEach(function(trigger) {
-//            if (trigger.map.value !== 0xFE) return;
-//            console.log(t + ": " + name);
-//            t++;
-//        });
-//    }
-//}
-
-FF4Map.prototype.insertNPC = function() {
+FF4MapGBA.prototype.insertNPC = function() {
     this.closeMenu();
     
     // get the npc properties
@@ -1081,7 +1247,7 @@ FF4Map.prototype.insertNPC = function() {
     propertyList.select(npc);
 }
 
-FF4Map.prototype.deleteTrigger = function() {
+FF4MapGBA.prototype.deleteTrigger = function() {
     
     this.closeMenu();
     var trigger = this.selectedTrigger;
@@ -1098,10 +1264,8 @@ FF4Map.prototype.deleteTrigger = function() {
     propertyList.select(null);
 }
 
-FF4Map.prototype.drawTriggers = function() {
+FF4MapGBA.prototype.drawTriggers = function() {
     
-    if (!this.showTriggers) return;
-
     var zoom = this.zoom;
     var xClient = this.mapRect.l;
     var yClient = this.mapRect.t;
@@ -1133,43 +1297,67 @@ FF4Map.prototype.drawTriggers = function() {
         ctx.stroke();
     }
 
+    if (!this.showTriggers) return;
     for (var i = 0; i < this.triggers.length; i++) {
         var trigger = this.triggers[i];
         var triggerRect = this.rectForTrigger(trigger);
         if (this.mapRect.intersect(triggerRect).isEmpty()) continue;
         var c = "purple";
         switch (trigger.key) {
-            case "eventTriggers": c = "rgba(0, 0, 255, 0.5)"; break;
-            case "entranceTriggers": c = "rgba(255, 0, 0, 0.5)"; break;
-            case "treasureProperties": c = "rgba(255, 255, 0, 0.5)"; break;
-            case "npcProperties": c = "rgba(128, 128, 128, 0.5)"; break;
+            case "jumpPosition":
+            case "jumpPositionShort":
+                c = "rgba(0, 0, 255, 0.5)";
+                for (var y = 0; y < trigger.height.value; y++) {
+                    for (var x = 0; x < trigger.width.value; x++) {
+                        drawTriggerRect(trigger.x.value + x, trigger.y.value + y, c);
+                    }
+                }
+                continue;
+            case "createObject":
+            case "selectDeleteTrigger":
+                c = "rgba(0, 0, 255, 0.5)";
+                break;
+            case "worldTriggers":
+                for (var y = 0; y < trigger.height.value; y++) {
+                    for (var x = 0; x < trigger.width.value; x++) {
+                        var tp = this.tilePropertiesAtTile(trigger.x.value + x, trigger.y.value + y);
+                        if (tp.tileType.value === 1 || tp.tileType.value >= 4) {
+                            c = "rgba(255, 0, 0, 0.5)";
+                        } else {
+                            c = "rgba(0, 0, 0, 0)"; // not a valid trigger tile
+                        }
+                        drawTriggerRect(trigger.x.value + x, trigger.y.value + y, c);
+                    }
+                }
+                continue;
+            case "entranceTriggers":
+                c = "rgba(255, 0, 0, 0.5)";
+                break;
+            case "treasureProperties":
+                c = "rgba(255, 255, 0, 0.5)";
+                break;
+            case "mapTriggers":
+            case "npcProperties":
+                c = "rgba(128, 128, 128, 0.5)";
+                break;
         }
         drawTriggerRect(trigger.x.value, trigger.y.value, c);
     }
     
-    // draw npcs (sort by y-coordinate and sprite priority)
-    var npcs = this.triggers.filter(function(trigger) {
-        return (trigger.key === "npcProperties");
-    });
-    npcs = npcs.sort(function(trigger1, trigger2) {
-        var y1 = trigger1.y.value;
-        var y2 = trigger2.y.value;
-        return y1 - y2;
-    });
-    for (i = 0; i < npcs.length; i++) {
-        var npc = npcs[i];
-        this.drawNPC(npc);
+    for (i = 0; i < this.triggers.length; i++) {
+        var npc = this.triggers[i];
+        if (npc.graphics && npc.graphics.value) this.drawNPC(npc);
     }
 }
 
-FF4Map.prototype.triggerAt = function(x, y) {
+FF4MapGBA.prototype.triggerAt = function(x, y) {
     
     var triggers = this.triggersAt(x, y);
     if (triggers.length === 0) return null;
     return triggers[0];
 }
 
-FF4Map.prototype.triggersAt = function (x, y) {
+FF4MapGBA.prototype.triggersAt = function (x, y) {
     var left, right, top, bottom, length;
     var zoom = this.zoom;
     var triggers = [];
@@ -1190,109 +1378,91 @@ FF4Map.prototype.triggersAt = function (x, y) {
     return triggers;
 }
 
-FF4Map.prototype.rectForTrigger = function(trigger) {
+FF4MapGBA.prototype.rectForTrigger = function(trigger) {
     var l = trigger.x.value * 16 * this.zoom;
     var r = l + 16 * this.zoom;
     var t = trigger.y.value * 16 * this.zoom;
     var b = t + 16 * this.zoom;
+    
+    if (trigger.width && trigger.height) {
+        var width = trigger.width.value;
+        var height = trigger.height.value;
+    }
 
     return new Rect(l, r, t, b);
 }
 
-FF4Map.prototype.drawNPC = function(npc) {
-    
+FF4MapGBA.prototype.drawNPC = function(npc) {
+        
     var x = npc.x.value * 16;
     var y = npc.y.value * 16;
     var w = 16;
     var h = 16;
-
-    var index = npc.switch.value;
-    var g = this.rom.npcPointers.item(index).graphics.value;
-    var direction = npc.direction.value;
-    var p = npc.palette.value;
-
-    // decode palette
-    var pal = new Uint32Array(0x80);
-    var p1 = this.mapProperties.npcPalette1.value * 2;
-    var p2 = this.mapProperties.npcPalette2.value * 2;
-    pal.set(this.rom.mapSpritePalettes.item(0).data, 0x00);
-    pal.set(this.rom.mapSpritePalettes.item(1).data, 0x10);
-    pal.set(this.rom.mapSpritePalettes.item(2).data, 0x20);
-    pal.set(this.rom.mapSpritePalettes.item(3).data, 0x30);
-    pal.set(this.rom.npcPalettes.item(p1).data, 0x40);
-    pal.set(this.rom.npcPalettes.item(p1 + 1).data, 0x50);
-    pal.set(this.rom.npcPalettes.item(p2).data, 0x60);
-    pal.set(this.rom.npcPalettes.item(p2 + 1).data, 0x70);
-    if (g < 14) {
-        // character palette
-        var characterPalettes = [0, 0, 1, 2, 2, 2, 0, 1, 1, 3, 0, 1, 0, 0, 0, 0, 0, 0];
-        p = characterPalettes[g] << 9;
-    } else {
-        // npc palette
-        p += 4;
-        p <<= 9;
-    }
-
-    // get a pointer to the sprite graphics
-    var gfxOffset = 0;
-    var tileCount = 0;
-    if (g < 0x11) {
-        tileCount = 8;
-        gfxOffset = g * 0x60 * 8;
-    } else if (g < 0x30) {
-        tileCount = 4;
-        gfxOffset = (g - 0x11) * 0x60 * 4 + 0x3300;
-    } else if (g < 0x46) {
-        tileCount = 2;
-        gfxOffset = (g - 0x30) * 0x60 * 2 + 0x6180;
-    } else {
-        tileCount = 1;
-        gfxOffset = (g - 0x46) * 0x60 * 1 + 0x7200;
+    
+    var spriteProperties = this.rom.mapSpriteProperties.item(npc.graphics.value);
+    var offset = spriteProperties.offset.value - 0x0400;
+    var size = spriteProperties.size.value;
+    
+    // load palette
+    var paletteData = this.rom.mapSpriteGraphics.item(offset);
+    if (!paletteData.format) {
+        paletteData.format = "bgr555";
+        paletteData.disassemble(paletteData.parent.lazyData);
     }
     
-    var tileData = [0 | p, 1 | p, 2 | p, 3 | p];
-    if (direction === 0 && tileCount > 1) {
-        // up
-        gfxOffset += 0x60;
-    } else if (direction === 1 && tileCount > 2) {
-        // right
-        gfxOffset += 0xC0;
-        p |= 0x4000;
-        tileData = [1 | p, 0 | p, 3 | p, 2 | p];
+    var direction = npc.direction.value;
+    var tiles = new Uint16Array(size);
+    for (var t = 0; t < size; t++) tiles[t] = t;
+    var g = offset + 1;
+    if (size === 16) {
+        w = 32;
+        h = 32;
+        y -= 16;
+    } else if (direction === 0) {
+        // facing up
+        g = offset + 3;
     } else if (direction === 2) {
-        // down
-        gfxOffset += 0;
-    } else if (direction === 3 && tileCount > 2) {
-        // left
-        gfxOffset += 0xC0;
+        // facing right
+        g = offset + 5;
+        tiles[0] = 0x0401;
+        tiles[1] = 0x0400;
+        tiles[2] = 0x0403;
+        tiles[3] = 0x0402;
+    } else if (direction === 4) {
+        // facing down
+        g = offset + 1;
+    } else if (direction === 6) {
+        // facing left
+        g = offset + 5;
     }
-
-    // decode graphics
-    var gfx = new Uint8Array(0x0100);
-    gfxOffset = gfxOffset / 0x18 * 0x40
-    var rawGraphics = this.rom.mapSpriteGraphics.data.subarray(gfxOffset, gfxOffset + 0x100);
-    gfx.set(rawGraphics);
-
+    
+    // load graphics    
+    var graphicsData = this.rom.mapSpriteGraphics.item(g);
+    if (!graphicsData.format) {
+        graphicsData.format = "linear4bpp";
+        graphicsData.disassemble(graphicsData.parent.lazyData);
+    }
+        
     var npcRect = new Rect(x, x + w, y - 2, y + h - 2);
     npcRect = npcRect.scale(this.zoom);
     if (this.mapRect.intersect(npcRect).isEmpty()) return;
 
     // set up the ppu
     var ppu = new GFX.PPU();
-    ppu.pal = pal;
+    ppu.pal = paletteData.data;
     ppu.width = w;
     ppu.height = h;
 
     // layer 1
-    ppu.layers[0].format = GFX.TileFormat.snesSpriteTile;
+    ppu.layers[0].format = GFX.TileFormat.gba4bppTile;
     ppu.layers[0].cols = w >> 3;
     ppu.layers[0].rows = h >> 3;
     ppu.layers[0].z[0] = GFX.Z.snesS0;
     ppu.layers[0].z[1] = GFX.Z.snesS1;
     ppu.layers[0].z[2] = GFX.Z.snesS2;
     ppu.layers[0].z[3] = GFX.Z.snesS3;
-    ppu.layers[0].gfx = gfx;
-    ppu.layers[0].tiles = tileData;
+    ppu.layers[0].gfx = graphicsData.data;
+    ppu.layers[0].tiles = tiles;
     ppu.layers[0].main = true;
 
     // draw the npc
@@ -1308,10 +1478,11 @@ FF4Map.prototype.drawNPC = function(npc) {
     ctx.webkitImageSmoothingEnabled = false;
     npcRect = npcRect.offset(-this.mapRect.l, -this.mapRect.t);
     ctx.drawImage(this.npcCanvas, 0, 0, w, h, npcRect.l, npcRect.t, npcRect.w, npcRect.h);
+
 }
 
-// FF4MapTileset
-function FF4MapTileset(rom, map) {
+// FF4MapGBATileset
+function FF4MapGBATileset(rom, map) {
 
     this.rom = rom;
     this.map = map;
@@ -1326,9 +1497,9 @@ function FF4MapTileset(rom, map) {
     this.cursorCanvas.width = 256;
     this.cursorCanvas.height = 256;
 
-    this.layer = [new FF4MapLayer(rom, FF4MapLayer.Type.layer1),
-                  new FF4MapLayer(rom, FF4MapLayer.Type.layer2)];
-    this.worldLayer = new FF4MapLayer(rom, FF4MapLayer.Type.world);
+    this.layer = [new FF4MapGBALayer(rom, FF4MapGBALayer.Type.layer1),
+                  new FF4MapGBALayer(rom, FF4MapGBALayer.Type.layer2)];
+    this.worldLayer = new FF4MapGBALayer(rom, FF4MapGBALayer.Type.world);
 
     this.selection = new Uint8Array([0x73, 0, 0, 1, 1, 0]);
     this.clickedCol = null;
@@ -1350,7 +1521,7 @@ function FF4MapTileset(rom, map) {
     }
 }
 
-FF4MapTileset.prototype.show = function() {
+FF4MapGBATileset.prototype.show = function() {
     this.div = document.getElementById('toolbox-div');
     this.div.innerHTML = "";
     this.div.classList.remove('hidden');
@@ -1361,7 +1532,7 @@ FF4MapTileset.prototype.show = function() {
     document.getElementById("toolbox-buttons").classList.remove('hidden');
 }
 
-FF4MapTileset.prototype.mouseDown = function(e) {
+FF4MapGBATileset.prototype.mouseDown = function(e) {
     var x = e.offsetX;
     var y = e.offsetY;
     this.clickedCol = x >> 4;
@@ -1369,16 +1540,16 @@ FF4MapTileset.prototype.mouseDown = function(e) {
     this.mouseMove(e);
 }
 
-FF4MapTileset.prototype.mouseUp = function(e) {
+FF4MapGBATileset.prototype.mouseUp = function(e) {
     this.clickedCol = null;
     this.clickedRow = null;
 }
 
-FF4MapTileset.prototype.mouseOut = function(e) {
+FF4MapGBATileset.prototype.mouseOut = function(e) {
     this.mouseUp(e);
 }
 
-FF4MapTileset.prototype.mouseMove = function(e) {
+FF4MapGBATileset.prototype.mouseMove = function(e) {
 
     // return unless dragging (except if trigger layer selected)
     if (!isNumber(this.clickedCol) || !isNumber(this.clickedRow) || this.map.l === 3) return;
@@ -1405,7 +1576,7 @@ FF4MapTileset.prototype.mouseMove = function(e) {
     if (cols === 1 && rows === 1) this.map.selectTileProperties(this.selection[5]);
 }
 
-FF4MapTileset.prototype.selectLayer = function(l) {
+FF4MapGBATileset.prototype.selectLayer = function(l) {
     
     // update layer buttons
     var layerButtons = document.getElementsByClassName("toolbox-button");
@@ -1448,7 +1619,7 @@ FF4MapTileset.prototype.selectLayer = function(l) {
     this.map.selection = new Uint8Array(this.selection);
 }
 
-FF4MapTileset.prototype.drawCursor = function() {
+FF4MapGBATileset.prototype.drawCursor = function() {
     
     // clear the cursor canvas
     var ctx = this.cursorCanvas.getContext('2d');
@@ -1484,7 +1655,7 @@ FF4MapTileset.prototype.drawCursor = function() {
     ctx.strokeRect(x, y, w, h);
 }
 
-FF4MapTileset.prototype.loadMap = function(m) {
+FF4MapGBATileset.prototype.loadMap = function(m) {
 
     // create a sequential tile layout
     var layout = new Uint8Array(256);
@@ -1493,7 +1664,7 @@ FF4MapTileset.prototype.loadMap = function(m) {
     }
 
     var w = 256;
-    var h = 128;
+    var h = 256;
 
     // set up the ppu
     this.ppu = new GFX.PPU();
@@ -1502,58 +1673,44 @@ FF4MapTileset.prototype.loadMap = function(m) {
     this.ppu.height = h;
     this.ppu.back = true;
 
-    if (this.map.isWorld) {
-        this.worldLayer.loadLayout({layout: layout, tileset: this.map.worldLayer.tileset, w: 16, h: 8, paletteAssignment: this.map.worldLayer.paletteAssignment})
-        
-        // layer 1
-        this.ppu.layers[0].format = GFX.TileFormat.snes4bppTile;
-        this.ppu.layers[0].rows = 16;
-        this.ppu.layers[0].cols = 32;
-        this.ppu.layers[0].z[0] = GFX.Z.snes1L;
-        this.ppu.layers[0].z[1] = GFX.Z.snes1H;
-        this.ppu.layers[0].gfx = this.map.ppu.layers[0].gfx;
-        this.ppu.layers[0].tiles = this.worldLayer.tiles;
-        
-    } else {
-        this.layer[0].loadLayout({layout: layout, tileset: this.map.layer[0].tileset, w: 16, h: 8});
-        this.layer[1].loadLayout({layout: layout, tileset: this.map.layer[1].tileset, w: 16, h: 8});
-        
-        // layer 1
-        this.ppu.layers[0].format = GFX.TileFormat.snes4bppTile;
-        this.ppu.layers[0].rows = 16;
-        this.ppu.layers[0].cols = 32;
-        this.ppu.layers[0].z[0] = GFX.Z.snes1L;
-        this.ppu.layers[0].z[1] = GFX.Z.snes1H;
-        this.ppu.layers[0].gfx = this.map.ppu.layers[0].gfx;
-        this.ppu.layers[0].tiles = this.layer[0].tiles;
+    this.layer[0].loadLayout({type: this.map.layer[0].type, layout: layout, tileset: this.map.layer[0].tileset, w: 16, h: 16});
+    this.layer[1].loadLayout({type: this.map.layer[1].type, layout: layout, tileset: this.map.layer[1].tileset, w: 16, h: 16});
 
-        // layer 2
-        this.ppu.layers[1].format = GFX.TileFormat.snes4bppTile;
-        this.ppu.layers[1].rows = 16;
-        this.ppu.layers[1].cols = 32;
-        this.ppu.layers[1].z[0] = GFX.Z.snes2L;
-        this.ppu.layers[1].z[1] = GFX.Z.snes2H;
-        this.ppu.layers[1].gfx = this.map.ppu.layers[1].gfx;
-        this.ppu.layers[1].tiles = this.layer[1].tiles;
-    }
+    // layer 1
+    this.ppu.layers[0].format = GFX.TileFormat.gba4bppTile;
+    this.ppu.layers[0].rows = 32;
+    this.ppu.layers[0].cols = 32;
+    this.ppu.layers[0].z[0] = GFX.Z.snes1L;
+    this.ppu.layers[0].z[1] = GFX.Z.snes1H;
+    this.ppu.layers[0].gfx = this.map.ppu.layers[0].gfx;
+    this.ppu.layers[0].tiles = this.layer[0].tiles;
+
+    // layer 2
+    this.ppu.layers[1].format = GFX.TileFormat.gba4bppTile;
+    this.ppu.layers[1].rows = 32;
+    this.ppu.layers[1].cols = 32;
+    this.ppu.layers[1].z[0] = GFX.Z.snes2L;
+    this.ppu.layers[1].z[1] = GFX.Z.snes2H;
+    this.ppu.layers[1].gfx = this.map.ppu.layers[1].gfx;
+    this.ppu.layers[1].tiles = this.layer[1].tiles;
      
     this.selectLayer(this.map.l);
 }
 
-// FF4MapLayer
-function FF4MapLayer(rom, type) {
+// FF4MapGBALayer
+function FF4MapGBALayer(rom, type) {
     this.rom = rom;
     this.type = type;
     this.tileset = null;
 }
 
-FF4MapLayer.Type = {
+FF4MapGBALayer.Type = {
     layer1: "layer1",
     layer2: "layer2",
     world: "world"
 }
 
-FF4MapLayer.prototype.loadLayout = function(definition) {
+FF4MapGBALayer.prototype.loadLayout = function(definition) {
 
     if (definition.type) this.type = definition.type;
     this.layout = definition.layout;
@@ -1567,7 +1724,7 @@ FF4MapLayer.prototype.loadLayout = function(definition) {
     this.decodeLayout();
 }
 
-FF4MapLayer.prototype.setLayout = function(layout) {
+FF4MapGBALayer.prototype.setLayout = function(layout) {
 
     // layout 0 is always blank
     if (!this.layout.data && this.type !== "world") return;
@@ -1586,17 +1743,19 @@ FF4MapLayer.prototype.setLayout = function(layout) {
         var ls = 5 + row * w;
         var ld = x + (y + row) * this.w;
         if (this.type === "world") {
-            if (y + row > 256) break;
-            this.layout[y + row].setData(layout.slice(ls, ls + clippedW), x);
+            if (ld + clippedW > this.layout.data.length) break;
+            this.layout.setData(layout.slice(ls, ls + clippedW), ld);
         } else {
             if (ld + clippedW > this.layout.data.length) break;
+            ld += 4;
+            if (this.type === FF4MapGBALayer.Type.layer2) ld += this.w * this.h;
             this.layout.setData(layout.slice(ls, ls + clippedW), ld);
         }
     }
     this.decodeLayout(x, y, clippedW, clippedH);
 }
 
-FF4MapLayer.prototype.getLayout = function(col, row, cols, rows) {
+FF4MapGBALayer.prototype.getLayout = function(col, row, cols, rows) {
     
     // limit the selection rectangle to the size of the layer
     var clippedCol = col % this.w;
@@ -1611,16 +1770,18 @@ FF4MapLayer.prototype.getLayout = function(col, row, cols, rows) {
     for (var y = 0; y < rows; y++) {
         for (var x = 0; x < cols; x++) {
             if (this.type === "world") {
-                selection[5 + x + y * cols] = layout[y + clippedRow].data[x + clippedCol];
-            } else {
                 selection[5 + x + y * cols] = layout[x + clippedCol + (y + clippedRow) * this.w];
+            } else {
+                var offset = 4;
+                if (this.type === FF4MapGBALayer.Type.layer2) offset += this.w * this.h;
+                selection[5 + x + y * cols] = layout[x + clippedCol + (y + clippedRow) * this.w + offset];
             }
         }
     }
     return selection;
 }
 
-FF4MapLayer.prototype.decodeLayout = function(x, y, w, h) {
+FF4MapGBALayer.prototype.decodeLayout = function(x, y, w, h) {
     
     x = x || 0;
     y = y || 0;
@@ -1632,11 +1793,11 @@ FF4MapLayer.prototype.decodeLayout = function(x, y, w, h) {
     h = Math.min(h, this.h - y);
     
     switch (this.type) {
-        case FF4MapLayer.Type.layer1:
-        case FF4MapLayer.Type.layer2:
+        case FF4MapGBALayer.Type.layer1:
+        case FF4MapGBALayer.Type.layer2:
             this.decodeMapLayout(x, y, w, h);
             break;
-        case FF4MapLayer.Type.world:
+        case FF4MapGBALayer.Type.world:
             this.decodeWorldLayout(x, y, w, h);
             break;
         default:
@@ -1644,60 +1805,61 @@ FF4MapLayer.prototype.decodeLayout = function(x, y, w, h) {
     }
 }
 
-FF4MapLayer.prototype.decodeMapLayout = function(x, y, w, h) {
+FF4MapGBALayer.prototype.decodeMapLayout = function(x, y, w, h) {
     
     var layout = this.layout.data || this.layout;
     var l = x + y * this.w;
     var t = x * 2 + y * this.w * 4;
     var row, col, tile, i;
+        
+    if (this.layout instanceof Uint8Array) {
+        layout = this.layout;
+    } else {
+        var w = this.layout.data[0] | (this.layout.data[1] << 8);
+        var h = this.layout.data[2] | (this.layout.data[3] << 8);
+        if (this.type === FF4MapGBALayer.Type.layer1) {
+            layout = this.layout.data.subarray(4, 4 + w * h);
+        } else {
+            layout = this.layout.data.subarray(4 + w * h, 4 + w * h * 2);
+        }
+    }
+
+    var tileset = new Uint8Array(this.tileset);
 
     for (row = 0; row < h; row++) {
         for (col = 0; col < w; col++) {
-            tile = layout[l + col] * 2;
+            tile = layout[l + col];
+            t1 = (tile & 0x0F) * 8 + (tile & 0xF0) * 8;
             i = t + col * 2;
             if (i > this.tiles.length) return;
-            this.tiles[i + 0] = this.tileset[tile + 0x0000] | (this.tileset[tile + 0x0001] << 8);
-            this.tiles[i + 1] = this.tileset[tile + 0x0100] | (this.tileset[tile + 0x0101] << 8);
+            this.tiles[i + 0] = tileset[t1 + 0x0000] | (tileset[t1 + 0x0001] << 8);
+            this.tiles[i + 1] = tileset[t1 + 0x0002] | (tileset[t1 + 0x0003] << 8);
             i += this.w * 2;
-            this.tiles[i + 0] = this.tileset[tile + 0x0200] | (this.tileset[tile + 0x0201] << 8);
-            this.tiles[i + 1] = this.tileset[tile + 0x0300] | (this.tileset[tile + 0x0301] << 8);
+            this.tiles[i + 0] = tileset[t1 + 0x0004] | (tileset[t1 + 0x0005] << 8);
+            this.tiles[i + 1] = tileset[t1 + 0x0006] | (tileset[t1 + 0x0007] << 8);
         }
         t += this.w * 4;
         l += this.w;
     }
 }
 
-FF4MapLayer.prototype.decodeWorldLayout = function(x, y, w, h) {
+FF4MapGBALayer.prototype.decodeWorldLayout = function(x, y, w, h) {
 
-    var tileset = new Uint16Array(512);
-    for (var i = 0; i < 512; i++) {
-        var t = this.tileset[i];
-        var p = this.paletteAssignment[t] << 6;
-        tileset[i] = t | p;
-    }
-    var layout = this.layout;
-    if (layout[0] instanceof ROMAssembly) {
-        layout = new Uint8Array(0x10000);
-        for (var i = 0; i < this.h; i++) {
-            layout.set(this.layout[i].data, i * this.w);
-        }
-    }
-    
     var l = x + y * this.w;
     var t = x * 2 + y * this.w * 4;
-    var row, col, tile;
+    var row, col, tile, i;
+    var layout = this.layout.data || this.layout;
 
     for (row = 0; row < h; row++) {
         for (col = 0; col < w; col++) {
-            tile = layout[l + col];
-            if (tile > 0x7F) tile = 0;
+            tile = layout[l + col] * 4;
             i = t + col * 2;
             if (i > this.tiles.length) return;
-            this.tiles[i + 0] = tileset[tile + 0x0000];
-            this.tiles[i + 1] = tileset[tile + 0x0080];
+            this.tiles[i + 0] = this.tileset[tile + 0];
+            this.tiles[i + 1] = this.tileset[tile + 1];
             i += this.w * 2;
-            this.tiles[i + 0] = tileset[tile + 0x0100];
-            this.tiles[i + 1] = tileset[tile + 0x0180];
+            this.tiles[i + 0] = this.tileset[tile + 2];
+            this.tiles[i + 1] = this.tileset[tile + 3];
         }
         t += this.w * 4;
         l += this.w;
