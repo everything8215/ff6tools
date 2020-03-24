@@ -2206,6 +2206,7 @@
                 "default": "<itemNames[%i].formattedText>",
                 "string": {
                     "0x00": "Unarmed",
+                    "0x60": "No Armor",
                     "0xFF": "Nothing"
                 }
             }

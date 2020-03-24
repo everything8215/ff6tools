@@ -341,13 +341,19 @@ body {
 /*    float: left;*/
 }
 
-#map-cursor {
-    z-index: 4;
+#map-mask {
+    z-index: 3;
     position: absolute;
     pointer-events: none;
 }
 
 #map-screen {
+    z-index: 4;
+    position: absolute;
+    pointer-events: none;
+}
+
+#map-cursor {
     z-index: 5;
     position: absolute;
     pointer-events: none;

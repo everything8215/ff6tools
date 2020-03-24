@@ -2196,7 +2196,12 @@
             "stringTable": {
                 "name": "Item Names",
                 "length": 256,
-                "default": "<itemNames[%i].formattedText>"
+                "default": "<itemNames[%i].formattedText>",
+                "string": {
+                    "0x00": "Unarmed",
+                    "0x60": "No Armor",
+                    "0xFF": "Nothing"
+                }
             }
         },
         "itemPrice": {

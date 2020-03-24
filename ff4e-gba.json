@@ -1381,7 +1381,7 @@
                     "attack": {
                         "type": "assembly",
                         "external": "equipmentProperties[%i].attack",
-                        "invalid": "this.parent.itemType.value >= 19 || this.parent.itemType.value === 0 || this.parent.i >= 176"
+                        "invalid": "this.parent.i >= 96"
                     },
                     "attackGBA1": {
                         "type": "assembly",
@@ -1401,7 +1401,7 @@
                     "accuracy": {
                         "type": "assembly",
                         "external": "equipmentProperties[%i].accuracy",
-                        "invalid": "this.parent.itemType.value >= 19 || this.parent.itemType.value === 0 || this.parent.i >= 176"
+                        "invalid": "this.parent.i >= 96"
                     },
                     "accuracyGBA1": {
                         "type": "assembly",
@@ -1422,7 +1422,7 @@
                         "type": "assembly",
                         "name": "Defense",
                         "external": "equipmentProperties[%i].attack",
-                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value < 19 || this.parent.i >= 176"
+                        "invalid": "this.parent.i < 96 || this.parent.i >= 176"
                     },
                     "defenseGBA1": {
                         "type": "assembly",
@@ -1446,7 +1446,7 @@
                         "type": "assembly",
                         "name": "Evade",
                         "external": "equipmentProperties[%i].accuracy",
-                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value < 19 || this.parent.i >= 176"
+                        "invalid": "this.parent.i < 96 || this.parent.i >= 176"
                     },
                     "evadeGBA1": {
                         "type": "assembly",
@@ -1469,7 +1469,7 @@
                     "magicDefense": {
                         "type": "assembly",
                         "external": "equipmentProperties[%i].magicDefense",
-                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value < 19 || this.parent.i >= 176"
+                        "invalid": "this.parent.i < 96 || this.parent.i >= 176"
                     },
                     "magicDefenseGBA1": {
                         "type": "assembly",
@@ -1489,7 +1489,7 @@
                     "magicEvade": {
                         "type": "assembly",
                         "external": "equipmentProperties[%i].magicEvade",
-                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value < 19 || this.parent.i >= 176"
+                        "invalid": "this.parent.i < 96 || this.parent.i >= 176"
                     },
                     "magicEvadeGBA1": {
                         "type": "assembly",
@@ -1509,7 +1509,7 @@
                     "strength": {
                         "type": "assembly",
                         "external": "equipmentProperties[%i].strength",
-                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i >= 176"
+                        "invalid": "this.parent.i >= 176"
                     },
                     "strengthGBA1": {
                         "type": "assembly",
@@ -1529,7 +1529,7 @@
                     "agility": {
                         "type": "assembly",
                         "external": "equipmentProperties[%i].agility",
-                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i >= 176"
+                        "invalid": "this.parent.i >= 176"
                     },
                     "agilityGBA1": {
                         "type": "assembly",
@@ -1549,7 +1549,7 @@
                     "stamina": {
                         "type": "assembly",
                         "external": "equipmentProperties[%i].stamina",
-                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i >= 176"
+                        "invalid": "this.parent.i >= 176"
                     },
                     "staminaGBA1": {
                         "type": "assembly",
@@ -1569,7 +1569,7 @@
                     "intelligence": {
                         "type": "assembly",
                         "external": "equipmentProperties[%i].intelligence",
-                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i >= 176"
+                        "invalid": "this.parent.i >= 176"
                     },
                     "intelligenceGBA1": {
                         "type": "assembly",
@@ -1589,7 +1589,7 @@
                     "spirit": {
                         "type": "assembly",
                         "external": "equipmentProperties[%i].spirit",
-                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i >= 176"
+                        "invalid": "this.parent.i >= 176"
                     },
                     "spiritGBA1": {
                         "type": "assembly",
@@ -1609,7 +1609,7 @@
                     "equipability": {
                         "type": "assembly",
                         "external": "equipmentProperties[%i].equipability",
-                        "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i >= 176"
+                        "invalid": "this.parent.i >= 176"
                     },
                     "equipabilityGBA1": {
                         "type": "assembly",
@@ -2031,47 +2031,6 @@
                 }
             }
         },
-        "mapTileset": {
-            "type": "array",
-            "name": "Map Tileset",
-            "array": {
-                "length": 34
-            },
-            "isFragmented": true,
-            "assembly": {
-                "type": "data",
-                "length": 16,
-                "assembly": {
-                    "palette": {
-                        "type": "property",
-                        "name": "Palette",
-                        "begin": 0,
-                        "mask": "0x0FFF"
-                    },
-                    "graphics": {
-                        "type": "property",
-                        "name": "Graphics",
-                        "begin": 4,
-                        "mask": "0x0FFF"
-                    },
-                    "tileset": {
-                        "type": "property",
-                        "name": "Tileset",
-                        "begin": 6,
-                        "mask": "0x0FFF"
-                    },
-                    "animationPointer": {
-                        "type": "property",
-                        "name": "Animation Pointer",
-                        "begin": 8,
-                        "mask": "0x7FFFFFFF"
-                    }
-                }
-            },
-            "pointerTable": {
-                "range": "0x080E7C08-0x080E7C90"
-            }
-        },
         "mapSpriteGraphics": {
             "type": "array",
             "name": "Map Sprite Graphics",
@@ -2256,6 +2215,47 @@
                     "163": "Dancer Foot",
                     "165": "Giant of Babel"
                 }
+            }
+        },
+        "mapTileset": {
+            "type": "array",
+            "name": "Map Tileset",
+            "array": {
+                "length": 34
+            },
+            "isFragmented": true,
+            "assembly": {
+                "type": "data",
+                "length": 16,
+                "assembly": {
+                    "palette": {
+                        "type": "property",
+                        "name": "Palette",
+                        "begin": 0,
+                        "mask": "0x0FFF"
+                    },
+                    "graphics": {
+                        "type": "property",
+                        "name": "Graphics",
+                        "begin": 4,
+                        "mask": "0x0FFF"
+                    },
+                    "tileset": {
+                        "type": "property",
+                        "name": "Tileset",
+                        "begin": 6,
+                        "mask": "0x0FFF"
+                    },
+                    "animationPointer": {
+                        "type": "property",
+                        "name": "Animation Pointer",
+                        "begin": 8,
+                        "mask": "0x7FFFFFFF"
+                    }
+                }
+            },
+            "pointerTable": {
+                "range": "0x080E7C08-0x080E7C90"
             }
         },
         "mapTriggers": {

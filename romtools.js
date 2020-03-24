@@ -937,7 +937,7 @@ ROMData.prototype.removeFreeSpace = function(range) {
             overlap.end = Math.max(overlap.begin, range.begin);
         }
     }
-    this.freeSpace.concat(newFreeSpace);
+    this.freeSpace = this.freeSpace.concat(newFreeSpace);
     this.cleanUpFreeSpace();
 }
 
