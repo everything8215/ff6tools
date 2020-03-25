@@ -3176,6 +3176,62 @@
                         "mask": "0xFFFF"
                     }
                 }
+            },
+            "stringTable": {
+                "length": 51,
+                "string": {
+                    "0": "Castle Baron",
+                    "1": "Baron",
+                    "2": "Mist Cave (South)",
+                    "3": "Mist Cave (North)",
+                    "4": "Mist",
+                    "5": "Kaipo",
+                    "6": "Damcyan Castle",
+                    "7": "Mt. Hobs (West)",
+                    "8": "Mt. Hobs (East)",
+                    "9": "Fabul Castle",
+                    "10": "Waterway (South)",
+                    "11": "Waterway (North)",
+                    "12": "Waterfall",
+                    "13": "Sunken Lake",
+                    "14": "Troia Castle",
+                    "15": "Troia",
+                    "16": "Mt. Ordeals",
+                    "17": "Antlion Cave",
+                    "18": "Agart",
+                    "19": "Mythril",
+                    "20": "Eblan Castle",
+                    "21": "Magnetic Cave",
+                    "22": "Eblan Cave",
+                    "23": "Adamant Grotto",
+                    "24": "Chocobo Forest (Baron)",
+                    "25": "Chocobo Village",
+                    "26": "Chocobo Forest (Troia)",
+                    "27": "Chocobo Forest (Fabul)",
+                    "28": "Chocobo Forest (Mysidia)",
+                    "29": "Mysidia",
+                    "30": "Babel Tower",
+                    "31": "Dwarf Castle",
+                    "32": "Dwarf Castle (Base)",
+                    "33": "Sealed Cavern",
+                    "34": "Tomra",
+                    "35": "Sylvan Cave",
+                    "36": "Kokkol's Smithy",
+                    "37": "Lunar Path 2",
+                    "38": "Lunar Path 1",
+                    "39": "Cave of Bahamut",
+                    "40": "Crystal Palace",
+                    "41": "Lunar Path 3",
+                    "42": "Lunar Path 4",
+                    "43": "Hummingway Home",
+                    "44": "Chocobo Forest (Island)",
+                    "45": "Cave of Summons",
+                    "46": "Troia (Cid's Trial)",
+                    "47": "Fabul Castle (Cid's Trial)",
+                    "48": "Kaipo (Cid's Trial)",
+                    "49": "Agart (Cid's Trial)",
+                    "50": "Mysidia (Cid's Trial)"
+                }
             }
         },
         "worldGraphics": {
@@ -3489,7 +3545,8 @@
                         "name": "Exit",
                         "begin": 4,
                         "mask": "0xFF",
-                        "link": "worldExit[%i]"
+                        "link": "worldExit[%i]",
+                        "stringTable": "worldExit"
                     }
                 }
             }
