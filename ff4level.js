@@ -305,7 +305,7 @@ FF4LevelProgression.prototype.initLevelProg = function() {
     var levelProgPointers = this.rom.characterLevelPointer;
     var characterStatsData = this.rom.characterStats;
     
-    for (var c = 0; c < characterStatsData.array.length; c++) {
+    for (var c = 0; c < characterStatsData.arrayLength; c++) {
         var characterStats = characterStatsData.item(c);
         var level = characterStats.level.value;
         var id = characterStats.properties.value;
@@ -320,7 +320,7 @@ FF4LevelProgression.prototype.initLevelProg = function() {
         // set the range for the level stats and disassemble
         levelStats.range.begin = begin;
         levelStats.range.end = begin + (70 - level) * 5 + 8;
-        levelStats.array.length = 70 - level
+        levelStats.arrayLength = 70 - level
         levelStats.disassemble(levelProgData.data);
         
         // create the high level random stats
@@ -348,7 +348,7 @@ FF4LevelProgression.prototype.resetObserver = function() {
     // start observing the character's starting level so we can update the level progression data
     var c;
     if (this.rom.isGBA) {
-        for (c = 0; c < this.rom.characterProperties.array.length; c++) {
+        for (c = 0; c < this.rom.characterProperties.arrayLength; c++) {
             var characterProperties = this.rom.characterProperties.item(c);
             this.observer.startObserving(characterProperties.level, changeStartingLevel(c));
             this.observer.startObserving(characterProperties.hp, changeStartingLevel(c));
@@ -360,14 +360,14 @@ FF4LevelProgression.prototype.resetObserver = function() {
             this.observer.startObserving(characterProperties.spirit, changeStartingLevel(c));
         }
     } else {
-        for (c = 0; c < this.rom.characterStats.array.length; c++) {
+        for (c = 0; c < this.rom.characterStats.arrayLength; c++) {
             var characterStats = this.rom.characterStats.item(c);
             this.observer.startObserving(characterStats.level, changeStartingLevel(c));
         }
-        for (c = 0; c < this.rom.characterPartyAdd.array.length; c++) {
+        for (c = 0; c < this.rom.characterPartyAdd.arrayLength; c++) {
             this.observer.startObserving(this.rom.characterPartyAdd.item(c), this.updatePointerTable);
         }
-        for (c = 0; c < this.rom.characterPartyRemove.array.length; c++) {
+        for (c = 0; c < this.rom.characterPartyRemove.arrayLength; c++) {
             this.observer.startObserving(this.rom.characterPartyRemove.item(c), this.updatePointerTable);
         }
     }
@@ -380,12 +380,12 @@ FF4LevelProgression.prototype.changeStartingLevel = function(c) {
     var level = characterStats.level.value;
     this.observer.stopObservingAll();
 
-    while (level < (70 - levelStats.array.length)) {
+    while (level < (70 - levelStats.arrayLength)) {
         var newLevel = levelStats.blankAssembly();
         levelStats.array.splice(0, 0, newLevel);
     }
     
-    while (level > (70 - levelStats.array.length)) {
+    while (level > (70 - levelStats.arrayLength)) {
         levelStats.array.splice(0, 1);
     }
     levelStats.markAsDirty();
@@ -406,12 +406,12 @@ FF4LevelProgression.prototype.changeStartingLevelGBA = function(c) {
     this.observer.stopObservingAll();
 
     this.rom.beginAction();
-    while (level < (100 - levelStats.array.length)) {
+    while (level < (100 - levelStats.arrayLength)) {
         var newLevel = levelStats.blankAssembly();
         levelStats.array.splice(0, 0, newLevel);
     }
     
-    while (level > (100 - levelStats.array.length)) {
+    while (level > (100 - levelStats.arrayLength)) {
         levelStats.array.splice(0, 1);
     }
     levelStats.markAsDirty();
@@ -444,10 +444,10 @@ FF4LevelProgression.prototype.updatePointerTable = function() {
     // calculate pointers to each character's level progression data
     var pointers = [];
     var currentPointer = this.rom.unmapAddress(levelProgData.range.begin);
-    for (var c = 0; c < characterStatsData.array.length; c++) {
+    for (var c = 0; c < characterStatsData.arrayLength; c++) {
         var levelProg = levelProgData.item(c);
         if (!levelProg) continue;
-        pointers.push(currentPointer - (69 - levelProg.array.length) * 5);
+        pointers.push(currentPointer - (69 - levelProg.arrayLength) * 5);
         currentPointer += levelProg.assembledLength;
     }
     
@@ -455,7 +455,7 @@ FF4LevelProgression.prototype.updatePointerTable = function() {
     var levelProgPointers = this.rom.characterLevelPointer;
     var charSlot = [0, 0, 0, 0, 0];
     var slot, l;
-    for (var c = 0; c < this.rom.characterPartyRemove.array.length; c++) {
+    for (var c = 0; c < this.rom.characterPartyRemove.arrayLength; c++) {
         
         var charAdd = this.rom.characterPartyAdd.item(c);
         if (!charAdd) break;
@@ -508,7 +508,7 @@ FF4LevelProgression.prototype.getStats = function(level) {
     
     if (this.rom.isGBA) level++;
     var startingLevel = this.characterStats.level.value;
-    level = Math.min(level - startingLevel - 1, this.levelProgData.array.length - 1);
+    level = Math.min(level - startingLevel - 1, this.levelProgData.arrayLength - 1);
     return this.levelProgData.item(level);
 }
 

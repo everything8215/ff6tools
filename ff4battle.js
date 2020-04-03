@@ -89,7 +89,7 @@ FF4Battle.prototype.updateBattleStrings = function() {
     
     var paletteStringTable = this.rom.stringTable.monsterPalette;
     var graphicsStringTable = this.rom.stringTable.monsterGraphics;
-    for (var m = 0; m < this.rom.monsterProperties.array.length; m++) {
+    for (var m = 0; m < this.rom.monsterProperties.arrayLength; m++) {
         
         // skip characters
         if (this.rom.monsterGraphicsProperties.item(m).isCharacter.value) continue;
@@ -110,7 +110,7 @@ FF4Battle.prototype.updateBattleStrings = function() {
         }
     }
     
-    for (var b = 0; b < this.rom.battleProperties.array.length; b++) {
+    for (var b = 0; b < this.rom.battleProperties.arrayLength; b++) {
         var battleProperties = this.rom.battleProperties.item(b);
         var monster1 = battleProperties.monster1.value;
         var monster2 = battleProperties.monster2.value;
@@ -143,13 +143,13 @@ FF4Battle.prototype.updateBattleStrings = function() {
 }
 
 FF4Battle.prototype.updateBattleStringsGBA = function() {
-    for (var b = 0; b < this.rom.battleMonster.array.length; b++) {
+    for (var b = 0; b < this.rom.battleMonster.arrayLength; b++) {
         var battleMonster = this.rom.battleMonster.item(b);
         
         // count up the monsters
         var monsterList = {};
         var index, count;
-        for (var m = 0; m < battleMonster.array.length; m++) {
+        for (var m = 0; m < battleMonster.arrayLength; m++) {
             index = battleMonster.item(m).monster.value;
             count = monsterList[index];
             monsterList[index] = (count || 0) + 1;
@@ -275,7 +275,7 @@ FF4Battle.prototype.show = function() {
     this.addTwoState("showMonsters", function(checked) { battle.showMonsters = checked; battle.drawBattle(); }, "Monsters", this.showMonsters);
     
     var bgNames = [];
-    for (var i = 0; i < this.rom.battleBackgroundGraphics.array.length; i++) {
+    for (var i = 0; i < this.rom.battleBackgroundGraphics.arrayLength; i++) {
         bgNames.push(this.rom.stringTable.battleBackgroundProperties.string[i].fString());
     }
     var onChangeBG = function(bg) { battle.bg = bg; battle.drawBattle(); }
@@ -397,7 +397,7 @@ FF4Battle.prototype.monsterInSlot = function(slot) {
 
 FF4Battle.prototype.monsterInSlotGBA = function(slot) {
     var battleMonster = this.rom.battleMonster.item(this.b);
-    if (slot > battleMonster.array.length) return null;
+    if (slot > battleMonster.arrayLength) return null;
     var monster = battleMonster.item(slot - 1);
     
     var m = monster.monster.value;
@@ -930,14 +930,14 @@ FF4BattleVRAM.prototype.loadVRAM = function() {
             // load graphics
             if (offset) {
                 var c = gfxProperties.characterIndex.value;
-                if (c > this.rom.characterGraphics.array.length) return;
+                if (c > this.rom.characterGraphics.arrayLength) return;
                 gfx = this.rom.characterGraphics.item(c).data;
                 this.vramGraphics.set(gfx, (offset - 0x2000) * 4);
             }
 
             // load palette
             var p = gfxProperties.palette.value;
-            if (p > this.rom.characterPalette.array.length) return;
+            if (p > this.rom.characterPalette.arrayLength) return;
             pal = this.rom.characterPalette.item(p).data;
             this.vramPalette.set(pal, paletteOffset * 0x10);
             

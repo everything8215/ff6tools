@@ -63,6 +63,9 @@
                     "name": "Monster A.I. Script",
                     "path": "monsterScript"
                 }, {
+                    "name": "Character A.I.",
+                    "path": "characterAI"
+                }, {
                     "name": "Monster Dialog",
                     "path": "monsterDialog"
                 }, {
@@ -1458,19 +1461,6 @@
                 "type": "data",
                 "length": 24,
                 "assembly": {
-                    "flags": {
-                        "type": "property",
-                        "name": "Flags",
-                        "begin": 0,
-                        "mask": "0x81",
-                        "flag": true,
-                        "stringTable": {
-                            "string": {
-                                "0": "Hide Names",
-                                "7": "Hide Party"
-                            }
-                        }
-                    },
                     "background": {
                         "type": "property",
                         "name": "Background",
@@ -1486,149 +1476,119 @@
                             "0xFF": "Default"
                         }
                     },
-                    "character1": {
+                    "flags": {
                         "type": "property",
-                        "name": "Character 1",
+                        "name": "Flags",
+                        "begin": 0,
+                        "mask": "0x81",
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "0": "Hide Names",
+                                "7": "Hide Party"
+                            }
+                        }
+                    },
+                    "validTargets": {
+                        "type": "property",
+                        "name": "Valid Targets",
+                        "begin": 2,
+                        "mask": "0x3F",
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "0": "Monster Slot 1",
+                                "1": "Monster Slot 2",
+                                "2": "Monster Slot 3",
+                                "3": "Monster Slot 4",
+                                "4": "Monster Slot 5",
+                                "5": "Monster Slot 6"
+                            }
+                        }
+                    },
+                    "slot": {
+                        "type": "array",
+                        "name": "Character Slots",
                         "begin": 4,
-                        "mask": "0xFF"
-                    },
-                    "graphics1": {
-                        "type": "property",
-                        "name": "Graphics",
-                        "begin": 5
-                    },
-                    "script1": {
-                        "type": "property",
-                        "name": "Script",
-                        "begin": 6,
-                        "offset": 256,
-                        "stringTable": "monsterName",
-                        "link": "monsterProperties[%i]",
-                        "special": {
-                            "0x1FF": "None"
+                        "length": 20,
+                        "arrayLength": 4,
+                        "arrayMin": 4,
+                        "arrayMax": 4,
+                        "assembly": {
+                            "type": "data",
+                            "length": 5,
+                            "assembly": {
+                                "graphics": {
+                                    "type": "property",
+                                    "name": "Graphics",
+                                    "begin": 1,
+                                    "mask": "0xFF",
+                                    "stringTable": "battleCharacterGraphics",
+                                    "disabled": "this.parent.character.getSpecialValue()",
+                                    "special": {
+                                        "0xFF": "Default Character Graphics"
+                                    }
+                                },
+                                "script": {
+                                    "type": "property",
+                                    "name": "Script",
+                                    "begin": 2,
+                                    "offset": 256,
+                                    "stringTable": "monsterName",
+                                    "disabled": "this.parent.character.getSpecialValue()",
+                                    "link": "monsterProperties[%i]",
+                                    "special": {
+                                        "0x1FF": "None"
+                                    }
+                                },
+                                "character": {
+                                    "type": "data",
+                                    "name": "Character",
+                                    "begin": 0,
+                                    "length": 1,
+                                    "mask": "0xFF",
+                                    "special": {
+                                        "0xFF": "No Character"
+                                    },
+                                    "assembly": {
+                                        "c": {
+                                            "type": "property",
+                                            "name": "Character",
+                                            "mask": "0x3F",
+                                            "stringTable": "characterNames",
+                                            "link": "characterProperties[%i]"
+                                        },
+                                        "flags": {
+                                            "type": "property",
+                                            "name": "Flags",
+                                            "mask": "0xC0",
+                                            "flag": true,
+                                            "stringTable": {
+                                                "hideIndex": true,
+                                                "string": {
+                                                    "0": "Enemy Character",
+                                                    "1": "Character Hidden"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "x": {
+                                    "type": "property",
+                                    "name": "X Position",
+                                    "begin": 3,
+                                    "multiplier": 2,
+                                    "hidden": true
+                                },
+                                "y": {
+                                    "type": "property",
+                                    "name": "Y Position",
+                                    "begin": 4,
+                                    "multiplier": 2,
+                                    "hidden": true
+                                }
+                            }
                         }
-                    },
-                    "x1": {
-                        "type": "property",
-                        "name": "Character 1 X",
-                        "begin": 7,
-                        "multiplier": 2,
-                        "hidden": true
-                    },
-                    "y1": {
-                        "type": "property",
-                        "name": "Character 1 Y",
-                        "begin": 8,
-                        "multiplier": 2,
-                        "hidden": true
-                    },
-                    "character2": {
-                        "type": "property",
-                        "name": "Character 2",
-                        "begin": 9,
-                        "mask": "0xFF"
-                    },
-                    "graphics2": {
-                        "type": "property",
-                        "name": "Graphics",
-                        "begin": 10
-                    },
-                    "script2": {
-                        "type": "property",
-                        "name": "Script",
-                        "begin": 11,
-                        "offset": 256,
-                        "stringTable": "monsterName",
-                        "link": "monsterProperties[%i]",
-                        "special": {
-                            "0x1FF": "None"
-                        }
-                    },
-                    "x2": {
-                        "type": "property",
-                        "name": "Character 2 X",
-                        "begin": 12,
-                        "multiplier": 2,
-                        "hidden": true
-                    },
-                    "y2": {
-                        "type": "property",
-                        "name": "Character 2 Y",
-                        "begin": 13,
-                        "multiplier": 2,
-                        "hidden": true
-                    },
-                    "character3": {
-                        "type": "property",
-                        "name": "Character 3",
-                        "begin": 14,
-                        "mask": "0xFF"
-                    },
-                    "graphics3": {
-                        "type": "property",
-                        "name": "Graphics",
-                        "begin": 15
-                    },
-                    "script3": {
-                        "type": "property",
-                        "name": "Script",
-                        "begin": 16,
-                        "offset": 256,
-                        "stringTable": "monsterName",
-                        "link": "monsterProperties[%i]",
-                        "special": {
-                            "0x1FF": "None"
-                        }
-                    },
-                    "x3": {
-                        "type": "property",
-                        "name": "Character 3 X",
-                        "begin": 17,
-                        "multiplier": 2,
-                        "hidden": true
-                    },
-                    "y3": {
-                        "type": "property",
-                        "name": "Character 3 Y",
-                        "begin": 18,
-                        "multiplier": 2,
-                        "hidden": true
-                    },
-                    "character4": {
-                        "type": "property",
-                        "name": "Character 4",
-                        "begin": 19,
-                        "mask": "0xFF"
-                    },
-                    "graphics4": {
-                        "type": "property",
-                        "name": "Graphics",
-                        "begin": 20
-                    },
-                    "script4": {
-                        "type": "property",
-                        "name": "Script",
-                        "begin": 21,
-                        "offset": 256,
-                        "stringTable": "monsterName",
-                        "link": "monsterProperties[%i]",
-                        "special": {
-                            "0x1FF": "None"
-                        }
-                    },
-                    "x4": {
-                        "type": "property",
-                        "name": "Character 4 X",
-                        "begin": 22,
-                        "multiplier": 2,
-                        "hidden": true
-                    },
-                    "y4": {
-                        "type": "property",
-                        "name": "Character 4 Y",
-                        "begin": 23,
-                        "multiplier": 2,
-                        "hidden": true
                     }
                 }
             },
@@ -3700,6 +3660,31 @@
                 "offset": "0xD9D1B0"
             }
         },
+        "mapOverlayGraphics": {
+            "type": "assembly",
+            "name": "Map Overlay Graphics",
+            "range": "0xC0E2A0-0xC0EEA0",
+            "format": "reverse1bpp"
+        },
+        "mapOverlayLayout": {
+            "type": "assembly",
+            "name": "Map Overlay Layout",
+            "range": "0xC0EEA0-0xC0F4A0"
+        },
+        "mapOverlayProperties": {
+            "type": "array",
+            "name": "Map Overlay Properties",
+            "range": "0xC0F500-0xC0FD00",
+            "arrayLength": 45,
+            "pointerTable": {
+                "range": "0xC0F4A0-0xC0F500",
+                "offset": "0xC0F500"
+            },
+            "assembly": {
+                "type": "assembly",
+                "format": "ff6-lzss"
+            }
+        },
         "mapPalettes": {
             "type": "array",
             "name": "Map Palettes",
@@ -4724,33 +4709,45 @@
                 "assembly": {
                     "type": "data",
                     "length": 2,
+                    "special": {
+                        "0xFFF7": "Impassable",
+                        "0x0007": "Through-Tile"
+                    },
                     "assembly": {
+                        "zLevel": {
+                            "type": "property",
+                            "name": "Z-Level",
+                            "mask": "0x07",
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0": "None",
+                                    "1": "Upstairs",
+                                    "2": "Downstairs",
+                                    "3": "Upstairs & Downstairs",
+                                    "4": "Bridge"
+                                }
+                            }
+                        },
                         "flags": {
                             "type": "property",
                             "name": "Flags",
-                            "mask": "0xFFFF",
+                            "mask": "0xFFF8",
                             "flag": true,
                             "stringTable": {
                                 "string": {
-                                    "0": "Upstairs",
-                                    "1": "Downstairs",
-                                    "2": "Bridge",
-                                    "3": "Top Sprite Priority",
-                                    "4": "Bottom Sprite Priority",
-                                    "5": "Door",
-                                    "6": "Stairs Down/Right",
-                                    "7": "Stairs Up/Left",
-                                    "8": "Passable Through Right",
-                                    "9": "Passable Through Left",
-                                    "10": "Passable Through Bottom",
-                                    "11": "Passable Through Top",
-                                    "14": "Ladder",
-                                    "15": "Passable by NPCs"
+                                    "0": "Top Sprite Priority",
+                                    "1": "Bottom Sprite Priority",
+                                    "2": "Door",
+                                    "3": "Stairs Down/Right",
+                                    "4": "Stairs Up/Left",
+                                    "5": "Passable Through Right",
+                                    "6": "Passable Through Left",
+                                    "7": "Passable Through Bottom",
+                                    "8": "Passable Through Top",
+                                    "11": "Ladder",
+                                    "12": "Passable by NPCs"
                                 }
-                            },
-                            "special": {
-                                "0xFFF7": "Impassable",
-                                "0x0007": "Through-Tile"
                             }
                         }
                     }
@@ -6706,7 +6703,7 @@
                             "bool": true,
                             "disabled": "this.parent.vehicle.value === 0"
                         },
-                        "special": {
+                        "specialNPC": {
                             "type": "property",
                             "name": "Special Graphics",
                             "begin": 4,
@@ -13170,6 +13167,15 @@
                 "255": "No Background Override"
             }
         },
+        "battleCharacterGraphics": {
+            "name": "Battle Character Graphics",
+            "default": "Battle Character Graphics %i",
+            "length": 24,
+            "string": {
+                "0-23": "<stringTable.mapSprites[%i]>",
+                "23": "Green Soldier"
+            }
+        },
         "battleSwitch": {
             "name": "Local Battle Switch",
             "length": 296,
@@ -13783,17 +13789,17 @@
                 "304": "Narshe / Fourth Guards",
                 "305": "Narshe / Fifth Guards",
                 "309": "Narshe / Whelk",
-                "318": "Narshe / Green Solder 1",
-                "319": "Narshe / Green Solder 2",
-                "320": "Narshe / Green Solder 3",
-                "321": "Narshe / Green Solder 4",
-                "322": "Narshe / Green Solder 5",
-                "323": "Narshe / Green Solder 6",
-                "324": "Narshe / Brown Solder 1",
-                "325": "Narshe / Brown Solder 2",
-                "326": "Narshe / Brown Solder 3",
-                "327": "Narshe / Brown Solder 5",
-                "328": "Narshe / Brown Solder 6",
+                "318": "Narshe / Green Soldier 1",
+                "319": "Narshe / Green Soldier 2",
+                "320": "Narshe / Green Soldier 3",
+                "321": "Narshe / Green Soldier 4",
+                "322": "Narshe / Green Soldier 5",
+                "323": "Narshe / Green Soldier 6",
+                "324": "Narshe / Brown Soldier 1",
+                "325": "Narshe / Brown Soldier 2",
+                "326": "Narshe / Brown Soldier 3",
+                "327": "Narshe / Brown Soldier 5",
+                "328": "Narshe / Brown Soldier 6",
                 "364": "Jidoor / Bought ZoneSeek",
                 "365": "Jidoor / Bought Golem",
                 "366": "Cave in the Veldt / Switch",
@@ -14046,7 +14052,7 @@
                 "23": "South Figaro: Celes in Chains",
                 "24": "South Figaro: Upper Green Soldier",
                 "25": "South Figaro: Lower Green Soldier",
-                "27": "South Figaro: Brown Solder Who Takes a Break",
+                "27": "South Figaro: Brown Soldier Who Takes a Break",
                 "28": "Mt. Kolts: Vargas",
                 "29": "Cave to South Figaro/Mt. Kolts: Soldiers",
                 "30": "Zozo: Ramuh",

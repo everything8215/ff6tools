@@ -278,7 +278,7 @@
 //                // 59, 232, 278 fail
 //                var encoder = new FF5AdvanceEncoder();
 //                var decoder = new FF5AdvanceDecoder();
-//                for (var i = 59; i < this.rom.mapGraphicsData.array.length; i++) {
+//                for (var i = 59; i < this.rom.mapGraphicsData.arrayLength; i++) {
 //                    var layout = this.rom.mapGraphicsData.item(i);
 //                    for (var m1 = 0; m1 < 5; m1++) {
 //                        for (var m3 = 0; m3 < 5; m3++) {
@@ -298,7 +298,7 @@
 
 //                // output strings to the console
 //                var bigString = "";
-//                for (var d = 0; d < rom.text.array.length; d++) {
+//                for (var d = 0; d < rom.text.arrayLength; d++) {
 //                    var dialogString = rom.text.item(d).text;
 //                    bigString += hexString(d, 4) + ": " + dialogString.replace(/\\n/g, "\n        ").replace(/\\page/g, "\n        ") + "\n";
 //                }
@@ -306,7 +306,7 @@
                 
 //                // output script to the console
 //                var bigString = "";
-//                for (var s = 0; s < rom.eventScript.array.length; s++) {
+//                for (var s = 0; s < rom.eventScript.arrayLength; s++) {
 //                    var scriptString = "Event " + hexString(s, 4, "") + "\n----------\n";
 //                    var script = rom.eventScript.item(s);
 //                    for (var c = 0; c < script.command.length; c++) {
@@ -337,7 +337,7 @@
 //                // create a zip file
 //                var zip = new JSZip();
 //                
-//                for (var i = 0; i < rom.mapGraphicsData.array.length; i++) {
+//                for (var i = 0; i < rom.mapGraphicsData.arrayLength; i++) {
 //                    var graphicsData = rom.mapGraphicsData.item(i);
 //                    if (graphicsData.lazyData[0] === 0x70) {
 //                        graphicsData.format = "tose-70";

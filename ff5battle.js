@@ -85,7 +85,7 @@ FF5Battle.prototype.constructor = FF5Battle;
 FF5Battle.prototype.updateBattleStrings = function() {
     
 //    var stringTable = this.rom.stringTable["monsterGraphicsMap.large"];
-//    for (var m = 0; m < this.rom.monsterGraphicsProperties.array.length; m++) {
+//    for (var m = 0; m < this.rom.monsterGraphicsProperties.arrayLength; m++) {
 //        
 //        var g = m;
 //        var graphicsProperties = this.rom.monsterGraphicsProperties.item(g);
@@ -108,7 +108,7 @@ FF5Battle.prototype.updateBattleStrings = function() {
 //    }
 //    console.log(bigString);
 
-    for (var b = 0; b < this.rom.battleProperties.array.length; b++) {
+    for (var b = 0; b < this.rom.battleProperties.arrayLength; b++) {
         var battleProperties = this.rom.battleProperties.item(b);
         var isBoss = battleProperties.flags.value & 0x20;
 
@@ -237,7 +237,7 @@ FF5Battle.prototype.show = function() {
     this.addTwoState("showMonsters", function(checked) { battle.showMonsters = checked; battle.drawBattle(); }, "Monsters", this.showMonsters);
     
     var bgNames = [];
-    for (var i = 0; i < this.rom.battleBackgroundProperties.array.length; i++) {
+    for (var i = 0; i < this.rom.battleBackgroundProperties.arrayLength; i++) {
         bgNames.push(this.rom.stringTable.battleBackgroundProperties.string[i].fString());
     }
     var onChangeBG = function(bg) { battle.bg = bg; battle.drawBattle(); }

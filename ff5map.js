@@ -792,7 +792,7 @@ FF5Map.prototype.loadWorldMap = function(m) {
     propertyList.select(null);
 
     // load graphics and layout
-    this.world = this.rom.isSFC ? 0: 1;
+    this.world = this.rom.isSFC ? 0 : 1;
     if (m === 1) this.world ^= 1;
     if (m > 2) this.world = 2;
 
@@ -934,22 +934,22 @@ FF5Map.prototype.loadTriggers = function() {
     
     var triggers = this.rom.eventTriggers.item(this.m);
     this.observer.startObserving(triggers, this.reloadTriggers);
-    for (i = 0; i < triggers.array.length; i++) {
+    for (i = 0; i < triggers.arrayLength; i++) {
         this.triggers.push(triggers.item(i));
     }
     triggers = this.rom.entranceTriggers.item(this.m);
     this.observer.startObserving(triggers, this.reloadTriggers);
-    for (i = 0; i < triggers.array.length; i++) {
+    for (i = 0; i < triggers.arrayLength; i++) {
         this.triggers.push(triggers.item(i));
     }
     triggers = this.rom.npcProperties.item(this.m);
     this.observer.startObserving(triggers, this.reloadTriggers);
-    for (i = 0; i < triggers.array.length; i++) {
+    for (i = 0; i < triggers.arrayLength; i++) {
         this.triggers.push(triggers.item(i));
     }
     triggers = this.rom.treasureProperties.item(this.m);
     this.observer.startObserving(triggers, this.reloadTriggers);
-    for (i = 0; i < triggers.array.length; i++) {
+    for (i = 0; i < triggers.arrayLength; i++) {
         this.triggers.push(triggers.item(i));
     }
 //    var treasureStart = this.rom.mapTreasures.item(this.m).treasure;
@@ -983,7 +983,7 @@ FF5Map.prototype.insertTrigger = function(type) {
 //        triggers.insertAssembly(trigger, treasureIndex.value);
 //        
 //        // increment all succeeding maps' treasure indices by 1
-//        for (var m = this.m + 1; m < mapTreasures.array.length; m++) {
+//        for (var m = this.m + 1; m < mapTreasures.arrayLength; m++) {
 //            treasureIndex = mapTreasures.item(m).treasure;
 //            treasureIndex.setValue(treasureIndex.value + 1);
 //        }
@@ -1013,7 +1013,7 @@ FF5Map.prototype.deleteTrigger = function() {
 //        var treasureIndex = mapTreasures.item(this.m + 1).treasure;
 //        
 //        // decrement all succeeding maps' treasure indices by 1
-//        for (var m = this.m + 1; m < mapTreasures.array.length; m++) {
+//        for (var m = this.m + 1; m < mapTreasures.arrayLength; m++) {
 //            treasureIndex = mapTreasures.item(m).treasure;
 //            treasureIndex.setValue(treasureIndex.value - 1);
 //        }

@@ -303,7 +303,7 @@ FF1Map.prototype.updateMenu = function() {
     // make sure there are unused NPCs
     var isFull = true;
     var npcProperties = this.rom.mapNPC.item(this.m);
-    for (var n = 0; n < npcProperties.array.length; n++) {
+    for (var n = 0; n < npcProperties.arrayLength; n++) {
         if (npcProperties.item(n).npcID.value == 0) {
             isFull = false;
             break;
@@ -762,7 +762,7 @@ FF1Map.prototype.loadTriggers = function() {
     var npcProperties = this.rom.mapNPC.item(this.m);
     this.observer.startObserving(npcProperties, this.reloadTriggers);
     
-    for (var i = 0; i < npcProperties.array.length; i++) {
+    for (var i = 0; i < npcProperties.arrayLength; i++) {
         var npc = npcProperties.item(i);
         if (npc.npcID.value === 0) continue;
         this.triggers.push(npc);
@@ -778,7 +778,7 @@ FF1Map.prototype.insertNPC = function() {
     
     // find the first unused npc
     var npc;
-    for (var n = 0; n < npcProperties.array.length; n++) {
+    for (var n = 0; n < npcProperties.arrayLength; n++) {
         npc = npcProperties.item(n);
         if (npc.npcID.value == 0) break;
         npc = null;

@@ -12,7 +12,6 @@ general
  * log rom map
  * copy and paste
  * paste-able script text
- * array insert/remove
  * disable automatic snes header update
  * import/export binary data
  * import custom tbl file
@@ -22,7 +21,7 @@ gui
 ---
  * custom property controls (entrance trigger destination, rendered text, colosseum battle, fill tile)
  * grid controls (for element/status, esper/natural magic)
- * tile mask layers for map editor
+ * tile mask layers for map editor (done for ff4a and ff6)
  * allow multiple selection, cut/copy/paste in script list
  * make tileset zoom in when sidebar is expanded
  * progress bar
@@ -30,10 +29,10 @@ gui
  * script list/trigger double click functionality
  * navigator labels should update automatically
  * find a better way to auto-populate battle names
+ * array insert/remove
 
 game specific
 -------------
- * fix ff6 character ai special values
  * add english string tables for ff6 steam version
  * world of ruin gets corrupted in roms expanded by ff3usme
  * ff5 monster ai

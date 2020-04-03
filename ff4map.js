@@ -953,7 +953,7 @@ FF4Map.prototype.loadTriggers = function() {
     var triggers = this.rom.mapTriggers.item(this.m);
     if (this.isWorld) triggers = this.rom.worldTriggers.item(this.m - 0xFB);
     this.observer.startObserving(triggers, this.reloadTriggers);
-    for (i = 0; i < triggers.array.length; i++) {
+    for (i = 0; i < triggers.arrayLength; i++) {
         var trigger = triggers.item(i);
         if (trigger.map.value === 0xFE) {
             trigger.key = "treasureProperties";
@@ -988,7 +988,7 @@ FF4Map.prototype.loadTriggers = function() {
     var npcProperties = this.rom.npcProperties.item(npcIndex);
     this.observer.startObserving(npcProperties, this.reloadTriggers);
     
-    for (i = 0; i < npcProperties.array.length; i++) {
+    for (i = 0; i < npcProperties.arrayLength; i++) {
         var npc = npcProperties.item(i);
         if (npc.switch.offset !== offset) {
             npc.switch.value += offset;
@@ -1015,7 +1015,7 @@ FF4Map.prototype.insertTrigger = function(type) {
         
         // treasures have to come first
         var i = 0;
-        while (i < triggers.array.length && triggers.item(i).map.value === 0xFE) i++;
+        while (i < triggers.arrayLength && triggers.item(i).map.value === 0xFE) i++;
         triggers.insertAssembly(trigger, i);
 //        this.logTreasures();
         this.updateTreasures();
@@ -1035,7 +1035,7 @@ FF4Map.prototype.insertTrigger = function(type) {
 
 FF4Map.prototype.updateTreasures = function() {
     var t = 0;
-    for (var m = 0; m < this.rom.mapProperties.array.length; m++) {
+    for (var m = 0; m < this.rom.mapProperties.arrayLength; m++) {
         if (m === 256) t = 0; // reset to zero for underground/moon treasures
         this.rom.mapProperties.item(m).treasure.setValue(t);
         var triggers = this.rom.mapTriggers.item(m);
@@ -1046,7 +1046,7 @@ FF4Map.prototype.updateTreasures = function() {
 }
 
 //FF4Map.prototype.logTreasures = function() {
-//    for (var m = 0; m < this.rom.mapProperties.array.length; m++) {
+//    for (var m = 0; m < this.rom.mapProperties.arrayLength; m++) {
 //        if (m === 256) t = 0; // reset to zero for underground/moon treasures
 //        var t = this.rom.mapProperties.item(m).treasure.value;
 //        var name = this.rom.stringTable["mapProperties"].string[m];

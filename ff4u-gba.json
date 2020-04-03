@@ -15,6 +15,9 @@
                 {
                     "name": "Maps",
                     "path": "mapProperties"
+                }, {
+                    "name": "Map Tilesets",
+                    "path": "mapTileset"
                 }
             ]
         }, {
@@ -1890,6 +1893,10 @@
             },
             "pointerTable": {
                 "range": "0x080D95A4-0x080DA3A4"
+            },
+            "stringTable": {
+                "length": 896,
+                "default": "Map Graphics Data %i"
             }
         },
         "mapProperties": {
@@ -1908,19 +1915,46 @@
                         "type": "property",
                         "name": "Tileset",
                         "begin": 0,
-                        "mask": "0xFFFF"
+                        "mask": "0xFFFF",
+                        "link": "mapTileset[%i]",
+                        "stringTable": "mapTileset"
                     },
                     "layout": {
                         "type": "property",
-                        "name": "Map Layout",
+                        "name": "Layout",
                         "begin": 2,
-                        "mask": "0x0FFF"
+                        "mask": "0x0FFF",
+                        "stringTable": {}
+                    },
+                    "layoutFormat": {
+                        "type": "property",
+                        "name": "Layout Format",
+                        "begin": 2,
+                        "mask": "0xF000",
+                        "default": 1,
+                        "hidden": true
                     },
                     "tileProperties": {
-                        "type": "property",
-                        "name": "Tile Properties",
-                        "begin": 4,
-                        "mask": "0xFFFF"
+                        "type": "data",
+                        "range": "4-6",
+                        "assembly": {
+                            "tp": {
+                                "type": "property",
+                                "name": "Tile Properties",
+                                "mask": "0x0FFF",
+                                "stringTable": {}
+                            },
+                            "dataFormat": {
+                                "type": "property",
+                                "name": "Format",
+                                "mask": "0xF000",
+                                "default": 1,
+                                "hidden": true
+                            }
+                        },
+                        "special": {
+                            "0xFFFF": "No Tile Properties"
+                        }
                     },
                     "fill": {
                         "type": "property",
@@ -1948,7 +1982,7 @@
                         "type": "property",
                         "name": "Treasures",
                         "begin": 12,
-                        "mask": "0x0FFF",
+                        "mask": "0xFFFF",
                         "offset": 402,
                         "stringTable": "mapTriggerPointers",
                         "link": "mapTriggerPointers[%i]"
@@ -1957,7 +1991,7 @@
                         "type": "property",
                         "name": "Events",
                         "begin": 16,
-                        "mask": "0x0FFF",
+                        "mask": "0xFFFF",
                         "stringTable": "mapTriggerPointers",
                         "link": "mapTriggerPointers[%i]"
                     },
@@ -1971,11 +2005,12 @@
                             "0": "None"
                         }
                     },
+                    "cat-unknown": "Unknown",
                     "unknown_14": {
                         "type": "property",
                         "name": "Unknown 14",
                         "begin": 14,
-                        "mask": "0x0FFF",
+                        "mask": "0xFFFF",
                         "offset": 402
                     },
                     "unknown_18": {
@@ -2228,30 +2263,103 @@
                         "type": "property",
                         "name": "Palette",
                         "begin": 0,
-                        "mask": "0x0FFF"
+                        "mask": "0x0FFF",
+                        "stringTable": {}
+                    },
+                    "paletteFormat": {
+                        "type": "property",
+                        "name": "Palette Format",
+                        "begin": 0,
+                        "mask": "0xF000",
+                        "default": 1,
+                        "hidden": true
                     },
                     "graphics": {
                         "type": "property",
                         "name": "Graphics",
                         "begin": 4,
-                        "mask": "0x0FFF"
+                        "mask": "0x0FFF",
+                        "stringTable": {}
                     },
-                    "tileset": {
+                    "graphicsFormat": {
                         "type": "property",
-                        "name": "Tileset",
+                        "name": "Graphics Format",
+                        "begin": 4,
+                        "mask": "0xF000",
+                        "default": 1,
+                        "hidden": true
+                    },
+                    "layout": {
+                        "type": "property",
+                        "name": "Layout",
                         "begin": 6,
-                        "mask": "0x0FFF"
+                        "mask": "0x0FFF",
+                        "stringTable": {}
+                    },
+                    "layoutFormat": {
+                        "type": "property",
+                        "name": "Layout Format",
+                        "begin": 6,
+                        "mask": "0xF000",
+                        "default": 1,
+                        "hidden": true
                     },
                     "animationPointer": {
                         "type": "property",
                         "name": "Animation Pointer",
                         "begin": 8,
                         "mask": "0x7FFFFFFF"
+                    },
+                    "unknown2": {
+                        "type": "property",
+                        "name": "Unknown 2",
+                        "begin": 2,
+                        "mask": "0xFFFF"
                     }
                 }
             },
             "pointerTable": {
                 "range": "0x080E4748-0x080E47D0"
+            },
+            "stringTable": {
+                "length": 34,
+                "default": "Map Tileset %i",
+                "string": {
+                    "0": "Airship",
+                    "1": "Castle Exterior",
+                    "2": "Castle Interior",
+                    "3": "Town Exterior 1",
+                    "4": "Town Exterior 2",
+                    "5": "Town Exterior 3",
+                    "6": "Town Interior",
+                    "7": "Waterway 1",
+                    "8": "Waterway 2",
+                    "9": "Mist Cave",
+                    "10": "Magnetic Cave",
+                    "11": "Sealed Cavern",
+                    "12": "Eblan Cave 1",
+                    "13": "Eblan Cave 2",
+                    "14": "Mountains",
+                    "15": "Tower of Zot/Babel",
+                    "16": "Giant of Babel",
+                    "17": "Crystal Room",
+                    "18": "Dwarf Castle Exterior",
+                    "19": "Dwarf Castle Interior",
+                    "20": "Dwarf Town Exterior",
+                    "21": "Dwarf Town Interior",
+                    "22": "Sylvan Cave",
+                    "23": "Cave of Summons",
+                    "24": "Lunar Cave",
+                    "25": "Desert/Beach",
+                    "26": "Antlion Cave",
+                    "27": "Airship",
+                    "28": "Castle Exterior (Edward's Trial)",
+                    "29": "Crystal Room (Palom's Trial)",
+                    "30": "Crystal Room (Porom's Trial)",
+                    "31": "Town Exterior (Rosa's Trial)",
+                    "32": "Lunar Ruins Cavern",
+                    "33": "Mountains (Tinted)"
+                }
             }
         },
         "mapTriggers": {
@@ -3464,7 +3572,7 @@
         "worldTileProperties": {
             "type": "array",
             "name": "World Tile Properties",
-            "range": "0x080F22C4-0x080F24F0",
+            "isFragmented": true,
             "array": {
                 "length": 5
             },
@@ -3481,8 +3589,10 @@
                         "tileType": {
                             "type": "property",
                             "name": "Tile Type",
+                            "hideIndex": true,
                             "stringTable": {
                                 "string": {
+                                    "0xFF": "Impassable",
                                     "0": "Grass/Field",
                                     "1": "Forest",
                                     "2": "Desert",
@@ -3490,7 +3600,8 @@
                                     "4": "Castle",
                                     "5": "Town",
                                     "6": "Cave Entrance",
-                                    "7": "Mountain Path"
+                                    "7": "Mountain Path",
+                                    "8": "River"
                                 }
                             }
                         }

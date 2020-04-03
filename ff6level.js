@@ -159,7 +159,7 @@ FF6LevelProgression.prototype.show = function() {
     }
     
     var charNames = [];
-    for (var i = 0; i < this.rom.characterProperties.array.length; i++) {
+    for (var i = 0; i < this.rom.characterProperties.arrayLength; i++) {
         charNames.push(this.rom.stringTable.characterNames.string[i].fString());
     }
     var self = this;

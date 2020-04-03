@@ -77,7 +77,7 @@ FF1Battle.prototype.constructor = FF1Battle;
 
 FF1Battle.prototype.updateBattleStrings = function() {
     
-    for (var b = 0; b < this.rom.battleProperties.array.length; b++) {
+    for (var b = 0; b < this.rom.battleProperties.arrayLength; b++) {
         var battleProperties = this.rom.battleProperties.item(b);
         var monster1 = battleProperties.monster1.value;
         var monster2 = battleProperties.monster2.value;

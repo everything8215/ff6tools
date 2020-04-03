@@ -60,7 +60,7 @@ FF6Battle.Type = {
 FF6Battle.prototype.updateBattleStrings = function() {
     
 //    var stringTable = this.rom.stringTable.monsterPalette;
-//    for (var m = 0; m < (this.rom.monsterGraphicsProperties.array.length - 36); m++) {
+//    for (var m = 0; m < (this.rom.monsterGraphicsProperties.arrayLength - 36); m++) {
 //        
 //        var g = m;
 //        if (m >= 384) g += 36;
@@ -83,7 +83,7 @@ FF6Battle.prototype.updateBattleStrings = function() {
 //    }
 //    console.log(bigString);
 
-    for (var b = 0; b < this.rom.battleProperties.array.length; b++) {
+    for (var b = 0; b < this.rom.battleProperties.arrayLength; b++) {
         var battleProperties = this.rom.battleProperties.item(b);
 
         // count up the monsters
@@ -111,6 +111,18 @@ FF6Battle.prototype.updateBattleStrings = function() {
     }
 }
 
+FF6Battle.prototype.beginAction = function(callback) {
+    this.rom.beginAction();
+    this.rom.doAction(new ROMAction(this.observer, this.observer.wake, this.observer.sleep));
+    if (callback) this.rom.doAction(new ROMAction(this, callback, null));
+}
+
+FF6Battle.prototype.endAction = function(callback) {
+    if (callback) this.rom.doAction(new ROMAction(this, null, callback));
+    this.rom.doAction(new ROMAction(this.observer, this.observer.sleep, this.observer.wake));
+    this.rom.endAction();
+}
+
 FF6Battle.prototype.mouseDown = function(e) {
     
     this.closeList();
@@ -129,7 +141,7 @@ FF6Battle.prototype.mouseDown = function(e) {
     } else if (this.selectedCharacter) {
         var c = this.selectedCharacter;
         this.clickedPoint = {x: x, y: y};
-        var characterAI = this.characterAI();
+        var characterAI = this.getCharacterAI();
         this.characterPoint = { x: c.x.value, y: c.y.value };
         propertyList.select(this.rom.monsterProperties.item(c.script) || characterAI);
     } else {
@@ -183,10 +195,10 @@ FF6Battle.prototype.mouseMove = function(e) {
         newY = Math.max(0, Math.min(newY, 0x78));
         if (newX === m.x.value && newY === m.y.value) return;
         
-        this.observer.stopObserving(this.battleProperties);
+        this.observer.sleep();
         m.x.value = newX;
         m.y.value = newY;
-        this.observer.startObserving(this.battleProperties, this.drawBattle);
+        this.observer.wake();
         this.drawBattle();
         
     } else if (this.selectedCharacter) {
@@ -198,10 +210,10 @@ FF6Battle.prototype.mouseMove = function(e) {
         newY = Math.max(this.battleRect.t, Math.min(newY, this.battleRect.b - 24));
         if (newX === c.x.value && newY === c.y.value) return;
         
-        this.observer.stopObserving(this.battleProperties);
+        this.observer.sleep();
         c.x.value = newX;
         c.y.value = newY;
-        this.observer.startObserving(this.battleProperties, this.drawBattle);
+        this.observer.wake();
         this.drawBattle();
     }
 }
@@ -224,12 +236,10 @@ FF6Battle.prototype.mouseUp = function(e) {
         m.x.value = oldPoint.x;
         m.y.value = oldPoint.y;
 
-        this.observer.stopObserving(this.battleProperties);
-        this.rom.beginAction();
+        this.beginAction(this.drawBattle);
         m.x.setValue(newPoint.x);
         m.y.setValue(newPoint.y);
-        this.rom.endAction();
-        this.observer.startObserving(this.battleProperties, this.drawBattle);
+        this.endAction(this.drawBattle);
         
     } else if (this.selectedCharacter && this.characterPoint) {
         var c = this.selectedCharacter;
@@ -247,12 +257,10 @@ FF6Battle.prototype.mouseUp = function(e) {
         c.x.value = oldPoint.x;
         c.y.value = oldPoint.y;
 
-        this.observer.stopObserving(this.battleProperties);
-        this.rom.beginAction();
+        this.beginAction(this.drawBattle);
         c.x.setValue(newPoint.x);
         c.y.setValue(newPoint.y);
-        this.rom.endAction();
-        this.observer.startObserving(this.battleProperties, this.drawBattle);
+        this.endAction(this.drawBattle);
     }
 }
 
@@ -276,7 +284,7 @@ FF6Battle.prototype.show = function() {
     this.addTwoState("showMonsters", function(checked) { battle.showMonsters = checked; battle.drawBattle(); }, "Monsters", this.showMonsters);
     
     var bgNames = [];
-    for (var i = 0; i < this.rom.battleBackgroundProperties.array.length; i++) {
+    for (var i = 0; i < this.rom.battleBackgroundProperties.arrayLength; i++) {
         bgNames.push(this.rom.stringTable.battleBackground.string[i].fString());
     }
     var onChangeBG = function(bg) { battle.bg = bg; battle.drawBattle(); }
@@ -312,10 +320,12 @@ FF6Battle.prototype.loadBattle = function(b) {
     b = Number(b);
     if (isNumber(b) && this.b !== b) {
         // battle index has changed
-        this.observer.stopObserving(this.battleProperties);
+        this.observer.stopObservingAll();
+//        this.observer.stopObserving(this.battleProperties);
         this.b = b;
         this.battleProperties = this.rom.battleProperties.item(b);
         this.observer.startObserving(this.battleProperties, this.drawBattle);
+        this.observer.startObserving(this.getCharacterAI(), this.drawBattle);
     }
     
     this.selectedMonster = null;
@@ -323,7 +333,7 @@ FF6Battle.prototype.loadBattle = function(b) {
     this.drawBattle();
 }
 
-FF6Battle.prototype.characterAI = function() {
+FF6Battle.prototype.getCharacterAI = function() {
     if (!this.battleProperties.enableCharacterAI.value) return null;
     var ai = this.battleProperties.characterAI.value;
     return this.rom.characterAI.item(ai);
@@ -404,23 +414,42 @@ FF6Battle.prototype.monsterInSlot = function(slot) {
 }
 
 FF6Battle.prototype.characterInSlot = function(slot) {
-    var characterAI = this.characterAI();
+    var characterAI = this.getCharacterAI();
     if (!characterAI) return null;
-    var c = characterAI["character" + slot].value;
-    if (!c || c === 0xFF) return null; // slot is empty
-
-    var x = Math.min(characterAI["x" + slot].value, this.battleRect.r - 16);
-    var y = Math.min(characterAI["y" + slot].value, this.battleRect.b - 24);
-
+    
+    var c = characterAI.slot.item(slot - 1);
+    if (c.character.getSpecialValue() === 0xFF) return null;
+    
+    var x = Math.min(c.x.value, this.battleRect.r - 16);
+    var y = Math.min(c.y.value, this.battleRect.b - 24);
+    
     return {
         "slot": slot,
-        "x": characterAI["x" + slot],
-        "y": characterAI["y" + slot],
-        "character": c,
-        "graphics": characterAI["graphics" + slot].value,
-        "script": characterAI["script" + slot].value,
+        "x": c.x,
+        "y": c.y,
+        "character": c.character.c.value,
+        "enemy": c.character.flags.value & 1,
+        "hidden": c.character.flags.value & 2,
+        "graphics": c.graphics.value,
+        "script": c.script.value,
         "rect": new Rect(x, x + 16, y, y + 24)
     };
+
+//    var c = characterAI["character" + slot].value;
+//    if (!c || c === 0xFF) return null; // slot is empty
+//
+//    var x = Math.min(characterAI["x" + slot].value, this.battleRect.r - 16);
+//    var y = Math.min(characterAI["y" + slot].value, this.battleRect.b - 24);
+//
+//    return {
+//        "slot": slot,
+//        "x": characterAI["x" + slot],
+//        "y": characterAI["y" + slot],
+//        "character": c,
+//        "graphics": characterAI["graphics" + slot].value,
+//        "script": characterAI["script" + slot].value,
+//        "rect": new Rect(x, x + 16, y, y + 24)
+//    };
 }
 
 FF6Battle.prototype.monstersSortedByPriority = function() {
@@ -636,7 +665,7 @@ FF6Battle.prototype.drawMonster = function(slot) {
 }
 
 // from C2/CE2B
-FF6Battle.characterPaletteIndex = [2, 1, 4, 4, 0, 0, 0, 3, 3, 4, 5, 3, 3, 5, 1, 0, 0, 3, 6, 1, 0, 3, 3, 0, 0, 0]
+FF6Battle.characterPaletteIndex = [2, 1, 4, 4, 0, 0, 0, 3, 3, 4, 5, 3, 3, 5, 1, 0, 0, 3, 6, 1, 0, 3, 3, 0]
 
 FF6Battle.prototype.drawCharacter = function(slot) {
     var c = this.characterInSlot(slot);
@@ -645,11 +674,11 @@ FF6Battle.prototype.drawCharacter = function(slot) {
     // load graphics
     var g = c.graphics;
     if (g === 0xFF) {
-        g = c.character & 0x3F;
-    } else {
-        g &= 0x3F;
+        // use character graphics
+        g = c.character;
     }
-    var graphics = this.rom.mapSpriteGraphics.item(g);
+
+    var graphics = this.rom.mapSpriteGraphics.item(g === 23 ? 14 : g); // green soldier palette override
     if (!graphics) return;
     
     // load palette
@@ -658,7 +687,7 @@ FF6Battle.prototype.drawCharacter = function(slot) {
     if (!pal) return;
     
     var tiles;
-    if (c.character & 0x40) {
+    if (c.enemy) {
         // enemy character
         tiles = new Uint16Array([0x401F, 0x401E, 0x4029, 0x4028, 0x402B, 0x402A]);
     } else {
@@ -684,7 +713,7 @@ FF6Battle.prototype.drawCharacter = function(slot) {
     ppu.layers[0].tiles = tiles;
     ppu.layers[0].main = true;
 
-    // draw the monster
+    // draw the character
     this.monsterCanvas.width = ppu.width;
     this.monsterCanvas.height = ppu.height;
     var context = this.monsterCanvas.getContext('2d');
@@ -694,6 +723,7 @@ FF6Battle.prototype.drawCharacter = function(slot) {
     
     // tint the selected character
     if (this.selectedCharacter && this.selectedCharacter.slot === slot) this.tintMonster('hsla(210, 100%, 50%, 0.5)');
+    if (c.hidden) this.transparentMonster();
     
     var ctx = this.battleCanvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
@@ -938,7 +968,7 @@ FF6BattleVRAM.prototype.mouseDown = function(e) {
 FF6BattleVRAM.prototype.rectForSlot = function(slot) {
     var v = this.battle.battleProperties.vramMap.value;
     var vramMap = this.rom.battleVRAMMap.item(v);
-    if (slot > vramMap.array.length) { return Rect.emptyRect; }
+    if (slot > vramMap.arrayLength) { return Rect.emptyRect; }
     var vramMapData = vramMap.item(slot - 1);
     
     // monster slot, get vram map data

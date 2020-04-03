@@ -37,6 +37,7 @@ function FF6Map(rom) {
     this.menu = document.getElementById("menu");
     
     this.mapProperties = null;
+    this.isWorld = false;
     this.m = null; // map index
     this.l = 0; // selected layer
     this.zoom = 1.0; // zoom multiplier
@@ -46,7 +47,8 @@ function FF6Map(rom) {
     this.isDragging = false;
     this.layer = [new FF6MapLayer(rom, FF6MapLayer.Type.layer1),
                   new FF6MapLayer(rom, FF6MapLayer.Type.layer2),
-                  new FF6MapLayer(rom, FF6MapLayer.Type.layer3)];
+                  new FF6MapLayer(rom, FF6MapLayer.Type.layer3),
+                  new FF6MapLayer(rom, FF6MapLayer.Type.overlay)];
     this.selectedLayer = this.layer[0];
     this.worldLayer = new FF6MapLayer(rom, FF6MapLayer.Type.world);
     this.showCursor = true;
@@ -61,13 +63,16 @@ function FF6Map(rom) {
     this.observer = new ROMObserver(rom, this, {sub: true, link: true, array: true});
     this.ppu = new GFX.PPU();
     
-    // mask layer stuff
     this.screenCanvas = document.createElement('canvas');
     this.screenCanvas.id = "map-screen";
     this.screenCanvas.width = 256;
     this.screenCanvas.width = 256;
     this.scrollDiv.appendChild(this.screenCanvas);
-    this.tileMask = FF6Map.TileMask.none;
+
+    // mask layer/overlay stuff
+    this.tileMask = FF6Map.TileMasks.none;
+    this.overlayCanvas = document.createElement('canvas');
+    this.overlayPPU = new GFX.PPU();
 
     // add event listeners
     var map = this;
@@ -132,15 +137,15 @@ FF6Map.prototype.fixGBATriggers = function(triggers, triggersGBA) {
     if (triggersGBA.type === ROMObject.Type.assembly) return;
     
     // create new trigger arrays for the GBA maps
-    var mapCount = this.rom.mapProperties.array.length;
-    while (triggers.array.length < mapCount) {
+    var mapCount = this.rom.mapProperties.arrayLength;
+    while (triggers.arrayLength < mapCount) {
         // add a blank trigger array for each map
         var newArray = triggers.blankAssembly();
         triggers.insertAssembly(newArray);
     }
 
     // copy all GBA triggers to the normal trigger array
-    for (var t = 0; t < triggersGBA.array.length; t++) {
+    for (var t = 0; t < triggersGBA.arrayLength; t++) {
 
         var oldTrigger = triggersGBA.item(t);
         var m = oldTrigger.map.value;
@@ -431,6 +436,10 @@ FF6Map.prototype.setTiles = function() {
 
     function invalidate() { this.invalidateMap(rect); }
     this.selectedLayer.setLayout(this.selection);
+    if (this.selectedLayer.type === FF6MapLayer.Type.layer1) {
+        // update overlay layout
+        this.layer[3].setLayout(this.selection);
+    }
     this.rom.doAction(new ROMAction(this, invalidate, invalidate, "Invalidate Map"));
     this.drawMap();
 }
@@ -460,21 +469,36 @@ FF6Map.prototype.selectTiles = function() {
     this.tileset.drawCursor();
 }
 
-FF6Map.prototype.selectTileProperties = function(t) {
-    // select tile properties
-    var tileProperties;
-    if (this.selectedLayer.type === FF6MapLayer.Type.layer1) {
-        // layer 1 tile properties determined by graphics index
-        tileProperties = this.rom.mapTileProperties.item(this.mapProperties.tileProperties.value);
-    } else if (this.selectedLayer.type === FF6MapLayer.Type.world) {
+FF6Map.prototype.tilePropertiesAtTile = function(t) {
+    if (this.isWorld) {
         // world map tile properties
-        if (this.m === 2) return;
-        tileProperties = this.rom.worldTileProperties.item(this.m);
+        if (this.m === 2) return null;
+        return this.rom.worldTileProperties.item(this.m).item(t);
     } else {
-        // return if layer 2
-        return;
+        // layer 1 tile properties determined by graphics index
+        return this.rom.mapTileProperties.item(this.mapProperties.tileProperties.value).item(t);
     }
-    propertyList.select(tileProperties.item(t));
+}
+
+FF6Map.prototype.selectTileProperties = function(t) {
+    
+    if (!this.isWorld && this.selectedLayer && this.selectedLayer.type !== FF6MapLayer.Type.layer1) return;
+    
+    // select tile properties
+    var tileProperties = this.tilePropertiesAtTile(t);
+    if (tileProperties) propertyList.select(tileProperties);
+//    if (this.selectedLayer.type === FF6MapLayer.Type.layer1) {
+//        // layer 1 tile properties determined by graphics index
+//        tileProperties = this.rom.mapTileProperties.item(this.mapProperties.tileProperties.value);
+//    } else if (this.selectedLayer.type === FF6MapLayer.Type.world) {
+//        // world map tile properties
+//        if (this.m === 2) return;
+//        tileProperties = this.rom.worldTileProperties.item(this.m);
+//    } else {
+//        // return if layer 2
+//        return;
+//    }
+//    propertyList.select(tileProperties.item(t));
 }
 
 FF6Map.prototype.selectLayer = function(l) {
@@ -520,19 +544,100 @@ FF6Map.prototype.changeLayer = function(id) {
     this.drawMap();
 }
 
-FF6Map.TileMask = {
-    none: "none",
-    passability: "passability",
-    spriteOverlay: "spriteOverlay",
-    npcPassability: "npcPassability",
-    layerPriority: "layerPriority"
+FF6Map.TileMasks = {
+    "none": "None",
+    "overlay": "Sprite Overlay",
+    "zUpper": "Upper Z-Level",
+    "zLower": "Lower Z-Level",
+    "npcPassability": "NPC Passability",
+    "spritePriority": "Sprite Priority",
+    "misc": "Misc."
 }
 
 FF6Map.prototype.drawMask = function() {
     
-    if (this.tileMask === FF6Map.TileMask.none) return;
+    if (this.isWorld) return; // world map not implemented yet
+    if (this.tileMask === FF6Map.TileMasks.none) return;
+    if (this.tileMask === FF6Map.TileMasks.overlay) return;
+
+    // calculate coordinates on the map rect
+    var xStart = (this.mapRect.l / this.zoom) >> 4;
+    var xEnd = (this.mapRect.r / this.zoom) >> 4;
+    var yStart = (this.mapRect.t / this.zoom) >> 4;
+    var yEnd = (this.mapRect.b / this.zoom) >> 4;
+    var xOffset = (this.mapRect.l / this.zoom) % 16;
+    var yOffset = (this.mapRect.t / this.zoom) % 16;
     
-    
+    var ctx = this.canvas.getContext('2d');
+
+    // draw the mask at each tile
+    for (var y = yStart; y <= yEnd; y++) {
+        for (var x = xStart; x <= xEnd; x++) {
+            
+            var tile = this.layer[0].layout.data[x % this.layer[0].w + (y % this.layer[0].h) * this.layer[0].w];
+            var tp = this.tilePropertiesAtTile(tile);
+            if (!tp) continue;
+            
+            if (this.tileMask === FF6Map.TileMasks.zUpper) {
+                if (tp.getSpecialValue() === 0xFFF7 || tp.getSpecialValue() === 0x0007) {
+                    ctx.fillStyle = 'rgba(0, 0, 255, 0.5)'; // impassable
+                } else if (tp.zLevel.value & 1) {
+                    continue;
+                } else if (tp.zLevel.value === 4) {
+                    ctx.fillStyle = 'rgba(0, 255, 255, 0.5)'; // bridge
+                } else {
+                    ctx.fillStyle = 'rgba(0, 0, 255, 0.5)';
+                }
+            } else if (this.tileMask === FF6Map.TileMasks.zLower) {
+                if (tp.getSpecialValue() === 0xFFF7 || tp.getSpecialValue() === 0x0007) {
+                    ctx.fillStyle = 'rgba(0, 0, 255, 0.5)'; // impassable
+                } else if (tp.zLevel.value & 2) {
+                    continue;
+                } else if (tp.zLevel.value === 4) {
+                    ctx.fillStyle = 'rgba(0, 255, 255, 0.5)'; // bridge
+                } else {
+                    ctx.fillStyle = 'rgba(0, 0, 255, 0.5)';
+                }
+            } else if (this.tileMask === FF6Map.TileMasks.npcPassability) {
+                if (tp.getSpecialValue() === 0xFFF7 || tp.getSpecialValue() === 0x0007) {
+                    ctx.fillStyle = 'rgba(0, 0, 255, 0.5)'; // impassable
+                } else if (tp.flags.value & 0x1000) {
+                    continue;
+                } else {
+                    ctx.fillStyle = 'rgba(0, 0, 255, 0.5)';
+                }
+            } else if (this.tileMask === FF6Map.TileMasks.spritePriority) {
+                if (tp.getSpecialValue() === 0xFFF7 || tp.getSpecialValue() === 0x0007) {
+                    continue;
+                } else if (tp.flags.value & 0x0001) {
+                    ctx.fillStyle = 'rgba(0, 255, 0, 0.5)'; // top sprite priority
+                } else if (tp.flags.value & 0x0002) {
+                    ctx.fillStyle = 'rgba(255, 0, 0, 0.5)'; // bottom sprite priority
+                } else {
+                    continue;
+                }
+            } else if (this.tileMask === FF6Map.TileMasks.misc) {
+                if (tp.getSpecialValue() === 0xFFF7 || tp.getSpecialValue() === 0x0007) {
+                    continue;
+                } else if (tp.flags.value & 0x0004) {
+                    ctx.fillStyle = 'rgba(255, 0, 0, 0.5)'; // door
+                } else if (tp.flags.value & 0x0018) {
+                    ctx.fillStyle = 'rgba(0, 255, 0, 0.5)'; // stairs
+                } else if (tp.flags.value & 0x0800) {
+                    ctx.fillStyle = 'rgba(255, 255, 0, 0.5)'; // ladder
+                } else {
+                    continue;
+                }
+            }
+
+            
+            var left = (((x - xStart) << 4) - xOffset) * this.zoom;
+            var top = (((y - yStart) << 4) - yOffset) * this.zoom;
+            var size = 16 * this.zoom;
+            
+            ctx.fillRect(left, top, size, size);
+        }
+    }
 }
 
 FF6Map.prototype.drawScreen = function() {
@@ -710,6 +815,18 @@ FF6Map.prototype.show = function() {
     this.addTwoState("showLayer2", function() { map.changeLayer("showLayer2"); }, "Layer 2", this.showLayer2);
     this.addTwoState("showLayer3", function() { map.changeLayer("showLayer3"); }, "Layer 3", this.showLayer3);
     this.addTwoState("showTriggers", function() { map.changeLayer("showTriggers"); }, "Triggers", this.showTriggers);
+    
+    var maskKeys = Object.keys(FF6Map.TileMasks);
+    var maskNames = [];
+    for (var i = 0; i < maskKeys.length; i++) maskNames[i] = FF6Map.TileMasks[maskKeys[i]];
+    var onChangeMask = function(mask) {
+        map.tileMask = FF6Map.TileMasks[maskKeys[mask]];
+        map.drawMap();
+        map.tileset.selectLayer(map.l);
+    }
+    var maskSelected = function(mask) { return map.tileMask === FF6Map.TileMasks[maskKeys[mask]]; }
+    this.addList("showMask", "Mask", maskNames, onChangeMask, maskSelected);
+
     this.addTwoState("showScreen", function() { map.changeLayer("showScreen"); }, "Screen", this.showScreen);
     this.addZoom(this.zoom, function() { map.changeZoom(); });
 }
@@ -742,6 +859,7 @@ FF6Map.prototype.loadMap = function(m) {
     }
 
     // get map properties
+    this.isWorld = false;
     var map = this.mapProperties;
     if (!map) return;
     
@@ -757,7 +875,7 @@ FF6Map.prototype.loadMap = function(m) {
     // load animation graphics
     var animGfx = this.rom.mapAnimationGraphics.data;
     var anim = this.rom.mapAnimationProperties.item(map.animation.value);
-    for (i = 0; i < anim.array.length; i++) {
+    for (i = 0; i < anim.arrayLength; i++) {
         var f = anim.item(i).frame1.value * 2;
         gfx.set(animGfx.subarray(f, f + 0x100), 0xA000 + i * 0x0100);
     }
@@ -801,6 +919,12 @@ FF6Map.prototype.loadMap = function(m) {
     tileset = graphicsLayer3.tileset.data;
     this.layer[2].loadLayout({layout: layout, tileset: tileset, w: width3, h: height3, priority: map.layer3Priority.value});
 
+    // load overlay layout
+    var overlayProperties = this.rom.mapOverlayProperties.item(map.overlay.value);
+    var overlayGraphics = new Uint8Array(0x10000);
+    overlayGraphics.set(this.rom.mapOverlayGraphics.data, 64);
+    this.layer[3].loadLayout({layout: this.layer[0].layout, tileset: overlayProperties.data, overlayTiles: this.rom.mapOverlayLayout.data, w: width1, h: height1});
+    
     // get color math properties
     var colorMath = this.rom.mapColorMath.item(map.colorMath.value);
 
@@ -855,10 +979,30 @@ FF6Map.prototype.loadMap = function(m) {
     this.ppu.layers[2].sub = this.showLayer3 && (colorMath.subscreen.value & 0x04);
     this.ppu.layers[2].math = (colorMath.mathLayers.value & 0x04);
 
+    // set up the overlay ppu
+    this.overlayPPU = new GFX.PPU();
+    this.overlayPPU.pal = new Uint32Array(4);
+    this.overlayPPU.pal[0] = "0xFF000000";
+    this.overlayPPU.pal[1] = "0xA0FFFFFF";
+    this.overlayPPU.width = this.ppu.width;
+    this.overlayPPU.height = this.ppu.width;
+
+    // overlay layer
+    this.overlayPPU.layers[0].format = GFX.TileFormat.snes2bppTile;
+    this.overlayPPU.layers[0].cols = this.ppu.layers[0].cols;
+    this.overlayPPU.layers[0].rows = this.ppu.layers[0].rows;
+    this.overlayPPU.layers[0].z[0] = GFX.Z.top;
+    this.overlayPPU.layers[0].z[1] = GFX.Z.top;
+    this.overlayPPU.layers[0].gfx = overlayGraphics;
+    this.overlayPPU.layers[0].tiles = this.layer[3].tiles;
+    this.overlayPPU.layers[0].main = true;
+
     this.scrollDiv.style.width = (this.ppu.width * this.zoom).toString() + "px";
     this.scrollDiv.style.height = (this.ppu.height * this.zoom).toString() + "px";
     this.mapCanvas.width = this.ppu.width;
     this.mapCanvas.height = this.ppu.height;
+    this.overlayCanvas.width = this.ppu.width;
+    this.overlayCanvas.height = this.ppu.height;
 
     this.invalidateMap();
     this.selectedTrigger = null;
@@ -878,6 +1022,7 @@ FF6Map.prototype.loadWorldMap = function(m) {
     layerButtons[2].disabled = true;
 
     this.mapProperties = null;
+    this.isWorld = true;
     propertyList.select(null);
 
     // load graphics and layout
@@ -950,6 +1095,7 @@ FF6Map.prototype.drawMap = function() {
         
     // update the map canvas
     var mapContext = this.mapCanvas.getContext('2d');
+    var overlayContext = this.overlayCanvas.getContext('2d');
     var imageData;
 
     // draw all visible sectors
@@ -971,6 +1117,12 @@ FF6Map.prototype.drawMap = function() {
         imageData = mapContext.createImageData(256, 256);
         this.ppu.renderPPU(imageData.data, sectorRect.l, sectorRect.t, 256, 256);
         mapContext.putImageData(imageData, sectorRect.l, sectorRect.t);
+
+        if (!this.isWorld) {
+            imageData = overlayContext.createImageData(256, 256);
+            this.overlayPPU.renderPPU(imageData.data, sectorRect.l, sectorRect.t, 256, 256);
+            overlayContext.putImageData(imageData, sectorRect.l, sectorRect.t);
+        }
         
         // validate the sector
         this.mapSectors[s] = true;
@@ -986,6 +1138,12 @@ FF6Map.prototype.drawMap = function() {
         imageData = mapContext.createImageData(rect.w, rect.h);
         this.ppu.renderPPU(imageData.data, rect.l, rect.t, rect.w, rect.h);
         mapContext.putImageData(imageData, rect.l, rect.t);
+        
+        if (!this.isWorld) {
+            imageData = overlayContext.createImageData(rect.w, rect.h);
+            this.overlayPPU.renderPPU(imageData.data, rect.l, rect.t, rect.w, rect.h);
+            overlayContext.putImageData(imageData, rect.l, rect.t);
+        }
     }
 
     var ctx = this.canvas.getContext('2d');
@@ -994,8 +1152,11 @@ FF6Map.prototype.drawMap = function() {
     var scaledRect = this.mapRect.scale(1 / this.zoom);
     ctx.drawImage(this.mapCanvas, scaledRect.l, scaledRect.t, scaledRect.w, scaledRect.h, 0, 0, this.mapRect.w, this.mapRect.h);
     
-    this.drawTriggers();
     this.drawMask();
+    if (!this.isWorld && this.tileMask === FF6Map.TileMasks.overlay) {
+        ctx.drawImage(this.overlayCanvas, scaledRect.l, scaledRect.t, scaledRect.w, scaledRect.h, 0, 0, this.mapRect.w, this.mapRect.h);
+    }
+    this.drawTriggers();
     this.drawScreen();
     this.drawCursor();
 }
@@ -1014,14 +1175,14 @@ FF6Map.prototype.loadTriggers = function() {
     var triggers = this.rom.eventTriggers.item(this.m);
     if (triggers) {
         this.observer.startObserving(triggers, this.reloadTriggers);
-        for (i = 0; i < triggers.array.length; i++) {
+        for (i = 0; i < triggers.arrayLength; i++) {
             this.triggers.push(triggers.item(i));
         }
     }
     
     triggers = this.rom.eventTriggersAdvance;
     if (this.rom.isGBA && triggers instanceof ROMArray) {
-        for (i = 0; i < triggers.array.length; i++) {
+        for (i = 0; i < triggers.arrayLength; i++) {
             var trigger = triggers.item(i);
             if (trigger.map.value !== this.m) continue;
             this.observer.startObserving(trigger, this.reloadTriggers);
@@ -1033,7 +1194,7 @@ FF6Map.prototype.loadTriggers = function() {
     triggers = this.rom.entranceTriggersSingle.item(this.m);
     if (triggers) {
         this.observer.startObserving(triggers, this.reloadTriggers);
-        for (i = 0; i < triggers.array.length; i++) {
+        for (i = 0; i < triggers.arrayLength; i++) {
             this.triggers.push(triggers.item(i));
         }
     }
@@ -1045,7 +1206,7 @@ FF6Map.prototype.loadTriggers = function() {
     triggers = this.rom.entranceTriggersMulti.item(this.m);
     if (triggers) {
         this.observer.startObserving(triggers, this.reloadTriggers);
-        for (i = 0; i < triggers.array.length; i++) {
+        for (i = 0; i < triggers.arrayLength; i++) {
             this.triggers.push(triggers.item(i));
         }
     }
@@ -1053,7 +1214,7 @@ FF6Map.prototype.loadTriggers = function() {
     triggers = this.rom.treasureProperties.item(this.m);
     if (triggers) {
         this.observer.startObserving(triggers, this.reloadTriggers);
-        for (i = 0; i < triggers.array.length; i++) {
+        for (i = 0; i < triggers.arrayLength; i++) {
             this.triggers.push(triggers.item(i));
         }
     }
@@ -1062,14 +1223,14 @@ FF6Map.prototype.loadTriggers = function() {
     triggers = this.rom.npcProperties.item(this.m);
     if (triggers) {
         this.observer.startObserving(triggers, this.reloadTriggers);
-        for (i = 0; i < triggers.array.length; i++) {
+        for (i = 0; i < triggers.arrayLength; i++) {
 
             var npc = triggers.item(i);
-            if (npc.vehicle.value === 0 && npc.special.value) {
+            if (npc.vehicle.value === 0 && npc.specialNPC.value) {
                 // special npc
                 npc.scriptPointer.invalid = true;
                 npc.showRider.invalid = true;
-                npc.special.invalid = true;
+                npc.specialNPC.invalid = true;
                 npc.vehicle.invalid = true;
                 npc.reaction.invalid = true;
                 npc.name = "Special NPC Properties";
@@ -1081,7 +1242,7 @@ FF6Map.prototype.loadTriggers = function() {
                 npc.master.invalid = true;
                 npc.offsetDirection.invalid = true;
                 npc.slave.invalid = true;
-                npc.special.invalid = true;
+                npc.specialNPC.invalid = true;
                 npc.is32x32.invalid = true;
                 npc.name = "NPC Properties";
             }
@@ -1092,7 +1253,7 @@ FF6Map.prototype.loadTriggers = function() {
     
     triggers = this.rom.npcPropertiesAdvance;
     if (this.rom.isGBA && triggers instanceof ROMArray) {
-        for (i = 0; i < triggers.array.length; i++) {
+        for (i = 0; i < triggers.arrayLength; i++) {
             var trigger = triggers.item(i);
             if (trigger.map.value !== this.m) continue;
             this.observer.startObserving(trigger, this.reloadTriggers);
@@ -1104,7 +1265,7 @@ FF6Map.prototype.loadTriggers = function() {
     if (this.rom.isGBA) {
         var mapProperties = this.rom.mapProperties.item(this.m);
         var startupEvents = this.rom.mapStartupEventGBA;
-        for (i = 0; i < startupEvents.array.length; i++) {
+        for (i = 0; i < startupEvents.arrayLength; i++) {
             var event = startupEvents.item(i);
             if (event.map.value !== this.m) continue;
             mapProperties.assembly.scriptPointerGBA.invalid = false;
@@ -1298,9 +1459,9 @@ FF6Map.prototype.drawNPC = function(npc) {
     var tileCount = 6;
     var is32x32 = false;
     var hFlip = false;
-    var special = (vehicle === 0 && npc.special.value);
+    var specialNPC = (vehicle === 0 && npc.specialNPC.value);
 
-    if (special) {
+    if (specialNPC) {
         // special npc
         is32x32 = npc.is32x32.value;
         hFlip = npc.hFlip.value;
@@ -1309,7 +1470,7 @@ FF6Map.prototype.drawNPC = function(npc) {
         offset = npc.offset.value * 2;
         if (npc.slave.value) {
             var m = npc.master.value;
-            if (!npc.parent.array || m >= npc.parent.array.length) {
+            if (!npc.parent.array || m >= npc.parent.arrayLength) {
                 this.rom.log("Invalid Master NPC");
             } else {
                 var master = npc.parent.array[m];
@@ -1368,7 +1529,7 @@ FF6Map.prototype.drawNPC = function(npc) {
     var gfx = new Uint8Array(0x8000);
     var tileData = new Uint16Array(tileCount);
     for (var t = 0; t < tileCount; t++) {
-        var tileOffset = (special ? t * 0x20 : tileLayout["tile" + (t + 1)].value) * 2;
+        var tileOffset = (specialNPC ? t * 0x20 : tileLayout["tile" + (t + 1)].value) * 2;
         var rawGraphics = this.rom.mapSpriteGraphics.item(npc.graphics.value).data.subarray(tileOffset, tileOffset + 0x40);
         gfx.set(rawGraphics, t * 0x40);
         if (hFlip) {
@@ -1391,7 +1552,7 @@ FF6Map.prototype.drawNPC = function(npc) {
 
     function drawVehicle() {
         if (vehicle === 0) return;
-        if (special) return;
+        if (specialNPC) return;
         if (animation) return;
 
         var vx = x;
@@ -1564,7 +1725,7 @@ FF6Map.prototype.drawNPC = function(npc) {
     
     function drawSprite() {
         
-        if (vehicle && !showRider && !special && !animation) return;
+        if (vehicle && !showRider && !specialNPC && !animation) return;
         
         var npcRect = new Rect(x, x + w, y, y + h);
         npcRect = npcRect.scale(this.zoom);
@@ -1692,7 +1853,8 @@ function FF6MapTileset(rom, map) {
 
     this.layer = [new FF6MapLayer(rom, FF6MapLayer.Type.layer1),
                   new FF6MapLayer(rom, FF6MapLayer.Type.layer2),
-                  new FF6MapLayer(rom, FF6MapLayer.Type.layer3)];
+                  new FF6MapLayer(rom, FF6MapLayer.Type.layer3),
+                  new FF6MapLayer(rom, FF6MapLayer.Type.overlay)];
     this.worldLayer = new FF6MapLayer(rom, FF6MapLayer.Type.world);
 
     this.selection = new Uint8Array([0x73, 0, 0, 1, 1, 0]);
@@ -1700,6 +1862,10 @@ function FF6MapTileset(rom, map) {
     this.clickedRow = null;
     
     this.ppu = new GFX.PPU();
+    this.overlayCanvas = document.createElement('canvas');
+    this.overlayCanvas.width = 256;
+    this.overlayCanvas.height = 256;
+    this.overlayPPU = new GFX.PPU();
 
     var tileset = this;
     this.canvas.onmousedown = function(e) { tileset.mouseDown(e) };
@@ -1815,6 +1981,14 @@ FF6MapTileset.prototype.selectLayer = function(l) {
     this.ppu.layers[this.map.l].main = true;
     this.ppu.renderPPU(imageData.data);
     ctx.putImageData(imageData, 0, 0);
+    if (this.map.selectedLayer.type === FF6MapLayer.Type.layer1 && this.map.tileMask === FF6Map.TileMasks.overlay) {
+        var overlayCtx = this.overlayCanvas.getContext('2d');
+        imageData = overlayCtx.createImageData(this.overlayPPU.width, this.overlayPPU.height);
+        this.overlayPPU.renderPPU(imageData.data);
+        overlayCtx.putImageData(imageData, 0, 0);
+        ctx.drawImage(this.overlayCanvas, 0, 0);
+    }
+    this.drawMask();
     this.drawCursor();
 }
 
@@ -1854,6 +2028,85 @@ FF6MapTileset.prototype.drawCursor = function() {
     ctx.strokeRect(x, y, w, h);
 }
 
+FF6MapTileset.prototype.drawMask = function() {
+    
+    if (this.map.isWorld) return; // world map not implemented yet
+    if (this.map.l !== 0) return; // only for layer 1
+    if (this.map.tileMask === FF6Map.TileMasks.none) return;
+    if (this.map.tileMask === FF6Map.TileMasks.overlay) return;
+
+    var ctx = this.canvas.getContext('2d');
+
+    // draw the mask at each tile
+    for (var y = 0; y < 16; y++) {
+        for (var x = 0; x < 16; x++) {
+            
+            var tile = x + y * 16;
+            var tp = this.map.tilePropertiesAtTile(tile);
+            if (!tp) continue;
+            
+            if (this.map.tileMask === FF6Map.TileMasks.zUpper) {
+                if (tp.getSpecialValue() === 0xFFF7 || tp.getSpecialValue() === 0x0007) {
+                    ctx.fillStyle = 'rgba(0, 0, 255, 0.5)'; // impassable
+                } else if (tp.zLevel.value & 1) {
+                    continue;
+                } else if (tp.zLevel.value === 4) {
+                    ctx.fillStyle = 'rgba(0, 255, 255, 0.5)'; // bridge
+                } else {
+                    ctx.fillStyle = 'rgba(0, 0, 255, 0.5)';
+                }
+            } else if (this.map.tileMask === FF6Map.TileMasks.zLower) {
+                if (tp.getSpecialValue() === 0xFFF7 || tp.getSpecialValue() === 0x0007) {
+                    ctx.fillStyle = 'rgba(0, 0, 255, 0.5)'; // impassable
+                } else if (tp.zLevel.value & 2) {
+                    continue;
+                } else if (tp.zLevel.value === 4) {
+                    ctx.fillStyle = 'rgba(0, 255, 255, 0.5)'; // bridge
+                } else {
+                    ctx.fillStyle = 'rgba(0, 0, 255, 0.5)';
+                }
+            } else if (this.map.tileMask === FF6Map.TileMasks.npcPassability) {
+                if (tp.getSpecialValue() === 0xFFF7 || tp.getSpecialValue() === 0x0007) {
+                    ctx.fillStyle = 'rgba(0, 0, 255, 0.5)'; // impassable
+                } else if (tp.flags.value & 0x1000) {
+                    continue;
+                } else {
+                    ctx.fillStyle = 'rgba(0, 0, 255, 0.5)';
+                }
+            } else if (this.map.tileMask === FF6Map.TileMasks.spritePriority) {
+                if (tp.getSpecialValue() === 0xFFF7 || tp.getSpecialValue() === 0x0007) {
+                    continue;
+                } else if (tp.flags.value & 0x0001) {
+                    ctx.fillStyle = 'rgba(0, 255, 0, 0.5)'; // top sprite priority
+                } else if (tp.flags.value & 0x0002) {
+                    ctx.fillStyle = 'rgba(255, 0, 0, 0.5)'; // bottom sprite priority
+                } else {
+                    continue;
+                }
+            } else if (this.map.tileMask === FF6Map.TileMasks.misc) {
+                if (tp.getSpecialValue() === 0xFFF7 || tp.getSpecialValue() === 0x0007) {
+                    continue;
+                } else if (tp.flags.value & 0x0004) {
+                    ctx.fillStyle = 'rgba(255, 0, 0, 0.5)'; // door
+                } else if (tp.flags.value & 0x0018) {
+                    ctx.fillStyle = 'rgba(0, 255, 0, 0.5)'; // stairs
+                } else if (tp.flags.value & 0x0800) {
+                    ctx.fillStyle = 'rgba(255, 255, 0, 0.5)'; // ladder
+                } else {
+                    continue;
+                }
+            }
+
+            
+            var left = x << 4;
+            var top = y << 4;
+            var size = 16;
+            
+            ctx.fillRect(left, top, size, size);
+        }
+    }
+}
+
 FF6MapTileset.prototype.loadMap = function(m) {
 
     // create a sequential tile layout
@@ -1873,6 +2126,7 @@ FF6MapTileset.prototype.loadMap = function(m) {
         this.layer[0].loadLayout({layout: layout, tileset: this.map.layer[0].tileset, w: 16, h: 16});
         this.layer[1].loadLayout({layout: layout, tileset: this.map.layer[1].tileset, w: 16, h: 16});
         this.layer[2].loadLayout({layout: layout, tileset: this.map.layer[2].tileset, w: 16, h: 16, priority: true});
+        this.layer[3].loadLayout({layout: layout, tileset: this.map.layer[3].tileset, w: 16, h: 16, overlayTiles: this.rom.mapOverlayLayout.data});
         
         // layer 1
         this.ppu.layers[0].format = this.map.ppu.layers[0].format;
@@ -1900,6 +2154,20 @@ FF6MapTileset.prototype.loadMap = function(m) {
         this.ppu.layers[2].z[1] = GFX.Z.snes3P;
         this.ppu.layers[2].gfx = this.map.ppu.layers[2].gfx;
         this.ppu.layers[2].tiles = this.layer[2].tiles;
+
+        // overlay layer
+        this.overlayPPU = new GFX.PPU();
+        this.overlayPPU.pal = this.map.overlayPPU.pal;
+        this.overlayPPU.height = 256;
+        this.overlayPPU.width = 256;
+        this.overlayPPU.layers[0].format = GFX.TileFormat.snes2bppTile;
+        this.overlayPPU.layers[0].rows = 32;
+        this.overlayPPU.layers[0].cols = 32;
+        this.overlayPPU.layers[0].z[0] = GFX.Z.top;
+        this.overlayPPU.layers[0].z[1] = GFX.Z.top;
+        this.overlayPPU.layers[0].gfx = this.map.overlayPPU.layers[0].gfx;
+        this.overlayPPU.layers[0].tiles = this.layer[3].tiles;
+        this.overlayPPU.layers[0].main = true;
 
     } else {
         this.worldLayer.loadLayout({layout: layout, tileset: this.map.worldLayer.tileset, w: 16, h: 16, paletteAssignment: this.map.worldLayer.paletteAssignment})
@@ -1930,6 +2198,7 @@ FF6MapLayer.Type = {
     layer1: "layer1",
     layer2: "layer2",
     layer3: "layer3",
+    overlay: "overlay",
     world: "world"
 }
 
@@ -1941,6 +2210,9 @@ FF6MapLayer.prototype.loadLayout = function(definition) {
     this.h = definition.h;
     this.priority = definition.priority; // layer 3 only
     this.paletteAssignment = definition.paletteAssignment; // world map only
+    if (definition.overlayTiles) {
+        this.overlayTiles = new Uint16Array(definition.overlayTiles.buffer, definition.overlayTiles.byteOffset, definition.overlayTiles.byteLength >> 1);
+    }
 
     // update tiles for the entire map
     this.tiles = new Uint16Array(this.w * this.h * 4);
@@ -2014,6 +2286,9 @@ FF6MapLayer.prototype.decodeLayout = function(x, y, w, h) {
         case FF6MapLayer.Type.layer3:
             this.decodeLayer3Layout(x, y, w, h);
             break;
+        case FF6MapLayer.Type.overlay:
+            this.decodeOverlayLayout(x, y, w, h);
+            break;
         case FF6MapLayer.Type.world:
             this.decodeWorldLayout(x, y, w, h);
             break;
@@ -2080,6 +2355,39 @@ FF6MapLayer.prototype.decodeLayer3Layout = function(x, y, w, h) {
             i += this.w * 2;
             this.tiles[i + 0] = tile++ + hf - vf;
             this.tiles[i + 1] = tile - hf - vf;
+        }
+        t += this.w * 4;
+        l += this.w;
+    }
+}
+
+FF6MapLayer.prototype.decodeOverlayLayout = function(x, y, w, h) {
+    
+    var layout = this.layout.data || this.layout;
+    var l = x + y * this.w;
+    var t = x * 2 + y * this.w * 4;
+    var row, col, tile, bg1Tile, hf, vf, i;
+    
+    for (row = 0; row < h; row++) {
+        for (col = 0; col < w; col++) {
+            
+            bg1Tile = layout[l + col];
+            tile = this.tileset[bg1Tile + 16];
+            if (tile === 0xFF) continue;
+            var flip = (tile & 0xC0) << 8;
+            tile = this.tileset[((tile & 0x20) >> 2) | ((tile & 0x0E) >> 1)];
+            if (tile === 0xFF) continue;
+            tile <<= 2;
+            hf = (flip & 0x4000) ? 1 : 0;
+            vf = (flip & 0x8000) ? 2 : 0;
+
+            i = t + col * 2;
+            if (i > this.tiles.length) return;
+            this.tiles[i + 0] = ((this.overlayTiles[tile++ + hf + vf] >> 3) + 1) | flip;
+            this.tiles[i + 1] = ((this.overlayTiles[tile++ - hf + vf] >> 3) + 1) | flip;
+            i += this.w * 2;
+            this.tiles[i + 0] = ((this.overlayTiles[tile++ + hf - vf] >> 3) + 1) | flip;
+            this.tiles[i + 1] = ((this.overlayTiles[tile++ - hf - vf] >> 3) + 1) | flip;
         }
         t += this.w * 4;
         l += this.w;

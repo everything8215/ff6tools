@@ -44,7 +44,7 @@ FF6Script.description = function(command) {
             break;
         case "jumpDialog":
             desc = command.name;
-            var choices = command.pointerArray.array.length;
+            var choices = command.pointerArray.arrayLength;
 //            var choices = (command.data.length - 1) / 3;
             for (var c = 0; c < choices; c++) {
                 offset = command.pointerArray.item(c).scriptPointer.value;
@@ -57,7 +57,7 @@ FF6Script.description = function(command) {
         case "jumpSwitch":
             offset = command.scriptPointer.value;
             label = FF6Script.label(command.parent, offset);
-            var count = command.switchArray.array.length;
+            var count = command.switchArray.arrayLength;
             var anyAll = command.anyAll.value ? "all" : "any";
             
             desc = "Jump to " + label + " if " + anyAll + " of these are true:"
@@ -104,18 +104,18 @@ FF6Script.initScript = function(script) {
     var triggers, m, t, offset, label;
     
     // event triggers
-    for (m = 0; m < script.rom.eventTriggers.array.length; m++) {
+    for (m = 0; m < script.rom.eventTriggers.arrayLength; m++) {
         triggers = script.rom.eventTriggers.item(m);
-        for (t = 0; t < triggers.array.length; t++) {
+        for (t = 0; t < triggers.arrayLength; t++) {
             offset = triggers.item(t).scriptPointer.value;
             script.addPlaceholder(triggers.item(t).scriptPointer, offset, (m < 3) ? "world" : "event");
         }
     }
     
     // npcs
-    for (m = 3; m < script.rom.npcProperties.array.length; m++) {
+    for (m = 3; m < script.rom.npcProperties.arrayLength; m++) {
         triggers = script.rom.npcProperties.item(m);
-        for (t = 0; t < triggers.array.length; t++) {
+        for (t = 0; t < triggers.arrayLength; t++) {
             var npc = triggers.item(t);
             if (npc.vehicle.value === 0 && npc.special.value) continue;
             offset = triggers.item(t).scriptPointer.value;
@@ -124,14 +124,14 @@ FF6Script.initScript = function(script) {
     }
     
     // startup event
-    for (m = 3; m < script.rom.mapProperties.array.length; m++) {
+    for (m = 3; m < script.rom.mapProperties.arrayLength; m++) {
         offset = script.rom.mapProperties.item(m).scriptPointer.value;
         label = script.rom.stringTable.mapProperties.string[m].fString();
         script.addPlaceholder(script.rom.mapProperties.item(m).scriptPointer, offset, "event", label);
     }
     
     // add references for vehicle events
-    for (var e = 0; e < script.rom.vehicleEvents.array.length; e++) {
+    for (var e = 0; e < script.rom.vehicleEvents.arrayLength; e++) {
         offset = script.rom.vehicleEvents.item(e).scriptPointer.value;
         label = script.rom.stringTable.vehicleEvents.string[e].fString();
         script.addPlaceholder(script.rom.vehicleEvents.item(e).scriptPointer, offset, "vehicle", label);
@@ -212,7 +212,7 @@ FF6Script.didDisassemble = function(command, data) {
             }
             command.range.end = command.range.begin + 1 + choices * 3;
 //            command.count.value = choices;
-            command.pointerArray.array.length = choices;
+            command.pointerArray.arrayLength = choices;
             command.pointerArray.range.end = command.range.length;
             
             ROMData.prototype.disassemble.call(command, data);
@@ -233,7 +233,7 @@ FF6Script.didDisassemble = function(command, data) {
             // update the command's range
             command.range.end = command.range.begin + length;
             command.assembly.scriptPointer.range = new ROMRange(length - 3, length);
-            command.switchArray.array.length = count;
+            command.switchArray.arrayLength = count;
             command.switchArray.range.end = command.switchArray.range.begin + count * 2;
             ROMData.prototype.disassemble.call(command, data);
             command.switchArray.disassemble(command.data);
@@ -301,7 +301,7 @@ FF6Script.willAssemble = function(command) {
             break;
 
         case "jumpDialog":
-            var count = command.pointerArray.array.length;
+            var count = command.pointerArray.arrayLength;
             var length = 1 + count * 3;
             var newData = new Uint8Array(length);
             newData.set(command.data);
@@ -312,7 +312,7 @@ FF6Script.willAssemble = function(command) {
             break;
 
         case "jumpSwitch":
-            var count = command.switchArray.array.length;
+            var count = command.switchArray.arrayLength;
             if (command.count.value !== count) {
                 command.count.value = count;
                 command.count.markAsDirty();
@@ -355,7 +355,7 @@ var FF6MonsterScript = {
     
     initScript: function(script) {
         // add references for monsters
-        for (var e = 0; e < script.rom.monsterScriptPointers.array.length; e++) {
+        for (var e = 0; e < script.rom.monsterScriptPointers.arrayLength; e++) {
             var offset = script.rom.monsterScriptPointers.item(e).value;
             var label = script.rom.stringTable.monsterName.string[e].fString();
             if (!label || label.length === 0) continue;

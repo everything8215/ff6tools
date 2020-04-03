@@ -3313,9 +3313,7 @@
             "type": "array",
             "name": "World Layouts",
             "range": "0x08279BAC-0x082977C8",
-            "array": {
-                "length": 5
-            },
+            "arrayLength": 5,
             "assembly": {
                 "type": "data",
                 "isSequential": true,
@@ -3324,9 +3322,7 @@
                         "type": "array",
                         "begin": "0x0202",
                         "endPointer": true,
-                        "array": {
-                            "length": "0x0100"
-                        },
+                        "arrayLength": "0x0100",
                         "assembly": {
                             "format": "ff5a-world"
                         },

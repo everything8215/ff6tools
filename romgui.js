@@ -203,7 +203,7 @@ ROMNavigator.prototype.liForArray = function(array, options) {
     ul.classList.add("nav-list");
     if (!this.node[array.path]) this.node[array.path] = ul;
     
-    for (var i = 0; i < array.array.length; i++) {
+    for (var i = 0; i < array.arrayLength; i++) {
         var item = this.liForArrayItem(array, i);
         if (!item) continue;
         ul.appendChild(item);
@@ -401,7 +401,7 @@ ROMPropertyList.prototype.showProperties = function() {
 
             // create an option for each valid string in the table
             var stringTable = rom.stringTable[array.stringTable];
-            for (var i = 0; i < array.array.length; i++) {
+            for (var i = 0; i < array.arrayLength; i++) {
 
                 var optionString = i.toString() + ": ";
                 if (stringTable && stringTable.string[i]) {
@@ -470,6 +470,7 @@ ROMPropertyList.prototype.showProperties = function() {
             if (!assemblyHTML[i]) continue;
             properties.appendChild(assemblyHTML[i]);
         }
+        this.observer.startObserving(object, this.showProperties);
         
     } else if (object instanceof ROMArray) {
         // object is an array
@@ -488,6 +489,9 @@ ROMPropertyList.prototype.assemblyHTML = function(object, options) {
     
     options = options || {};
     
+    // disable all properties if this object has a special value
+    if (object.getSpecialValue() !== null) options.disabled = true;
+
     var divs = [];
     if (!object.assembly) return divs;
     
@@ -513,19 +517,31 @@ ROMPropertyList.prototype.assemblyHTML = function(object, options) {
 
         if (assembly instanceof ROMArray) {
             // array of properties
-            var arrayHTML = this.arrayHTML(assembly, {name: object.assembly[key].name, index: options.index, key: options.key});
+            var arrayHTML = this.arrayHTML(assembly, {name: object.assembly[key].name, index: options.index, key: options.key, disabled: options.disabled});
             if (!arrayHTML) continue;
             divs = divs.concat(arrayHTML);
             this.observer.startObserving(assembly, this.showProperties);
 
+        } else if (assembly instanceof ROMData || assembly instanceof ROMCommand) {
+            // object with sub-assemblies
+            var assemblyHTML = this.assemblyHTML(assembly, {name: object.assembly[key].name, index: options.index, key: options.key, disabled: options.disabled});
+            if (!assemblyHTML) continue;
+            divs = divs.concat(assemblyHTML);
+            this.observer.startObserving(assembly, this.showProperties);
+            
         } else {
             // single property
-            var propertyHTML = this.propertyHTML(assembly, {name: object.assembly[key].name, index: options.index, key: options.key});
+            var propertyHTML = this.propertyHTML(assembly, {name: object.assembly[key].name, index: options.index, key: options.key, disabled: options.disabled});
             if (!propertyHTML) continue;
             divs.push(propertyHTML);
             this.observer.startObserving(assembly, this.showProperties);
         }
     }
+
+    // create properties for each special value
+    var specialHTML = this.propertyHTML(object, {controlID: object.key, index: options.index});
+    if (specialHTML) divs = divs.concat(specialHTML);
+
     return divs;
 }
 
@@ -670,6 +686,11 @@ ROMPropertyList.prototype.propertyHTML = function(object, options) {
     } else if (object instanceof ROMArray) {
         controlDiv = this.arrayLengthControlHTML(object, options);
         
+    } else if (object instanceof ROMData || object instanceof ROMCommand) {
+        controlDiv = this.specialControlHTML(object, options);
+        label.innerHTML = "";
+        if (!controlDiv) return null;
+        
     } else {
         return null;
     }
@@ -696,7 +717,7 @@ ROMPropertyList.prototype.boolControlHTML = function(object, options) {
     input.id = options.controlID;
     input.type = "checkbox";
     input.checked = object.value;
-    input.disabled = object.disabled;
+    input.disabled = object.disabled || options.disabled;
     input.classList.add("property-check");
     input.onchange = function() {
         var value = this.checked;
@@ -733,7 +754,7 @@ ROMPropertyList.prototype.flagControlHTML = function(object, options) {
         check.value = mask;
         check.type = "checkbox";
         check.checked = object.value & mask;
-        check.disabled = object.disabled;
+        check.disabled = object.disabled || options.disabled;
         check.id = options.controlID + "-" + i;
         check.onchange = function() {
             var value = object.value;
@@ -775,7 +796,7 @@ ROMPropertyList.prototype.flagControlHTML = function(object, options) {
         var special = document.createElement('input');
         special.classList.add("property-check");
         special.id = options.controlID + "-special-" + i;
-        special.disabled = object.disabled;
+        special.disabled = object.disabled || options.disabled;
         special.type = "checkbox";
         special.checked = false;
 
@@ -823,7 +844,7 @@ ROMPropertyList.prototype.listControlHTML = function(object, options) {
     var input = document.createElement('select');
     controlDiv.appendChild(input);
     input.id = options.controlID;
-    input.disabled = object.disabled;
+    input.disabled = object.disabled || options.disabled;
     input.classList.add("property-control");
     input.onchange = function() {
         var value = Number(this.value);
@@ -891,7 +912,7 @@ ROMPropertyList.prototype.scriptControlHTML = function(object, options) {
     controlDiv.appendChild(input);
     input.classList.add("property-control");
     input.id = options.controlID;
-    input.disabled = object.disabled;
+    input.disabled = object.disabled || options.disabled;
     input.type = "text";
     input.classList.add("property-control");
     input.value = command.label;
@@ -914,7 +935,7 @@ ROMPropertyList.prototype.numberControlHTML = function(object, options) {
     var input = document.createElement('input');
     controlDiv.appendChild(input);
     input.id = options.controlID;
-    input.disabled = object.disabled;
+    input.disabled = object.disabled || options.disabled;
     input.type = "number";
     input.classList.add("property-control");
     input.value = object.value.toString();
@@ -940,7 +961,7 @@ ROMPropertyList.prototype.numberControlHTML = function(object, options) {
         specialDiv.appendChild(special);
         special.classList.add("property-check");
         special.id = input.id + "-special-" + i;
-        special.disabled = object.disabled;
+        special.disabled = object.disabled || options.disabled;
         special.type = "checkbox";
         special.checked = false;
 
@@ -980,7 +1001,7 @@ ROMPropertyList.prototype.textControlHTML = function(object, options) {
     controlDiv.appendChild(input);
     input.id = options.controlID;
     input.value = object.text;
-    input.disabled = object.disabled;
+    input.disabled = object.disabled || options.disabled;
     input.classList.add("property-control");
     input.classList.add(object.multiLine ? "property-textarea" : "property-text");
     input.onchange = function() {
@@ -1015,7 +1036,7 @@ ROMPropertyList.prototype.pointerControlHTML = function(object, options) {
     var input = document.createElement('select');
     controlDiv.appendChild(input);
     input.id = options.controlID;
-    input.disabled = object.disabled;
+    input.disabled = object.disabled || options.disabled;
     input.classList.add("property-control");
     input.onchange = function() {
         var numberValue = Number(this.value);
@@ -1032,7 +1053,7 @@ ROMPropertyList.prototype.pointerControlHTML = function(object, options) {
     var targetObject = this.rom.parsePath(object.pointerTo);
     var stringTable = this.rom.stringTable[targetObject.stringTable];
     var value = null;
-    for (var i = 0; i < targetObject.array.length; i++) {
+    for (var i = 0; i < targetObject.arrayLength; i++) {
 
         var arrayItem = targetObject.item(i);
         var objectPath = targetObject.path + "[" + i + "]";
@@ -1077,7 +1098,7 @@ ROMPropertyList.prototype.arrayLengthControlHTML = function(object, options) {
     input.id = options.controlID;
     input.type = "number";
     input.classList.add("property-control");
-    input.value = object.array.length.toString();
+    input.value = object.arrayLength.toString();
     input.min = object.min;
     input.max = object.max;
     input.onchange = function() {
@@ -1122,7 +1143,7 @@ ROMPropertyList.prototype.arrayHTML = function(object, options) {
     }
     
     // create divs for each element in the array
-    for (var i = 0; i < object.array.length; i++) {
+    for (var i = 0; i < object.arrayLength; i++) {
         var element = object.item(i);
         
         if (element instanceof ROMData) {
@@ -1140,6 +1161,60 @@ ROMPropertyList.prototype.arrayHTML = function(object, options) {
     }
 
     return divs;
+}
+
+ROMPropertyList.prototype.specialControlHTML = function(object, options) {
+    // create a div for the control
+    var controlDiv = document.createElement('div');
+    controlDiv.classList.add("property-control-div");
+
+    // property with boolean flags
+    var currentSpecial = object.getSpecialValue();
+    var keys = Object.keys(object.special);
+    if (!keys.length) return null;
+    
+    for (var s = 0; s < keys.length; s++) {
+
+        var key = keys[s];
+        var special = Number(key);
+        if (!isNumber(special)) continue;
+        var name = object.special[key];
+        
+        // create the check box
+        var check = document.createElement('input');
+        check.classList.add("property-check");
+        check.value = special;
+        check.type = "checkbox";
+        check.checked = (currentSpecial === special);
+        check.id = options.controlID + "-" + s;
+        check.onchange = function() {
+            var valueArray = new Uint8Array(object.data.length);
+            
+            if (this.checked) {
+                // set value
+                for (var i = 0; i < 4; i++) valueArray[i] = this.value >> (i * 8);
+            }
+            object.setData(valueArray);
+            document.getElementById(this.id).focus();
+        }
+
+        // create a label for the check box
+        var label = document.createElement('label');
+        label.classList.add("property-check-label");
+        label.htmlFor = check.id;
+        label.innerHTML = name;
+
+        // create a div to hold the label and control
+        var flagDiv = document.createElement('div');
+        flagDiv.classList.add("property-check-div");
+        flagDiv.appendChild(check);
+        flagDiv.appendChild(label);
+        controlDiv.appendChild(flagDiv);
+//        controlDiv.appendChild(check);
+//        controlDiv.appendChild(label);
+    }
+    
+    return controlDiv;
 }
 
 ROMPropertyList.prototype.updateLabels = function() {
