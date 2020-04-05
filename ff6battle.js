@@ -431,25 +431,9 @@ FF6Battle.prototype.characterInSlot = function(slot) {
         "enemy": c.character.flags.value & 1,
         "hidden": c.character.flags.value & 2,
         "graphics": c.graphics.value,
-        "script": c.script.value,
+        "script": c.aiScript.value,
         "rect": new Rect(x, x + 16, y, y + 24)
     };
-
-//    var c = characterAI["character" + slot].value;
-//    if (!c || c === 0xFF) return null; // slot is empty
-//
-//    var x = Math.min(characterAI["x" + slot].value, this.battleRect.r - 16);
-//    var y = Math.min(characterAI["y" + slot].value, this.battleRect.b - 24);
-//
-//    return {
-//        "slot": slot,
-//        "x": characterAI["x" + slot],
-//        "y": characterAI["y" + slot],
-//        "character": c,
-//        "graphics": characterAI["graphics" + slot].value,
-//        "script": characterAI["script" + slot].value,
-//        "rect": new Rect(x, x + 16, y, y + 24)
-//    };
 }
 
 FF6Battle.prototype.monstersSortedByPriority = function() {
