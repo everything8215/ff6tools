@@ -4055,7 +4055,42 @@
             },
             "stringTable": {
                 "length": 45,
-                "default": "Map Overlay %i"
+                "default": "Map Overlay %i",
+                "string": {
+                    "0": "None",
+                    "1": "Town Exterior",
+                    "2": "Caves",
+                    "3": "Town Interior",
+                    "4": "Narshe Exterior",
+                    "5": "Caves w/ Furniture",
+                    "6": "Mountains Exterior 1",
+                    "7": "Train Exterior",
+                    "8": "Zozo Exterior",
+                    "9": "Train Interior",
+                    "10": "Imperial Camp",
+                    "11": "Forest",
+                    "12": "Opera House",
+                    "13": "Destroyed Town",
+                    "14": "Magitek Factory",
+                    "15": "Figaro Castle Exterior",
+                    "16": "Doma Castle Exterior",
+                    "17": "Village Exterior 1",
+                    "18": "Castle Interior",
+                    "19": "Castle Basement",
+                    "20": "Village Exterior 2",
+                    "21": "Floating Island",
+                    "22": "Airship Exterior",
+                    "23": "Airship Interior",
+                    "24": "Imperial Castle Interior",
+                    "25": "Vector Exterior",
+                    "27": "Mountains Interior",
+                    "28": "Imperial Castle Exterior",
+                    "29": "Magitek Research Facility",
+                    "30": "Darill's Tomb",
+                    "31": "Kefka's Tower",
+                    "33": "Mountains Exterior 2",
+                    "34": "Snowfields"
+                }
             }
         },
         "mapPalettes": {
@@ -5215,7 +5250,7 @@
                     "0": "None",
                     "1": "Figaro Castle",
                     "2": "Doma Castle",
-                    "3": "Village Exterior A",
+                    "3": "Village Exterior 1",
                     "4": "Town Exterior",
                     "5": "Castle Interior",
                     "6": "Caves",
@@ -5223,7 +5258,7 @@
                     "8": "Narshe Exterior",
                     "9": "Caves w/ Furniture",
                     "10": "Castle Basement",
-                    "11": "Village Exterior B",
+                    "11": "Village Exterior 2",
                     "12": "Mountains Exterior",
                     "13": "Train Exterior",
                     "14": "Zozo",
@@ -5252,8 +5287,8 @@
                     "37": "Magitek Research Facility w/ Garbage",
                     "38": "Beach",
                     "39": "Cyan's Dream",
-                    "40": "Kefka's Tower A",
-                    "41": "Kefka's Tower B"
+                    "40": "Kefka's Tower 1",
+                    "41": "Kefka's Tower 2"
                 }
             }
         },
