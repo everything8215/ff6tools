@@ -1269,7 +1269,7 @@
                     },
                     "half": {
                         "type": "property",
-                        "name": "Half Add/Sub",
+                        "name": "Half Add/Subtract",
                         "begin": 0,
                         "mask": "0x40",
                         "bool": true

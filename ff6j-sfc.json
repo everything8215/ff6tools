@@ -22,6 +22,9 @@
                 }, {
                     "name": "Color Math",
                     "path": "mapColorMath"
+                }, {
+                    "name": "Palette Animation",
+                    "path": "mapPaletteAnimation"
                 }
             ]
         }, {
@@ -3524,7 +3527,7 @@
                 "assembly": {
                     "half": {
                         "type": "property",
-                        "name": "Half Add/Sub",
+                        "name": "Half Add/Subtract",
                         "begin": 0,
                         "mask": "0x40",
                         "bool": true
@@ -4110,6 +4113,86 @@
                 "default": "Map Palette %i"
             }
         },
+        "mapPaletteAnimation": {
+            "type": "array",
+            "name": "Map Palette Animation",
+            "range": "0xC0975A-0xC097D2",
+            "arrayLength": 10,
+            "arrayMax": 21,
+            "assembly": {
+                "type": "array",
+                "length": 12,
+                "arrayLength": 2,
+                "arrayMin": 2,
+                "arrayMax": 2,
+                "assembly": {
+                    "type": "data",
+                    "length": 6,
+                    "assembly": {
+                        "animationType": {
+                            "type": "property",
+                            "name": "Type",
+                            "begin": 0,
+                            "mask": "0xF0",
+                            "stringTable": {
+                                "string": {
+                                    "0": "None",
+                                    "1": "Cycle",
+                                    "2": "ROM",
+                                    "3": "Pulse",
+                                    "8": "Disabled"
+                                }
+                            }
+                        },
+                        "frameCounter": {
+                            "type": "property",
+                            "name": "Frame Counter",
+                            "begin": 1,
+                            "mask": "0xFF"
+                        },
+                        "colorCounter": {
+                            "type": "property",
+                            "name": "Color Counter",
+                            "begin": 0,
+                            "mask": "0x0F"
+                        },
+                        "firstColor": {
+                            "type": "property",
+                            "name": "First Color",
+                            "begin": 2,
+                            "mask": "0xFF"
+                        },
+                        "numColors": {
+                            "type": "property",
+                            "name": "Number of Colors",
+                            "begin": 3,
+                            "mask": "0xFF"
+                        },
+                        "romOffset": {
+                            "type": "property",
+                            "name": "ROM Color Offset",
+                            "begin": 4,
+                            "mask": "0xFFFF"
+                        }
+                    }
+                }
+            },
+            "stringTable": {
+                "length": 10,
+                "default": "Map Palette Animation %i",
+                "string": {
+                    "0": "River",
+                    "1": "Lava/Cyan's Dream",
+                    "2": "Imperial Camp",
+                    "3": "Beach",
+                    "5": "Doma Castle",
+                    "6": "Waterfall",
+                    "7": "Narshe",
+                    "8": "Kefka's Tower",
+                    "9": "Darill's Tomb"
+                }
+            }
+        },
         "mapParallax": {
             "type": "array",
             "name": "Map Parallax",
@@ -4254,6 +4337,18 @@
                         "mask": "0x01FC",
                         "stringTable": "mapTilesets"
                     },
+                    "tileProperties": {
+                        "type": "property",
+                        "name": "Tile Properties",
+                        "begin": 4,
+                        "stringTable": "mapTileProperties"
+                    },
+                    "overlay": {
+                        "type": "property",
+                        "name": "Sprite Overlay",
+                        "begin": 17,
+                        "stringTable": "mapOverlayProperties"
+                    },
                     "hSize1": {
                         "type": "property",
                         "name": "Layer Width",
@@ -4280,18 +4375,6 @@
                                 "2": "64 Tiles"
                             }
                         }
-                    },
-                    "tileProperties": {
-                        "type": "property",
-                        "name": "Tile Properties",
-                        "begin": 4,
-                        "stringTable": "mapTileProperties"
-                    },
-                    "overlay": {
-                        "type": "property",
-                        "name": "Sprite Overlay",
-                        "begin": 17,
-                        "stringTable": "mapOverlayProperties"
                     },
                     "wavyLayer1": {
                         "type": "property",
@@ -4392,20 +4475,6 @@
                         "mask": "0x3FF0",
                         "stringTable": "mapLayouts"
                     },
-                    "hSize3": {
-                        "type": "property",
-                        "name": "Layer Width",
-                        "begin": 24,
-                        "mask": "0xC0",
-                        "stringTable": "mapProperties.hSize1"
-                    },
-                    "vSize3": {
-                        "type": "property",
-                        "name": "Layer Height",
-                        "begin": 24,
-                        "mask": "0x30",
-                        "stringTable": "mapProperties.vSize1"
-                    },
                     "gfxLayer3": {
                         "type": "property",
                         "name": "Graphic Set",
@@ -4419,6 +4488,20 @@
                         "begin": 27,
                         "mask": "0xE0",
                         "stringTable": "mapAnimationPropertiesLayer3"
+                    },
+                    "hSize3": {
+                        "type": "property",
+                        "name": "Layer Width",
+                        "begin": 24,
+                        "mask": "0xC0",
+                        "stringTable": "mapProperties.hSize1"
+                    },
+                    "vSize3": {
+                        "type": "property",
+                        "name": "Layer Height",
+                        "begin": 24,
+                        "mask": "0x30",
+                        "stringTable": "mapProperties.vSize1"
                     },
                     "hOffset3": {
                         "type": "property",
@@ -4456,7 +4539,15 @@
                     "paletteAnimation": {
                         "type": "property",
                         "name": "Animation",
-                        "begin": 26
+                        "begin": 26,
+                        "link": "mapPaletteAnimation[%i-1]",
+                        "stringTable": {
+                            "length": 11,
+                            "default": "<stringTable.mapPaletteAnimation[%i-1]>",
+                            "string": {
+                                "0": "None"
+                            }
+                        }
                     },
                     "colorMath": {
                         "type": "property",
@@ -4488,6 +4579,13 @@
                         "bool": true
                     },
                     "category-scrolling": "Scrolling",
+                    "parallax": {
+                        "type": "property",
+                        "name": "Parallax",
+                        "begin": 22,
+                        "stringTable": "mapParallax",
+                        "link": "mapParallax[%i]"
+                    },
                     "width": {
                         "type": "property",
                         "name": "Map Width",
@@ -4505,13 +4603,6 @@
                         "special": {
                             "0": "Wrap Around"
                         }
-                    },
-                    "parallax": {
-                        "type": "property",
-                        "name": "Parallax",
-                        "begin": 22,
-                        "stringTable": "mapParallax",
-                        "link": "mapParallax[%i]"
                     },
                     "category-battle": "Battle",
                     "enableBattles": {
