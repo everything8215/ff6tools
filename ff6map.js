@@ -50,7 +50,6 @@ function FF6Map(rom) {
                   new FF6MapLayer(rom, FF6MapLayer.Type.layer3),
                   new FF6MapLayer(rom, FF6MapLayer.Type.overlay)];
     this.selectedLayer = this.layer[0];
-    this.worldLayer = new FF6MapLayer(rom, FF6MapLayer.Type.world);
     this.showCursor = true;
     this.showLayer1 = true;
     this.showLayer2 = true;
@@ -178,24 +177,36 @@ FF6Map.prototype.fixGBATriggers = function(triggers, triggersGBA) {
 FF6Map.prototype.changeZoom = function() {
     
     // save the old scroll location
-    var x = this.div.scrollLeft;
-    var y = this.div.scrollTop;
+    var l = this.div.scrollLeft;
+    var t = this.div.scrollTop;
     var w = this.div.clientWidth;
     var h = this.div.clientHeight;
-    x = (x + w / 2) / this.zoom;
-    y = (y + h / 2) / this.zoom;
+    var oldRect = new Rect(l, l + w, t, t + h);
+    var x = Math.round(oldRect.centerX / this.zoom);
+    var y = Math.round(oldRect.centerY / this.zoom);
     
+    // update zoom
     this.zoom = Math.pow(2, Number(document.getElementById("zoom").value));
-    
     var zoomValue = document.getElementById("zoom-value");
     zoomValue.innerHTML = (this.zoom * 100).toString() + "%";
     
-    this.div.scrollLeft = x * this.zoom - (w >> 1);
-    this.div.scrollTop = y * this.zoom - (h >> 1);
+    // update the scroll div size
+    var parentWidth = this.ppu.width * this.zoom;
+    var parentHeight = this.ppu.height * this.zoom;
+    this.scrollDiv.style.width = parentWidth.toString() + "px";
+    this.scrollDiv.style.height = parentHeight.toString() + "px";
 
-    this.scrollDiv.style.width = (this.ppu.width * this.zoom).toString() + "px";
-    this.scrollDiv.style.height = (this.ppu.height * this.zoom).toString() + "px";
+    // calculate the new scroll location
+    x *= this.zoom; y *= this.zoom;
+    var newRect = new Rect(x - w / 2, x + w / 2, y - h / 2, y + h / 2);
+    if (newRect.r > parentWidth) newRect = newRect.offset(parentWidth - newRect.r, 0);
+    if (newRect.b > parentHeight) newRect = newRect.offset(0, parentHeight - newRect.b);
+    if (newRect.l < 0) newRect = newRect.offset(-newRect.l, 0);
+    if (newRect.t < 0) newRect = newRect.offset(0, -newRect.t);
 
+    // set the new scroll location and redraw
+    this.div.scrollLeft = newRect.l;
+    this.div.scrollTop = newRect.t;
     this.scroll();
 }
 
@@ -487,18 +498,6 @@ FF6Map.prototype.selectTileProperties = function(t) {
     // select tile properties
     var tileProperties = this.tilePropertiesAtTile(t);
     if (tileProperties) propertyList.select(tileProperties);
-//    if (this.selectedLayer.type === FF6MapLayer.Type.layer1) {
-//        // layer 1 tile properties determined by graphics index
-//        tileProperties = this.rom.mapTileProperties.item(this.mapProperties.tileProperties.value);
-//    } else if (this.selectedLayer.type === FF6MapLayer.Type.world) {
-//        // world map tile properties
-//        if (this.m === 2) return;
-//        tileProperties = this.rom.worldTileProperties.item(this.m);
-//    } else {
-//        // return if layer 2
-//        return;
-//    }
-//    propertyList.select(tileProperties.item(t));
 }
 
 FF6Map.prototype.selectLayer = function(l) {
@@ -509,7 +508,7 @@ FF6Map.prototype.selectLayer = function(l) {
     if (this.m > 2) {
         this.selectedLayer = this.layer[this.l]
     } else {
-        this.selectedLayer = this.worldLayer;
+        this.selectedLayer = this.layer[0]
     }
     
     this.showCursor = (this.l === 3);
@@ -554,9 +553,19 @@ FF6Map.TileMasks = {
     "misc": "Misc."
 }
 
+FF6Map.WorldTileMasks = {
+    "none": "None",
+    "passability": "Passability",
+    "chocoboPassability": "Chocobo Passability",
+    "airshipPassability": "Airship Can Land",
+    "battle": "Battles Enabled",
+    "forestVeldt": "Forest/Veldt",
+    "misc": "Kefka's Tower/Phoenix Cave"
+}
+
 FF6Map.prototype.drawMask = function() {
     
-    if (this.isWorld) return; // world map not implemented yet
+//    if (this.isWorld) return; // world map not implemented yet
     if (this.tileMask === FF6Map.TileMasks.none) return;
     if (this.tileMask === FF6Map.TileMasks.overlay) return;
 
@@ -575,68 +584,115 @@ FF6Map.prototype.drawMask = function() {
         for (var x = xStart; x <= xEnd; x++) {
             
             var tile = this.layer[0].layout.data[x % this.layer[0].w + (y % this.layer[0].h) * this.layer[0].w];
-            var tp = this.tilePropertiesAtTile(tile);
-            if (!tp) continue;
-            
-            if (this.tileMask === FF6Map.TileMasks.zUpper) {
-                if (tp.getSpecialValue() === 0xFFF7 || tp.getSpecialValue() === 0x0007) {
-                    ctx.fillStyle = 'rgba(0, 0, 255, 0.5)'; // impassable
-                } else if (tp.zLevel.value & 1) {
-                    continue;
-                } else if (tp.zLevel.value === 4) {
-                    ctx.fillStyle = 'rgba(0, 255, 255, 0.5)'; // bridge
-                } else {
-                    ctx.fillStyle = 'rgba(0, 0, 255, 0.5)';
-                }
-            } else if (this.tileMask === FF6Map.TileMasks.zLower) {
-                if (tp.getSpecialValue() === 0xFFF7 || tp.getSpecialValue() === 0x0007) {
-                    ctx.fillStyle = 'rgba(0, 0, 255, 0.5)'; // impassable
-                } else if (tp.zLevel.value & 2) {
-                    continue;
-                } else if (tp.zLevel.value === 4) {
-                    ctx.fillStyle = 'rgba(0, 255, 255, 0.5)'; // bridge
-                } else {
-                    ctx.fillStyle = 'rgba(0, 0, 255, 0.5)';
-                }
-            } else if (this.tileMask === FF6Map.TileMasks.npcPassability) {
-                if (tp.getSpecialValue() === 0xFFF7 || tp.getSpecialValue() === 0x0007) {
-                    ctx.fillStyle = 'rgba(0, 0, 255, 0.5)'; // impassable
-                } else if (tp.flags.value & 0x1000) {
-                    continue;
-                } else {
-                    ctx.fillStyle = 'rgba(0, 0, 255, 0.5)';
-                }
-            } else if (this.tileMask === FF6Map.TileMasks.spritePriority) {
-                if (tp.getSpecialValue() === 0xFFF7 || tp.getSpecialValue() === 0x0007) {
-                    continue;
-                } else if (tp.flags.value & 0x0001) {
-                    ctx.fillStyle = 'rgba(0, 255, 0, 0.5)'; // top sprite priority
-                } else if (tp.flags.value & 0x0002) {
-                    ctx.fillStyle = 'rgba(255, 0, 0, 0.5)'; // bottom sprite priority
-                } else {
-                    continue;
-                }
-            } else if (this.tileMask === FF6Map.TileMasks.misc) {
-                if (tp.getSpecialValue() === 0xFFF7 || tp.getSpecialValue() === 0x0007) {
-                    continue;
-                } else if (tp.flags.value & 0x0004) {
-                    ctx.fillStyle = 'rgba(255, 0, 0, 0.5)'; // door
-                } else if (tp.flags.value & 0x0018) {
-                    ctx.fillStyle = 'rgba(0, 255, 0, 0.5)'; // stairs
-                } else if (tp.flags.value & 0x0800) {
-                    ctx.fillStyle = 'rgba(255, 255, 0, 0.5)'; // ladder
-                } else {
-                    continue;
-                }
-            }
+            var color = this.maskColorAtTile(tile);
+            if (!color) continue;
+            ctx.fillStyle = color;
 
-            
             var left = (((x - xStart) << 4) - xOffset) * this.zoom;
             var top = (((y - yStart) << 4) - yOffset) * this.zoom;
             var size = 16 * this.zoom;
             
             ctx.fillRect(left, top, size, size);
         }
+    }
+}
+
+FF6Map.prototype.maskColorAtTile = function(t) {
+    var tp = this.tilePropertiesAtTile(t);
+    if (!tp) return null;
+
+    if (this.tileMask === FF6Map.TileMasks.zUpper) {
+        if (tp.getSpecialValue() === 0xFFF7 || tp.getSpecialValue() === 0x0007) {
+            return 'rgba(0, 0, 255, 0.5)'; // impassable
+        } else if (tp.zLevel.value & 1) {
+            return null;
+        } else if (tp.zLevel.value === 4) {
+            return 'rgba(0, 255, 255, 0.5)'; // bridge
+        } else {
+            return 'rgba(0, 0, 255, 0.5)';
+        }
+    } else if (this.tileMask === FF6Map.TileMasks.zLower) {
+        if (tp.getSpecialValue() === 0xFFF7 || tp.getSpecialValue() === 0x0007) {
+            return 'rgba(0, 0, 255, 0.5)'; // impassable
+        } else if (tp.zLevel.value & 2) {
+            return null;
+        } else if (tp.zLevel.value === 4) {
+            return 'rgba(0, 255, 255, 0.5)'; // bridge
+        } else {
+            return 'rgba(0, 0, 255, 0.5)';
+        }
+    } else if (this.tileMask === FF6Map.TileMasks.npcPassability) {
+        if (tp.getSpecialValue() === 0xFFF7 || tp.getSpecialValue() === 0x0007) {
+            return 'rgba(0, 0, 255, 0.5)'; // impassable
+        } else if (tp.flags.value & 0x1000) {
+            return null;
+        } else {
+            return 'rgba(0, 0, 255, 0.5)';
+        }
+    } else if (this.tileMask === FF6Map.TileMasks.spritePriority) {
+        if (tp.getSpecialValue() === 0xFFF7 || tp.getSpecialValue() === 0x0007) {
+            return null;
+        } else if (tp.flags.value & 0x0001) {
+            return 'rgba(0, 255, 0, 0.5)'; // top sprite priority
+        } else if (tp.flags.value & 0x0002) {
+            return 'rgba(255, 0, 0, 0.5)'; // bottom sprite priority
+        } else {
+            return null;
+        }
+    } else if (this.tileMask === FF6Map.TileMasks.misc) {
+        if (tp.getSpecialValue() === 0xFFF7 || tp.getSpecialValue() === 0x0007) {
+            return null;
+        } else if (tp.flags.value & 0x0004) {
+            return 'rgba(255, 0, 0, 0.5)'; // door
+        } else if (tp.flags.value & 0x0018) {
+            return 'rgba(0, 255, 0, 0.5)'; // stairs
+        } else if (tp.flags.value & 0x0800) {
+            return 'rgba(255, 255, 0, 0.5)'; // ladder
+        } else {
+            return null;
+        }
+    } else if (this.tileMask === FF6Map.WorldTileMasks.passability) {
+        if (tp.flags.value & 0x10) {
+            return 'rgba(0, 0, 255, 0.5)';
+        } else {
+            return null;
+        }
+    } else if (this.tileMask === FF6Map.WorldTileMasks.chocoboPassability) {
+        if (tp.flags.value & 0x01) {
+            return 'rgba(0, 0, 255, 0.5)';
+        } else {
+            return null;
+        }
+    } else if (this.tileMask === FF6Map.WorldTileMasks.airshipPassability) {
+        if (tp.flags.value & 0x02) {
+            return 'rgba(0, 0, 255, 0.5)';
+        } else {
+            return null;
+        }
+    } else if (this.tileMask === FF6Map.WorldTileMasks.forestVeldt) {
+        if (tp.flags.value & 0x20) {
+            return 'rgba(0, 255, 0, 0.5)'; // forest
+        } else if (tp.flags.value & 0x2000) {
+            return 'rgba(255, 255, 0, 0.5)'; // veldt
+        } else {
+            return null;
+        }
+    } else if (this.tileMask === FF6Map.WorldTileMasks.battle) {
+        if (tp.flags.value & 0x40) {
+            return 'rgba(255, 0, 0, 0.5)';
+        } else {
+            return null;
+        }
+    } else if (this.tileMask === FF6Map.WorldTileMasks.misc) {
+        if (tp.flags.value & 0x4000) {
+            return 'rgba(255, 0, 0, 0.5)'; // phoenix cave
+        } else if (tp.flags.value & 0x8000) {
+            return 'rgba(0, 255, 0, 0.5)'; // kefka's tower
+        } else {
+            return null;
+        }
+    } else {
+        return null;
     }
 }
 
@@ -800,7 +856,7 @@ FF6Map.prototype.drawCursor = function() {
 }
 
 FF6Map.prototype.selectObject = function(object) {
-    this.show();
+//    this.show();
     this.tileset.show();
     this.loadMap(object.i);
 }
@@ -816,19 +872,36 @@ FF6Map.prototype.show = function() {
     this.addTwoState("showLayer3", function() { map.changeLayer("showLayer3"); }, "Layer 3", this.showLayer3);
     this.addTwoState("showTriggers", function() { map.changeLayer("showTriggers"); }, "Triggers", this.showTriggers);
     
-    var maskKeys = Object.keys(FF6Map.TileMasks);
+    var maskArray = this.isWorld ? FF6Map.WorldTileMasks : FF6Map.TileMasks
+    var maskKeys = Object.keys(maskArray);
     var maskNames = [];
-    for (var i = 0; i < maskKeys.length; i++) maskNames[i] = FF6Map.TileMasks[maskKeys[i]];
+    for (var i = 0; i < maskKeys.length; i++) maskNames[i] = maskArray[maskKeys[i]];
     var onChangeMask = function(mask) {
-        map.tileMask = FF6Map.TileMasks[maskKeys[mask]];
+        map.tileMask = maskArray[maskKeys[mask]];
         map.drawMap();
         map.tileset.selectLayer(map.l);
     }
-    var maskSelected = function(mask) { return map.tileMask === FF6Map.TileMasks[maskKeys[mask]]; }
+    var maskSelected = function(mask) { return map.tileMask === maskArray[maskKeys[mask]]; }
     this.addList("showMask", "Mask", maskNames, onChangeMask, maskSelected);
 
     this.addTwoState("showScreen", function() { map.changeLayer("showScreen"); }, "Screen", this.showScreen);
     this.addZoom(this.zoom, function() { map.changeZoom(); });
+}
+
+FF6Map.prototype.updateMaskMenu = function() {
+    
+    var map = this;
+    var maskArray = this.isWorld ? FF6Map.WorldTileMasks : FF6Map.TileMasks
+    var maskKeys = Object.keys(maskArray);
+    var maskNames = [];
+    for (var i = 0; i < maskKeys.length; i++) maskNames[i] = maskArray[maskKeys[i]];
+    var onChangeMask = function(mask) {
+        map.tileMask = maskArray[maskKeys[mask]];
+        map.drawMap();
+        map.tileset.selectLayer(map.l);
+    }
+    var maskSelected = function(mask) { return map.tileMask === maskArray[maskKeys[mask]]; }
+    this.addList("showMask", "Mask", maskNames, onChangeMask, maskSelected);
 }
 
 FF6Map.prototype.hide = function() {
@@ -844,6 +917,7 @@ FF6Map.prototype.loadMap = function(m) {
     // set the map index
     m = Number(m);
     if (isNumber(m) && this.m !== m) {
+        this.tileMask = FF6Map.TileMasks.none;
         this.m = m;
         this.observer.stopObservingAll();
         if (this.m < 3) {
@@ -862,6 +936,7 @@ FF6Map.prototype.loadMap = function(m) {
     this.isWorld = false;
     var map = this.mapProperties;
     if (!map) return;
+    this.show();
     
     // load graphics
     var gfx = new Uint8Array(0x10000);
@@ -905,6 +980,7 @@ FF6Map.prototype.loadMap = function(m) {
     var width1 = mapSizes[map.hSize1.value];
     layout = this.rom.mapLayouts.item(map.layout1.value)
     tileset = this.rom.mapTilesets.item(map.tileset1.value).data;
+    this.layer[0].type = FF6MapLayer.Type.layer1;
     this.layer[0].loadLayout({layout: layout, tileset: tileset, w: width1, h: height1});
 
     var height2 = mapSizes[map.vSize2.value];
@@ -1024,6 +1100,7 @@ FF6Map.prototype.loadWorldMap = function(m) {
     this.mapProperties = null;
     this.isWorld = true;
     propertyList.select(null);
+    this.show();
 
     // load graphics and layout
     var layout = this.rom["worldLayout" + (m + 1)];
@@ -1039,7 +1116,8 @@ FF6Map.prototype.loadWorldMap = function(m) {
         layout.data = layout.data.subarray(0, (size * size));
     }
     
-    this.worldLayer.loadLayout({layout: layout, tileset: tileset, w: size, h: size, paletteAssignment: paletteAssignment});
+    this.layer[0].type = FF6MapLayer.Type.world;
+    this.layer[0].loadLayout({layout: layout, tileset: tileset, w: size, h: size, paletteAssignment: paletteAssignment});
     
     // set up the ppu
     this.ppu = new GFX.PPU();
@@ -1056,7 +1134,7 @@ FF6Map.prototype.loadWorldMap = function(m) {
     this.ppu.layers[0].z[0] = GFX.Z.snes1L;
     this.ppu.layers[0].z[1] = GFX.Z.snes1H;
     this.ppu.layers[0].gfx = gfx;
-    this.ppu.layers[0].tiles = this.worldLayer.tiles;
+    this.ppu.layers[0].tiles = this.layer[0].tiles;
     this.ppu.layers[0].main = this.showLayer1; // layer 1 always in main screen
 
     this.scrollDiv.style.width = (this.ppu.width * this.zoom).toString() + "px";
@@ -1153,7 +1231,7 @@ FF6Map.prototype.drawMap = function() {
     ctx.drawImage(this.mapCanvas, scaledRect.l, scaledRect.t, scaledRect.w, scaledRect.h, 0, 0, this.mapRect.w, this.mapRect.h);
     
     this.drawMask();
-    if (!this.isWorld && this.tileMask === FF6Map.TileMasks.overlay) {
+    if (this.tileMask === FF6Map.TileMasks.overlay) {
         ctx.drawImage(this.overlayCanvas, scaledRect.l, scaledRect.t, scaledRect.w, scaledRect.h, 0, 0, this.mapRect.w, this.mapRect.h);
     }
     this.drawTriggers();
@@ -1855,7 +1933,6 @@ function FF6MapTileset(rom, map) {
                   new FF6MapLayer(rom, FF6MapLayer.Type.layer2),
                   new FF6MapLayer(rom, FF6MapLayer.Type.layer3),
                   new FF6MapLayer(rom, FF6MapLayer.Type.overlay)];
-    this.worldLayer = new FF6MapLayer(rom, FF6MapLayer.Type.world);
 
     this.selection = new Uint8Array([0x73, 0, 0, 1, 1, 0]);
     this.clickedCol = null;
@@ -2042,62 +2119,10 @@ FF6MapTileset.prototype.drawMask = function() {
         for (var x = 0; x < 16; x++) {
             
             var tile = x + y * 16;
-            var tp = this.map.tilePropertiesAtTile(tile);
-            if (!tp) continue;
-            
-            if (this.map.tileMask === FF6Map.TileMasks.zUpper) {
-                if (tp.getSpecialValue() === 0xFFF7 || tp.getSpecialValue() === 0x0007) {
-                    ctx.fillStyle = 'rgba(0, 0, 255, 0.5)'; // impassable
-                } else if (tp.zLevel.value & 1) {
-                    continue;
-                } else if (tp.zLevel.value === 4) {
-                    ctx.fillStyle = 'rgba(0, 255, 255, 0.5)'; // bridge
-                } else {
-                    ctx.fillStyle = 'rgba(0, 0, 255, 0.5)';
-                }
-            } else if (this.map.tileMask === FF6Map.TileMasks.zLower) {
-                if (tp.getSpecialValue() === 0xFFF7 || tp.getSpecialValue() === 0x0007) {
-                    ctx.fillStyle = 'rgba(0, 0, 255, 0.5)'; // impassable
-                } else if (tp.zLevel.value & 2) {
-                    continue;
-                } else if (tp.zLevel.value === 4) {
-                    ctx.fillStyle = 'rgba(0, 255, 255, 0.5)'; // bridge
-                } else {
-                    ctx.fillStyle = 'rgba(0, 0, 255, 0.5)';
-                }
-            } else if (this.map.tileMask === FF6Map.TileMasks.npcPassability) {
-                if (tp.getSpecialValue() === 0xFFF7 || tp.getSpecialValue() === 0x0007) {
-                    ctx.fillStyle = 'rgba(0, 0, 255, 0.5)'; // impassable
-                } else if (tp.flags.value & 0x1000) {
-                    continue;
-                } else {
-                    ctx.fillStyle = 'rgba(0, 0, 255, 0.5)';
-                }
-            } else if (this.map.tileMask === FF6Map.TileMasks.spritePriority) {
-                if (tp.getSpecialValue() === 0xFFF7 || tp.getSpecialValue() === 0x0007) {
-                    continue;
-                } else if (tp.flags.value & 0x0001) {
-                    ctx.fillStyle = 'rgba(0, 255, 0, 0.5)'; // top sprite priority
-                } else if (tp.flags.value & 0x0002) {
-                    ctx.fillStyle = 'rgba(255, 0, 0, 0.5)'; // bottom sprite priority
-                } else {
-                    continue;
-                }
-            } else if (this.map.tileMask === FF6Map.TileMasks.misc) {
-                if (tp.getSpecialValue() === 0xFFF7 || tp.getSpecialValue() === 0x0007) {
-                    continue;
-                } else if (tp.flags.value & 0x0004) {
-                    ctx.fillStyle = 'rgba(255, 0, 0, 0.5)'; // door
-                } else if (tp.flags.value & 0x0018) {
-                    ctx.fillStyle = 'rgba(0, 255, 0, 0.5)'; // stairs
-                } else if (tp.flags.value & 0x0800) {
-                    ctx.fillStyle = 'rgba(255, 255, 0, 0.5)'; // ladder
-                } else {
-                    continue;
-                }
-            }
+            var color = this.map.maskColorAtTile(tile);
+            if (!color) continue;
+            ctx.fillStyle = color;
 
-            
             var left = x << 4;
             var top = y << 4;
             var size = 16;
@@ -2123,6 +2148,7 @@ FF6MapTileset.prototype.loadMap = function(m) {
     this.ppu.back = true;
 
     if (this.map.m > 2) {
+        this.layer[0].type = FF6MapLayer.Type.layer1;
         this.layer[0].loadLayout({layout: layout, tileset: this.map.layer[0].tileset, w: 16, h: 16});
         this.layer[1].loadLayout({layout: layout, tileset: this.map.layer[1].tileset, w: 16, h: 16});
         this.layer[2].loadLayout({layout: layout, tileset: this.map.layer[2].tileset, w: 16, h: 16, priority: true});
@@ -2170,7 +2196,8 @@ FF6MapTileset.prototype.loadMap = function(m) {
         this.overlayPPU.layers[0].main = true;
 
     } else {
-        this.worldLayer.loadLayout({layout: layout, tileset: this.map.worldLayer.tileset, w: 16, h: 16, paletteAssignment: this.map.worldLayer.paletteAssignment})
+        this.layer[0].type = FF6MapLayer.Type.world;
+        this.layer[0].loadLayout({layout: layout, tileset: this.map.layer[0].tileset, w: 16, h: 16, paletteAssignment: this.map.layer[0].paletteAssignment});
         
         // layer 1
         this.ppu.layers[0].format = this.map.ppu.layers[0].format;
@@ -2179,7 +2206,7 @@ FF6MapTileset.prototype.loadMap = function(m) {
         this.ppu.layers[0].z[0] = GFX.Z.snes1L;
         this.ppu.layers[0].z[1] = GFX.Z.snes1H;
         this.ppu.layers[0].gfx = this.map.ppu.layers[0].gfx;
-        this.ppu.layers[0].tiles = this.worldLayer.tiles;
+        this.ppu.layers[0].tiles = this.layer[0].tiles;
     }
     
     this.selectLayer(this.map.l);

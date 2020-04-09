@@ -171,24 +171,36 @@ FF4MapGBA.prototype.endAction = function(callback) {
 FF4MapGBA.prototype.changeZoom = function() {
     
     // save the old scroll location
-    var x = this.div.scrollLeft;
-    var y = this.div.scrollTop;
+    var l = this.div.scrollLeft;
+    var t = this.div.scrollTop;
     var w = this.div.clientWidth;
     var h = this.div.clientHeight;
-    x = (x + w / 2) / this.zoom;
-    y = (y + h / 2) / this.zoom;
+    var oldRect = new Rect(l, l + w, t, t + h);
+    var x = Math.round(oldRect.centerX / this.zoom);
+    var y = Math.round(oldRect.centerY / this.zoom);
     
+    // update zoom
     this.zoom = Math.pow(2, Number(document.getElementById("zoom").value));
-    
     var zoomValue = document.getElementById("zoom-value");
     zoomValue.innerHTML = (this.zoom * 100).toString() + "%";
     
-    this.div.scrollLeft = x * this.zoom - (w >> 1);
-    this.div.scrollTop = y * this.zoom - (h >> 1);
-        
-    this.scrollDiv.style.width = (this.ppu.width * this.zoom).toString() + "px";
-    this.scrollDiv.style.height = (this.ppu.height * this.zoom).toString() + "px";
+    // update the scroll div size
+    var parentWidth = this.ppu.width * this.zoom;
+    var parentHeight = this.ppu.height * this.zoom;
+    this.scrollDiv.style.width = parentWidth.toString() + "px";
+    this.scrollDiv.style.height = parentHeight.toString() + "px";
 
+    // calculate the new scroll location
+    x *= this.zoom; y *= this.zoom;
+    var newRect = new Rect(x - w / 2, x + w / 2, y - h / 2, y + h / 2);
+    if (newRect.r > parentWidth) newRect = newRect.offset(parentWidth - newRect.r, 0);
+    if (newRect.b > parentHeight) newRect = newRect.offset(0, parentHeight - newRect.b);
+    if (newRect.l < 0) newRect = newRect.offset(-newRect.l, 0);
+    if (newRect.t < 0) newRect = newRect.offset(0, -newRect.t);
+
+    // set the new scroll location and redraw
+    this.div.scrollLeft = newRect.l;
+    this.div.scrollTop = newRect.t;
     this.scroll();
 }
 
@@ -1438,10 +1450,12 @@ FF4MapGBA.prototype.drawTriggers = function() {
                 for (var y = 0; y < trigger.height.value; y++) {
                     for (var x = 0; x < trigger.width.value; x++) {
                         var tp = this.tilePropertiesAtTile(trigger.x.value + x, trigger.y.value + y);
-                        if (tp.tileType.value !== 0xFF && tp.tileType.value !== 2 && tp.tileType.value !== 3) {
-                            c = "rgba(255, 0, 0, 0.5)";
+                        if (tp.tileType.value === 1) {
+                            c = "rgba(255, 0, 0, 0.5)"; // forest
+                        } else if (tp.tileType.value > 3 && tp.tileType.value !== 0xFF) {
+                            c = "rgba(255, 0, 0, 0.5)"; // trigger tile
                         } else {
-                            c = "rgba(0, 0, 0, 0)"; // not a valid trigger tile
+                            c = "rgba(0, 0, 0, 0)"; // not a trigger tile
                         }
                         drawTriggerRect(trigger.x.value + x, trigger.y.value + y, c);
                     }

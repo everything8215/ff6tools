@@ -973,7 +973,7 @@
                             "stringTable": "mapExit",
                             "link": "mapExit[%i]"
                         },
-                        "special": {
+                        "specialTile": {
                             "type": "property",
                             "name": "Special",
                             "mask": "0x1E",
@@ -2489,7 +2489,7 @@
                             }
                         }
                     },
-                    "special": {
+                    "specialTile": {
                         "type": "property",
                         "name": "Special",
                         "mask": "0xC0",
