@@ -559,8 +559,7 @@ FF6Map.WorldTileMasks = {
     "chocoboPassability": "Chocobo Passability",
     "airshipPassability": "Airship Can Land",
     "battle": "Battles Enabled",
-    "forestVeldt": "Forest/Veldt",
-    "misc": "Kefka's Tower/Phoenix Cave"
+    "misc": "Forest/Veldt/Kefka's Tower/Phoenix Cave"
 }
 
 FF6Map.prototype.drawMask = function() {
@@ -669,14 +668,6 @@ FF6Map.prototype.maskColorAtTile = function(t) {
         } else {
             return null;
         }
-    } else if (this.tileMask === FF6Map.WorldTileMasks.forestVeldt) {
-        if (tp.flags.value & 0x20) {
-            return 'rgba(0, 255, 0, 0.5)'; // forest
-        } else if (tp.flags.value & 0x2000) {
-            return 'rgba(255, 255, 0, 0.5)'; // veldt
-        } else {
-            return null;
-        }
     } else if (this.tileMask === FF6Map.WorldTileMasks.battle) {
         if (tp.flags.value & 0x40) {
             return 'rgba(255, 0, 0, 0.5)';
@@ -684,10 +675,14 @@ FF6Map.prototype.maskColorAtTile = function(t) {
             return null;
         }
     } else if (this.tileMask === FF6Map.WorldTileMasks.misc) {
-        if (tp.flags.value & 0x4000) {
-            return 'rgba(255, 0, 0, 0.5)'; // phoenix cave
+        if (tp.flags.value & 0x20) {
+            return 'rgba(0, 255, 0, 0.5)'; // forest (green)
+        } else if (tp.flags.value & 0x2000) {
+            return 'rgba(255, 255, 0, 0.5)'; // veldt (yellow)
+        } else if (tp.flags.value & 0x4000) {
+            return 'rgba(255, 0, 0, 0.5)'; // phoenix cave (red)
         } else if (tp.flags.value & 0x8000) {
-            return 'rgba(0, 255, 0, 0.5)'; // kefka's tower
+            return 'rgba(255, 0, 255, 0.5)'; // kefka's tower (magenta)
         } else {
             return null;
         }
@@ -856,17 +851,19 @@ FF6Map.prototype.drawCursor = function() {
 }
 
 FF6Map.prototype.selectObject = function(object) {
+    this.resetControls();
+    this.showControls();
 //    this.show();
     this.tileset.show();
     this.loadMap(object.i);
 }
 
-FF6Map.prototype.show = function() {
+FF6Map.prototype.resetControls = function() {
+    
+    ROMEditor.prototype.resetControls.call(this);
     
     var map = this;
 
-    this.resetControls();
-    this.showControls();
     this.addTwoState("showLayer1", function() { map.changeLayer("showLayer1"); }, "Layer 1", this.showLayer1);
     this.addTwoState("showLayer2", function() { map.changeLayer("showLayer2"); }, "Layer 2", this.showLayer2);
     this.addTwoState("showLayer3", function() { map.changeLayer("showLayer3"); }, "Layer 3", this.showLayer3);
@@ -876,6 +873,7 @@ FF6Map.prototype.show = function() {
     var maskKeys = Object.keys(maskArray);
     var maskNames = [];
     for (var i = 0; i < maskKeys.length; i++) maskNames[i] = maskArray[maskKeys[i]];
+    if (!maskNames.includes(this.tileMask)) this.tileMask = FF6Map.TileMasks.none;
     var onChangeMask = function(mask) {
         map.tileMask = maskArray[maskKeys[mask]];
         map.drawMap();
@@ -886,22 +884,6 @@ FF6Map.prototype.show = function() {
 
     this.addTwoState("showScreen", function() { map.changeLayer("showScreen"); }, "Screen", this.showScreen);
     this.addZoom(this.zoom, function() { map.changeZoom(); });
-}
-
-FF6Map.prototype.updateMaskMenu = function() {
-    
-    var map = this;
-    var maskArray = this.isWorld ? FF6Map.WorldTileMasks : FF6Map.TileMasks
-    var maskKeys = Object.keys(maskArray);
-    var maskNames = [];
-    for (var i = 0; i < maskKeys.length; i++) maskNames[i] = maskArray[maskKeys[i]];
-    var onChangeMask = function(mask) {
-        map.tileMask = maskArray[maskKeys[mask]];
-        map.drawMap();
-        map.tileset.selectLayer(map.l);
-    }
-    var maskSelected = function(mask) { return map.tileMask === maskArray[maskKeys[mask]]; }
-    this.addList("showMask", "Mask", maskNames, onChangeMask, maskSelected);
 }
 
 FF6Map.prototype.hide = function() {
@@ -917,7 +899,7 @@ FF6Map.prototype.loadMap = function(m) {
     // set the map index
     m = Number(m);
     if (isNumber(m) && this.m !== m) {
-        this.tileMask = FF6Map.TileMasks.none;
+//        this.tileMask = FF6Map.TileMasks.none;
         this.m = m;
         this.observer.stopObservingAll();
         if (this.m < 3) {
@@ -926,6 +908,8 @@ FF6Map.prototype.loadMap = function(m) {
         }
         this.mapProperties = this.rom.mapProperties.item(this.m);
         this.observer.startObserving(this.mapProperties, this.loadMap);
+        var tp = this.mapProperties.tileProperties.value;
+        this.observer.startObserving(this.rom.mapTileProperties.item(tp), this.loadMap);
         
         // set the default battle background
         var battleEditor = propertyList.getEditor("FF6Battle");
@@ -936,7 +920,7 @@ FF6Map.prototype.loadMap = function(m) {
     this.isWorld = false;
     var map = this.mapProperties;
     if (!map) return;
-    this.show();
+    this.resetControls();
     
     // load graphics
     var gfx = new Uint8Array(0x10000);
@@ -1100,7 +1084,7 @@ FF6Map.prototype.loadWorldMap = function(m) {
     this.mapProperties = null;
     this.isWorld = true;
     propertyList.select(null);
-    this.show();
+    this.resetControls();
 
     // load graphics and layout
     var layout = this.rom["worldLayout" + (m + 1)];
@@ -1110,6 +1094,9 @@ FF6Map.prototype.loadWorldMap = function(m) {
     var gfx = graphicsData.graphics.data;
     var paletteAssignment = (this.rom.isSFC) ? graphicsData.paletteAssignment.data : null;
     var size = (m === 2) ? 128 : 256;
+    
+    // start observing tile properties
+    if (this.m !== 2) this.observer.startObserving(this.rom.worldTileProperties.item(this.m), this.drawMap);
     
     // fix serpent trench map layout (ff6 advance)
     if (this.rom.isGBA && m === 2 && layout.data.length !== (size * size)) {

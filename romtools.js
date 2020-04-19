@@ -540,11 +540,16 @@ function ROMReference(rom, definition, parent) {
     ROMObject.call(this, rom, definition, parent);
     this.type = ROMObject.Type.reference;
     
-    // the reference's parent is the source of the value
+    // the parent is the source of the value
+    if (isString(definition.parent)) {
+        this.parent = this.rom.parsePath(definition.parent) || eval(definition.parent);
+    } else {
+        this.parent = definition.parent || parent;
+    }
     
     // the target is the object that the reference will be written to (default is the rom itself)
     if (isString(definition.target)) {
-        this.target = this.rom[definition.target] || eval(definition.target);
+        this.target = this.rom.parsePath(definition.target) || eval(definition.target);
     } else {
         this.target = definition.target || this.rom;
     }
@@ -557,6 +562,7 @@ ROMReference.prototype = Object.create(ROMObject.prototype);
 ROMReference.prototype.constructor = ROMReference;
 
 ROMReference.prototype.update = function() {
+    // calculate the reference value and write it to the target
     var value = 0;
     
     if (this.options.arrayLength && this.parent instanceof ROMArray) {
@@ -605,6 +611,7 @@ ROMReference.prototype.update = function() {
 }
 
 Object.defineProperty(ROMReference.prototype, "value", { get: function() {
+    // get the current value from the target
     var value = 0
     if (this.target instanceof ROMProperty) {
         value = this.target.value;
@@ -616,6 +623,7 @@ Object.defineProperty(ROMReference.prototype, "value", { get: function() {
     return value;
 
 }, set: function(value) {
+    // write a value to the target
     if (this.target instanceof ROMProperty) {
         if (this.target.value === value) return;
         this.target.value = value;
@@ -1860,12 +1868,12 @@ ROM.dataFormat = {
             while (s < 256) {
                 var start = s++;
                 var value = src[start];
-                if (value === 0xFF) continue;
+                if (value === 0) continue;
                 var end = s;
                 while (src[end] === value) end++;
                 dest[d++] = start;
                 dest[d++] = end - 1;
-                dest[d++] = value; d++;
+                dest[d++] = value - 1; d++;
                 s = end;
             }
             d += 4;
@@ -1875,7 +1883,6 @@ ROM.dataFormat = {
             var src = data;
             var s = 0; // source pointer
             var dest = new Uint8Array(256);
-            dest.fill(0xFF);
             var d = 0; // destination pointer
             var start, end, value;
             
@@ -1884,7 +1891,7 @@ ROM.dataFormat = {
                 end = src[s++];
                 if (start === 0 && end === 0) break;
                 value = src[s++]; s++;
-                while (start <= end) dest[start++] = value;
+                while (start <= end) dest[start++] = value + 1;
             }
             return dest;
         }
@@ -3167,7 +3174,7 @@ ROMArray.prototype.disassemble = function(data) {
         begin = 0;
         end = 0;
         var i = 0;
-        var length = this.assembly.range.length || 1;
+        var length = this.align || 1;
         while (end < this.data.length) {
             while (this.data[end] !== terminator && end < this.data.length) end += length;
             end += length;

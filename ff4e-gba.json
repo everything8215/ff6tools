@@ -2368,8 +2368,9 @@
         },
         "mapTriggers": {
             "type": "array",
-            "name": "Map Triggers",
+            "name": "Map Trigger",
             "range": "0x080E0158-0x080E4574",
+            "canRelocate": true,
             "array": {
                 "length": 595
             },
@@ -3576,9 +3577,12 @@
         "worldTileProperties": {
             "type": "array",
             "name": "World Tile Properties",
-            "isFragmented": true,
+            "range": "0x080F5508-0x080F5738",
+            "terminator": 0,
+            "align": 4,
+            "canRelocate": true,
             "array": {
-                "length": 5
+                "length": 10
             },
             "assembly": {
                 "type": "array",
@@ -3590,35 +3594,73 @@
                     "type": "data",
                     "length": 1,
                     "assembly": {
-                        "tileType": {
+                        "tileValue": {
                             "type": "property",
-                            "name": "Tile Type",
-                            "hideIndex": true,
-                            "stringTable": {
-                                "string": {
-                                    "0xFF": "Impassable",
-                                    "0": "Grass/Field",
-                                    "1": "Forest",
-                                    "2": "Desert",
-                                    "3": "Beach",
-                                    "4": "Castle",
-                                    "5": "Town",
-                                    "6": "Cave Entrance",
-                                    "7": "Mountain Path",
-                                    "8": "River"
-                                }
-                            }
+                            "name": "Tile Value",
+                            "bool": true
                         }
                     }
                 }
             },
-            "pointerTable": {
-                "range": "0x080F54E4-0x080F54F8"
-            },
             "stringTable": {
-                "length": 5,
-                "default": "World Tile Properties %i"
-            }
+                "length": 10,
+                "default": "World Tile Properties %i",
+                "string": {
+                    "0": "Overworld Tile Properties",
+                    "1": "Overworld Tile Properties (Chocobo)",
+                    "2": "Overworld Tile Properties (Airship)",
+                    "3": "Underground Tile Properties",
+                    "4": "Underground Tile Properties (Airship, No Lava)",
+                    "5": "Underground Tile Properties (Airship, Lava OK)",
+                    "6": "Underground Tile Properties (Upstairs)",
+                    "7": "Underground Tile Properties (Downstairs)",
+                    "8": "Moon Tile Properties (Downstairs)",
+                    "9": "Overworld Tile Properties (Cid's Trial)"
+                }
+            },
+            "reference": [
+                {
+                    "begin": "0x080F54E4",
+                    "mask": "0x7FFFFFFF",
+                    "eval": "this.rom.unmapAddress(this.rom.worldTileProperties.range.begin + this.rom.worldTileProperties.item(0).range.begin)"
+                }, {
+                    "begin": "0x08067360",
+                    "mask": "0x7FFFFFFF",
+                    "eval": "this.rom.unmapAddress(this.rom.worldTileProperties.range.begin + this.rom.worldTileProperties.item(1).range.begin)"
+                }, {
+                    "begin": "0x0806736C",
+                    "mask": "0x7FFFFFFF",
+                    "eval": "this.rom.unmapAddress(this.rom.worldTileProperties.range.begin + this.rom.worldTileProperties.item(2).range.begin)"
+                }, {
+                    "begin": "0x080F54E8",
+                    "mask": "0x7FFFFFFF",
+                    "eval": "this.rom.unmapAddress(this.rom.worldTileProperties.range.begin + this.rom.worldTileProperties.item(3).range.begin)"
+                }, {
+                    "begin": "0x08067348",
+                    "mask": "0x7FFFFFFF",
+                    "eval": "this.rom.unmapAddress(this.rom.worldTileProperties.range.begin + this.rom.worldTileProperties.item(4).range.begin)"
+                }, {
+                    "begin": "0x0806734C",
+                    "mask": "0x7FFFFFFF",
+                    "eval": "this.rom.unmapAddress(this.rom.worldTileProperties.range.begin + this.rom.worldTileProperties.item(5).range.begin)"
+                }, {
+                    "begin": "0x080F54F0",
+                    "mask": "0x7FFFFFFF",
+                    "eval": "this.rom.unmapAddress(this.rom.worldTileProperties.range.begin + this.rom.worldTileProperties.item(6).range.begin)"
+                }, {
+                    "begin": "0x08067320",
+                    "mask": "0x7FFFFFFF",
+                    "eval": "this.rom.unmapAddress(this.rom.worldTileProperties.range.begin + this.rom.worldTileProperties.item(7).range.begin)"
+                }, {
+                    "begin": "0x080F54EC",
+                    "mask": "0x7FFFFFFF",
+                    "eval": "this.rom.unmapAddress(this.rom.worldTileProperties.range.begin + this.rom.worldTileProperties.item(8).range.begin)"
+                }, {
+                    "begin": "0x080F54F4",
+                    "mask": "0x7FFFFFFF",
+                    "eval": "this.rom.unmapAddress(this.rom.worldTileProperties.range.begin + this.rom.worldTileProperties.item(9).range.begin)"
+                }
+            ]
         },
         "worldTriggers": {
             "type": "array",
@@ -3672,15 +3714,15 @@
             "name": "Event Script",
             "delegate": "FF4Script",
             "command": {
-                "unknown_00": {
-                    "name": "Command 0x00",
-                    "category": "Unknown",
+                "disableUserControl": {
+                    "name": "Disable User Control",
+                    "category": "Control",
                     "opcode": "0x00",
                     "length": 1
                 },
-                "unknown_01": {
-                    "name": "Command 0x01",
-                    "category": "Unknown",
+                "enableUserControl": {
+                    "name": "Enable User Control",
+                    "category": "Control",
                     "opcode": "0x01",
                     "length": 1
                 },
@@ -7308,6 +7350,21 @@
                 "29": "Wall",
                 "30": "HP Leak",
                 "31": "Hide"
+            }
+        },
+        "worldTileType": {
+            "hideIndex": true,
+            "string": {
+                "0": "Impassable",
+                "1": "Passable (Grass/Field)",
+                "2": "Forest",
+                "3": "Desert",
+                "4": "Beach",
+                "5": "Castle",
+                "6": "Town",
+                "7": "Cave Entrance",
+                "8": "Mountain Path",
+                "9": "River"
             }
         }
     },
