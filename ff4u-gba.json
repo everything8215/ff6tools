@@ -127,6 +127,7 @@
             },
             "assembly": {
                 "type": "array",
+                "align": 8,
                 "format": "terminated(0xFF)",
                 "assembly": {
                     "type": "data",
@@ -1888,9 +1889,8 @@
             "type": "array",
             "name": "Map Graphics Data",
             "isFragmented": true,
-            "array": {
-                "length": 896
-            },
+            "canRelocate": true,
+            "arrayLength": 896,
             "pointerTable": {
                 "range": "0x080D95A4-0x080DA3A4"
             },
@@ -2811,11 +2811,8 @@
         "monsterGraphics": {
             "type": "array",
             "name": "Monster/Summon Graphics",
-            "range": "0x0818857C-0x081D9F70",
-            "isFragmented": true,
-            "array": {
-                "length": 724
-            },
+            "range": "0x0818857C-0x081DA7F8",
+            "arrayLength": 724,
             "pointerTable": {
                 "range": "0x080F6FC8-0x080F7B18"
             }
@@ -3248,9 +3245,7 @@
             "type": "array",
             "name": "World Exit",
             "range": "0x080F2038-0x080F229C",
-            "array": {
-                "length": 51
-            },
+            "arrayLength": 51,
             "assembly": {
                 "type": "data",
                 "length": 12,
@@ -3347,9 +3342,6 @@
             "type": "array",
             "name": "World Graphics",
             "isFragmented": true,
-            "array": {
-                "length": 5
-            },
             "assembly": {
                 "format": "gba-lzss"
             },
@@ -3371,9 +3363,6 @@
             "type": "array",
             "name": "World Layout",
             "isFragmented": true,
-            "array": {
-                "length": 8
-            },
             "pointerObject": [
                 {
                     "arrayPath": "worldProperties",
@@ -3392,9 +3381,6 @@
             "type": "array",
             "name": "World Palette",
             "isFragmented": true,
-            "array": {
-                "length": 4
-            },
             "assembly": {
                 "length": "0x0108",
                 "format": "bgr555"
@@ -3412,9 +3398,7 @@
             "type": "array",
             "name": "World Properties",
             "range": "0x080F2560-0x080F2704",
-            "array": {
-                "length": 5
-            },
+            "arrayLength": 5,
             "assembly": {
                 "type": "data",
                 "length": 84,
@@ -3550,9 +3534,6 @@
             "type": "array",
             "name": "World Tileset",
             "isFragmented": true,
-            "array": {
-                "length": 6
-            },
             "assembly": {
                 "length": "0x0400"
             },
@@ -3575,14 +3556,12 @@
             "name": "World Tile Properties",
             "range": "0x080F22D0-0x080F24F0",
             "terminator": 0,
-            "align": 4,
             "canRelocate": true,
-            "array": {
-                "length": 10
-            },
+            "arrayLength": 10,
             "assembly": {
                 "type": "array",
                 "format": "ff4a-world-tile-properties",
+                "align": 4,
                 "array": {
                     "length": 256
                 },
@@ -3662,9 +3641,7 @@
             "type": "array",
             "name": "World Triggers",
             "range": "0x080F1E58-0x080F2038",
-            "array": {
-                "length": 60
-            },
+            "arrayLength": 60,
             "assembly": {
                 "type": "data",
                 "length": 8,
@@ -7181,6 +7158,25 @@
         }
     },
     "freeSpace": [
+        "0x082431D8-0x082432BC",
+        "0x08244D28-0x08244E0C",
+        "0x08247004-0x082470E8",
+        "0x082581D8-0x082582BC",
+        "0x08291EB8-0x08291F9C",
+        "0x08294EBC-0x08294FA0",
+        "0x0829949C-0x08299580",
+        "0x0829C944-0x0829CA28",
+        "0x0829F240-0x0829F324",
+        "0x082A28B0-0x082A2994",
+        "0x082A47A4-0x082A4888",
+        "0x082AAA28-0x082AAB0C",
+        "0x082AB30C-0x082AB3F0",
+        "0x082ADDE0-0x082ADEC4",
+        "0x082B4358-0x082B443C",
+        "0x082B69E0-0x082B6AC4",
+        "0x082BB6E0-0x082BB7C4",
+        "0x082BC174-0x082BC258",
+        "0x082BF368-0x082BF44C",
         "0x086DD8D0-0x08800000"
     ]
 }

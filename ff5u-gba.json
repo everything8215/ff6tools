@@ -2973,7 +2973,7 @@
         "text": {
             "type": "array",
             "name": "Text",
-            "range": "0x08373B48-0x083B6058",
+            "range": "0x08373B48-0x083B6074",
             "isSequential": true,
             "array": {
                 "length": 6009

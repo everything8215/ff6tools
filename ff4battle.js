@@ -594,7 +594,7 @@ FF4Battle.prototype.drawMonsterGBA = function(slot) {
         } else {
             graphicsData.format = "gba-lzss";
         }
-        graphicsData.disassemble(graphicsData.parent.data);
+        graphicsData.disassemble(this.rom.monsterGraphics.data);
     }
 
     var graphics = graphicsData.data.subarray(16);
@@ -959,7 +959,7 @@ FF4BattleVRAM.prototype.loadVRAM = function() {
                 var begin = this.rom.monsterGraphics.range.begin + gfxProperties.graphicsPointer.value;
                 var end = begin + tileCount * bytesPerTile;
                 gfx = decode(this.rom.data.subarray(begin, end));
-                this.vramGraphics.set(gfx, (offset - 0x2000) * 4);
+                this.vramGraphics.set(gfx[0], (offset - 0x2000) * 4);
             }
             
         } else {
@@ -980,7 +980,7 @@ FF4BattleVRAM.prototype.loadVRAM = function() {
                 var h = size.height.value * 8;
                 var end = begin + w * h * bytesPerTile / 64;
                 gfx = decode(this.rom.data.subarray(begin, end));
-                this.vramGraphics.set(gfx, (offset - 0x2000) * 4);
+                this.vramGraphics.set(gfx[0], (offset - 0x2000) * 4);
             }
         }
     }

@@ -79,16 +79,16 @@ GFX.decode = function(data, format) {
         case GFX.GraphicsFormat.snes3bpp: return GFX.decodeSNES3bpp(data);
         case GFX.GraphicsFormat.snes2bpp: return GFX.decodeSNES2bpp(data);
         case GFX.PaletteFormat.bgr555: return GFX.decodeBGR555(data);            
-        default: return data;
+        default: return [data, data.length];
     }
 }
 
 GFX.decodeLinear8bpp = function(data) {
-    return data;
+    return [data, data.length];
 }
 
 GFX.encodeLinear8bpp = function(data) {
-    return data;
+    return [data, data.length];
 }
 
 GFX.decodeLinear4bpp = function(data) {
@@ -106,7 +106,7 @@ GFX.decodeLinear4bpp = function(data) {
         dest[d++] = GFX.loNybble(c);
         dest[d++] = GFX.hiNybble(c);
     }
-    return dest;
+    return [dest, data.length];
 }
 
 GFX.encodeLinear4bpp = function(data) {
@@ -124,7 +124,7 @@ GFX.encodeLinear4bpp = function(data) {
         a2 = (src[s++] || 0) & 0x0F;
         dest[d++] = GFX.makeByte(a1,a2);
     }
-    return dest;
+    return [dest, data.length];
 }
 
 GFX.decodeLinear2bpp = function(data) {
@@ -144,7 +144,7 @@ GFX.decodeLinear2bpp = function(data) {
         dest[d++] = c & 0x03; c >>= 2;
         dest[d++] = c & 0x03;
     }
-    return dest;
+    return [dest, data.length];
 }
 
 GFX.encodeLinear2bpp = function(data) {
@@ -164,7 +164,7 @@ GFX.encodeLinear2bpp = function(data) {
         a4 = (src[s++] || 0) & 0x03;
         dest[d++] = a1 | (a2 << 2) | (a3 << 4) | (a4 << 6);
     }
-    return dest;
+    return [dest, data.length];
 }
 
 GFX.decodeLinear1bpp = function(data) {
@@ -188,7 +188,7 @@ GFX.decodeLinear1bpp = function(data) {
         dest[d++] = c & 1; c >>= 1;
         dest[d++] = c & 1;
     }
-    return dest;
+    return [dest, data.length];
 }
 
 GFX.encodeLinear1bpp = function(data) {
@@ -212,7 +212,7 @@ GFX.encodeLinear1bpp = function(data) {
         a |= (src[s++] & 1) << 7;
         dest[d++] = a;
     }
-    return dest;
+    return [dest, data.length];
 }
 
 GFX.decodeReverse1bpp = function(data) {
@@ -236,7 +236,7 @@ GFX.decodeReverse1bpp = function(data) {
         dest[d++] = (c >> 7) & 1; c <<= 1;
         dest[d++] = (c >> 7) & 1;
     }
-    return dest;
+    return [dest, data.length];
 }
 
 GFX.encodeReverse1bpp = function(data) {
@@ -260,7 +260,7 @@ GFX.encodeReverse1bpp = function(data) {
         a |= src[s++] & 1;
         dest[d++] = a;
     }
-    return dest;
+    return [dest, data.length];
 }
 
 GFX.decodeNES2bpp = function(data) {
@@ -289,7 +289,7 @@ GFX.decodeNES2bpp = function(data) {
         }
         s += 8;
     }
-    return dest;
+    return [dest, data.length];
 }
 
 GFX.decodeSNES4bpp = function(data) {
@@ -319,7 +319,7 @@ GFX.decodeSNES4bpp = function(data) {
         }
         s += 8;
     }
-    return dest;
+    return [dest, data.length];
 }
 
 GFX.decodeSNES3bpp = function(data) {
@@ -352,7 +352,7 @@ GFX.decodeSNES3bpp = function(data) {
         s16 += 4;
         s8 += 16;
     }
-    return dest;
+    return [dest, data.length];
 }
 
 GFX.decodeSNES2bpp = function(data) {
@@ -378,7 +378,7 @@ GFX.decodeSNES2bpp = function(data) {
             }
         }
     }
-    return dest;
+    return [dest, data.length];
 };
 
 // from blargg's full palette demo
@@ -421,7 +421,7 @@ GFX.decodeNESPalette = function(data) {
         dest[d++] = GFX.colorsNES[c][2];
         dest[d++] = 0xFF;
     }
-    return new Uint32Array(dest.buffer, dest.byteOffset, Math.ceil(dest.byteLength / 4));
+    return [new Uint32Array(dest.buffer, dest.byteOffset, Math.ceil(dest.byteLength / 4)), data.length];
 }
 
 GFX.colors31 = [0, 8, 16, 25, 33, 41, 49, 58, 66, 74, 82, 90, 99, 107, 115, 123, 132, 140, 148, 156, 165, 173, 181, 189, 197, 206, 214, 222, 230, 239, 247, 255];
@@ -443,7 +443,27 @@ GFX.decodeBGR555 = function(data) {
         dest[d++] = GFX.colors31[bgr555 & 0x1F];
         dest[d++] = 0xFF;
     }
-    return new Uint32Array(dest.buffer, dest.byteOffset, Math.ceil(dest.byteLength / 4));
+    return [new Uint32Array(dest.buffer, dest.byteOffset, Math.ceil(dest.byteLength / 4)), data.length];
+}
+
+GFX.encodeBGR555 = function(data) {
+    
+    // 32-bit source, 16-bit destination
+    var src = new Uint32Array(data.buffer, data.byteOffset, Math.floor(data.byteLength / 4));
+    var dest = new Uint16Array(Math.floor(data.byteLength / 4));
+
+    var s = 0;
+    var d = 0;
+    var r, g, b, rgb;
+
+    while (s < src.length) {
+        rgb = src[s++];
+        b = (rgb & 0x00FF0000) >> 16; b = Math.round(b * 31 / 255);
+        g = (rgb & 0x0000FF00) >> 8; g = Math.round(g * 31 / 255);
+        r = (rgb & 0x000000FF); r = Math.round(r * 31 / 255);
+        dest[d++] = (b << 10) | (g << 5) | r;
+    }
+    return [new Uint8Array(dest.buffer, dest.byteOffset, dest.byteLength), data.length];
 }
 
 GFX.render = function(dest, gfx, pal, ppl) {

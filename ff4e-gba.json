@@ -130,6 +130,7 @@
             },
             "assembly": {
                 "type": "array",
+                "align": 8,
                 "format": "terminated(0xFF)",
                 "assembly": {
                     "type": "data",
@@ -1891,9 +1892,8 @@
             "type": "array",
             "name": "Map Graphics Data",
             "isFragmented": true,
-            "array": {
-                "length": 896
-            },
+            "canRelocate": true,
+            "arrayLength": 896,
             "pointerTable": {
                 "range": "0x080DCA64-0x080DD864"
             },
@@ -2815,11 +2815,8 @@
         "monsterGraphics": {
             "type": "array",
             "name": "Monster/Summon Graphics",
-            "range": "0x0818857C-0x081D9F70",
-            "isFragmented": true,
-            "array": {
-                "length": 724
-            },
+            "range": "0x0818A35C-0x081CA484",
+            "arrayLength": 724,
             "pointerTable": {
                 "range": "0x080FA2D0-0x080FAE20"
             }
@@ -3252,9 +3249,7 @@
             "type": "array",
             "name": "World Exit",
             "range": "0x080F526C-0x080F54D0",
-            "array": {
-                "length": 51
-            },
+            "arrayLength": 51,
             "assembly": {
                 "type": "data",
                 "length": 12,
@@ -3351,9 +3346,6 @@
             "type": "array",
             "name": "World Graphics",
             "isFragmented": true,
-            "array": {
-                "length": 5
-            },
             "assembly": {
                 "format": "gba-lzss"
             },
@@ -3375,9 +3367,6 @@
             "type": "array",
             "name": "World Layout",
             "isFragmented": true,
-            "array": {
-                "length": 8
-            },
             "pointerObject": [
                 {
                     "arrayPath": "worldProperties",
@@ -3396,9 +3385,6 @@
             "type": "array",
             "name": "World Palette",
             "isFragmented": true,
-            "array": {
-                "length": 4
-            },
             "assembly": {
                 "length": "0x0108",
                 "format": "bgr555"
@@ -3416,9 +3402,7 @@
             "type": "array",
             "name": "World Properties",
             "range": "0x080F57A8-0x080F594C",
-            "array": {
-                "length": 5
-            },
+            "arrayLength": 5,
             "assembly": {
                 "type": "data",
                 "length": 84,
@@ -3554,9 +3538,6 @@
             "type": "array",
             "name": "World Tileset",
             "isFragmented": true,
-            "array": {
-                "length": 6
-            },
             "assembly": {
                 "length": "0x0400"
             },
@@ -3579,14 +3560,12 @@
             "name": "World Tile Properties",
             "range": "0x080F5508-0x080F5738",
             "terminator": 0,
-            "align": 4,
             "canRelocate": true,
-            "array": {
-                "length": 10
-            },
+            "arrayLength": 10,
             "assembly": {
                 "type": "array",
                 "format": "ff4a-world-tile-properties",
+                "align": 4,
                 "array": {
                     "length": 256
                 },
@@ -3666,9 +3645,7 @@
             "type": "array",
             "name": "World Triggers",
             "range": "0x080F508C-0x080F526C",
-            "array": {
-                "length": 60
-            },
+            "arrayLength": 60,
             "assembly": {
                 "type": "data",
                 "length": 8,

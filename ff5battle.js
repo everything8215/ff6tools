@@ -37,8 +37,8 @@ function FF5Battle(rom) {
     this.monsterPoint = null;
     this.clickedPoint = null;
     
-    this.rom.monsterGraphics; // load monster graphics
-    this.rom.monsterPalette; // load monster palettes
+//    this.rom.monsterGraphics; // load monster graphics
+//    this.rom.monsterPalette; // load monster palettes
 
     this.updateBattleStrings();
 }
@@ -422,13 +422,13 @@ FF5Battle.prototype.drawMonster = function(slot) {
         var gfxProperties = this.rom.monsterGraphicsProperties.item(m.id);
 
         // decode the graphics
-        var gfx = gfxProperties.graphicsPointer.value;
+        var gfx = gfxProperties.graphicsPointer.target;
 //        var gfx = this.rom.monsterGraphics.item(m.id);
         if (this.rom.isSFC) {
             var format = gfxProperties.is3bpp.value ? "snes3bpp" : "snes4bpp";
             if (gfx.format !== format) {
                 gfx.format = format;
-                gfx.disassemble(gfx.parent.data);        
+                gfx.disassemble(gfx.parent.data);
             }
         }
 
@@ -448,7 +448,7 @@ FF5Battle.prototype.drawMonster = function(slot) {
             // use underwater palette
             pal.set(this.rom.monsterPaletteUnderwater.data);
         } else {
-            pal.set(gfxProperties.palette.value.data.subarray(0, 16));
+            pal.set(gfxProperties.palette.target.data.subarray(0, 16));
 //            if (!gfxProperties.is3bpp.value) pal.set(this.rom.monsterPalette.item(p + 1).data, 8);
         }
     } else {
@@ -556,7 +556,7 @@ FF5Battle.prototype.drawBackground = function() {
     var gfx = new Uint8Array(0x10000);
     var g = properties.graphics.value;
     var gfxOffset = this.rom.battleBackgroundGraphicsOffset.item(g).offset.value;
-    gfxOffset -= 0x7FC000;
+//    gfxOffset -= 0x7FC000;
     gfx.set(this.rom.battleBackgroundGraphics.item(g).data.subarray(gfxOffset << 1), 0x2000);
         
     // load layout

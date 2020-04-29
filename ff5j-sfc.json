@@ -106,8 +106,7 @@
             },
             "pointerTable": {
                 "range": "0xD84196-0xD841D5",
-                "pointerLength": 3,
-                "offset": 0
+                "pointerLength": 3
             }
         },
         "battleBackgroundGraphicsOffset": {
@@ -124,7 +123,8 @@
                     "offset": {
                         "type": "property",
                         "name": "Offset",
-                        "mask": "0xFFFFFF"
+                        "mask": "0xFFFFFF",
+                        "offset": "0xFF804000"
                     }
                 }
             }
@@ -2890,7 +2890,7 @@
                         "mask": "0x7FFF",
                         "format": "byteSwapped",
                         "multiplier": 8,
-                        "offset": "0x150000",
+                        "offset": "0xD50000",
                         "pointerTo": "monsterGraphics"
                     },
                     "is3bpp": {
@@ -2905,7 +2905,7 @@
                         "name": "Palette",
                         "mask": "0x03FF",
                         "begin": 2,
-                        "offset": "0x0ED000",
+                        "offset": "0xCED000",
                         "multiplier": 16,
                         "format": "byteSwapped",
                         "pointerTo": "monsterPalette"
@@ -4215,7 +4215,7 @@
         },
         "treasurePointers": {
             "type": "array",
-            "name": "Map Treasures",
+            "name": "Treasure Pointers",
             "range": "0xD13000-0xD13210",
             "canRelocate": true,
             "array": {

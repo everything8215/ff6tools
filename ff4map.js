@@ -737,22 +737,26 @@ FF4Map.prototype.loadMap = function(m) {
 
     // load and de-interlace tile layouts
     var l1 = map.layout1.value;
-    if (l1 === 0xFF) {
+    if (map.layoutMSB.value || this.m >= 256) {
+        layout = this.rom.mapLayouts.undergroundMoonLayouts.item(l1);
+    } else {
+        layout = this.rom.mapLayouts.overworldLayouts.item(l1);
+    }
+    if (!layout) {
         layout = new Uint8Array(0x0400);
         layout.fill(map.fill);
-    } else {
-        if (map.layoutMSB.value || this.m >= 256) l1 += 256;
-        layout = this.rom.mapLayouts.item(l1);
     }
     this.layer[0].loadLayout({layout: layout, tileset: tileset, w: 32, h: 32});
 
     var l2 = map.layout2.value;
-    if (l2 === 0xFF) {
+    if (map.layoutMSB.value || this.m >= 256) {
+        layout = this.rom.mapLayouts.undergroundMoonLayouts.item(l2);
+    } else {
+        layout = this.rom.mapLayouts.overworldLayouts.item(l2);
+    }
+    if (!layout) {
         layout = new Uint8Array(0x0400);
         layout.fill(map.fill);
-    } else {
-        if (map.layoutMSB.value || this.m >= 256) l2 += 256;
-        layout = this.rom.mapLayouts.item(l2);
     }
     this.layer[1].loadLayout({layout: layout, tileset: tileset, w: 32, h: 32});
 
@@ -1219,7 +1223,7 @@ FF4Map.prototype.drawNPC = function(npc) {
     var h = 16;
 
     var index = npc.switch.value;
-    var g = this.rom.npcPointers.item(index).graphics.value;
+    var g = this.rom.npcPointers.item(index).graphics.graphics.value;
     var direction = npc.direction.value;
     var p = npc.palette.value;
 

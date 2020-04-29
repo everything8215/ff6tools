@@ -77,15 +77,12 @@ function FF4MapGBA(rom) {
     this.scrollDiv.onmouseleave = function(e) { map.mouseLeave(e) };
     this.scrollDiv.oncontextmenu = function(e) { map.openMenu(e); return false; };
     
-    this.rom.mapTriggers;
-    this.rom.mapExit;
-    this.rom.worldGraphics1;
-    this.rom.worldGraphics2;
-    this.rom.worldPalette;
-    this.rom.worldTileset;
-    this.rom.worldTileset2;
-    this.rom.worldLayout;
-    this.rom.worldLayout2;
+//    this.rom.mapTriggers;
+//    this.rom.mapExit;
+//    this.rom.worldGraphics;
+//    this.rom.worldPalette;
+//    this.rom.worldTileset;
+//    this.rom.worldLayout;
     
     this.initMapGraphicsData();
 }
@@ -110,7 +107,7 @@ FF4MapGBA.prototype.initMapGraphicsData = function() {
         mapLayoutStringTable.setString(l, "Map Layout " + l);
         layout.format = "tose-70";
         layout.disassemble(this.rom.data);
-        mapGraphicsDataStringTable.string[l].value += " (Map Layout)";
+        mapGraphicsDataStringTable.string[l].value += " (Layout)";
 
         var tp = mapProperties.tileProperties.tp.value;
         if (tp === 0) {
@@ -120,7 +117,7 @@ FF4MapGBA.prototype.initMapGraphicsData = function() {
         var tilePropertiesStringTable = this.rom.stringTable["mapProperties.tileProperties.tp"];
         if (mapProperties.tileProperties.getSpecialValue() !== 0xFFFF) {
             var tileProperties = mapGraphicsData.item(tp);
-            tilePropertiesStringTable.setString(tp, "Tile Properties " + tp);
+            tilePropertiesStringTable.setString(tp, "Map Tile Properties " + tp);
             tileProperties.format = "tose-70";
             tileProperties.disassemble(this.rom.data);
             mapGraphicsDataStringTable.string[tp].value += " (Tile Properties)";
@@ -128,11 +125,13 @@ FF4MapGBA.prototype.initMapGraphicsData = function() {
     }
     
     // tileset palettes, graphics, and layouts
+    var mapPaletteStringTable = this.rom.stringTable["mapTileset.palette"];
+    var mapGraphicsStringTable = this.rom.stringTable["mapTileset.graphics"];
+    var mapTilesetLayoutStringTable = this.rom.stringTable["mapTileset.layout"];
     for (var t = 0; t < this.rom.mapTileset.arrayLength; t++) {
         var mapTileset = this.rom.mapTileset.item(t);
         
         var p = mapTileset.palette.value;
-        var mapPaletteStringTable = this.rom.stringTable["mapTileset.palette"];
         var palette = mapGraphicsData.item(p);
         mapPaletteStringTable.setString(p, "Map Palette " + p);
         palette.format = "bgr555";
@@ -140,28 +139,27 @@ FF4MapGBA.prototype.initMapGraphicsData = function() {
         mapGraphicsDataStringTable.string[p].value += " (Palette)";
         
         var g = mapTileset.graphics.value;
-        var mapGraphicsStringTable = this.rom.stringTable["mapTileset.graphics"];
         var graphics = mapGraphicsData.item(g);
         mapGraphicsStringTable.setString(g, "Map Graphics " + g);
         graphics.format = ["linear4bpp", "tose-70"];
         graphics.disassemble(this.rom.data);
-        mapGraphicsDataStringTable.string[g].value += " (Map Graphics)";
+        mapGraphicsDataStringTable.string[g].value += " (Graphics)";
         
-        var mapTileLayoutStringTable = this.rom.stringTable["mapTileset.layout"];
         var tl = mapTileset.layout.value;
-        var tileLayout = mapGraphicsData.item(tl);
-        mapTileLayoutStringTable.setString(tl, "Map Tileset Layout " + tl);
-        tileLayout.disassemble(this.rom.data);
-        mapGraphicsDataStringTable.string[tl].value += " (Tile Layout)";
+        var tilesetLayout = mapGraphicsData.item(tl);
+        mapTilesetLayoutStringTable.setString(tl, "Map Tileset Layout " + tl);
+        if (tilesetLayout.range.length > 0x0800) tilesetLayout.range.length = 0x0800;
+        tilesetLayout.disassemble(this.rom.data);
+        mapGraphicsDataStringTable.string[tl].value += " (Tileset Layout)";
     }
     
     // treasures and events
     for (var t = 0; t < this.rom.mapTriggerPointers.arrayLength; t++) {
-        var triggers = this.rom.mapTriggerPointers.item(t).triggerPointer.value;
+        var triggers = this.rom.mapTriggerPointers.item(t).triggerPointer.target;
         if (t < 402) {
-            triggers.name = "Trigger"
+            triggers.name = "Trigger";
         } else {
-            triggers.name = "Treasure"
+            triggers.name = "Treasure";
         }
         for (var i = 0; i < triggers.arrayLength; i++) {
             var trigger = triggers.item(i);
@@ -172,6 +170,23 @@ FF4MapGBA.prototype.initMapGraphicsData = function() {
             } else {
                 this.fixNPC(trigger);
             }
+        }
+    }
+    
+    // world layouts
+    for (var w = 0; w < this.rom.worldProperties.arrayLength; w++) {
+        var worldProperties = this.rom.worldProperties.item(w);
+        var width = worldProperties.width.value >> 4;
+        var height = worldProperties.height.value >> 4;
+        var layout1 = worldProperties.layout1.target;
+        if (layout1) {
+            layout1.range.length = width * height;
+            layout1.disassemble(this.rom.data);
+        }
+        var layout2 = worldProperties.layout2.target;
+        if (layout2) {
+            layout2.range.length = width * height;
+            layout2.disassemble(this.rom.data);
         }
     }
     
@@ -969,6 +984,8 @@ FF4MapGBA.prototype.hide = function() {
 FF4MapGBA.prototype.loadMap = function(m) {
     
     var layerButtons = document.getElementsByClassName("toolbox-button");
+    layerButtons[0].disabled = false;
+    layerButtons[1].disabled = false;
     layerButtons[2].disabled = false;
 
     // set the map index
@@ -1089,6 +1106,8 @@ FF4MapGBA.prototype.loadWorldMap = function(m) {
     if (m === 0x015E) this.w = 3; // overworld map for cid's trial
     
     var layerButtons = document.getElementsByClassName("toolbox-button");
+    layerButtons[0].disabled = false;
+    layerButtons[1].disabled = false;
     if (this.w !== 2) {
         if (this.selectedLayer && (this.l === 2)) this.selectLayer(0);
         layerButtons[2].disabled = true;
@@ -1107,20 +1126,20 @@ FF4MapGBA.prototype.loadWorldMap = function(m) {
 
     // load graphics
     var gfx = new Uint8Array(0x10000);
-    var graphics1 = this.mapProperties.graphics1.value;
+    var graphics1 = this.mapProperties.graphics1.target;
     if (graphics1) gfx.set(graphics1.data.subarray(8));
-    var graphics2 = this.mapProperties.graphics2.value;
+    var graphics2 = this.mapProperties.graphics2.target;
     if (graphics2) gfx.set(graphics2.data.subarray(8), 0x4000);
     
     // load palette
     var pal = new Uint32Array(0x200);
-    var palette = this.mapProperties.palette.value;
+    var palette = this.mapProperties.palette.target;
     if (palette) pal.set(palette.data.subarray(4));
     pal[0] = 0xFF000000;
 
     // load tileset
-    var tileset1 = this.mapProperties.tileset1.value.data;
-    var layout1 = this.mapProperties.layout1.value
+    var tileset1 = this.mapProperties.tileset1.target.data;
+    var layout1 = this.mapProperties.layout1.target
     if (layout1 && tileset1) {
         if (layout1.range.length !== width * height) {
             layout1.range.length = width * height;
@@ -1129,9 +1148,9 @@ FF4MapGBA.prototype.loadWorldMap = function(m) {
         this.layer[0].loadLayout({type: FF4MapGBALayer.Type.world, layout: layout1, tileset: tileset1, w: width, h: height});
     }
 
-    var tileset2 = this.mapProperties.tileset2.value;
+    var tileset2 = this.mapProperties.tileset2.target;
     if (tileset2) tileset2 = tileset2.data;
-    var layout2 = this.mapProperties.layout2.value
+    var layout2 = this.mapProperties.layout2.target
     if (tileset2 && layout2) {
         if (layout2.range.length !== width * height) {
             layout2.range.length = width * height;
@@ -1283,7 +1302,7 @@ FF4MapGBA.prototype.loadTriggers = function() {
 
     var i;
     // load triggers
-    var triggers = this.rom.mapTriggerPointers.item(this.mapProperties.events.value).triggerPointer.value;
+    var triggers = this.rom.mapTriggerPointers.item(this.mapProperties.events.value).triggerPointer.target;
     this.observer.startObserving(triggers, this.reloadTriggers);
     for (i = 0; i < triggers.arrayLength; i++) {
         var trigger = triggers.item(i);
@@ -1306,8 +1325,8 @@ FF4MapGBA.prototype.loadTriggers = function() {
     }
     
 //    // load tile properties triggers
-//    var treasures = this.rom.mapTriggerPointers.item(this.mapProperties.treasures.value).triggerPointer.value;
-//    var exits = this.mapProperties.exitPointer.value;
+//    var treasures = this.rom.mapTriggerPointers.item(this.mapProperties.treasures.value).triggerPointer.target;
+//    var exits = this.mapProperties.exitPointer.target;
 //    for (var y = 0; y < this.layer[0].h; y++) {
 //        for (var x = 0; x < this.layer[0].w; x++) {
 //            var tp = this.tilePropertiesAtTile(x, y);
@@ -2176,7 +2195,7 @@ FF4MapGBATileset.prototype.createTreasureDiv = function() {
     treasureControl.id = "tile-treasure-control";
     treasureControlDiv.appendChild(treasureControl);
 
-    var treasures = this.rom.mapTriggerPointers.item(this.map.mapProperties.treasures.value).triggerPointer.value;
+    var treasures = this.rom.mapTriggerPointers.item(this.map.mapProperties.treasures.value).triggerPointer.target;
     for (var t = 0; t < treasures.array.length; t++) {
         var treasure = treasures.item(t);
         var option = document.createElement('option');
@@ -2227,7 +2246,7 @@ FF4MapGBATileset.prototype.createExitDiv = function() {
     exitControl.id = "tile-exit-control";
     exitControlDiv.appendChild(exitControl);
 
-    var exits = this.map.mapProperties.exitPointer.value;
+    var exits = this.map.mapProperties.exitPointer.target;
     if (exits && exits.array) {
         for (var e = 0; e < exits.array.length; e++) {
             var exit = exits.item(e);

@@ -227,8 +227,7 @@
             },
             "pointerTable": {
                 "range": "0xE71650-0xE71731",
-                "pointerLength": 3,
-                "offset": 0
+                "pointerLength": 3
             }
         },
         "battleBackgroundLayout": {
@@ -2004,6 +2003,8 @@
             "type": "array",
             "name": "Dialog",
             "range": "0xCD0000-0xCEAFA0",
+            "align": "0x10000",
+            "pointerAlign": "0x10000",
             "autoBank": true,
             "array": {
                 "length": 3084
@@ -5222,7 +5223,6 @@
                 "array": {
                     "length": 256
                 },
-                "length": 512,
                 "assembly": {
                     "type": "data",
                     "length": 2,
@@ -5275,7 +5275,6 @@
                 "offset": "0xD9A800"
             },
             "stringTable": {
-                "name": "Map Tile Properties",
                 "length": 42,
                 "default": "Tile Properties %i",
                 "string": {
@@ -6067,7 +6066,7 @@
                         "name": "Graphics Pointer",
                         "mask": "0x7FFF",
                         "multiplier": 8,
-                        "offset": "0x297000",
+                        "offset": "0xE97000",
                         "pointerTo": "monsterGraphics"
                     },
                     "is3bpp": {
@@ -6083,7 +6082,7 @@
                         "mask": "0x03FF",
                         "begin": 2,
                         "multiplier": 16,
-                        "offset": "0x127820",
+                        "offset": "0xD27820",
                         "format": "byteSwapped",
                         "pointerTo": "monsterPalette"
                     },

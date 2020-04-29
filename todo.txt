@@ -15,13 +15,15 @@ general
  * disable automatic snes header update
  * import/export binary data
  * import custom tbl file
- * load pointer objects automatically
+ * add a multi-bank option for assemblies that can span multiple banks
 
 gui
 ---
  * custom property controls (entrance trigger destination, rendered text, colosseum battle, fill tile)
  * grid controls (for element/status, esper/natural magic)
- * tile mask layers for map editor (done for ff4a and ff6)
+ * tile mask layers for map editor (ff1, ff2, ff5)
+ * add directional passability masks for ff6
+ * legend for tile mask colors
  * allow multiple selection, cut/copy/paste in script list
  * make tileset zoom in when sidebar is expanded
  * progress bar
@@ -39,6 +41,8 @@ game specific
  * ff5 advance (battles, ff5j, ff5e)
  * can't expand/relocate ff6 advance text
  * battle vram viewer for ff5
+ * draw enemy characters in ff4 advance
+ * ff4 advance japanese version
 
 wish list
 ---------
@@ -46,3 +50,5 @@ wish list
  * cinematic editor
  * graphics import/export
  * music editor
+ * ff2 and ff3 nes
+ * ff4 wsc and psp

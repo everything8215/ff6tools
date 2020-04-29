@@ -372,7 +372,7 @@ FF6LevelProgression.prototype.drawLegend = function(ctx) {
     ctx.textBaseline = 'top';
     for (var s = 0; s < 8; s++) {
         if (!this.showStat[s]) continue;
-        var name = FF4LevelProgression.stats[s].axis || FF4LevelProgression.stats[s].name;
+        var name = FF6LevelProgression.stats[s].axis || FF6LevelProgression.stats[s].name;
         var size = ctx.measureText(name);
         maxWidth = Math.max(size.width + 15, maxWidth);
         height += lineHeight;
@@ -406,13 +406,13 @@ FF6LevelProgression.prototype.drawLegend = function(ctx) {
     for (var s = 0; s < 8; s++) {
         if (!this.showStat[s]) continue;
         
-        ctx.fillStyle = FF4LevelProgression.stats[s].color;
+        ctx.fillStyle = FF6LevelProgression.stats[s].color;
         ctx.fillRect(x, y + 2, 9, 9);
         ctx.strokeStyle = "black";
         ctx.strokeRect(x - 0.5, y + 1.5, 10, 10);
         
         ctx.fillStyle = "black";
-        var name = FF4LevelProgression.stats[s].axis || FF4LevelProgression.stats[s].name;
+        var name = FF6LevelProgression.stats[s].axis || FF6LevelProgression.stats[s].name;
         ctx.fillText(name, x + 15, y);
         y += lineHeight;
     }

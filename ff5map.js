@@ -636,15 +636,15 @@ FF5Map.prototype.loadMap = function(m) {
                 var flag = anim["flag" + (i + 1).toString()].value;
                 var t = anim["tile" + (i + 1).toString()].value;
                 if (flag) {
-                    gfx.set(GFX.decodeSNES4bpp(animGfx.data.subarray(t, t + 0x80)), 0xB800 + i * 0x0100);
+                    gfx.set(GFX.decodeSNES4bpp(animGfx.data.subarray(t, t + 0x80))[0], 0xB800 + i * 0x0100);
                 } else {
-                    gfx.set(GFX.decodeSNES4bpp(animGfx2.data.subarray(t, t + 0x80)), 0xB800 + i * 0x0100);
+                    gfx.set(GFX.decodeSNES4bpp(animGfx2.data.subarray(t, t + 0x80))[0], 0xB800 + i * 0x0100);
                 }
             }
         } else {
             for (i = 0; i < 8; i++) {
                 var t = anim["tile" + (i + 1).toString()].value * 0x20;
-                gfx.set(GFX.decodeLinear4bpp(animGfx.data.subarray(t, t + 0x80)), 0xB800 + i * 0x0100);
+                gfx.set(GFX.decodeLinear4bpp(animGfx.data.subarray(t, t + 0x80))[0], 0xB800 + i * 0x0100);
             }
         }
 
@@ -654,15 +654,15 @@ FF5Map.prototype.loadMap = function(m) {
                 var flag = anim["flag" + (i + 1).toString() + "Layer3"].value;
                 var t = anim["tile" + (i + 1).toString() + "Layer3"].value;
                 if (flag) {
-                    gfx.set(GFX.decodeSNES2bpp(animGfx.data.subarray(t, t + 0x40)), 0xFC00 + i * 0x0100);
+                    gfx.set(GFX.decodeSNES2bpp(animGfx.data.subarray(t, t + 0x40))[0], 0xFC00 + i * 0x0100);
                 } else {
-                    gfx.set(GFX.decodeSNES2bpp(animGfx2.data.subarray(t, t + 0x40)), 0xFC00 + i * 0x0100);
+                    gfx.set(GFX.decodeSNES2bpp(animGfx2.data.subarray(t, t + 0x40))[0], 0xFC00 + i * 0x0100);
                 }
             }
         } else {
             for (i = 0; i < 4; i++) {
                 var t = anim["tile" + (i + 1).toString() + "Layer3"].value * 0x20;
-                gfx.set(GFX.decodeLinear4bpp(animGfx.data.subarray(t, t + 0x80)), 0xFC00 + i * 0x0100);
+                gfx.set(GFX.decodeLinear4bpp(animGfx.data.subarray(t, t + 0x80))[0], 0xFC00 + i * 0x0100);
             }
         }
     }

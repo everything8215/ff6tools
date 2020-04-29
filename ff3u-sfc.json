@@ -2021,6 +2021,7 @@
             "type": "array",
             "name": "Dialog",
             "range": "0xCD0000-0xCEEFBB",
+            "align": "0x10000",
             "pointerAlign": "0x10000",
             "autoBank": true,
             "canRelocate": true,
@@ -5632,7 +5633,6 @@
                 "array": {
                     "length": 256
                 },
-                "length": 512,
                 "assembly": {
                     "type": "data",
                     "length": 2,
@@ -6522,7 +6522,7 @@
                         "name": "Graphics Pointer",
                         "mask": "0x7FFF",
                         "multiplier": 8,
-                        "offset": "0x297000",
+                        "offset": "0xE97000",
                         "pointerTo": "monsterGraphics"
                     },
                     "is3bpp": {
@@ -6538,7 +6538,7 @@
                         "mask": "0x03FF",
                         "begin": 2,
                         "multiplier": 16,
-                        "offset": "0x127820",
+                        "offset": "0xD27820",
                         "format": "byteSwapped",
                         "pointerTo": "monsterPalette"
                     },

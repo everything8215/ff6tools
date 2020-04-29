@@ -5323,7 +5323,6 @@
                 "array": {
                     "length": 256
                 },
-                "length": 512,
                 "assembly": {
                     "type": "data",
                     "length": 2,
@@ -5377,7 +5376,6 @@
                 "pointerLength": 2
             },
             "stringTable": {
-                "name": "Map Tile Properties",
                 "length": 42,
                 "default": "Tile Properties %i",
                 "string": {

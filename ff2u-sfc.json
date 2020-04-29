@@ -2631,56 +2631,87 @@
             "format": "snes4bpp"
         },
         "mapLayouts": {
-            "type": "array",
-            "name": "Map Layouts",
-            "range": "0x178300-0x19FCF9",
-            "align": "0x8000",
-            "autoBank": true,
-            "endPointer": true,
-            "canRelocate": true,
-            "array": {
-                "length": 383
-            },
+            "type": "data",
+            "name": "Map Layout",
+            "range": "0x178000-0x19FE60",
+            "isSequential": true,
             "assembly": {
-                "format": "ff4-map"
-            },
-            "pointerTable": {
-                "range": "0x178000-0x178300",
-                "offset": "0x178000",
-                "canRelocate": true,
-                "reference": [
-                    {
-                        "begin": "0x00FC4F",
-                        "mask": "0xFFFFFF"
-                    }, {
-                        "begin": "0x00FC55",
-                        "mask": "0xFFFFFF",
-                        "offset": -1
-                    }, {
-                        "begin": "0x00FC63",
-                        "mask": "0xFFFFFF",
-                        "offset": -2
-                    }, {
-                        "begin": "0x00FC69",
-                        "mask": "0xFFFFFF",
-                        "offset": -3
+                "overworldLayouts": {
+                    "type": "array",
+                    "name": "Overworld Layout",
+                    "range": "0x0300-0xF12E",
+                    "pointerAlign": "0x8000",
+                    "isSequential": true,
+                    "endPointer": true,
+                    "canRelocate": true,
+                    "array": {
+                        "length": 224
+                    },
+                    "assembly": {
+                        "format": "ff4-map"
+                    },
+                    "pointerTable": {
+                        "range": "0x0000-0x0200",
+                        "offset": "0x0000"
+                    },
+                    "stringTable": {
+                        "default": "Overworld Layout %i",
+                        "length": 224,
+                        "string": {
+                            "0": "Town of Baron"
+                        }
                     }
-                ]
+                },
+                "undergroundMoonLayouts": {
+                    "type": "array",
+                    "name": "Underground/Moon Layout",
+                    "range": "0xF12E-0x017CF9",
+                    "pointerAlign": "0x8000",
+                    "isSequential": true,
+                    "endPointer": true,
+                    "canRelocate": true,
+                    "array": {
+                        "length": 126
+                    },
+                    "assembly": {
+                        "format": "ff4-map"
+                    },
+                    "pointerTable": {
+                        "range": "0x0200-0x0300",
+                        "offset": "0x8000",
+                        "canRelocate": true
+                    },
+                    "stringTable": {
+                        "default": "Underground/Moon Layout %i",
+                        "length": 126,
+                        "string": {
+                            "0": "Kokkol's Smithy (Exterior)"
+                        }
+                    }
+                }
             },
             "reference": [
                 {
                     "begin": "0x00FC37",
                     "mask": "0xFF",
                     "bankByte": true
+                }, {
+                    "begin": "0x00FC4F",
+                    "mask": "0xFFFFFF"
+                }, {
+                    "begin": "0x00FC55",
+                    "mask": "0xFFFFFF",
+                    "offset": -1
+                }, {
+                    "begin": "0x00FC63",
+                    "mask": "0xFFFFFF",
+                    "offset": -2
+                }, {
+                    "begin": "0x00FC69",
+                    "mask": "0xFFFFFF",
+                    "offset": -3
                 }
-            ],
-            "stringTable": {
-                "default": "Layout %i",
-                "length": 383,
-                "string": {
-                    "0": "Town of Baron"
-                }
-            }
+            ]
         },
         "mapPalettes": {
             "type": "array",
@@ -2785,10 +2816,11 @@
                     },
                     "layoutMSB": {
                         "type": "property",
-                        "name": "Layout MSB",
+                        "name": "Underground/Moon Layout",
                         "begin": 10,
                         "mask": "0x01",
-                        "bool": true
+                        "bool": true,
+                        "invalid": "this.parent.i >= 512"
                     },
                     "graphics": {
                         "type": "property",
@@ -2907,10 +2939,11 @@
                     },
                     "npcMSB": {
                         "type": "property",
-                        "name": "NPC MSB",
+                        "name": "Underground/Moon NPCs",
                         "begin": 10,
                         "mask": "0x80",
-                        "bool": true
+                        "bool": true,
+                        "invalid": "this.parent.i >= 512"
                     },
                     "npcPalette1": {
                         "type": "property",
@@ -5542,121 +5575,127 @@
                 "length": 512
             },
             "assembly": {
-                "type": "property",
-                "name": "Graphics",
+                "type": "data",
                 "length": 1,
-                "stringTable": {
-                    "name": "NPC Graphics",
-                    "default": "Graphics %i",
-                    "length": 107,
-                    "string": {
-                        "0x00": "Cecil (DkKnight)",
-                        "0x01": "Kain",
-                        "0x02": "Rydia (Girl)",
-                        "0x03": "Tellah",
-                        "0x04": "Edward",
-                        "0x05": "Rosa",
-                        "0x06": "Yang",
-                        "0x07": "Palom",
-                        "0x08": "Porom",
-                        "0x09": "Cecil (Paladin)",
-                        "0x0A": "Cid",
-                        "0x0B": "Rydia (Adult)",
-                        "0x0C": "Edge",
-                        "0x0D": "FuSoYa",
-                        "0x0E": "Tiny",
-                        "0x0F": "Frog",
-                        "0x10": "Pig",
-                        "0x11": "Man",
-                        "0x12": "Woman",
-                        "0x13": "Dancer",
-                        "0x14": "Old Man",
-                        "0x15": "Old Woman",
-                        "0x16": "Boy",
-                        "0x17": "Girl",
-                        "0x18": "Soldier",
-                        "0x19": "Merchant",
-                        "0x1A": "Scholar",
-                        "0x1B": "Black Mage",
-                        "0x1C": "White Mage",
-                        "0x1D": "Engineer",
-                        "0x1E": "Chocobo",
-                        "0x1F": "Monk",
-                        "0x20": "Officer",
-                        "0x21": "Bomb",
-                        "0x22": "Monster",
-                        "0x23": "Namingway",
-                        "0x24": "Golbez",
-                        "0x25": "King",
-                        "0x26": "Elder",
-                        "0x27": "Cleric",
-                        "0x28": "Dwarf",
-                        "0x29": "Calbrena",
-                        "0x2A": "King Giott",
-                        "0x2B": "Dr. Lugae",
-                        "0x2C": "Dwarf Girl (Luca)",
-                        "0x2D": "Golbez' Hand",
-                        "0x2E": "Cecil + Rosa",
-                        "0x2F": "Crystal",
-                        "0x30": "Heart",
-                        "0x31": "Flame",
-                        "0x32": "Zzz",
-                        "0x33": "Woman Waving",
-                        "0x34": "Woman Blinking",
-                        "0x35": "Edward w/ Harp",
-                        "0x36": "Water Splash",
-                        "0x37": "Murasame/Masamune",
-                        "0x38": "Dancer w/ Dress",
-                        "0x39": "Sword",
-                        "0x3A": "Rosa (Tied Up)",
-                        "0x3B": "Rubicant",
-                        "0x3C": "Sparkle",
-                        "0x3D": "Elder (Praying)",
-                        "0x3E": "Black Mage (Praying)",
-                        "0x3F": "Zemus (Dead)",
-                        "0x40": "White Mage (Praying)",
-                        "0x41": "Sylph",
-                        "0x42": "Zeromus",
-                        "0x43": "Kain w/o Helmet",
-                        "0x44": "Lightning Bolt",
-                        "0x45": "Smoke",
-                        "0x46": "Big Chocobo 1",
-                        "0x47": "Big Chocobo 2",
-                        "0x48": "Big Chocobo 3",
-                        "0x49": "Big Chocobo 4",
-                        "0x4A": "Big Namingway 1",
-                        "0x4B": "Big Namingway 2",
-                        "0x4C": "Big Namingway 3",
-                        "0x4D": "Big Namingway 4",
-                        "0x4E": "Valvalis",
-                        "0x4F": "Dancer's Foot",
-                        "0x50": "Asura",
-                        "0x51": "Zemus",
-                        "0x52": "Tentacles",
-                        "0x53": "Magus Sisters",
-                        "0x54": "Dark Elf",
-                        "0x55": "Bahamut",
-                        "0x56": "Kainazzo",
-                        "0x57": "Dress",
-                        "0x58": "Ice",
-                        "0x59": "White Lance",
-                        "0x5A": "Rydia's Mother",
-                        "0x5B": "Big Ball",
-                        "0x5C": "Tower of Bab-il Ground",
-                        "0x5D": "Door",
-                        "0x5E": "Dead Soldier",
-                        "0x5F": "Antlion 1",
-                        "0x60": "Antlion 2",
-                        "0x61": "Anna",
-                        "0x62": "Golbez (Dead)",
-                        "0x63": "Crystal Sword",
-                        "0x64": "Anna (Dead)",
-                        "0x65": "Nothing",
-                        "0x66": "Ice",
-                        "0x67": "Big Flame 1",
-                        "0x68": "Big Flame 2",
-                        "0x69": "Stone Palom",
-                        "0x6A": "Stone Porom"
+                "assembly": {
+                    "graphics": {
+                        "type": "property",
+                        "name": "Graphics",
+                        "length": 1,
+                        "stringTable": {
+                            "name": "NPC Graphics",
+                            "default": "Graphics %i",
+                            "length": 107,
+                            "string": {
+                                "0x00": "Cecil (DkKnight)",
+                                "0x01": "Kain",
+                                "0x02": "Rydia (Girl)",
+                                "0x03": "Tellah",
+                                "0x04": "Edward",
+                                "0x05": "Rosa",
+                                "0x06": "Yang",
+                                "0x07": "Palom",
+                                "0x08": "Porom",
+                                "0x09": "Cecil (Paladin)",
+                                "0x0A": "Cid",
+                                "0x0B": "Rydia (Adult)",
+                                "0x0C": "Edge",
+                                "0x0D": "FuSoYa",
+                                "0x0E": "Tiny",
+                                "0x0F": "Frog",
+                                "0x10": "Pig",
+                                "0x11": "Man",
+                                "0x12": "Woman",
+                                "0x13": "Dancer",
+                                "0x14": "Old Man",
+                                "0x15": "Old Woman",
+                                "0x16": "Boy",
+                                "0x17": "Girl",
+                                "0x18": "Soldier",
+                                "0x19": "Merchant",
+                                "0x1A": "Scholar",
+                                "0x1B": "Black Mage",
+                                "0x1C": "White Mage",
+                                "0x1D": "Engineer",
+                                "0x1E": "Chocobo",
+                                "0x1F": "Monk",
+                                "0x20": "Officer",
+                                "0x21": "Bomb",
+                                "0x22": "Monster",
+                                "0x23": "Namingway",
+                                "0x24": "Golbez",
+                                "0x25": "King",
+                                "0x26": "Elder",
+                                "0x27": "Cleric",
+                                "0x28": "Dwarf",
+                                "0x29": "Calbrena",
+                                "0x2A": "King Giott",
+                                "0x2B": "Dr. Lugae",
+                                "0x2C": "Dwarf Girl (Luca)",
+                                "0x2D": "Golbez' Hand",
+                                "0x2E": "Cecil + Rosa",
+                                "0x2F": "Crystal",
+                                "0x30": "Heart",
+                                "0x31": "Flame",
+                                "0x32": "Zzz",
+                                "0x33": "Woman Waving",
+                                "0x34": "Woman Blinking",
+                                "0x35": "Edward w/ Harp",
+                                "0x36": "Water Splash",
+                                "0x37": "Murasame/Masamune",
+                                "0x38": "Dancer w/ Dress",
+                                "0x39": "Sword",
+                                "0x3A": "Rosa (Tied Up)",
+                                "0x3B": "Rubicant",
+                                "0x3C": "Sparkle",
+                                "0x3D": "Elder (Praying)",
+                                "0x3E": "Black Mage (Praying)",
+                                "0x3F": "Zemus (Dead)",
+                                "0x40": "White Mage (Praying)",
+                                "0x41": "Sylph",
+                                "0x42": "Zeromus",
+                                "0x43": "Kain w/o Helmet",
+                                "0x44": "Lightning Bolt",
+                                "0x45": "Smoke",
+                                "0x46": "Big Chocobo 1",
+                                "0x47": "Big Chocobo 2",
+                                "0x48": "Big Chocobo 3",
+                                "0x49": "Big Chocobo 4",
+                                "0x4A": "Big Namingway 1",
+                                "0x4B": "Big Namingway 2",
+                                "0x4C": "Big Namingway 3",
+                                "0x4D": "Big Namingway 4",
+                                "0x4E": "Valvalis",
+                                "0x4F": "Dancer's Foot",
+                                "0x50": "Asura",
+                                "0x51": "Zemus",
+                                "0x52": "Tentacles",
+                                "0x53": "Magus Sisters",
+                                "0x54": "Dark Elf",
+                                "0x55": "Bahamut",
+                                "0x56": "Kainazzo",
+                                "0x57": "Dress",
+                                "0x58": "Ice",
+                                "0x59": "White Lance",
+                                "0x5A": "Rydia's Mother",
+                                "0x5B": "Big Ball",
+                                "0x5C": "Tower of Bab-il Ground",
+                                "0x5D": "Door",
+                                "0x5E": "Dead Soldier",
+                                "0x5F": "Antlion 1",
+                                "0x60": "Antlion 2",
+                                "0x61": "Anna",
+                                "0x62": "Golbez (Dead)",
+                                "0x63": "Crystal Sword",
+                                "0x64": "Anna (Dead)",
+                                "0x65": "Nothing",
+                                "0x66": "Ice",
+                                "0x67": "Big Flame 1",
+                                "0x68": "Big Flame 2",
+                                "0x69": "Stone Palom",
+                                "0x6A": "Stone Porom"
+                            }
+                        }
                     }
                 }
             }
@@ -5707,7 +5746,7 @@
             },
             "assembly": {
                 "type": "array",
-                "format": "terminated",
+                "format": "terminated(0,4)",
                 "assembly": {
                     "type": "data",
                     "assembly": {
@@ -8941,11 +8980,10 @@
         "0x0EB439-0x0EB6C0",
         "0x0FC3C8-0x0FC600",
         "0x0FC62F-0x0FC700",
-        "0x12E68B-0x138000",
+        "0x12E68B-0x12F000",
         "0x13A293-0x13A300",
         "0x16C355-0x16C480",
         "0x16E042-0x16E180",
-        "0x16EB54-0x16EB80",
-        "0x19FCF9-0x19FE60"
+        "0x16EB54-0x16EB80"
     ]
 }

@@ -274,6 +274,8 @@
                 romNavigator = new ROMNavigator(rom);
                 scriptList = new ROMScriptList(rom);
                 
+//                rom.expandMode = "optimize";
+                
 //                // test compression
 //                // 59, 232, 278 fail
 //                var encoder = new FF5AdvanceEncoder();
@@ -285,7 +287,7 @@
 //                            encoder.m1 = m1;
 //                            encoder.m3 = m3;
 //                            var testData = encoder.compress(layout.data);
-//                            testData = decoder.decode(testData);
+//                            testData = decoder.decode(testData)[0];
 //                            var pass = compareTypedArrays(testData, layout.data);
 //                            console.log("Layout " + i + ", (" + m1 + "," + m3 + "): " + (pass ? "Pass" : "**Fail**"));
 //                        }
@@ -333,40 +335,22 @@
 //                    bigString += scriptString + "\n";
 //                }
 //                console.log(bigString);
-
-//                // create a zip file
-//                var zip = new JSZip();
-//                
-//                for (var i = 0; i < rom.mapGraphicsData.arrayLength; i++) {
-//                    var graphicsData = rom.mapGraphicsData.item(i);
-//                    if (graphicsData.lazyData[0] === 0x70) {
-//                        graphicsData.format = "tose-70";
-//                        graphicsData.disassemble(rom.mapGraphicsData.lazyData);
-//                    }
-//                    var graphicsName = hexString(graphicsData.range.begin + rom.mapGraphicsData.range.begin) + ".bin";
-//                    zip.file(graphicsName, graphicsData.data);
-//                }
-//                
-//                zip.generateAsync({ type:"blob" }).then(function(content) {
-//                    // see FileSaver.js
-//                    saveAs(content, "ff4u-gba-graphics.zip");
-//                });
             }
 
             function saveROM(forceSave) {
                 
                 if (!rom) return;
                 
-//                rom.treasureProperties.markAsDirty();
-//                rom.mapLayoutsPointerTable.markAsDirty();
+//                rom.npcProperties.markAsDirty();
+//                rom.worldLayout_0.markAsDirty();
                 
                 if (!rom.assemble()) {
                     if (forceSave) {
                         showOrphans();
                     } else {
                         chooseExpandMode();
+                        return;
                     }
-                    return;
                 }
                 
                 var definition = JSON.stringify(rom.definition, null, 4);

@@ -16,7 +16,7 @@ Tose70Encoder.prototype.encode = function(data) {
         }
     }
 
-    return bestComp;
+    return [bestComp, data.length];
 }
 
 Tose70Encoder.prototype.compress = function(data) {
@@ -729,7 +729,7 @@ Tose70Decoder.prototype.decode = function(data) {
         this.initHuffman(8);
         this.getValue = this.getHuffman;
     } else {
-        return new Uint8Array(0);
+        return [new Uint8Array(0), 0];
     }
 
     // initialize the Golomb tree
@@ -748,7 +748,7 @@ Tose70Decoder.prototype.decode = function(data) {
     } else if (m1 === 4) {
         this.putLine = this.putLine4;
     } else {
-        return new Uint8Array(0);
+        return [new Uint8Array(0), 0];
     }
 
     while (this.d < this.length) this.putLine();
@@ -764,8 +764,8 @@ Tose70Decoder.prototype.decode = function(data) {
         this.deltaMod4();
     }
     
-    data = data.subarray(0, this.s * 4);
-    return this.dest;
+//    data = data.subarray(0, this.s * 4);
+    return [this.dest, this.s * 4];
 }
 
 Tose70Decoder.prototype.getBits = function(n) {

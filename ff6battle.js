@@ -41,9 +41,9 @@ function FF6Battle(rom) {
     this.monsterPoint = null;
     this.clickedPoint = null;
     
-    this.rom.monsterGraphics; // load monster graphics
-    this.rom.monsterPalette; // load monster palettes
-    this.rom.monsterGraphicsMap; // load monster graphics maps
+//    this.rom.monsterGraphics; // load monster graphics
+//    this.rom.monsterPalette; // load monster palettes
+//    this.rom.monsterGraphicsMap; // load monster graphics maps
     this.updateBattleStrings();
 }
 
@@ -526,7 +526,7 @@ FF6Battle.prototype.mapForMonster = function(m) {
             if (!map) return null;
             map = map.data;
         } else {
-            map = gfxProperties.mapPointer.value.data;
+            map = gfxProperties.mapPointer.target.data;
 //            var mapBegin = this.rom.mapAddress(gfxProperties.mapPointer.value);
 //            var mapEnd = mapBegin + 32;
 //            map = this.rom.data.subarray(mapBegin, mapEnd);
@@ -539,7 +539,7 @@ FF6Battle.prototype.mapForMonster = function(m) {
             if (!map) return null;
             map = map.data;
         } else {
-            map = gfxProperties.mapPointer.value.data;
+            map = gfxProperties.mapPointer.target.data;
 //            var mapBegin = this.rom.mapAddress(gfxProperties.mapPointer.value);
 //            var mapEnd = mapBegin + 8;
 //            map = this.rom.data.subarray(mapBegin, mapEnd);
@@ -567,7 +567,7 @@ FF6Battle.prototype.drawMonster = function(slot) {
     var gfxProperties = this.rom.monsterGraphicsProperties.item(m.graphics);
     
     // decode the graphics
-    var gfx = gfxProperties.graphicsPointer.value;
+    var gfx = gfxProperties.graphicsPointer.target;
 //    var gfx = this.rom.monsterGraphics.item(m.graphics);
     if (this.rom.isSFC) {
         var format = gfxProperties.is3bpp.value ? "snes3bpp" : "snes4bpp";
@@ -585,9 +585,9 @@ FF6Battle.prototype.drawMonster = function(slot) {
     if (!map) return;
     
     // load palette
-    var p = gfxProperties.palette.value;
+//    var p = gfxProperties.palette.value;
     var pal = new Uint32Array(16);
-    pal.set(gfxProperties.palette.value.data);
+    pal.set(gfxProperties.palette.target.data);
 //    pal.set(this.rom.monsterPalette.item(p).data);
 //    if (this.rom.isGBA || !gfxProperties.is3bpp.value) pal.set(this.rom.monsterPalette.item(p + 1).data, 8);
     
@@ -765,10 +765,11 @@ FF6Battle.prototype.drawGhostTrain = function(slot) {
     for (var i = 0; i < layout.length; i++) layout[i] &= 0x01FF;
     
     // load palette
-    var p = gfxProperties.palette.value;
+//    var p = gfxProperties.palette.value;
     var pal = new Uint32Array(0x80);
-    pal.set(this.rom.monsterPalette.item(p).data);
-    pal.set(this.rom.monsterPalette.item(p + 1).data, 8);
+    pal.set(gfxProperties.palette.target.data);
+//    pal.set(this.rom.monsterPalette.item(p).data);
+//    pal.set(this.rom.monsterPalette.item(p + 1).data, 8);
 
     // set up the ppu
     this.ppu = new GFX.PPU();
@@ -896,7 +897,7 @@ FF6Battle.prototype.loadBattleBackgroundGraphics = function(i) {
     }
     var end = begin + (i & 0x80 ? 0x2000 : 0x1000);
     var decode = this.rom.isSFC ? GFX.decodeSNES4bpp : GFX.decodeLinear4bpp;
-    return decode(this.rom.data.subarray(begin, end));
+    return decode(this.rom.data.subarray(begin, end))[0];
 }
 
 function FF6BattleVRAM(rom, battle) {

@@ -1003,7 +1003,7 @@
                             "type": "property",
                             "name": "Dialog",
                             "begin": 1,
-                            "invalid": "this.parent.entrance.value !== 0 || this.parent.special.value !== 0",
+                            "invalid": "this.parent.entrance.value !== 0 || this.parent.specialTile.value !== 0",
                             "stringTable": "dialog",
                             "link": "dialog[%i]"
                         },
@@ -1011,7 +1011,7 @@
                             "type": "property",
                             "name": "Shop/Door",
                             "begin": 1,
-                            "invalid": "this.parent.entrance.value !== 0 || this.parent.special.value !== 1",
+                            "invalid": "this.parent.entrance.value !== 0 || this.parent.specialTile.value !== 1",
                             "stringTable": "shop",
                             "link": "shop[%i]",
                             "special": {
@@ -1022,7 +1022,7 @@
                             "type": "property",
                             "name": "Treasure",
                             "begin": 1,
-                            "invalid": "this.parent.entrance.value !== 0 || this.parent.special.value !== 4",
+                            "invalid": "this.parent.entrance.value !== 0 || this.parent.specialTile.value !== 4",
                             "stringTable": "treasure",
                             "link": "treasure[%i]"
                         },
@@ -1030,7 +1030,7 @@
                             "type": "property",
                             "name": "Battle",
                             "begin": 1,
-                            "invalid": "this.parent.entrance.value !== 0 || this.parent.special.value !== 5",
+                            "invalid": "this.parent.entrance.value !== 0 || this.parent.specialTile.value !== 5",
                             "link": "battleProperties[%i]",
                             "stringTable": "battleProperties",
                             "special": {
@@ -2443,7 +2443,8 @@
             },
             "pointerTable": {
                 "range": "0x018000-0x018200",
-                "offset": "0x010000"
+                "offset": "0x010000",
+                "isMapped": true
             }
         },
         "worldMap": {

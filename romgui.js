@@ -634,10 +634,11 @@ ROMPropertyList.prototype.propertyHTML = function(object, options) {
         var command = script.ref[object.value] || script.command[0];
         label = document.createElement('a');
         label.href = "javascript:propertyList.select(\"" + object.parseSubscripts(object.parseIndex(object.script)) + "\"); scriptList.selectRef(" + command.ref + ");";
-    } else if (object.pointerTo && object.parsePath(object.pointerTo) && object.value instanceof ROMAssembly) {
+    } else if (object.target instanceof ROMAssembly) {
+//    } else if (object.pointerTo && object.parsePath(object.pointerTo) && object.target instanceof ROMAssembly) {
         // create a label with a link to the pointer target
-        object.parsePath(object.pointerTo);
-        var target = object.value;
+//        object.parsePath(object.pointerTo);
+        var target = object.target;
         label = document.createElement('a');
         if (target.parent instanceof ROMArray) {
             label.href = "javascript:propertyList.select(\"" + target.parent.path + "[" + target.i + "]\");";
@@ -1041,23 +1042,37 @@ ROMPropertyList.prototype.pointerControlHTML = function(object, options) {
     input.onchange = function() {
         var numberValue = Number(this.value);
         if (isNumber(numberValue)) {
+            object.rom.beginAction();
+            if (object.target) object.setTarget(null);
             object.setValue(value);
+            object.rom.endAction();
         } else {
             var target = object.parsePath(this.value);
-            if (target) object.setValue(target);
+            if (target) object.setTarget(target);
         }
         document.getElementById(this.id).focus();
     };
 
+    // create options for special values
+    var value = null;
+    var specialKeys = Object.keys(object.special);
+    for (var i = 0; i < specialKeys.length; i++) {
+        var specialValue = Number(specialKeys[i]);
+        var option = document.createElement('option');
+        if (object.value === specialValue) value = specialValue;
+        option.value = specialValue;
+        option.innerHTML = object.special[specialValue];
+        input.appendChild(option);
+    }
+
     // create an option for each valid pointer
     var targetObject = this.rom.parsePath(object.pointerTo);
     var stringTable = this.rom.stringTable[targetObject.stringTable];
-    var value = null;
     for (var i = 0; i < targetObject.arrayLength; i++) {
 
         var arrayItem = targetObject.item(i);
         var objectPath = targetObject.path + "[" + i + "]";
-        if (object.value === arrayItem) value = objectPath;
+        if (object.target === arrayItem) value = objectPath;
         
         var optionString = (stringTable && stringTable.hideIndex) ? "" : i.toString() + ": ";
         if (stringTable && stringTable.string[i]) {
@@ -1069,17 +1084,6 @@ ROMPropertyList.prototype.pointerControlHTML = function(object, options) {
         var option = document.createElement('option');
         option.value = objectPath;
         option.innerHTML = optionString;
-        input.appendChild(option);
-    }
-    
-    // create options for special values
-    var specialKeys = Object.keys(object.special);
-    for (var i = 0; i < specialKeys.length; i++) {
-        var specialValue = Number(specialKeys[i]);
-        var option = document.createElement('option');
-        if (object.value === specialValue) value = specialValue;
-        option.value = specialValue;
-        option.innerHTML = object.special[specialValue];
         input.appendChild(option);
     }
     if (value !== null) input.value = value;
