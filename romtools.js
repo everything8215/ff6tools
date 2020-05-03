@@ -20,6 +20,7 @@ ROMObject.Type = {
     assembly: "assembly",
     command: "command",
     data: "data",
+    graphics: "graphics",
     object: "object",
     property: "property",
     reference: "reference",
@@ -43,6 +44,8 @@ ROMObject.create = function(rom, definition, parent) {
         return new ROMCommand(rom, definition, parent);
     case ROMObject.Type.data:
         return new ROMData(rom, definition, parent);
+    case ROMObject.Type.graphics:
+        return new ROMGraphics(rom, definition, parent);
     case ROMObject.Type.property:
         return new ROMProperty(rom, definition, parent);
     case ROMObject.Type.reference:
@@ -663,6 +666,91 @@ Object.defineProperty(ROMReference.prototype, "value", { get: function() {
         this.target.markAsDirty();
     }
 }});
+
+// ROMGraphics
+function ROMGraphics(rom, definition, parent) {
+    ROMAssembly.call(this, rom, definition, parent);
+    
+}
+
+ROMGraphics.prototype = Object.create(ROMAssembly.prototype);
+ROMGraphics.prototype.constructor = ROMGraphics;
+
+ROMGraphics.prototype.export = function() {
+    // open a dialog box
+    
+    var content = openModal("Export Graphics");
+
+    var p = document.createElement('p');
+    p.innerHTML = "Select an image format:";
+    content.appendChild(p);
+
+    var fileFormats = [
+        {
+            id: "indexed",
+            name: "PNG (indexed)",
+            default: true
+        }, {
+            id: "png",
+            name: "PNG (non-indexed)",
+            default: false
+        }, {
+            id: "jpg",
+            name: "JPEG (lossless)",
+            default: false
+        }
+    ]
+    
+    for (var i = 0; i < fileFormats.length; i++) {
+        var fileFormat = fileFormats[i];
+        var div = document.createElement('div');
+        div.classList.add("modal-div");
+        
+        var button = document.createElement('input');
+        button.type = "radio";
+        button.name = "exportGraphics";
+        button.id = "export-" + fileFormat.id;
+        button.classList.add("modal-radio");
+        button.value = fileFormat.id;
+        button.checked = fileFormat.default;
+        div.appendChild(button);
+        
+        var label = document.createElement('label');
+        label.htmlFor = button.id;
+        label.innerHTML = fileFormat.name;
+        div.appendChild(label);
+        content.appendChild(div);
+    }
+    
+    var saveButton = document.createElement('button');
+    saveButton.innerHTML = "Save Image";
+    saveButton.onclick = function() {
+        var radioButtons = document.getElementsByClassName('modal-radio');
+        for (var i = 0; i < radioButtons.length; i++) {
+            var button = radioButtons[i];
+            if (!button.checked) continue;
+            if (button.value === "indexed") {
+                this.saveAsIndexed();
+            } else if (button.value === "png") {
+                
+            } else if (button.value === "jpg") {
+                
+            }
+            break;
+        }
+        closeModal();
+    };
+    content.appendChild(saveButton);
+
+    var cancelButton = document.createElement('button');
+    cancelButton.innerHTML = "Cancel";
+    cancelButton.onclick = function() { closeModal(); };
+    content.appendChild(cancelButton);
+}
+
+ROMGraphics.prototype.saveAsIndexed = function() {
+    
+}
 
 // ROMData
 function ROMData(rom, definition, parent) {

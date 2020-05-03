@@ -40,10 +40,7 @@ function FF6Battle(rom) {
     this.canvas.onmouseleave = function(e) { self.mouseLeave(e) };
     this.monsterPoint = null;
     this.clickedPoint = null;
-    
-//    this.rom.monsterGraphics; // load monster graphics
-//    this.rom.monsterPalette; // load monster palettes
-//    this.rom.monsterGraphicsMap; // load monster graphics maps
+
     this.updateBattleStrings();
 }
 
@@ -58,6 +55,21 @@ FF6Battle.Type = {
 }
 
 FF6Battle.prototype.updateBattleStrings = function() {
+    
+    // set graphics to 3bpp or 4bpp
+    if (this.rom.isSFC) {
+        for (var g = 0; g < this.rom.monsterGraphicsProperties.arrayLength; g++) {
+            var gfxProperties = this.rom.monsterGraphicsProperties.item(g);
+
+            // decode the graphics
+            var gfx = gfxProperties.graphicsPointer.target;
+            var format = gfxProperties.is3bpp.value ? "snes3bpp" : "snes4bpp";
+            if (gfx.format !== format) {
+                gfx.format = format;
+                gfx.disassemble(gfx.parent.data);        
+            }
+        }
+    }
     
 //    var stringTable = this.rom.stringTable.monsterPalette;
 //    for (var m = 0; m < (this.rom.monsterGraphicsProperties.arrayLength - 36); m++) {
@@ -569,13 +581,13 @@ FF6Battle.prototype.drawMonster = function(slot) {
     // decode the graphics
     var gfx = gfxProperties.graphicsPointer.target;
 //    var gfx = this.rom.monsterGraphics.item(m.graphics);
-    if (this.rom.isSFC) {
-        var format = gfxProperties.is3bpp.value ? "snes3bpp" : "snes4bpp";
-        if (gfx.format !== format) {
-            gfx.format = format;
-            gfx.disassemble(gfx.parent.data);        
-        }
-    }
+//    if (this.rom.isSFC) {
+//        var format = gfxProperties.is3bpp.value ? "snes3bpp" : "snes4bpp";
+//        if (gfx.format !== format) {
+//            gfx.format = format;
+//            gfx.disassemble(gfx.parent.data);        
+//        }
+//    }
     
     // leave the first tile blank
     var graphics = new Uint8Array(gfx.data.length + 64);

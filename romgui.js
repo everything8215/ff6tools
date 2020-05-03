@@ -480,6 +480,11 @@ ROMPropertyList.prototype.showProperties = function() {
             properties.appendChild(arrayHTML[i]);
         }
         this.observer.startObserving(object, this.showProperties);
+    } else if (object instanceof ROMGraphics) {
+        var graphicsHTML = this.graphicsHTML(object);
+        if (!graphicsHTML) return;
+        properties.appendChild(graphicsHTML);
+        this.observer.startObserving(object, this.showProperties);
     }
     
     this.updateLabels();
@@ -600,6 +605,38 @@ ROMPropertyList.prototype.labelHTML = function(object) {
     };
 
     return labelDiv;
+}
+
+ROMPropertyList.prototype.graphicsHTML = function(object, options) {
+    var graphicsDiv = document.createElement('div');
+    
+    var exportButton = document.createElement('button');
+    exportButton.innerHTML = "Export Graphics";
+    exportButton.onclick = function() {
+        object.export();
+        
+        // convert graphics to indexed png
+        // https://github.com/hectorm/pzntg
+    }
+    graphicsDiv.appendChild(exportButton);
+
+    var importButton = document.createElement('button');
+    importButton.innerHTML = "Import Graphics";
+    importButton.onclick = function() {
+        console.log("Import Graphics");
+        
+        // upload user image file
+        
+        // for non-indexed graphics, convert to indexed
+        // https://github.com/leeoniya/RgbQuant.js/
+        
+        // for indexed graphics, make sure bit depth matches graphics
+        
+        // convert indexed graphics to 8x8 tile format
+    }
+    graphicsDiv.appendChild(importButton);
+
+    return graphicsDiv;
 }
 
 ROMPropertyList.prototype.propertyHTML = function(object, options) {
@@ -1255,8 +1292,13 @@ ROMPropertyList.prototype.getEditor = function(name) {
 }
 
 ROMPropertyList.prototype.showEditor = function(object) {
-    if (!object.editor) return;
-    var editor = this.getEditor(object.editor);
+    
+    var editor;
+    if (object instanceof ROMGraphics) {
+        editor = this.getEditor("ROMGraphicsView");
+    } else if (object.editor) {
+        editor = this.getEditor(object.editor);
+    }
     if (!editor) return;
     
     var editDiv = document.getElementById('edit-div');
@@ -1797,4 +1839,62 @@ ROMEditor.prototype.openList = function(e, id) {
 
 ROMEditor.prototype.closeList = function() {
     this.menu.classList.remove("menu-active");
+}
+
+function ROMGraphicsView(rom) {
+    ROMEditor.call(this, rom);
+    this.name = "ROMGraphicsView";
+    
+    this.zoom = 4.0;
+    this.gfx = null;
+    this.pal = null;
+    this.canvas = document.createElement('canvas');
+    this.graphicsCanvas = document.createElement('canvas');
+    this.graphicsCanvas.height = 128;
+    this.graphicsCanvas.width = 256;
+
+    this.div = document.createElement('div');
+    this.div.id = 'gfx-view';
+    this.div.appendChild(this.canvas);
+    
+    this.observer = new ROMObserver(rom, this);
+}
+
+ROMGraphicsView.prototype = Object.create(ROMEditor.prototype);
+ROMGraphicsView.prototype.constructor = ROMGraphicsView;
+
+ROMGraphicsView.prototype.selectObject = function(object) {
+    this.gfx = object.data;
+    this.pal = GFX.makeGrayPalette(16, true);
+    this.drawGraphics();
+    this.show();
+}
+
+ROMGraphicsView.prototype.show = function() {
+    document.getElementById('toolbox-buttons').classList.add("hidden");
+    document.getElementById('toolbox-div').classList.add("hidden");
+
+    this.resetControls();
+    this.showControls();
+    this.closeList();
+}
+
+ROMGraphicsView.prototype.hide = function() {
+    this.observer.stopObservingAll();
+}
+
+ROMGraphicsView.prototype.drawGraphics = function() {
+
+    this.canvas.width = 128 * this.zoom;
+    this.canvas.height = 256 * this.zoom;
+    
+    var context = this.graphicsCanvas.getContext('2d');
+    var imageData = context.createImageData(128, 256);
+    GFX.render(imageData.data, this.gfx, this.pal, 128);
+    context.putImageData(imageData, 0, 0);
+    
+    context = this.canvas.getContext('2d');
+    context.imageSmoothingEnabled = false;
+    context.webkitImageSmoothingEnabled = false;
+    context.drawImage(this.graphicsCanvas, 0, 0, 128, 256, 0, 0, 128 * this.zoom, 256 * this.zoom);
 }

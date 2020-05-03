@@ -19,13 +19,13 @@ function FF5Battle(rom) {
     this.div = document.createElement('div');
     this.div.id = 'map-edit';
     this.div.appendChild(this.canvas);
-    
+
     this.battleRect = new Rect(8, 248, this.rom.isSFC ? 1 : 8, this.rom.isSFC ? 160 : 128);
     this.zoom = 2.0;
 
     this.selectedMonster = null;
     this.showMonsters = true;
-    
+
     this.observer = new ROMObserver(rom, this, {sub: true, link: true, array: true});
 
     var self = this;
@@ -36,9 +36,6 @@ function FF5Battle(rom) {
     this.canvas.onmouseleave = function(e) { self.mouseLeave(e) };
     this.monsterPoint = null;
     this.clickedPoint = null;
-    
-//    this.rom.monsterGraphics; // load monster graphics
-//    this.rom.monsterPalette; // load monster palettes
 
     this.updateBattleStrings();
 }
@@ -49,7 +46,7 @@ FF5Battle.prototype.constructor = FF5Battle;
 //FF5Battle.prototype.battleName = function(b) {
 //    var battleProperties = this.rom.battleProperties.item(b);
 //    var isBoss = battleProperties.flags.value & 0x20;
-//    
+//
 //    // count up the monsters
 //    var monsterList = {};
 //    var index, count;
@@ -77,16 +74,16 @@ FF5Battle.prototype.constructor = FF5Battle;
 //        }
 //        if (count !== 1) battleName += " ×" + count;
 //    }
-//    
+//
 //    if (battleName === "") battleName = "Battle %i";
 //    return battleName;
 //}
 
 FF5Battle.prototype.updateBattleStrings = function() {
-    
+
 //    var stringTable = this.rom.stringTable["monsterGraphicsMap.large"];
 //    for (var m = 0; m < this.rom.monsterGraphicsProperties.arrayLength; m++) {
-//        
+//
 //        var g = m;
 //        var graphicsProperties = this.rom.monsterGraphicsProperties.item(g);
 //        if (!graphicsProperties.useLargeMap.value) continue;
@@ -159,16 +156,16 @@ FF5Battle.prototype.mouseDown = function(e) {
     } else {
         propertyList.select(this.battleProperties);
     }
-    
+
     this.drawBattle();
 }
 
 FF5Battle.prototype.mouseMove = function(e) {
     if (!this.selectedMonster || !this.clickedPoint) return;
-    
+
     var x = Math.floor(e.offsetX / this.zoom) + this.battleRect.l;
     var y = Math.floor(e.offsetY / this.zoom) + this.battleRect.t;
-    
+
     var dx = x - this.clickedPoint.x;
     var dy = y - this.clickedPoint.y;
 
@@ -179,9 +176,9 @@ FF5Battle.prototype.mouseMove = function(e) {
     var newY = (this.monsterPoint.y + dy) & ~7;
     newX = Math.min(128, Math.max(0, newX));
     newY = Math.min(128, Math.max(0, newY));
-    
+
     if (newX === monsterX && newY === monsterY) return;
-    
+
     this.observer.stopObserving(this.battleProperties);
     position.x.value = newX;
     position.y.value = newY;
@@ -190,12 +187,12 @@ FF5Battle.prototype.mouseMove = function(e) {
 }
 
 FF5Battle.prototype.mouseUp = function(e) {
-    
+
     if (!this.selectedMonster || !this.monsterPoint) return;
 
     // get the new monster's position properties
     var position = this.selectedMonster.position;
-    
+
     var newPoint = { x: position.x.value, y: position.y.value };
     var oldPoint = this.monsterPoint;
 
@@ -235,7 +232,7 @@ FF5Battle.prototype.show = function() {
     this.showControls();
     this.closeList();
     this.addTwoState("showMonsters", function(checked) { battle.showMonsters = checked; battle.drawBattle(); }, "Monsters", this.showMonsters);
-    
+
     var bgNames = [];
     for (var i = 0; i < this.rom.battleBackgroundProperties.arrayLength; i++) {
         bgNames.push(this.rom.stringTable.battleBackgroundProperties.string[i].fString());
@@ -258,7 +255,7 @@ FF5Battle.prototype.loadBattle = function(b) {
         this.battleProperties = this.rom.battleProperties.item(b);
         this.observer.startObserving(this.battleProperties, this.loadBattle);
     }
-    
+
     this.selectedMonster = null;
     this.drawBattle();
 }
@@ -291,13 +288,13 @@ FF5Battle.prototype.monsterInSlot = function(slot) {
     if ((m & 0xFF) === 0xFF) return null; // slot is empty
 
     var monsterProperties = this.getMonsterProperties(m);
-    
+
     var pal = this.battleProperties["monster" + slot + "Palette"].value;
-    
+
     var monsterPosition = this.rom.monsterPosition.item(this.b).item(slot - 1);
     var x = monsterPosition.x.value;
     var y = monsterPosition.y.value;
-    
+
     var id;
 //    if (this.rom.isGBA) {
 //        if (m < 256) {
@@ -312,7 +309,7 @@ FF5Battle.prototype.monsterInSlot = function(slot) {
     } else {
         id = monsterProperties.monsterID.value;
     }
-    
+
     // minimum size is 1x1
     var w = 1; var h = 1;
     if (this.rom.isSFC) {
@@ -327,7 +324,7 @@ FF5Battle.prototype.monsterInSlot = function(slot) {
         w = Math.max(size.width.value, 1);
         h = Math.max(size.height.value, 1);
     }
-    
+
     return {
         "slot": slot,
         "x": x,
@@ -341,7 +338,7 @@ FF5Battle.prototype.monsterInSlot = function(slot) {
 }
 
 FF5Battle.prototype.monsterAtPoint = function(x, y) {
-    
+
     for (var slot = 1; slot <= 8; slot++) {
         var m = this.monsterInSlot(slot);
         if (m && m.rect.containsPoint(x, y)) return m;
@@ -351,17 +348,17 @@ FF5Battle.prototype.monsterAtPoint = function(x, y) {
 
 FF5Battle.prototype.drawBattle = function() {
     this.drawBackground();
-    
+
     if (this.showMonsters) {
         for (var slot = 8; slot > 0; slot--) this.drawMonster(slot);
     }
 
     this.zoom = this.div.clientWidth / this.battleRect.w;
-    
+
     var scaledRect = this.battleRect.scale(this.zoom);
     this.canvas.width = scaledRect.w;
     this.canvas.height = scaledRect.h;
-    
+
     var ctx = this.canvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
     ctx.webkitImageSmoothingEnabled = false;
@@ -397,9 +394,9 @@ FF5Battle.prototype.mapForMonster = function(m) {
             map = this.rom.data.subarray(mapBegin, mapEnd);
         }
     }
-    
+
     var tiles = new Uint16Array(size * size);
-    
+
     for (var g = 1, t = 0; t < tiles.length; t++, row <<= 1) {
         if (t % size === 0) {
             row = map[t / size];
@@ -411,12 +408,12 @@ FF5Battle.prototype.mapForMonster = function(m) {
 }
 
 FF5Battle.prototype.drawMonster = function(slot) {
-    
+
     var m = this.monsterInSlot(slot);
     if (m === null) return; // return if slot is empty
-    
+
     var graphics, tiles, pal, w, h;
-    
+
     if (this.rom.isSFC) {
         // load graphics properties
         var gfxProperties = this.rom.monsterGraphicsProperties.item(m.id);
@@ -464,10 +461,10 @@ FF5Battle.prototype.drawMonster = function(slot) {
         // load size
         w = m.rect.w >> 3;
         h = m.rect.h >> 3;
-        
+
         tiles = new Uint16Array(w * h);
         for (var t = 0; t < tiles.length; t++) tiles[t] = t;
-        
+
         // load palette
         var paletteData = this.rom.monsterGraphics.item(m.id * 2 + 1);
         if (!paletteData.format) {
@@ -476,7 +473,7 @@ FF5Battle.prototype.drawMonster = function(slot) {
         }
         pal = paletteData.data.subarray(4);
     }
-    
+
     // set up the ppu
     var ppu = new GFX.PPU();
     ppu.pal = pal;
@@ -502,12 +499,12 @@ FF5Battle.prototype.drawMonster = function(slot) {
     var imageData = context.createImageData(ppu.width, ppu.height);
     ppu.renderPPU(imageData.data);
     context.putImageData(imageData, 0, 0);
-    
+
     if (!this.battleProperties["monster" + slot + "Present"].value) this.transparentMonster();
-    
+
     // tint the selected monster
     if (this.selectedMonster && this.selectedMonster.slot === slot) this.tintMonster();
-    
+
     var ctx = this.battleCanvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
     ctx.webkitImageSmoothingEnabled = false;
@@ -522,7 +519,7 @@ FF5Battle.prototype.tintMonster = function() {
     var ctx = tintCanvas.getContext('2d');
     ctx.fillStyle = 'hsla(210, 100%, 50%, 0.5)';
     ctx.fillRect(0, 0, this.monsterCanvas.width, this.monsterCanvas.height);
-    
+
     ctx = this.monsterCanvas.getContext('2d');
     ctx.globalCompositeOperation = 'source-atop';
     ctx.drawImage(tintCanvas, 0, 0);
@@ -536,29 +533,29 @@ FF5Battle.prototype.transparentMonster = function() {
     var ctx = transparentCanvas.getContext('2d');
     ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
     ctx.fillRect(0, 0, this.monsterCanvas.width, this.monsterCanvas.height);
-    
+
     ctx = this.monsterCanvas.getContext('2d');
     ctx.globalCompositeOperation = 'destination-out';
     ctx.drawImage(transparentCanvas, 0, 0);
 }
 
 FF5Battle.prototype.drawBackground = function() {
-    
+
     if (this.rom.isGBA) {
         this.drawBackgroundGBA();
         return;
     }
-    
+
     var bg = this.bg;
     var properties = this.rom.battleBackgroundProperties.item(bg);
-    
+
     // load graphics
     var gfx = new Uint8Array(0x10000);
     var g = properties.graphics.value;
     var gfxOffset = this.rom.battleBackgroundGraphicsOffset.item(g).offset.value;
 //    gfxOffset -= 0x7FC000;
     gfx.set(this.rom.battleBackgroundGraphics.item(g).data.subarray(gfxOffset << 1), 0x2000);
-        
+
     // load layout
     var l = properties.layout.value;
     var layout = this.rom.battleBackgroundLayout.item(l).data;
@@ -574,14 +571,14 @@ FF5Battle.prototype.drawBackground = function() {
         if (hFlip[i]) tiles[i] |= 0x4000;
         if (vFlip[i]) tiles[i] |= 0x8000;
     }
-    
+
     var pal = new Uint32Array(0x80);
     pal[0] = 0xFF000000;
     var p1 = properties.palette1.value;
     var p2 = properties.palette2.value;
     pal.set(this.rom.battleBackgroundPalette.item(p1).data, 0x10);
     pal.set(this.rom.battleBackgroundPalette.item(p2).data, 0x20);
-    
+
     // set up the ppu
     this.ppu = new GFX.PPU();
     this.ppu.pal = pal;
@@ -606,9 +603,9 @@ FF5Battle.prototype.drawBackground = function() {
 }
 
 FF5Battle.prototype.drawBackgroundGBA = function() {
-    
+
     var bg = this.bg * 3;
-    
+
     // load graphics
     var gfx = new Uint8Array(0x10000);
     var graphicsData = this.rom.battleBackgroundGraphics.item(bg);
@@ -617,11 +614,11 @@ FF5Battle.prototype.drawBackgroundGBA = function() {
         graphicsData.disassemble(graphicsData.parent.data);
     }
     gfx.set(graphicsData.data.subarray(16));
-        
+
     // load layout
     var layout = this.rom.battleBackgroundGraphics.item(bg + 1).data.subarray(12);
     var tiles = new Uint16Array(layout.buffer, layout.byteOffset);
-    
+
     // load palette
     var pal = new Uint32Array(0x100);
     var paletteData = this.rom.battleBackgroundGraphics.item(bg + 2);
@@ -631,7 +628,7 @@ FF5Battle.prototype.drawBackgroundGBA = function() {
     }
     pal[0] = 0xFF000000;
     pal.set(paletteData.data.subarray(4));
-    
+
     // set up the ppu
     this.ppu = new GFX.PPU();
     this.ppu.pal = pal;

@@ -466,6 +466,22 @@ GFX.encodeBGR555 = function(data) {
     return [new Uint8Array(dest.buffer, dest.byteOffset, dest.byteLength), data.length];
 }
 
+GFX.makeGrayPalette = function(n, invert) {
+    var pal = new Uint32Array(n);
+    pal[0] = 0;
+    for (var i = 0; i < (n - 1); i++) {
+        var c = Math.round(i / (n - 1) * 255);
+        c = c | (c << 8) | (c << 16) | 0xFF000000;
+
+        if (invert) {
+            pal[n - i - 1] = c;
+        } else {
+            pal[i + 1] = c;
+        }
+    }
+    return pal;
+}
+
 GFX.render = function(dest, gfx, pal, ppl) {
     
     // 32-bit destination, 32-bit palette
