@@ -1950,11 +1950,18 @@ ROMGraphicsView.prototype.drawGraphics = function(gfx) {
     this.colorDepth = GFX.colorDepth(this.format);
     this.pal = this.paletteView.getPaletteData(this.paletteView.p * this.colorDepth);
 
+    if (this.gfx.backColor) {
+        this.pal[0] = this.paletteView.getbackColor();
+    } else {
+        // transparent background
+        this.pal[0] = 0;
+    }
+
     this.graphicsCanvas.width = this.width * 8;
     this.graphicsCanvas.height = this.height * 8;
     var context = this.graphicsCanvas.getContext('2d');
     var imageData = context.createImageData(this.width * 8, this.height * 8);
-    GFX.render(imageData.data, this.gfx.data.subarray(this.offset), this.pal, this.width * 8, this.paletteView.getbackColor());
+    GFX.render(imageData.data, this.gfx.data.subarray(this.offset), this.pal, this.width * 8, this.pal[0]);
     context.putImageData(imageData, 0, 0);
 
     this.canvas.width = this.width * 8 * this.zoom;
@@ -2311,7 +2318,6 @@ ROMPaletteView.prototype.selectGraphics = function(graphics) {
     var format = this.gfx.format;
     if (isArray(format)) format = format[format.length - 1];
     this.colorDepth = GFX.colorDepth(format);
-    // this.p = 0;
 
     // create an array of possible palettes
     this.paletteArray = [];
@@ -2319,18 +2325,10 @@ ROMPaletteView.prototype.selectGraphics = function(graphics) {
         if (isArray(this.gfx.palette)) {
             // js array of palette paths
             for (var i = 0; i < this.gfx.palette.length; i++) {
-                this.paletteArray.push(this.rom.parsePath(this.gfx.palette[i]));
+                this.parsePalettePath(this.gfx.palette[i]);
             }
         } else if (isString(this.gfx.palette)) {
-            var paletteObject = this.rom.parsePath(this.gfx.palette, this.rom, this.gfx.i);
-            if (paletteObject instanceof ROMArray) {
-                // romarray of palettes
-                for (var i = 0; i < paletteObject.arrayLength; i++)
-                    this.paletteArray.push(paletteObject.item(i));
-            } else if (paletteObject && paletteObject.data) {
-                // single palette assembly
-                this.paletteArray.push(paletteObject);
-            }
+            this.parsePalettePath(this.gfx.palette);
         }
     }
 
@@ -2339,13 +2337,32 @@ ROMPaletteView.prototype.selectGraphics = function(graphics) {
     this.paletteArray.push(ROMPaletteView.DefaultPalette.vga);
 }
 
+ROMPaletteView.prototype.parsePalettePath = function(path) {
+    var paletteObject = this.rom.parsePath(path, this.rom, this.gfx.i);
+    if (paletteObject instanceof ROMArray) {
+        // romarray of palettes
+        for (var i = 0; i < paletteObject.arrayLength; i++)
+            this.paletteArray.push(paletteObject.item(i));
+    } else if (paletteObject && paletteObject.data) {
+        // single palette assembly
+        this.paletteArray.push(paletteObject);
+    }
+}
+
 ROMPaletteView.prototype.selectPalette = function(palette) {
     this.pal = palette;
     this.drawPalette();
 }
 
 ROMPaletteView.prototype.getbackColor = function() {
-    return this.gfx.backColor ? this.pal.data[0] : 0;
+    if (this.pal.data) {
+        // use the first color from a rom palette
+        return this.pal.data[0];
+    } else {
+        // use the first color from a built-in palette
+        var palette = this.getPaletteData();
+        return palette[0];
+    }
 }
 
 ROMPaletteView.prototype.getPaletteData = function(offset) {

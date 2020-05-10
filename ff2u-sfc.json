@@ -3420,11 +3420,11 @@
             "name": "Map Sprite Graphics",
             "range": "0x1B8000-0x1C8000",
             "format": "snes3bpp",
-            "palette": "npcPalettes"
+            "palette": ["mapSpritePalettes", "npcPalettes"]
         },
         "mapSpritePalettes": {
             "type": "array",
-            "name": "Map Sprite Palettes",
+            "name": "Map Sprite Palette",
             "range": "0x0D8000-0x0D8040",
             "array": {
                 "length": 4
@@ -5813,7 +5813,7 @@
         },
         "npcPalettes": {
             "type": "array",
-            "name": "NPC Palettes",
+            "name": "NPC Palette",
             "range": "0x0D80D0-0x0D8240",
             "array": {
                 "length": 23
