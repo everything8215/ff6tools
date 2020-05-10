@@ -568,6 +568,10 @@ body {
     cursor: ns-resize;
 }
 
+#toolbox-div {
+    font-size: 75%;
+}
+
 #toolbox-div.hidden {
     display: none;
 }
@@ -821,6 +825,10 @@ body {
     font-size: small;
 }
 
+#modal-content > button {
+    margin: 6px;
+}
+
 #modal-close {
     color: #aaa;
     float: right;
@@ -856,6 +864,10 @@ body {
     background-color: hsl(210, 100%, 40%);
     color: hsl(0, 0%, 95%);
     transition: 0.1s;
+}
+
+.modal-div {
+    margin: 6px;
 }
 
 .expand-div {

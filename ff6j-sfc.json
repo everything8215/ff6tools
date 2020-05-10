@@ -14,6 +14,15 @@
                     "name": "Maps",
                     "path": "mapProperties"
                 }, {
+                    "name": "Map Graphics",
+                    "path": "mapGraphics"
+                }, {
+                    "name": "Map Animation Graphics",
+                    "path": "mapAnimationGraphics"
+                }, {
+                    "name": "Map Animation Graphics (Layer 3)",
+                    "path": "mapAnimationGraphicsLayer3"
+                }, {
                     "name": "Map Titles",
                     "path": "mapTitle"
                 }, {
@@ -25,6 +34,21 @@
                 }, {
                     "name": "Palette Animation",
                     "path": "mapPaletteAnimation"
+                }, {
+                    "name": "Sprite Overlay Graphics",
+                    "path": "mapOverlayGraphics"
+                }, {
+                    "name": "Map Animation Properties",
+                    "path": "mapAnimationProperties"
+                }, {
+                    "name": "World of Balance Graphics",
+                    "path": "worldGraphics1.graphics"
+                }, {
+                    "name": "World of Ruin Graphics",
+                    "path": "worldGraphics2.graphics"
+                }, {
+                    "name": "Serpent Trench Graphics",
+                    "path": "worldGraphics3.graphics"
                 }
             ]
         }, {
@@ -60,8 +84,22 @@
                     "name": "Battle Dialog",
                     "path": "battleDialog"
                 }, {
+                    "name": "Attack Messages",
+                    "path": "attackMessage"
+                }, {
+                    "name": "Battle Background Graphics",
+                    "path": "battleBackgroundGraphics"
+                }
+            ]
+        }, {
+            "name": "Monster",
+            "list": [
+                {
                     "name": "Monsters",
                     "path": "monsterProperties"
+                }, {
+                    "name": "Monster/Esper Graphics",
+                    "path": "monsterGraphics"
                 }, {
                     "name": "Monster A.I. Script",
                     "path": "monsterScript"
@@ -71,9 +109,6 @@
                 }, {
                     "name": "Monster Dialog",
                     "path": "monsterDialog"
-                }, {
-                    "name": "Attack Messages",
-                    "path": "attackMessage"
                 }
             ]
         }, {
@@ -82,6 +117,15 @@
                 {
                     "name": "Characters",
                     "path": "characterProperties"
+                }, {
+                    "name": "Character Graphics",
+                    "path": "mapSpriteGraphics"
+                }, {
+                    "name": "Character Portraits",
+                    "path": "portraitGraphics"
+                }, {
+                    "name": "Vehicle Graphics",
+                    "path": "vehicleGraphics"
                 }, {
                     "name": "Espers",
                     "path": "esperProperties"
@@ -137,6 +181,9 @@
                 {
                     "name": "SNES Header",
                     "path": "snesHeader"
+                }, {
+                    "name": "Menu Window",
+                    "path": "windowGraphics"
                 }
             ]
         }
@@ -223,7 +270,9 @@
                 "length": 75
             },
             "assembly": {
-                "format": ["snes4bpp", "ff6-lzss"]
+                "type": "graphics",
+                "format": ["snes4bpp", "ff6-lzss"],
+                "palette": "battleBackgroundPalette"
             },
             "pointerTable": {
                 "range": "0xE71650-0xE71731",
@@ -3319,10 +3368,11 @@
             }
         },
         "mapAnimationGraphics": {
-            "type": "assembly",
+            "type": "graphics",
             "name": "Map Animation Graphics",
             "range": "0xE60000-0xE68000",
-            "format": "snes4bpp"
+            "format": "snes4bpp",
+            "palette": "mapPalettes"
         },
         "mapAnimationGraphicsLayer3": {
             "type": "array",
@@ -3332,6 +3382,7 @@
                 "length": 6
             },
             "assembly": {
+                "type": "graphics",
                 "format": ["snes2bpp", "ff6-lzss"]
             },
             "pointerTable": {
@@ -3621,7 +3672,9 @@
                 "max": 128
             },
             "assembly": {
-                "format": "snes4bpp"
+                "type": "graphics",
+                "format": "snes4bpp",
+                "palette": "mapPalettes"
             },
             "pointerTable": {
                 "range": "0xDFDA00-0xDFDB00",
@@ -3641,7 +3694,7 @@
                 "length": 18
             },
             "assembly": {
-                "type": "data",
+                "type": "graphics",
                 "format": "ff6-lzss",
                 "assembly": {
                     "tileset": {
@@ -4034,7 +4087,7 @@
             }
         },
         "mapOverlayGraphics": {
-            "type": "assembly",
+            "type": "graphics",
             "name": "Map Overlay Graphics",
             "range": "0xC0E2A0-0xC0EEA0",
             "format": "reverse1bpp"
@@ -4111,7 +4164,56 @@
             },
             "stringTable": {
                 "length": 48,
-                "default": "Map Palette %i"
+                "default": "Map Palette %i",
+                "string": {
+                    "0": "Figaro Castle - Exterior",
+                    "1": "Village - Exterior 1 (WoB)",
+                    "2": "Doma Castle - Exterior",
+                    "3": "Town - Exterior (WoB)",
+                    "4": "Docks",
+                    "5": "Caves 1",
+                    "6": "Castle - Interior",
+                    "7": "River",
+                    "8": "Imperial Camp",
+                    "9": "Mountains - Interior",
+                    "10": "Town - Interior 1",
+                    "11": "Opera House 1",
+                    "12": "Narshe - Exterior",
+                    "13": "Snowfields",
+                    "14": "Train - Exterior",
+                    "15": "Train - Interior",
+                    "16": "Zozo - Exterior",
+                    "17": "Vector - Exterior",
+                    "18": "Caves w/ Furniture",
+                    "19": "Floating Island",
+                    "20": "Zozo - Interior",
+                    "21": "Caves 2",
+                    "22": "Village - Exterior 2 (WoR)",
+                    "23": "Mountains - Exterior",
+                    "24": "Magitek Factory",
+                    "25": "Blackjack - Exterior",
+                    "26": "Airship - Interior",
+                    "27": "Cyan's Dream",
+                    "28": "Forest",
+                    "29": "Imperial Castle - Exterior",
+                    "30": "Beach",
+                    "31": "Imperial Castle - Interior",
+                    "32": "Fire Caves",
+                    "33": "Sealed Gate",
+                    "34": "Kefka's Tower",
+                    "35": "Burning Building",
+                    "36": "Town - Interior 2",
+                    "37": "Narshe - Interior",
+                    "38": "Village - Exterior 2 (WoB)",
+                    "39": "Opera House 2",
+                    "40": "Darill's Tomb",
+                    "41": "Town - Exterior (WoR)",
+                    "42": "Fanatics' Tower",
+                    "43": "Kefka's Tower - Top",
+                    "44": "Solitary Island - Cliff",
+                    "45": "Falcon - Exterior",
+                    "46": "Darill's Tomb - Stairway"
+                }
             }
         },
         "mapPaletteAnimation": {
@@ -5067,8 +5169,9 @@
                 "length": 165
             },
             "assembly": {
-                "type": "assembly",
-                "format": "snes4bpp"
+                "type": "graphics",
+                "format": "snes4bpp",
+                "palette": "mapSpritePalettes"
             },
             "pointerObject": {
                 "arrayPath": "mapSpritePointers",
@@ -5614,9 +5717,13 @@
         "monsterGraphics": {
             "type": "array",
             "name": "Monster Graphics",
-            "range": "0xE97000-0xECE3C0",
+            "range": "0xE97000-0xECE200",
             "array": {
                 "length": 176
+            },
+            "assembly": {
+                "type": "graphics",
+                "palette": "monsterPalette"
             },
             "pointerObject": {
                 "arrayPath": "monsterGraphicsProperties",
@@ -5688,7 +5795,7 @@
                     "59": "ChickenLip, Cluck",
                     "60": "Hoover, Land Worm, Zone Eater",
                     "61": "Rider, Test Rider, Dante",
-                    "62": "Chupon, Chupon",
+                    "62": "Chupon",
                     "63": "Pipsqueak, Tomb Thumb, IronHitman",
                     "64": "M-TekArmor, PlutoArmor, HeavyArmor, Dueller, Mega Armor",
                     "65": "Sky Armor, Sky Cap, Spit Fire, Sky Base",
@@ -7435,7 +7542,7 @@
                                     "0": "One Frame",
                                     "1": "Flip Horizontally",
                                     "2": "Two Frames",
-                                    "3": "Four Frames"                                    
+                                    "3": "Four Frames"
                                 }
                             },
                             "disabled": "this.parent.animation.value === 0"
@@ -7450,7 +7557,7 @@
                                     "0": "Fastest",
                                     "1": "Fast",
                                     "2": "Medium",
-                                    "3": "Slow"                                    
+                                    "3": "Slow"
                                 }
                             },
                             "disabled": "this.parent.animation.value === 0"
@@ -7463,6 +7570,56 @@
                 "range": "0xC41A10-0xC41D52",
                 "offset": "0xC41A10"
             }
+        },
+        "portraitGraphics": {
+            "type": "array",
+            "name": "Character Portrait Graphics",
+            "range": "0xED1D00-0xED5860",
+            "array": {
+                "length": 18
+            },
+            "assembly": {
+                "type": "graphics",
+                "length": "0x0320",
+                "format": "snes4bpp",
+                "palette": "portraitPalette[%i]"
+            },
+            "stringTable": {
+                "string": {
+                    "0": "Terra",
+                    "1": "Locke",
+                    "2": "Cyan",
+                    "3": "Shadow",
+                    "4": "Edgar",
+                    "5": "Sabin",
+                    "6": "Celes",
+                    "7": "Strago",
+                    "8": "Relm",
+                    "9": "Setzer",
+                    "10": "Mog",
+                    "11": "Gau",
+                    "12": "Gogo",
+                    "13": "Umaro",
+                    "14": "Soldier",
+                    "15": "Imp",
+                    "16": "Leo",
+                    "17": "Banon"
+                }
+            }
+        },
+        "portraitPalette": {
+            "type": "array",
+            "name": "Character Portrait Palette",
+            "range": "0xED5860-0xED5AC0",
+            "array": {
+                "length": 18
+            },
+            "assembly": {
+                "type": "assembly",
+                "length": 32,
+                "format": "bgr555"
+            },
+            "stringTable": "portraitGraphics"
         },
         "rareItemDescription": {
             "type": "array",
@@ -8055,10 +8212,11 @@
             }
         },
         "vehicleGraphics": {
-            "type": "assembly",
+            "type": "graphics",
             "name": "Vehicle Graphics",
             "range": "0xD83000-0xD85000",
-            "format": "snes4bpp"
+            "format": "snes4bpp",
+            "palette": ["mapSpritePalettes[7]", "mapSpritePalettes[11]"]
         },
         "vehicleEvents": {
             "type": "array",
@@ -8092,6 +8250,33 @@
                     "5": "Gogo's Lair",
                     "6": "Doom Gaze (World)"
                 }
+            }
+        },
+        "windowGraphics": {
+            "type": "array",
+            "name": "Menu Window Graphics",
+            "range": "0xED0000-0xED1C00",
+            "array": {
+                "length": 8
+            },
+            "assembly": {
+                "type": "graphics",
+                "length": "0x0380",
+                "format": "snes4bpp",
+                "palette": "windowPalette[%i]"
+            }
+        },
+        "windowPalette": {
+            "type": "array",
+            "name": "Menu Window Palette",
+            "range": "0xED1C00-0xED1D00",
+            "array": {
+                "length": 8
+            },
+            "assembly": {
+                "type": "assembly",
+                "length": 32,
+                "format": "bgr555"
             }
         },
         "worldBattleGroup": {
@@ -8194,10 +8379,11 @@
                     "range": "0x0000-0x0400"
                 },
                 "graphics": {
-                    "type": "assembly",
+                    "type": "graphics",
                     "name": "World of Balance Graphics",
                     "range": "0x0400-0x2400",
-                    "format": "linear4bpp"
+                    "format": "linear4bpp",
+                    "palette": "worldPalette1"
                 },
                 "paletteAssignment": {
                     "type": "assembly",
@@ -8219,10 +8405,11 @@
                     "range": "0x0000-0x0400"
                 },
                 "graphics": {
-                    "type": "assembly",
+                    "type": "graphics",
                     "name": "World of Ruin Graphics",
                     "range": "0x0400-0x2400",
-                    "format": "linear4bpp"
+                    "format": "linear4bpp",
+                    "palette": "worldPalette2"
                 },
                 "paletteAssignment": {
                     "type": "assembly",
@@ -8244,10 +8431,11 @@
                     "range": "0x0000-0x0400"
                 },
                 "graphics": {
-                    "type": "assembly",
+                    "type": "graphics",
                     "name": "Serpent Trench Graphics",
                     "range": "0x0400-0x2400",
-                    "format": "linear4bpp"
+                    "format": "linear4bpp",
+                    "palette": "worldPalette3"
                 },
                 "paletteAssignment": {
                     "type": "assembly",

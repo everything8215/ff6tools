@@ -27,7 +27,6 @@ GFX.GraphicsFormat = {
     reverse1bpp: "reverse1bpp",
     nes2bpp: "nes2bpp",
     snesMode7: "snesMode7",
-    snes8bpp: "snes8bpp",
     snes4bpp: "snes4bpp",
     snes3bpp: "snes3bpp",
     snes2bpp: "snes2bpp",
@@ -71,16 +70,34 @@ GFX.Z = {
     top: 100 // force to top
 }
 
-GFX.decode = function(data, format) {
-        
+GFX.colorDepth = function(format) {
     switch (format) {
-        case GFX.GraphicsFormat.linear4bpp: return GFX.decodeLinear4bpp(data);
-        case GFX.GraphicsFormat.snes4bpp: return GFX.decodeSNES4bpp(data);
-        case GFX.GraphicsFormat.snes3bpp: return GFX.decodeSNES3bpp(data);
-        case GFX.GraphicsFormat.snes2bpp: return GFX.decodeSNES2bpp(data);
-        case GFX.PaletteFormat.bgr555: return GFX.decodeBGR555(data);            
-        default: return [data, data.length];
+        case GFX.GraphicsFormat.linear8bpp: return 256;
+        case GFX.GraphicsFormat.linear4bpp: return 16;
+        case GFX.GraphicsFormat.linear2bpp: return 4;
+        case GFX.GraphicsFormat.linear1bpp: return 2;
+        case GFX.GraphicsFormat.reverse1bpp: return 2;
+        case GFX.GraphicsFormat.nes2bpp: return 4;
+        case GFX.GraphicsFormat.snes4bpp: return 16;
+        case GFX.GraphicsFormat.snes3bpp: return 8;
+        case GFX.GraphicsFormat.snes2bpp: return 4;
     }
+    return 16;
+}
+
+GFX.bytesPerTile = function(format) {
+    switch (format) {
+        case GFX.GraphicsFormat.linear8bpp: return 64;
+        case GFX.GraphicsFormat.linear4bpp: return 32;
+        case GFX.GraphicsFormat.linear2bpp: return 16;
+        case GFX.GraphicsFormat.linear1bpp: return 8;
+        case GFX.GraphicsFormat.reverse1bpp: return 8;
+        case GFX.GraphicsFormat.nes2bpp: return 16;
+        case GFX.GraphicsFormat.snes4bpp: return 32;
+        case GFX.GraphicsFormat.snes3bpp: return 24;
+        case GFX.GraphicsFormat.snes2bpp: return 16;
+    }
+    return 16;
 }
 
 GFX.decodeLinear8bpp = function(data) {
@@ -92,11 +109,11 @@ GFX.encodeLinear8bpp = function(data) {
 }
 
 GFX.decodeLinear4bpp = function(data) {
-    
+
     // 8-bit source, 8-bit destination
     var src = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
     var dest = new Uint8Array(data.byteLength * 2);
-    
+
     var s = 0;
     var d = 0;
     var c;
@@ -110,11 +127,11 @@ GFX.decodeLinear4bpp = function(data) {
 }
 
 GFX.encodeLinear4bpp = function(data) {
-    
+
     // 8-bit source, 8-bit destination
     var src = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
-    var dest = new Uint8Array(Math.ceil(data.byteLength / 2));
-    
+    var dest = new Uint8Array(Math.ceil(data.byteLength / 64) * 32);
+
     var s = 0;
     var d = 0;
     var a1, a2;
@@ -128,11 +145,11 @@ GFX.encodeLinear4bpp = function(data) {
 }
 
 GFX.decodeLinear2bpp = function(data) {
-    
+
     // 8-bit source, 8-bit destination
     var src = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
     var dest = new Uint8Array(data.byteLength * 4);
-    
+
     var s = 0;
     var d = 0;
     var c;
@@ -148,11 +165,11 @@ GFX.decodeLinear2bpp = function(data) {
 }
 
 GFX.encodeLinear2bpp = function(data) {
-    
+
     // 8-bit source, 8-bit destination
     var src = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
-    var dest = new Uint8Array(Math.ceil(data.byteLength / 4));
-    
+    var dest = new Uint8Array(Math.ceil(data.byteLength / 64) * 16);
+
     var s = 0;
     var d = 0;
     var a1, a2, a3, a4;
@@ -168,11 +185,11 @@ GFX.encodeLinear2bpp = function(data) {
 }
 
 GFX.decodeLinear1bpp = function(data) {
-    
+
     // 8-bit source, 8-bit destination
     var src = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
     var dest = new Uint8Array(data.byteLength * 8);
-    
+
     var s = 0;
     var d = 0;
     var c;
@@ -192,11 +209,11 @@ GFX.decodeLinear1bpp = function(data) {
 }
 
 GFX.encodeLinear1bpp = function(data) {
-    
+
     // 8-bit source, 8-bit destination
     var src = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
     var dest = new Uint8Array(Math.ceil(data.byteLength / 8));
-    
+
     var s = 0;
     var d = 0;
     var a;
@@ -216,11 +233,11 @@ GFX.encodeLinear1bpp = function(data) {
 }
 
 GFX.decodeReverse1bpp = function(data) {
-    
+
     // 8-bit source, 8-bit destination
     var src = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
     var dest = new Uint8Array(data.byteLength * 8);
-    
+
     var s = 0;
     var d = 0;
     var c;
@@ -240,11 +257,11 @@ GFX.decodeReverse1bpp = function(data) {
 }
 
 GFX.encodeReverse1bpp = function(data) {
-    
+
     // 8-bit source, 8-bit destination
     var src = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
     var dest = new Uint8Array(Math.ceil(data.byteLength / 8));
-    
+
     var s = 0;
     var d = 0;
     var a;
@@ -292,12 +309,39 @@ GFX.decodeNES2bpp = function(data) {
     return [dest, data.length];
 }
 
+GFX.encodeNES2bpp = function(data) {
+
+    // 8-bit source, 8-bit destination
+    var src = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+    var dest = new Uint8Array(Math.ceil(data.byteLength / 64) * 16);
+
+    var s = 0;
+    var d = 0;
+    var c, r, bp;
+
+    while (s < src.length) {
+        for (r = 0; r < 8; r++) {
+            bp = [0,0];
+            for (b = 7; b >= 0; b--) {
+                c = src[s++] || 0;
+                bp[0] |= (c & 1) << b; c >>= 1;
+                bp[1] |= (c & 1) << b;
+            }
+            dest[d] = bp[0];
+            dest[d + 8] = bp[1];
+            d++;
+        }
+        d += 8;
+    }
+    return [new Uint8Array(dest.buffer, dest.byteOffset, dest.byteLength), dest.byteLength];
+}
+
 GFX.decodeSNES4bpp = function(data) {
-    
+
     // 16-bit source, 8-bit destination
     var src = new Uint16Array(data.buffer, data.byteOffset, Math.floor(data.byteLength / 2));
     var dest = new Uint8Array(data.byteLength * 2);
-    
+
     var s = 0;
     var d = 0;
     var bp12, bp34, bp, c, r, b;
@@ -322,8 +366,39 @@ GFX.decodeSNES4bpp = function(data) {
     return [dest, data.length];
 }
 
+GFX.encodeSNES4bpp = function(data) {
+
+    // 8-bit source, 8-bit destination
+    var src = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+    var dest = new Uint8Array(Math.ceil(data.byteLength / 64) * 32);
+
+    var s = 0;
+    var d = 0;
+    var c, r, bp;
+
+    while (s < src.length) {
+        for (r = 0; r < 8; r++) {
+            bp = [0,0,0,0];
+            for (b = 7; b >= 0; b--) {
+                c = src[s++] || 0;
+                bp[0] |= (c & 1) << b; c >>= 1;
+                bp[1] |= (c & 1) << b; c >>= 1;
+                bp[2] |= (c & 1) << b; c >>= 1;
+                bp[3] |= (c & 1) << b;
+            }
+            dest[d] = bp[0];
+            dest[d + 1] = bp[1];
+            dest[d + 16] = bp[2];
+            dest[d + 17] = bp[3];
+            d += 2;
+        }
+        d += 16;
+    }
+    return [new Uint8Array(dest.buffer, dest.byteOffset, dest.byteLength), dest.byteLength];
+}
+
 GFX.decodeSNES3bpp = function(data) {
-    
+
     // 16-bit/8-bit source, 8-bit destination
     var src16 = new Uint16Array(data.buffer, data.byteOffset, data.byteLength / 2);
     var src8 = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
@@ -333,7 +408,7 @@ GFX.decodeSNES3bpp = function(data) {
     var s8 = 16;
     var d = 0;
     var bp12, bp3, bp, c, r, b;
-    
+
     while (s16 < src16.length) {
         for (r = 0; r < 8; r++) {
             bp12 = src16[s16++];
@@ -355,12 +430,42 @@ GFX.decodeSNES3bpp = function(data) {
     return [dest, data.length];
 }
 
+GFX.encodeSNES3bpp = function(data) {
+
+    // 8-bit source, 8-bit destination
+    var src = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+    var dest = new Uint8Array(Math.ceil(data.byteLength / 64) * 24);
+
+    var s = 0;
+    var d = 0;
+    var c, r, bp, d1;
+
+    while (s < src.length) {
+        d1 = d + 16;
+        for (r = 0; r < 8; r++) {
+            bp = [0,0,0];
+            for (b = 7; b >= 0; b--) {
+                c = src[s++] || 0;
+                bp[0] |= (c & 1) << b; c >>= 1;
+                bp[1] |= (c & 1) << b; c >>= 1;
+                bp[2] |= (c & 1) << b;
+            }
+            dest[d] = bp[0];
+            dest[d + 1] = bp[1];
+            d += 2;
+            dest[d1++] = bp[2];
+        }
+        d += 8;
+    }
+    return [new Uint8Array(dest.buffer, dest.byteOffset, dest.byteLength), dest.byteLength];
+}
+
 GFX.decodeSNES2bpp = function(data) {
-    
+
     // 16-bit source, 8-bit destination
     var src = new Uint16Array(data.buffer, data.byteOffset, Math.floor(data.byteLength / 2));
     var dest = new Uint8Array(data.byteLength * 4);
-    
+
     var s = 0;
     var d = 0;
     var bp, c, r, b;
@@ -381,23 +486,48 @@ GFX.decodeSNES2bpp = function(data) {
     return [dest, data.length];
 };
 
+GFX.encodeSNES2bpp = function(data) {
+
+    // 8-bit source, 8-bit destination
+    var src = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+    var dest = new Uint8Array(Math.ceil(data.byteLength / 64) * 16);
+
+    var s = 0;
+    var d = 0;
+    var c, r, bp;
+
+    while (s < src.length) {
+        for (r = 0; r < 8; r++) {
+            bp = [0,0];
+            for (b = 7; b >= 0; b--) {
+                c = src[s++] || 0;
+                bp[0] |= (c & 1) << b; c >>= 1;
+                bp[1] |= (c & 1) << b;
+            }
+            dest[d++] = bp[0];
+            dest[d++] = bp[1];
+        }
+    }
+    return [new Uint8Array(dest.buffer, dest.byteOffset, dest.byteLength), dest.byteLength];
+}
+
 // from blargg's full palette demo
 GFX.colorsNES = [
     [ 84,  84,  84], [  0,  30, 116], [  8,  16, 144], [ 48,   0, 136],
     [ 68,   0, 100], [ 92,   0,  48], [ 84,   4,   0], [ 60,  24,   0],
     [ 32,  42,   0], [  8,  58,   0], [  0,  64,   0], [  0,  60,   0],
     [  0,  50,  60], [  0,   0,   0], [  0,   0,   0], [  0,   0,   0],
-    
+
     [152, 150, 152], [  8,  76, 196], [ 48,  50, 236], [ 92,  30, 228],
     [136,  20, 176], [160,  20, 100], [152,  34,  32], [120,  60,   0],
     [ 84,  90,   0], [ 40, 114,   0], [  8, 124,   0], [  0, 118,  40],
     [  0, 102, 120], [  0,   0,   0], [  0,   0,   0], [  0,   0,   0],
-    
+
     [236, 238, 236], [ 76, 154, 236], [120, 124, 236], [176,  98, 236],
     [228,  84, 236], [236,  88, 180], [236, 106, 100], [212, 136,  32],
     [160, 170,   0], [116, 196,   0], [ 76, 208,  32], [ 56, 204, 108],
     [ 56, 180, 204], [ 60,  60,  60], [  0,   0,   0], [  0,   0,   0],
-    
+
     [236, 238, 236], [168, 204, 236], [188, 188, 236], [212, 178, 236],
     [236, 174, 236], [236, 174, 212], [236, 180, 176], [228, 196, 144],
     [204, 210, 120], [180, 222, 120], [168, 226, 144], [152, 226, 180],
@@ -405,7 +535,7 @@ GFX.colorsNES = [
 ];
 
 GFX.decodeNESPalette = function(data) {
-    
+
     // 8-bit source, 8-bit destination
     var src = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
     var dest = new Uint8Array(data.byteLength * 4);
@@ -427,7 +557,7 @@ GFX.decodeNESPalette = function(data) {
 GFX.colors31 = [0, 8, 16, 25, 33, 41, 49, 58, 66, 74, 82, 90, 99, 107, 115, 123, 132, 140, 148, 156, 165, 173, 181, 189, 197, 206, 214, 222, 230, 239, 247, 255];
 
 GFX.decodeBGR555 = function(data) {
-    
+
     // 16-bit source, 8-bit destination
     var src = new Uint16Array(data.buffer, data.byteOffset, Math.floor(data.byteLength / 2));
     var dest = new Uint8Array(data.byteLength * 2);
@@ -447,7 +577,7 @@ GFX.decodeBGR555 = function(data) {
 }
 
 GFX.encodeBGR555 = function(data) {
-    
+
     // 32-bit source, 16-bit destination
     var src = new Uint32Array(data.buffer, data.byteOffset, Math.floor(data.byteLength / 4));
     var dest = new Uint16Array(Math.floor(data.byteLength / 4));
@@ -468,22 +598,65 @@ GFX.encodeBGR555 = function(data) {
 
 GFX.makeGrayPalette = function(n, invert) {
     var pal = new Uint32Array(n);
-    pal[0] = 0;
-    for (var i = 0; i < (n - 1); i++) {
+    for (var i = 0; i < n; i++) {
         var c = Math.round(i / (n - 1) * 255);
         c = c | (c << 8) | (c << 16) | 0xFF000000;
 
         if (invert) {
             pal[n - i - 1] = c;
         } else {
-            pal[i + 1] = c;
+            pal[i] = c;
         }
     }
     return pal;
 }
 
-GFX.render = function(dest, gfx, pal, ppl) {
-    
+GFX.vgaPalette = new Uint32Array([
+    0xFF000000, 0xFF800000, 0xFF008000, 0xFF808000, 0xFF000080, 0xFF800080, 0xFF008080, 0xFFC0C0C0,
+    0xFF808080, 0xFFFF0000, 0xFF00FF00, 0xFFFFFF00, 0xFF0000FF, 0xFFFF00FF, 0xFF00FFFF, 0xFFFFFFFF
+
+]);
+
+GFX.createPNG = function(gfx, pal, ppl) {
+    // de-interlace 8x8 tiles
+    var h = Math.ceil(gfx.length / ppl / 8) * 8;
+    var dest = new Uint8Array(ppl * h);
+
+    var g = 0;
+    var d = 0;
+    var x = 0;
+    var y, p;
+    while (g < gfx.length) {
+        y = d + x;
+        for (var line = 0; line < 8; line++) {
+            p = y;
+            dest[p++] = gfx[g++];
+            dest[p++] = gfx[g++];
+            dest[p++] = gfx[g++];
+            dest[p++] = gfx[g++];
+            dest[p++] = gfx[g++];
+            dest[p++] = gfx[g++];
+            dest[p++] = gfx[g++];
+            dest[p++] = gfx[g++];
+            y += ppl;
+        }
+        x += 8;
+        if (x >= ppl) {
+            x = 0;
+            d += 8 * ppl;
+        }
+    }
+
+    return pzntg.create({
+        width: ppl,
+        height: h,
+        pixels: dest,
+        palette: pal
+    });
+}
+
+GFX.render = function(dest, gfx, pal, ppl, backColor) {
+
     // 32-bit destination, 32-bit palette
     dest = new Uint32Array(dest.buffer, dest.byteOffset);
     pal = new Uint32Array(pal.buffer, pal.byteOffset, Math.ceil(pal.byteLength / 4));
@@ -492,19 +665,21 @@ GFX.render = function(dest, gfx, pal, ppl) {
     var d = 0;
     var x = 0;
     var y, c, p;
-    
+
+    backColor = backColor | 0;
+
     while (g < gfx.length) {
         y = d + x;
         for (var line = 0; line < 8; line++) {
             p = y;
-            c = gfx[g++]; if (c) dest[p] = pal[c]; p++;
-            c = gfx[g++]; if (c) dest[p] = pal[c]; p++;
-            c = gfx[g++]; if (c) dest[p] = pal[c]; p++;
-            c = gfx[g++]; if (c) dest[p] = pal[c]; p++;
-            c = gfx[g++]; if (c) dest[p] = pal[c]; p++;
-            c = gfx[g++]; if (c) dest[p] = pal[c]; p++;
-            c = gfx[g++]; if (c) dest[p] = pal[c]; p++;
-            c = gfx[g++]; if (c) dest[p] = pal[c]; p++;
+            c = gfx[g++]; dest[p++] = c ? pal[c] : backColor;
+            c = gfx[g++]; dest[p++] = c ? pal[c] : backColor;
+            c = gfx[g++]; dest[p++] = c ? pal[c] : backColor;
+            c = gfx[g++]; dest[p++] = c ? pal[c] : backColor;
+            c = gfx[g++]; dest[p++] = c ? pal[c] : backColor;
+            c = gfx[g++]; dest[p++] = c ? pal[c] : backColor;
+            c = gfx[g++]; dest[p++] = c ? pal[c] : backColor;
+            c = gfx[g++]; dest[p++] = c ? pal[c] : backColor;
             y += ppl;
         }
         x += 8;
@@ -541,7 +716,7 @@ GFX.PPU = function() {
 }
 
 GFX.PPU.prototype.renderPPU = function(dest, x, y, width, height) {
-    
+
     // declare this variable so i can access the ppu inside closures
     var ppu = this;
 
@@ -549,7 +724,7 @@ GFX.PPU.prototype.renderPPU = function(dest, x, y, width, height) {
     y = y || 0;
     width = width || ppu.width;
     height = height || ppu.height;
-    
+
     // 32-bit destination, 32-bit palette
     dest = new Uint32Array(dest.buffer, dest.byteOffset);
     ppu.pal = new Uint32Array(ppu.pal.buffer, ppu.pal.byteOffset);
@@ -562,11 +737,11 @@ GFX.PPU.prototype.renderPPU = function(dest, x, y, width, height) {
     var d = 0; // destination buffer location
     var l; // layer index
     var layer;
-    
+
     var ly, lx;
     var tx, ty;
     var i, c, s, t, p, z, h, v, m;
-    
+
     // color math as determined by ppu
     var math = GFX.mathNone;
     var ppuMath = GFX.mathNone;
@@ -578,7 +753,7 @@ GFX.PPU.prototype.renderPPU = function(dest, x, y, width, height) {
 
     // tile format based on layer
     var updateTile;
-    
+
     // pixel rendering function
     var renderPixel;
 
@@ -675,7 +850,7 @@ GFX.PPU.prototype.renderPPU = function(dest, x, y, width, height) {
         ty = (v ? (7 - (ly & 7)) : (ly & 7)) << 3;
         m = 3;
     }
-    
+
     function updateTileSNESSprite() {
         var row = (ly >> 3) % layer.rows;
         var col = (lx >> 3) % layer.cols;
@@ -702,13 +877,13 @@ GFX.PPU.prototype.renderPPU = function(dest, x, y, width, height) {
     }
 
     function renderLayerLine() {
-        
+
         ly = y + layer.y; // y location in layer (ignoring flip)
         lx = x + layer.x; // x location in layer (ignoring flip)
         while (ly < 0) ly += 0x1000;
         while (lx < 0) lx += 0x1000;
         i = 0; // scanline x position
-        
+
         // draw first tile
         updateTile();
         tx = (h ? (7 - lx) : lx) & 7;
@@ -734,7 +909,7 @@ GFX.PPU.prototype.renderPPU = function(dest, x, y, width, height) {
                 }
             }
         }
-        
+
         // draw last tile
         updateTile();
         tx = h ? 7 : 0;
@@ -743,12 +918,12 @@ GFX.PPU.prototype.renderPPU = function(dest, x, y, width, height) {
             h ? --tx : ++tx;
         }
     }
-    
+
     function renderLine() {
-                
+
         zBuffer.fill(0);
         sub.fill(0);
-        
+
         // render subscreen layers
         renderPixel = renderPixelSub;
         for (l = 0; l < 4; l++) {
@@ -766,14 +941,14 @@ GFX.PPU.prototype.renderPPU = function(dest, x, y, width, height) {
                 renderLayerLine();
             }
         }
-        
+
         // clear the z-level
         zBuffer.fill(0);
 
         // render main screen layers
         main = new Uint32Array(width);
         renderPixel = renderPixelMain;
-        
+
         // render the back area
         if (ppu.back) {
             c = ppu.pal[0];
@@ -797,10 +972,10 @@ GFX.PPU.prototype.renderPPU = function(dest, x, y, width, height) {
             }
         }
     }
-        
+
     // render each scanline
     var yf = y + height;
-    
+
     while (y < yf) {
         renderLine();
         dest.set(main, d);

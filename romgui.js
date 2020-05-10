@@ -1,7 +1,7 @@
-// 
+//
 // romgui.js
 // created 2/26/2019
-// 
+//
 
 var romNavigator;
 var propertyList;
@@ -19,7 +19,7 @@ function ROMNavigator(rom) {
 }
 
 ROMNavigator.prototype.selectObject = function(object) {
-    
+
     var li = this.node[object.path];
     if (!li) return;
 
@@ -29,7 +29,7 @@ ROMNavigator.prototype.selectObject = function(object) {
     } else {
         newSelection = li;
     }
-    
+
     if (newSelection) {
         if (this.selectedNode) this.selectedNode.classList.remove("selected");
         this.selectedNode = newSelection;
@@ -96,12 +96,12 @@ ROMNavigator.defaultHierarchy = [
 
 ROMNavigator.prototype.updateList = function() {
     this.nav.innerHTML = null;
-    
+
     // create the main nav list
     var navList = document.createElement('ul');
     navList.classList.add("nav-list");
     this.nav.appendChild(navList);
-    
+
     for (var i = 0; i < this.hierarchy.length; i++) {
         var definition = this.hierarchy[i];
         var category = this.liForCategory(definition);
@@ -118,9 +118,9 @@ ROMNavigator.prototype.liForCategory = function(definition) {
     category.onclick = function(e) {
         e.stopPropagation();
         this.classList.toggle("shown");
-        
+
         if (isLoaded) return;
-        
+
         var ul = document.createElement('ul');
         ul.classList.add('nav-list');
         category.appendChild(ul);
@@ -153,7 +153,7 @@ ROMNavigator.prototype.liForCategory = function(definition) {
     if (!/\S/.test(name)) name = "&nbsp;";
     p.innerHTML = name;
     category.appendChild(p);
-    
+
     return category;
 }
 
@@ -161,7 +161,7 @@ ROMNavigator.prototype.liForObject = function(object, options) {
 
 //    if (object instanceof ROMArray) return this.liForArray(object, options);
 //    if (object instanceof ROMStringTable) return this.liForStringTable(object, options);
-    
+
     var li = document.createElement("li");
     li.classList.add("nav-object")
     li.onclick = function(e) {
@@ -169,17 +169,16 @@ ROMNavigator.prototype.liForObject = function(object, options) {
         propertyList.select(object);
     }
     if (!this.node[object.path]) this.node[object.path] = li;
-    
+
     var p = document.createElement('p');
     var name = options.name;
     if (!isString(name)) name = object.name;
-//    if (!isString(name) && object instanceof ROMText) name = object.htmlText;
     if (object instanceof ROMText) name = object.htmlText;
     if (!isString(name)) name = "Unnamed Object";
     if (!/\S/.test(name)) name = "&nbsp;";
     p.innerHTML = name;
     li.appendChild(p);
-        
+
     return li;
 }
 
@@ -190,7 +189,7 @@ ROMNavigator.prototype.liForArray = function(array, options) {
         e.stopPropagation();
         this.classList.toggle("shown");
     }
-    
+
     var p = document.createElement('p');
     var name = options.name;
     if (!isString(name)) name = array.name;
@@ -198,11 +197,11 @@ ROMNavigator.prototype.liForArray = function(array, options) {
     if (!/\S/.test(name)) name = "&nbsp;";
     p.innerHTML = name;
     li.appendChild(p);
-    
+
     var ul = document.createElement('ul');
     ul.classList.add("nav-list");
     if (!this.node[array.path]) this.node[array.path] = ul;
-    
+
     for (var i = 0; i < array.arrayLength; i++) {
         var item = this.liForArrayItem(array, i);
         if (!item) continue;
@@ -217,9 +216,9 @@ ROMNavigator.prototype.liForArrayItem = function(array, i) {
 
     var object = array.item(i);
     if (!object) return null;
-    
+
     var options = {};
-    
+
     options.name = array.name + " " + i.toString();
     if (array.stringTable) {
         var stringTable = this.rom.stringTable[array.stringTable];
@@ -227,9 +226,9 @@ ROMNavigator.prototype.liForArrayItem = function(array, i) {
             options.name = stringTable.string[i].fString(40);
         }
     }
-    
+
     var li = this.liForObject(object, options);
-    
+
     var span = document.createElement('span');
     span.innerHTML = i.toString();
     span.classList.add("nav-object-index");
@@ -255,12 +254,12 @@ ROMNavigator.prototype.liForStringTable = function(stringTable, options) {
     if (!/\S/.test(name)) name = "&nbsp;";
     p.innerHTML = name;
     li.appendChild(p);
-    
+
     var ul = document.createElement('ul');
     ul.classList.add("nav-list");
     var path = "stringTable." + stringTable.key;
     if (!this.node[path]) this.node[path] = ul;
-    
+
     for (var i = 0; i < stringTable.string.length; i++) {
         var item = this.liForString(stringTable, i);
         if (!item) continue;
@@ -272,25 +271,25 @@ ROMNavigator.prototype.liForStringTable = function(stringTable, options) {
 }
 
 ROMNavigator.prototype.liForString = function(stringTable, i) {
-    
+
     if (!stringTable.string[i]) return null;
-    
+
     var li = document.createElement("li");
     var span = document.createElement('span');
     span.innerHTML = i.toString();
     span.classList.add("nav-object-index");
     li.appendChild(span);
-    
+
     li.classList.add("nav-object")
     li.onclick = function(e) {
         e.stopPropagation();
         propertyList.select(stringTable.string[i]);
     }
-    
+
     var p = document.createElement('p');
     p.innerHTML = stringTable.string[i].htmlString();
     li.appendChild(p);
-    
+
     return li;
 }
 
@@ -310,13 +309,13 @@ ROMPropertyList.prototype.select = function(object) {
         // return if it's an invalid link
         if (!object) return;
     }
-    
+
     // update properties if the selection didn't change
     if (this.selection.current === object) {
         this.showProperties();
         return;
     }
-    
+
     // deselect everything
     this.deselectAll();
 
@@ -326,10 +325,10 @@ ROMPropertyList.prototype.select = function(object) {
         this.showProperties();
         return;
     }
-    
+
     // select the object in the navigator
     romNavigator.selectObject(object);
-    
+
     // select a script (this might be redundant)
     if (object instanceof ROMScript) {
         scriptList.selectScript(object);
@@ -341,7 +340,7 @@ ROMPropertyList.prototype.select = function(object) {
 
     // show the editor for this object
     this.showEditor(object);
-    
+
     // show properties for this object
     this.showProperties();
 }
@@ -368,21 +367,21 @@ ROMPropertyList.prototype.deselectAll = function() {
         this.selection.previous.push(this.selection.current);
         this.selection.next = [];
     }
-    
+
     this.selection.current = null;
 }
 
 ROMPropertyList.prototype.showProperties = function() {
-    
+
     // stop observing eveything
     this.observer.stopObservingAll();
-    
+
     var properties = document.getElementById("properties");
     properties.innerHTML = "";
-    
+
     var object = this.selection.current;
     if (!object) return;
-    
+
     // show heading
     if (object.name) {
         var headingDiv = document.createElement('div');
@@ -423,7 +422,7 @@ ROMPropertyList.prototype.showProperties = function() {
         headingDiv.appendChild(heading);
         heading.innerHTML = object.name.replace("%i", object.i);
     }
-    
+
     // show object label (string table or script label)
     var labelHTML = this.labelHTML(object);
     if (labelHTML) {
@@ -445,7 +444,7 @@ ROMPropertyList.prototype.showProperties = function() {
             properties.appendChild(propertyHTML);
             this.observer.startObserving(link, this.showProperties);
         }
-        
+
     } else if (object instanceof ROMString && object.link) {
         // strings with only one languages
         var linkString = object.link.replace("%i", object.i);
@@ -455,7 +454,7 @@ ROMPropertyList.prototype.showProperties = function() {
         if (!propertyHTML) return;
         properties.appendChild(propertyHTML);
         this.observer.startObserving(link, this.showProperties);
-        
+
     } else if ((object instanceof ROMProperty) || (object instanceof ROMText) || (object instanceof ROMString)) {
         // object with a single property
         var propertyHTML = this.propertyHTML(object);
@@ -471,7 +470,7 @@ ROMPropertyList.prototype.showProperties = function() {
             properties.appendChild(assemblyHTML[i]);
         }
         this.observer.startObserving(object, this.showProperties);
-        
+
     } else if (object instanceof ROMArray) {
         // object is an array
         var arrayHTML = this.arrayHTML(object);
@@ -486,20 +485,20 @@ ROMPropertyList.prototype.showProperties = function() {
         properties.appendChild(graphicsHTML);
         this.observer.startObserving(object, this.showProperties);
     }
-    
+
     this.updateLabels();
 }
 
 ROMPropertyList.prototype.assemblyHTML = function(object, options) {
-    
+
     options = options || {};
-    
+
     // disable all properties if this object has a special value
     if (object.getSpecialValue() !== null) options.disabled = true;
 
     var divs = [];
     if (!object.assembly) return divs;
-    
+
     var keys = Object.keys(object.assembly);
     for (var i = 0; i < keys.length; i++) {
         var key = keys[i];
@@ -533,7 +532,7 @@ ROMPropertyList.prototype.assemblyHTML = function(object, options) {
             if (!assemblyHTML) continue;
             divs = divs.concat(assemblyHTML);
             this.observer.startObserving(assembly, this.showProperties);
-            
+
         } else {
             // single property
             var propertyHTML = this.propertyHTML(assembly, {name: object.assembly[key].name, index: options.index, key: options.key, disabled: options.disabled});
@@ -552,7 +551,7 @@ ROMPropertyList.prototype.assemblyHTML = function(object, options) {
 
 
 ROMPropertyList.prototype.labelHTML = function(object) {
-    
+
     var string;
     var defaultString;
     if (object instanceof ROMCommand) {
@@ -572,7 +571,7 @@ ROMPropertyList.prototype.labelHTML = function(object) {
     labelDiv.classList.add("property-div");
     labelDiv.id = "label-" + object.key;
     var id = "label-control-" + object.key;
-    
+
     // create a label for the label
     var label = document.createElement('label');
     label.htmlFor = id;
@@ -584,7 +583,7 @@ ROMPropertyList.prototype.labelHTML = function(object) {
     var controlDiv = document.createElement('div');
     labelDiv.appendChild(controlDiv);
     controlDiv.classList.add("property-control-div");
-        
+
     // create a text box
     var input = document.createElement('input');
     controlDiv.appendChild(input);
@@ -609,31 +608,18 @@ ROMPropertyList.prototype.labelHTML = function(object) {
 
 ROMPropertyList.prototype.graphicsHTML = function(object, options) {
     var graphicsDiv = document.createElement('div');
-    
+    graphicsDiv.classList.add("property-div");
+
+    var editor = this.getEditor("ROMGraphicsView");
     var exportButton = document.createElement('button');
     exportButton.innerHTML = "Export Graphics";
-    exportButton.onclick = function() {
-        object.export();
-        
-        // convert graphics to indexed png
-        // https://github.com/hectorm/pzntg
-    }
+    exportButton.onclick = function() { editor.showExportDialog(); };
     graphicsDiv.appendChild(exportButton);
 
     var importButton = document.createElement('button');
     importButton.innerHTML = "Import Graphics";
-    importButton.onclick = function() {
-        console.log("Import Graphics");
-        
-        // upload user image file
-        
-        // for non-indexed graphics, convert to indexed
-        // https://github.com/leeoniya/RgbQuant.js/
-        
-        // for indexed graphics, make sure bit depth matches graphics
-        
-        // convert indexed graphics to 8x8 tile format
-    }
+    importButton.disabled = true;
+    importButton.onclick = function() { editor.showImportDialog(); };
     graphicsDiv.appendChild(importButton);
 
     return graphicsDiv;
@@ -641,7 +627,7 @@ ROMPropertyList.prototype.graphicsHTML = function(object, options) {
 
 ROMPropertyList.prototype.propertyHTML = function(object, options) {
     if (object.hidden || object.invalid) return null;
-    
+
     options = options || {};
     if (options.key && object.key) {
         options.key += "-" + object.key;
@@ -699,36 +685,36 @@ ROMPropertyList.prototype.propertyHTML = function(object, options) {
     var controlDiv;
     if (object instanceof ROMProperty && object.bool) {
         controlDiv = this.boolControlHTML(object, options);
-        
+
     } else if (object instanceof ROMProperty && object.flag) {
         controlDiv = this.flagControlHTML(object, options);
-        
+
     } else if (object instanceof ROMProperty && object.stringTable) {
         controlDiv = this.listControlHTML(object, options);
-        
+
     } else if (object instanceof ROMProperty && object.script) {
         controlDiv = this.scriptControlHTML(object, options);
-        
+
     } else if (object instanceof ROMProperty && object.pointerTo) {
         controlDiv = this.pointerControlHTML(object, options);
-        
+
     } else if (object instanceof ROMProperty) {
         controlDiv = this.numberControlHTML(object, options);
-        
+
     } else if (object instanceof ROMText) {
         controlDiv = this.textControlHTML(object, options);
-        
+
     } else if (object instanceof ROMString) {
         controlDiv = this.stringControlHTML(object, options);
-        
+
     } else if (object instanceof ROMArray) {
         controlDiv = this.arrayLengthControlHTML(object, options);
-        
+
     } else if (object instanceof ROMData || object instanceof ROMCommand) {
         controlDiv = this.specialControlHTML(object, options);
         label.innerHTML = "";
         if (!controlDiv) return null;
-        
+
     } else {
         return null;
     }
@@ -739,7 +725,7 @@ ROMPropertyList.prototype.propertyHTML = function(object, options) {
     propertyDiv.id = options.propertyID;
     propertyDiv.appendChild(label);
     propertyDiv.appendChild(controlDiv);
-    
+
     return propertyDiv;
 }
 
@@ -762,7 +748,7 @@ ROMPropertyList.prototype.boolControlHTML = function(object, options) {
         object.setValue(value);
         document.getElementById(this.id).focus();
     };
-    
+
     // move the label to the right of the check box
     if (options.label) {
         // move the label to the right of the check box
@@ -773,7 +759,7 @@ ROMPropertyList.prototype.boolControlHTML = function(object, options) {
         label.innerHTML = options.name || "";
         controlDiv.appendChild(label);
     }
-    
+
     return controlDiv;
 }
 
@@ -869,7 +855,7 @@ ROMPropertyList.prototype.flagControlHTML = function(object, options) {
         specialDiv.appendChild(label);
         controlDiv.appendChild(specialDiv);
     }
-    
+
     return controlDiv;
 }
 
@@ -893,7 +879,7 @@ ROMPropertyList.prototype.listControlHTML = function(object, options) {
     // create an option for each valid string in the table
     var stringTable = this.rom.stringTable[object.stringTable];
     if (!stringTable) return null;
-    
+
     var indexList = [];
     var keys = Object.keys(stringTable.string);
     for (var k = 0; k < keys.length; k++) {
@@ -901,19 +887,19 @@ ROMPropertyList.prototype.listControlHTML = function(object, options) {
         if (!isNumber(key)) continue;
         indexList.push(key);
     }
-    
+
     var keys = Object.keys(object.special);
     for (var k = 0; k < keys.length; k++) {
         var key = Number(keys[k]);
         if (!isNumber(key)) continue;
         indexList.push(key);
     }
-    
+
     // sort the list from low to high
     indexList = indexList.sort(function(a,b) {return a - b;});
-    
+
     for (var i = 0; i < indexList.length; i++) {
-        
+
         var index = indexList[i];
         var optionString = "";
         if (!stringTable.hideIndex) {
@@ -1110,7 +1096,7 @@ ROMPropertyList.prototype.pointerControlHTML = function(object, options) {
         var arrayItem = targetObject.item(i);
         var objectPath = targetObject.path + "[" + i + "]";
         if (object.target === arrayItem) value = objectPath;
-        
+
         var optionString = (stringTable && stringTable.hideIndex) ? "" : i.toString() + ": ";
         if (stringTable && stringTable.string[i]) {
             optionString += stringTable.string[i].fString(40);
@@ -1147,14 +1133,14 @@ ROMPropertyList.prototype.arrayLengthControlHTML = function(object, options) {
         object.setLength(value);
         document.getElementById(this.id).focus();
     };
-    
+
     return controlDiv;
 }
 
 ROMPropertyList.prototype.arrayHTML = function(object, options) {
-    
+
     if (object.hidden || object.invalid) return null;
-    
+
     options = options || {};
     if (options.key && object.key) {
         options.key += "-" + object.key;
@@ -1168,7 +1154,7 @@ ROMPropertyList.prototype.arrayHTML = function(object, options) {
     options.labelID = "property-label-" + options.key;
 
     var divs = [];
-    
+
     // create the category (array heading)
     var categoryDiv = document.createElement('div');
     categoryDiv.classList.add("property-category");
@@ -1176,21 +1162,21 @@ ROMPropertyList.prototype.arrayHTML = function(object, options) {
     var category = document.createElement('p');
     if (!object.hideCategory) category.innerHTML = options.name;
     categoryDiv.appendChild(category);
-    
+
     // create the length control
     if (object.min !== object.max) {
         var lengthDiv = this.propertyHTML(object, {name: "Array Size", index: options.index});
         divs.push(lengthDiv);
     }
-    
+
     // create divs for each element in the array
     for (var i = 0; i < object.arrayLength; i++) {
         var element = object.item(i);
-        
+
         if (element instanceof ROMData) {
             var assemblyHTML = this.assemblyHTML(element, {index: i, key: options.key});
             divs = divs.concat(assemblyHTML);
-            
+
         } else if (element instanceof ROMArray) {
             var arrayHTML = this.arrayHTML(element, {index: i});
             divs = divs.concat(arrayHTML);
@@ -1213,14 +1199,14 @@ ROMPropertyList.prototype.specialControlHTML = function(object, options) {
     var currentSpecial = object.getSpecialValue();
     var keys = Object.keys(object.special);
     if (!keys.length) return null;
-    
+
     for (var s = 0; s < keys.length; s++) {
 
         var key = keys[s];
         var special = Number(key);
         if (!isNumber(special)) continue;
         var name = object.special[key];
-        
+
         // create the check box
         var check = document.createElement('input');
         check.classList.add("property-check");
@@ -1230,7 +1216,7 @@ ROMPropertyList.prototype.specialControlHTML = function(object, options) {
         check.id = options.controlID + "-" + s;
         check.onchange = function() {
             var valueArray = new Uint8Array(object.data.length);
-            
+
             if (this.checked) {
                 // set value
                 for (var i = 0; i < 4; i++) valueArray[i] = this.value >> (i * 8);
@@ -1254,7 +1240,7 @@ ROMPropertyList.prototype.specialControlHTML = function(object, options) {
 //        controlDiv.appendChild(check);
 //        controlDiv.appendChild(label);
     }
-    
+
     return controlDiv;
 }
 
@@ -1271,7 +1257,7 @@ ROMPropertyList.prototype.updateLabels = function() {
 
     // make all labels the same width
     for (l = 0; l < labels.length; l++) labels[l].style.width = w + "px";
-    
+
     // make all text controls the same height as the text
     var text = document.getElementsByClassName("property-textarea");
     for (t = 0; t < text.length; t++) {
@@ -1283,7 +1269,7 @@ ROMPropertyList.prototype.updateLabels = function() {
 
 ROMPropertyList.prototype.getEditor = function(name) {
     if (this.editors[name]) return this.editors[name];
-    
+
     var editorClass = window[name];
     if (!editorClass) return null;
     editor = new editorClass(this.rom);
@@ -1292,7 +1278,7 @@ ROMPropertyList.prototype.getEditor = function(name) {
 }
 
 ROMPropertyList.prototype.showEditor = function(object) {
-    
+
     var editor;
     if (object instanceof ROMGraphics) {
         editor = this.getEditor("ROMGraphicsView");
@@ -1300,7 +1286,7 @@ ROMPropertyList.prototype.showEditor = function(object) {
         editor = this.getEditor(object.editor);
     }
     if (!editor) return;
-    
+
     var editDiv = document.getElementById('edit-div');
     if (!editDiv.contains(editor.div)) {
         if (this.activeEditor && this.activeEditor.hide) this.activeEditor.hide();
@@ -1310,7 +1296,7 @@ ROMPropertyList.prototype.showEditor = function(object) {
     }
 
     editor.selectObject(object);
-    
+
     // TODO: come up with a way to select any object in the navigator pane
 //    if (object.editor.includes("Map")) {
 //        selectMap(object.i);
@@ -1328,72 +1314,72 @@ function ROMScriptList(rom) {
     this.script = null;
     this.selection = []; // selected commands
     this.node = []; // command nodes by ref
-    
+
     this.blockSize = 50; // number of commands per block
     this.blockStart = 0; // starting location of first block
     this.numBlocks = 3; // number of blocks visible at one time
     this.rowHeight = 17;
-    
+
     this.observer = new ROMObserver(rom, this, {sub: true});
-    
+
     var self = this;
     this.scriptList.parentElement.onscroll = function() { self.scroll(); };
     this.menu = document.getElementById('menu');
     this.scriptList.parentElement.oncontextmenu = function(e) { self.openMenu(e); return false; };
-    
+
     var insertButton = document.getElementById("script-insert");
     insertButton.onclick = function(e) { self.openMenu(e); };
 }
 
 ROMScriptList.prototype.scroll = function() {
-    
+
     if (!this.script) return;
     this.closeMenu();
-    
+
     var topSpace = this.scriptList.firstChild;
     var bottomSpace = this.scriptList.lastChild;
     if (!topSpace || !bottomSpace) return;
-    
+
     if (this.container.scrollTop < topSpace.offsetHeight) {
         // scrolled off the top
         var index = Math.floor(this.blockStart - (topSpace.offsetHeight - this.container.scrollTop) / this.rowHeight);
-        
+
         // save the scroll position for the top command
         var topCommand = this.script.command[this.blockStart];
         var commandNode = this.node[topCommand.ref];
         var oldOffset, newOffset;
         if (commandNode) oldOffset = commandNode.offsetTop;
-        
+
         // change blockStart so that the previous blocks are visible
         index = index - index % this.blockSize - this.blockSize * (this.numBlocks - 2);
         this.blockStart = Math.max(index, 0);
         this.update();
-        
+
         // recalculate the scroll position so that the first command stays in the same spot
         commandNode = this.node[topCommand.ref];
         if (commandNode && oldOffset) {
             newOffset = commandNode.offsetTop;
             this.scriptList.parentElement.scrollTop += newOffset - oldOffset;
         }
-        
+
     } else if ((this.container.scrollTop + this.container.offsetTop + this.container.offsetHeight) > bottomSpace.offsetTop) {
         // scrolled off the bottom
         var index = Math.floor(this.blockStart + (this.container.scrollTop + this.container.offsetTop + this.container.offsetHeight - bottomSpace.offsetTop) / this.rowHeight);
-        
+
         // save the scroll position for the bottom command
         var bottomIndex = Math.min(this.blockStart + this.blockSize * this.numBlocks - 1, this.script.command.length - 1);
         var bottomCommand = this.script.command[bottomIndex];
         var commandNode = this.node[bottomCommand.ref];
         var oldOffset, newOffset;
         if (commandNode) oldOffset = commandNode.offsetTop;
-        
+
         // change blockStart so that the next blocks are visible
         index = index - index % this.blockSize + this.blockSize * (this.numBlocks - 2);
         var maxStart = this.script.command.length - this.blockSize * this.numBlocks;
         maxStart = Math.max(maxStart + this.blockSize - (maxStart % this.blockSize), 0);
         this.blockStart = Math.min(index, maxStart);
         this.update();
-        
+
         // recalculate the scroll position so that the first command stays in the same spot
         commandNode = this.node[bottomCommand.ref];
         if (commandNode && oldOffset) {
@@ -1405,43 +1391,43 @@ ROMScriptList.prototype.scroll = function() {
 
 ROMScriptList.prototype.selectScript = function(script) {
     document.getElementById("edit-bottom").classList.remove("hidden");
-    
+
     if (this.script === script) return;
     this.deselectAll();
     this.script = script;
-    
+
     // populate the list
     this.blockStart = 0;
     this.update();
 }
 
 ROMScriptList.prototype.selectCommand = function(command) {
-    
+
     this.closeMenu();
 
     // clear the old selection
     this.deselectAll();
-    
+
     if (!command) {
         this.selection = [];
         return;
     }
     this.selection = [command];
-    
+
     // select the command in the rom
     propertyList.select(command);
-    
+
     if (!this.node[command.ref]) {
         // node is not in the current block
         var index = this.script.command.indexOf(command);
         this.blockStart = Math.max(index - index % this.blockSize - this.blockSize, 0);
         this.update();
     }
-    
+
     var node = this.node[command.ref];
     if (!node) return;
     node.classList.add("selected");
-    
+
     // center the node in the list
     var nodeTop = node.offsetTop - this.container.offsetTop;
     var nodeBottom = nodeTop + node.offsetHeight;
@@ -1465,11 +1451,11 @@ ROMScriptList.prototype.deselectAll = function() {
 
 ROMScriptList.prototype.insert = function(identifier) {
     if (!this.script) return;
-    
+
     this.closeMenu();
-    
+
     var command = this.script.blankCommand(identifier);
-    
+
     var firstCommand = this.selection[0];
     var lastCommand = this.selection[this.selection.length - 1];
     var end = this.script.command.indexOf(lastCommand);
@@ -1497,7 +1483,7 @@ ROMScriptList.prototype.delete = function() {
     if (!this.script) return;
     if (this.selection.length === 0) return;
     this.closeMenu();
-    
+
     var lastCommand = this.selection[this.selection.length - 1];
     var i = this.script.command.indexOf(lastCommand);
     var nextCommand = this.script.command[i + 1] || this.script.command[this.script.command.length - 2];
@@ -1525,7 +1511,7 @@ ROMScriptList.prototype.moveUp = function() {
     if (!this.script) return;
     if (this.selection.length === 0) return;
     this.closeMenu();
-    
+
     var firstCommand = this.selection[0];
     var start = this.script.command.indexOf(firstCommand);
     if (start === 0) return;
@@ -1555,7 +1541,7 @@ ROMScriptList.prototype.moveDown = function() {
     if (!this.script) return;
     if (this.selection.length === 0) return;
     this.closeMenu();
-    
+
     var firstCommand = this.selection[0];
     var start = this.script.command.indexOf(firstCommand);
     if (start === 0) return;
@@ -1581,29 +1567,29 @@ ROMScriptList.prototype.moveDown = function() {
 }
 
 ROMScriptList.prototype.update = function() {
-        
+
     if (!this.script) return;
-    
+
     // recalculate top and bottom spacers
-    
+
     // create a dummy li to determine the row height
     var dummy = document.createElement("li");
     dummy.innerHTML = "Dummy"
     this.scriptList.appendChild(dummy);
     this.rowHeight = dummy.scrollHeight;
     this.scriptList.removeChild(dummy);
-    
+
     var totalHeight = this.script.command.length * this.rowHeight;
     var blockTop = this.blockStart * this.rowHeight;
     var blockBottom = blockTop + this.blockSize * this.numBlocks * this.rowHeight;
-    
+
     // stop observing current nodes
     this.observer.stopObservingAll();
-    
+
     // remove all nodes
     this.node = [];
     this.scriptList.innerHTML = "";
-    
+
     // create top space
     var topSpace = document.createElement('div');
     topSpace.className = "script-spacer";
@@ -1630,11 +1616,11 @@ ROMScriptList.prototype.update = function() {
     var bottomSpace = document.createElement('div');
     bottomSpace.className = "script-spacer";
     this.scriptList.appendChild(bottomSpace);
-    
+
     // set top space height
     topSpace.style.height = blockTop + "px";
     bottomSpace.style.height = Math.max(totalHeight - blockBottom, 0) + "px";
-    
+
     // highlight selected commands
     for (var c = 0; c < this.selection.length; c++) {
         var command = this.selection[c];
@@ -1663,9 +1649,9 @@ ROMScriptList.prototype.liForCommand = function(command) {
 }
 
 ROMScriptList.prototype.updateMenu = function() {
-    
+
     this.menu.innerHTML = "";
-    
+
     // build the menu for the appropriate script commands
     if (isArray(this.script.encoding)) {
         for (var i = 0; i < this.script.encoding.length; i++) {
@@ -1688,12 +1674,12 @@ ROMScriptList.prototype.updateMenu = function() {
 
 ROMScriptList.prototype.openMenu = function(e) {
     this.updateMenu();
-    
+
     this.menu.classList.add("menu-active");
     this.menu.style.left = e.x + "px";
     this.menu.style.height = "";
 //    this.menu.style.overflowY = "visible";
-    
+
     var top = e.y;
     var height = this.menu.clientHeight;
     if (height + top > window.innerHeight) {
@@ -1739,35 +1725,39 @@ ROMEditor.prototype.addTwoState = function(id, onclick, labelText, checked) {
 //    label.classList.add("tooltip");
     label.style.display = "inline-block";
     this.editorControls.appendChild(label);
-    
+
     var button = document.createElement("input");
     button.id = id;
     button.type = "checkbox";
     button.checked = checked;
     button.onclick = function() { onclick(this.checked); twoState(this); };
     label.appendChild(button);
-    
+
     var p = document.createElement("p");
     p.innerHTML = labelText;
     label.appendChild(p);
 }
 
-ROMEditor.prototype.addZoom = function(zoom, onchange) {
+ROMEditor.prototype.addZoom = function(zoom, onchange, min, max, step) {
     var zoomValue = document.createElement("div");
     zoomValue.id = "zoom-value";
     zoomValue.innerHTML = (zoom * 100).toString() + "%";
     this.editorControls.appendChild(zoomValue);
 
+    if (!isNumber(min)) min = -2;
+    if (!isNumber(max)) max = 2;
+    if (!isNumber(step)) step = 1;
+
     var zoomRange = document.createElement("input");
     zoomRange.type = "range";
     zoomRange.id = "zoom";
-    zoomRange.min = "-2";
-    zoomRange.max = "2";
-    zoomRange.step = "1";
+    zoomRange.min = min.toString();
+    zoomRange.max = max.toString();
+    zoomRange.step = step.toString();
     zoomRange.value = Math.log2(zoom);
     zoomRange.onchange = function() { onchange(); };
     this.editorControls.appendChild(zoomRange);
-    
+
     var zoomCoordinates = document.createElement("div");
     zoomCoordinates.id = "coordinates";
     zoomCoordinates.innerHTML = "(0,0)";
@@ -1786,27 +1776,27 @@ ROMEditor.prototype.addList = function(id, labelText, listNames, onchange, selec
     label.classList.add("checked");
     label.style.display = "inline-block";
     this.editorControls.appendChild(label);
-    
+
     var self = this;
     var button = document.createElement("input");
     button.id = id;
     button.type = "button";
     button.onclick = function(e) { self.openList(e, id); };
     label.appendChild(button);
-    
+
     var p = document.createElement("p");
     p.innerHTML = labelText;
     label.appendChild(p);
 }
 
 ROMEditor.prototype.openList = function(e, id) {
-    
+
     this.menu.innerHTML = "";
     this.menu.classList.add('menu');
 
     var list = this.list[id];
     if (!list || !isArray(list.names)) return;
-    
+
     // build the menu for the list of options
     var self = this;
     for (var i = 0; i < list.names.length; i++) {
@@ -1818,12 +1808,12 @@ ROMEditor.prototype.openList = function(e, id) {
         if (list.selected(i)) li.classList.add("selected");
         menu.appendChild(li);
     }
-    
+
     this.menu.classList.add("menu-active");
     this.menu.style.left = e.x + "px";
     this.menu.style.height = "";
     this.menu.style.overflowY = "visible";
-    
+
     var top = e.y;
     var height = this.menu.clientHeight;
     if (height + top > window.innerHeight) {
@@ -1841,22 +1831,34 @@ ROMEditor.prototype.closeList = function() {
     this.menu.classList.remove("menu-active");
 }
 
+// ROMGraphicsView
 function ROMGraphicsView(rom) {
     ROMEditor.call(this, rom);
     this.name = "ROMGraphicsView";
-    
+    this.paletteView = new ROMPaletteView(rom, this);
+
     this.zoom = 4.0;
+    this.width = 16; // width in tiles
+    this.height = 16; // height in tiles
+    this.offset = 0;
     this.gfx = null;
     this.pal = null;
+    this.format = null;
+    this.colorDepth = 16;
+    this.invertPalette = true;
     this.canvas = document.createElement('canvas');
     this.graphicsCanvas = document.createElement('canvas');
-    this.graphicsCanvas.height = 128;
-    this.graphicsCanvas.width = 256;
 
     this.div = document.createElement('div');
-    this.div.id = 'gfx-view';
+    this.div.id = 'map-edit';
     this.div.appendChild(this.canvas);
-    
+    this.div.tabIndex = 0;
+    this.div.style.outline = "none";
+
+    var graphics = this;
+    this.div.onkeydown = function(e) { graphics.onKeyDown(e); };
+    this.div.onwheel = function(e) { graphics.onWheel(e); };
+
     this.observer = new ROMObserver(rom, this);
 }
 
@@ -1864,37 +1866,562 @@ ROMGraphicsView.prototype = Object.create(ROMEditor.prototype);
 ROMGraphicsView.prototype.constructor = ROMGraphicsView;
 
 ROMGraphicsView.prototype.selectObject = function(object) {
-    this.gfx = object.data;
-    this.pal = GFX.makeGrayPalette(16, true);
-    this.drawGraphics();
+    this.paletteView.selectGraphics(object);
+    this.paletteView.show()
+    this.drawGraphics(object);
     this.show();
 }
 
 ROMGraphicsView.prototype.show = function() {
     document.getElementById('toolbox-buttons').classList.add("hidden");
-    document.getElementById('toolbox-div').classList.add("hidden");
+    document.getElementById('toolbox-div').classList.remove("hidden");
 
     this.resetControls();
     this.showControls();
     this.closeList();
+
+    var graphics = this;
+    this.addZoom(this.zoom, function() { graphics.changeZoom(); }, 0, 4);
+
+    this.div.focus();
 }
 
 ROMGraphicsView.prototype.hide = function() {
     this.observer.stopObservingAll();
 }
 
-ROMGraphicsView.prototype.drawGraphics = function() {
+ROMGraphicsView.prototype.onKeyDown = function(e) {
+    switch (e.key) {
+        case "ArrowLeft": this.offset -= e.shiftKey ? 1 : 64; break;
+        case "ArrowUp": this.offset -= 64 * this.width; break;
+        case "PageUp": this.offset -= 64 * this.width * this.height; break;
+        case "ArrowRight": this.offset += e.shiftKey ? 1 : 64; break;
+        case "ArrowDown": this.offset += 64 * this.width; break;
+        case "PageDown": this.offset += 64 * this.width * this.height; break;
+        case "Home": this.offset = 0; break;
+        case "End": this.offset = this.gfx.data.length - 64; break;
+        case "[": this.width--; break;
+        case "]": this.width++; break;
+        case "{": this.width >>= 1; break;
+        case "}": this.width <<= 1; break;
+        default: return;
+    }
+    this.offset = Math.max(this.offset, 0);
+    this.offset = Math.min(this.offset, this.gfx.data.length);
+    this.width = Math.max(this.width, 1);
+    this.width = Math.min(this.width, Math.floor(this.gfx.data.length / 64));
+    this.drawGraphics();
+    e.preventDefault();
+}
 
-    this.canvas.width = 128 * this.zoom;
-    this.canvas.height = 256 * this.zoom;
-    
+ROMGraphicsView.prototype.onWheel = function(e) {
+    this.offset += Math.round(e.deltaX / 8) * 64;
+    this.offset += Math.round(e.deltaY / 8) * 64 * this.width;
+    this.offset = Math.max(this.offset, 0);
+    this.offset = Math.min(this.offset, this.gfx.data.length);
+    this.drawGraphics();
+    e.preventDefault();
+}
+
+ROMGraphicsView.prototype.changeZoom = function() {
+
+    // update zoom
+    this.zoom = Math.pow(2, Number(document.getElementById("zoom").value));
+    var zoomValue = document.getElementById("zoom-value");
+    zoomValue.innerHTML = (this.zoom * 100).toString() + "%";
+
+    this.drawGraphics();
+}
+
+ROMGraphicsView.prototype.drawGraphics = function(gfx) {
+
+    if (gfx && gfx !== this.gfx) {
+        // selected graphics changed
+        this.gfx = gfx;
+        this.offset = 0;
+    }
+
+    // calculate window height
+    this.height = Math.ceil(this.div.parentElement.clientHeight / 8 / this.zoom);
+
+    // for graphics with multiple formats, the graphics format is the last one
+    this.format = this.gfx.format;
+    if (isArray(this.format)) this.format = this.format[this.format.length - 1];
+    this.colorDepth = GFX.colorDepth(this.format);
+    this.pal = this.paletteView.getPaletteData(this.paletteView.p * this.colorDepth);
+
+    this.graphicsCanvas.width = this.width * 8;
+    this.graphicsCanvas.height = this.height * 8;
     var context = this.graphicsCanvas.getContext('2d');
-    var imageData = context.createImageData(128, 256);
-    GFX.render(imageData.data, this.gfx, this.pal, 128);
+    var imageData = context.createImageData(this.width * 8, this.height * 8);
+    GFX.render(imageData.data, this.gfx.data.subarray(this.offset), this.pal, this.width * 8, this.paletteView.getbackColor());
     context.putImageData(imageData, 0, 0);
-    
+
+    this.canvas.width = this.width * 8 * this.zoom;
+    this.canvas.height = this.div.parentElement.clientHeight;
     context = this.canvas.getContext('2d');
     context.imageSmoothingEnabled = false;
     context.webkitImageSmoothingEnabled = false;
-    context.drawImage(this.graphicsCanvas, 0, 0, 128, 256, 0, 0, 128 * this.zoom, 256 * this.zoom);
+    context.drawImage(this.graphicsCanvas,
+        0, 0, this.graphicsCanvas.width, this.graphicsCanvas.height,
+        0, 0, this.canvas.width, this.canvas.height);
+}
+
+ROMGraphicsView.exportFormat = {
+    indexed: {
+        id: "indexed",
+        description: "PNG (indexed)",
+        default: true,
+        extension: "png"
+    },
+    png: {
+        id: "png",
+        description: "PNG (non-indexed)",
+        default: false,
+        extension: "png"
+    },
+    jpeg: {
+        id: "jpeg",
+        description: "JPEG (lossless)",
+        default: false,
+        extension: "jpeg"
+    },
+    linear8bpp: {
+        id: "linear8bpp",
+        description: "Linear 8bpp",
+        default: false,
+        extension: "bin"
+    },
+    linear4bpp: {
+        id: "linear4bpp",
+        description: "Linear 4bpp",
+        default: false,
+        extension: "bin"
+    },
+    linear2bpp: {
+        id: "linear2bpp",
+        description: "Linear 2bpp",
+        default: false,
+        extension: "bin"
+    },
+    linear1bpp: {
+        id: "linear1bpp",
+        description: "Linear 1bpp",
+        default: false,
+        extension: "bin"
+    },
+    reverse1bpp: {
+        id: "reverse1bpp",
+        description: "Reverse 1bpp",
+        default: false,
+        extension: "bin"
+    },
+    nes2bpp: {
+        id: "nes2bpp",
+        description: "NES 2bpp",
+        default: false,
+        extension: "bin"
+    },
+    snes4bpp: {
+        id: "snes4bpp",
+        description: "SNES 4bpp",
+        default: false,
+        extension: "bin"
+    },
+    snes3bpp: {
+        id: "snes3bpp",
+        description: "SNES 3bpp",
+        default: false,
+        extension: "bin"
+    },
+    snes2bpp: {
+        id: "snes2bpp",
+        description: "SNES 2bpp",
+        default: false,
+        extension: "bin"
+    }
+}
+
+ROMGraphicsView.prototype.showExportDialog = function() {
+    // open a dialog box
+    var content = openModal("Export Graphics");
+
+    var p = document.createElement('p');
+    p.innerHTML = "Select an image format:";
+    content.appendChild(p);
+
+    var keys = Object.keys(ROMGraphicsView.exportFormat);
+    for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        var fileFormat = ROMGraphicsView.exportFormat[key];
+        var div = document.createElement('div');
+        div.classList.add("modal-div");
+
+        var button = document.createElement('input');
+        button.type = "radio";
+        button.name = "exportFormat";
+        button.id = "export-" + fileFormat.id;
+        button.classList.add("modal-radio");
+        button.value = fileFormat.id;
+        if (this.format) {
+            button.checked = fileFormat.id === this.format;
+        } else {
+            button.checked = fileFormat.default;
+        }
+        div.appendChild(button);
+
+        var label = document.createElement('label');
+        label.htmlFor = button.id;
+        label.innerHTML = fileFormat.description;
+        if (button.checked) label.innerHTML += " (Default)";
+        div.appendChild(label);
+        content.appendChild(div);
+    }
+
+    var editor = this;
+    var saveButton = document.createElement('button');
+    saveButton.innerHTML = "Save Image";
+    saveButton.onclick = function() {
+        closeModal();
+        var radioButtons = document.getElementsByClassName('modal-radio');
+        for (var i = 0; i < radioButtons.length; i++) {
+            var button = radioButtons[i];
+            if (!button.checked) continue;
+            var format = ROMGraphicsView.exportFormat[button.value];
+            editor.exportGraphics(format);
+            break;
+        }
+    };
+    content.appendChild(saveButton);
+
+    var cancelButton = document.createElement('button');
+    cancelButton.innerHTML = "Cancel";
+    cancelButton.onclick = function() { closeModal(); };
+    content.appendChild(cancelButton);
+}
+
+ROMGraphicsView.prototype.exportGraphics = function(format) {
+
+    var url;
+    var width = this.width * 8;
+    var height = Math.ceil(this.gfx.data.length / this.width) * 8;
+
+    if (format.id === "indexed") {
+        // indexed png
+        var image = GFX.createPNG(this.gfx.data, this.pal, width);
+        var blob = new Blob([image.buffer]);
+        var url = window.URL.createObjectURL(blob);
+
+    } else if (format.id === "png") {
+        // non-indexed png
+        var canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        var context = canvas.getContext('2d');
+        var imageData = context.createImageData(width, height);
+        GFX.render(imageData.data, this.gfx.data, this.pal, width);
+        context.putImageData(imageData, 0, 0);
+        var url = canvas.toDataURL("image/png");
+
+    } else if (format.id === "jpeg") {
+        // jpeg (lossless)
+        var canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        var context = canvas.getContext('2d');
+        var imageData = context.createImageData(width, height);
+        GFX.render(imageData.data, this.gfx.data, this.pal, width);
+        context.putImageData(imageData, 0, 0);
+        var url = canvas.toDataURL("image/jpeg", 1.0);
+
+    } else {
+        // raw graphics
+        var data = ROMAssembly.encode(this.gfx.data, format.id);
+        var blob = new Blob([data[0].buffer]);
+        var url = window.URL.createObjectURL(blob);
+    }
+
+    if (!url) return;
+
+    // create a link element, hide it, direct it towards the blob,
+    // and then 'click' it programatically
+    var a = document.createElement("a");
+    a.style = "display: none";
+    document.body.appendChild(a);
+
+    a.href = url;
+    a.download = 'image.' + format.extension;
+    a.click();
+
+    // release the reference to the file by revoking the Object URL
+    window.URL.revokeObjectURL(url);
+
+}
+
+ROMGraphicsView.prototype.showImportDialog = function(format) {
+
+    // upload user image file
+
+    // for non-indexed graphics, convert to indexed
+    // https://github.com/leeoniya/RgbQuant.js/
+
+    // for indexed graphics, make sure bit depth matches graphics
+
+    // convert indexed graphics to 8x8 tile format
+}
+
+// ROMPaletteView
+function ROMPaletteView(rom, graphicsView) {
+
+    this.rom = rom;
+    this.graphicsView = graphicsView; // associated graphics view
+
+    this.canvas = document.createElement('canvas');
+    this.canvas.id = "palette";
+    this.canvas.width = 256;
+    this.canvas.height = 32;
+
+    this.gfx = null; // graphics object
+    this.paletteArray = []; // available palette
+    this.pal = null; // selected palette
+    this.p = 0; // palette offset
+    this.colorDepth = 16; // colors per palette
+
+    var paletteView = this;
+    this.canvas.onmousedown = function(e) { paletteView.mouseDown(e) };
+    // this.canvas.onmouseup = function(e) { paletteView.mouseUp(e) };
+    // this.canvas.onmousemove = function(e) { paletteView.mouseMove(e) };
+    // this.canvas.onmouseout = function(e) { paletteView.mouseOut(e) };
+    // this.canvas.oncontextmenu = function() { return false; };
+}
+
+ROMPaletteView.prototype.show = function() {
+    this.updateControls();
+    document.getElementById("toolbox-buttons").classList.add('hidden');
+}
+
+ROMPaletteView.prototype.updateControls = function() {
+    this.div = document.getElementById('toolbox-div');
+    this.div.innerHTML = "";
+    this.div.classList.remove('hidden');
+    this.div.style.height = "auto";
+
+    var headingDiv = document.createElement('div');
+    headingDiv.classList.add("property-heading");
+    this.div.appendChild(headingDiv);
+
+    var heading = document.createElement('p');
+    heading.innerHTML = "Palette";
+    headingDiv.appendChild(heading);
+
+    // create a dropdown for the possible palettes
+    var paletteSelectDiv = document.createElement('div');
+    paletteSelectDiv.classList.add("property-div");
+    this.div.appendChild(paletteSelectDiv);
+
+    var paletteSelectControl = document.createElement('select');
+    paletteSelectControl.classList.add("property-control");
+    paletteSelectControl.id = "palette-select-control";
+    paletteSelectDiv.appendChild(paletteSelectControl);
+
+    var paletteSelected = false;
+    for (var i = 0; i < this.paletteArray.length; i++) {
+        var palette = this.paletteArray[i];
+        var option = document.createElement('option');
+
+        if (palette.data) {
+            option.value = i;
+            if (isNumber(palette.i)) {
+
+                var parentArray = palette.parent;
+                if (parentArray instanceof ROMArray && parentArray.stringTable) {
+                    var stringTable = this.rom.stringTable[parentArray.stringTable];
+                    var string = stringTable.string[palette.i];
+                    if (string) {
+                        option.innerHTML = palette.i + ": " + string.fString(40);
+                    } else {
+                        option.innerHTML = palette.i + ": " + palette.name + " " + palette.i;
+                    }
+                } else {
+                    option.innerHTML = palette.i + ": " + palette.name + " " + palette.i;
+                }
+            } else {
+                option.innerHTML = palette.name;
+            }
+        } else {
+            option.value = palette.key;
+            option.innerHTML = palette.description;
+        }
+
+        paletteSelectControl.appendChild(option);
+        if (this.pal === palette) {
+            paletteSelectControl.value = option.value;
+            paletteSelected = true;
+        }
+    }
+    if (!paletteSelected) {
+        this.pal = this.paletteArray[0];
+        this.p = 0;
+    }
+
+    var paletteView = this;
+    paletteSelectControl.onchange = function() {
+        var i = Number(this.value);
+        if (isNumber(i)) {
+            paletteView.pal = paletteView.paletteArray[i];
+        } else if (isString(this.value)) {
+            paletteView.pal = ROMPaletteView.DefaultPalette[this.value];
+        }
+        paletteView.p = 0;
+        paletteView.drawPalette();
+        paletteView.graphicsView.drawGraphics();
+    }
+
+    // show the palette canvas
+    this.drawPalette();
+    this.div.appendChild(this.canvas);
+}
+
+ROMPaletteView.DefaultPalette = {
+    grayscale: {
+        key: "grayscale",
+        description: "Grayscale"
+    },
+    inverseGrayscale: {
+        key: "inverseGrayscale",
+        description: "Inverse Grayscale"
+    },
+    vga: {
+        key: "vga",
+        description: "VGA"
+    }
+}
+
+ROMPaletteView.prototype.mouseDown = function(e) {
+    this.p = Math.floor(e.offsetY / 24);
+    this.graphicsView.drawGraphics();
+    this.drawPalette();
+}
+
+ROMPaletteView.prototype.selectGraphics = function(graphics) {
+
+    this.gfx = graphics;
+
+    // get the color depth
+    var format = this.gfx.format;
+    if (isArray(format)) format = format[format.length - 1];
+    this.colorDepth = GFX.colorDepth(format);
+    // this.p = 0;
+
+    // create an array of possible palettes
+    this.paletteArray = [];
+    if (this.gfx) {
+        if (isArray(this.gfx.palette)) {
+            // js array of palette paths
+            for (var i = 0; i < this.gfx.palette.length; i++) {
+                this.paletteArray.push(this.rom.parsePath(this.gfx.palette[i]));
+            }
+        } else if (isString(this.gfx.palette)) {
+            var paletteObject = this.rom.parsePath(this.gfx.palette, this.rom, this.gfx.i);
+            if (paletteObject instanceof ROMArray) {
+                // romarray of palettes
+                for (var i = 0; i < paletteObject.arrayLength; i++)
+                    this.paletteArray.push(paletteObject.item(i));
+            } else if (paletteObject && paletteObject.data) {
+                // single palette assembly
+                this.paletteArray.push(paletteObject);
+            }
+        }
+    }
+
+    this.paletteArray.push(ROMPaletteView.DefaultPalette.grayscale);
+    this.paletteArray.push(ROMPaletteView.DefaultPalette.inverseGrayscale);
+    this.paletteArray.push(ROMPaletteView.DefaultPalette.vga);
+}
+
+ROMPaletteView.prototype.selectPalette = function(palette) {
+    this.pal = palette;
+    this.drawPalette();
+}
+
+ROMPaletteView.prototype.getbackColor = function() {
+    return this.gfx.backColor ? this.pal.data[0] : 0;
+}
+
+ROMPaletteView.prototype.getPaletteData = function(offset) {
+    offset = offset || 0;
+    var palette;
+    if (this.pal.data) {
+        // rom palette
+        palette = this.pal.data.slice(offset);
+
+    } else if (this.pal.key === "grayscale" || this.pal.key === "inverseGrayscale") {
+        // grayscale palette
+        var inverse = this.pal.key === "inverseGrayscale";
+        if (this.gfx.backColor) {
+            // no transparent color
+            palette = GFX.makeGrayPalette(this.colorDepth, inverse);
+        } else {
+            // if there is a transparent color, start at index 1
+            palette = new Uint32Array(this.colorDepth);
+            palette.set(GFX.makeGrayPalette(this.colorDepth - 1, inverse), 1)
+        }
+
+    } else if (this.pal.key === "vga") {
+        // vga palette
+        palette = GFX.vgaPalette.slice(offset);
+
+    } else {
+        // blank palette
+        palette = new Uint32Array(this.colorDepth);
+    }
+
+    return palette;
+}
+
+ROMPaletteView.prototype.drawPalette = function() {
+    var paletteData = this.getPaletteData(0);
+    var rows = Math.ceil(paletteData.length / this.colorDepth);
+
+    var colorWidth = 256 / this.colorDepth;
+    var colorHeight = 24;
+    this.canvas.height = rows * colorHeight;
+    var context = this.canvas.getContext('2d');
+    context.fillStyle = 'black';
+    context.fillRect(0, 0, 256, this.canvas.height);
+
+    var c = 0;
+    for (var y = 0; y < rows; y++) {
+        for (var x = 0; x < this.colorDepth; x++) {
+            var color = paletteData[c++];
+            if (!isNumber(color)) color = 0;
+            var r = (color & 0xFF);
+            var g = (color & 0xFF00) >> 8;
+            var b = (color & 0xFF0000) >> 16;
+            context.fillStyle = "rgb(" + r + "," + g + "," + b + ")";
+
+            context.fillRect(x * colorWidth, y * colorHeight, colorWidth, colorHeight);
+        }
+    }
+
+    // draw the cursor
+    var w = 256;
+    var h = colorHeight;
+    var x = 0;
+    var y = this.p * colorHeight;
+
+    // convert the selection to screen coordinates
+    context.lineWidth = 1;
+    context.strokeStyle = "black";
+    x += 0.5; y += 0.5; w--; h--;
+    context.strokeRect(x, y, w, h);
+    x++; y++; w -= 2; h -= 2;
+    context.strokeStyle = "hsl(210, 100%, 50%)";
+    context.strokeRect(x, y, w, h);
+    x++; y++; w -= 2; h -= 2;
+    context.strokeStyle = "white";
+    context.strokeRect(x, y, w, h);
+    x++; y++; w -= 2; h -= 2;
+    context.strokeStyle = "black";
+    context.strokeRect(x, y, w, h);
 }

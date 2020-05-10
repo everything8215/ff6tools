@@ -16,6 +16,47 @@
                 }, {
                     "name": "Map Titles",
                     "path": "mapTitle"
+                }, {
+                    "name": "Map Animation Graphics",
+                    "path": "mapAnimationGraphics"
+                }, {
+                    "name": "Map Sprite Graphics",
+                    "path": "mapSpriteGraphics"
+                }, {
+                    "name": "World Map Graphics",
+                    "path": "worldGraphics"
+                }, {
+                    "path": "mapGraphics0"
+                }, {
+                    "path": "mapGraphics1"
+                }, {
+                    "path": "mapGraphics2"
+                }, {
+                    "path": "mapGraphics3"
+                }, {
+                    "path": "mapGraphics4"
+                }, {
+                    "path": "mapGraphics5"
+                }, {
+                    "path": "mapGraphics6"
+                }, {
+                    "path": "mapGraphics7"
+                }, {
+                    "path": "mapGraphics8"
+                }, {
+                    "path": "mapGraphics9"
+                }, {
+                    "path": "mapGraphics10"
+                }, {
+                    "path": "mapGraphics11"
+                }, {
+                    "path": "mapGraphics12"
+                }, {
+                    "path": "mapGraphics13"
+                }, {
+                    "path": "mapGraphics14"
+                }, {
+                    "path": "mapGraphics15"
                 }
             ]
         }, {
@@ -53,6 +94,9 @@
                 }, {
                     "name": "Battle Dialog",
                     "path": "battleDialog"
+                }, {
+                    "name": "Battle Background Graphics",
+                    "path": "battleBackgroundGraphics"
                 }
             ]
         }, {
@@ -102,6 +146,12 @@
                     "name": "Character Jobs",
                     "path": "characterJob"
                 }, {
+                    "name": "Character Graphics",
+                    "path": "characterGraphics"
+                }, {
+                    "name": "Character Portraits",
+                    "path": "portraitGraphics"
+                }, {
                     "name": "Spell Lists",
                     "path": "spellList"
                 }, {
@@ -126,6 +176,9 @@
                 {
                     "name": "SNES Header",
                     "path": "snesHeader"
+                }, {
+                    "name": "Menu Window",
+                    "path": "windowGraphics"
                 }
             ]
         }
@@ -338,15 +391,20 @@
             "type": "array",
             "name": "Battle Background Graphics",
             "range": "0x1CA800-0x1CD900",
+            "stringTable": "battleBackgroundProperties",
             "array": {
                 "length": 17
             },
             "assembly": {
-                "format": "snes3bpp"
+                "type": "graphics",
+                "format": "snes3bpp",
+                "palette": "battleBackgroundPalette",
+                "backColor": true
             },
             "pointerTable": {
                 "range": "0x16FDB4-0x16FDD6",
-                "offset": "0x1C0000"
+                "offset": "0x1C0000",
+                "isMapped": true
             }
         },
         "battleBackgroundLayoutLower": {
@@ -383,6 +441,34 @@
             "assembly": {
                 "length": 32,
                 "format": "bgr555"
+            },
+            "stringTable": {
+                "length": 23,
+                "string": {
+                    "0": "Field",
+                    "1": "Forest",
+                    "2": "Mountains",
+                    "3": "Castle",
+                    "4": "Cave",
+                    "5": "Moon Exterior",
+                    "6": "Airship",
+                    "7": "Cave w/ Water",
+                    "8": "Cave Magnes",
+                    "9": "Desert",
+                    "10": "Beach",
+                    "11": "Land of Monsters",
+                    "12": "Tower of Zot/Bab-il",
+                    "13": "Moon Cave",
+                    "14": "Crystal Room",
+                    "15": "Underground Exterior",
+                    "16": "Final Boss",
+                    "17": "Cave (Alt.)",
+                    "18": "Cave w/ Water (Alt.)",
+                    "19": "Sylvan Cave",
+                    "20": "Sealed Cave",
+                    "21": "Giant of Bab-il",
+                    "22": "Field (Night)"
+                }
             }
         },
         "battleBackgroundProperties": {
@@ -430,10 +516,10 @@
                     "1": "Forest",
                     "2": "Mountains",
                     "3": "Castle",
-                    "4": "Overworld Cave",
+                    "4": "Cave",
                     "5": "Moon Exterior",
                     "6": "Airship",
-                    "7": "Overworld Cave (Water)",
+                    "7": "Cave w/ Water",
                     "8": "Sealed Cave/Cave Magnes",
                     "9": "Desert",
                     "10": "Beach",
@@ -484,7 +570,8 @@
             },
             "pointerTable": {
                 "range": "0x0EF200-0x0EF374",
-                "offset": "0x0E0000"
+                "offset": "0x0E0000",
+                "isMapped": true
             },
             "stringTable": {
                 "name": "Battle Dialog",
@@ -1097,8 +1184,10 @@
                 "length": 14
             },
             "assembly": {
+                "type": "graphics",
                 "length": "0x0800",
-                "format": "snes4bpp"
+                "format": "snes4bpp",
+                "palette": "characterPalette[%i]"
             },
             "stringTable": {
                 "name": "Character Graphics",
@@ -2465,10 +2554,11 @@
             }
         },
         "mapAnimationGraphics": {
-            "type": "assembly",
+            "type": "graphics",
             "name": "Map Animation Graphics",
             "range": "0x1FB9C0-0x1FD208",
-            "format": "snes3bpp"
+            "format": "snes3bpp",
+            "palette": "mapPalettes"
         },
         "mapBattle": {
             "type": "array",
@@ -2535,100 +2625,116 @@
             "stringTable": "mapProperties"
         },
         "mapGraphics0": {
-            "type": "data",
+            "type": "graphics",
             "name": "Map Graphics (Ship/Airship)",
             "range": "0x15DC00-0x168000",
-            "format": "snes4bpp"
+            "format": "snes4bpp",
+            "palette": "mapPalettes"
         },
         "mapGraphics1": {
-            "type": "data",
+            "type": "graphics",
             "name": "Map Graphics (Lunar Core/Moon Cave)",
             "range": "0x1EDFA8-0x1EFC20",
-            "format": "snes3bpp"
+            "format": "snes3bpp",
+            "palette": "mapPalettes"
         },
         "mapGraphics2": {
-            "type": "data",
+            "type": "graphics",
             "name": "Map Graphics (Sealed Cave/Cave Magnes)",
             "range": "0x1E8020-0x1E9568",
-            "format": "snes3bpp"
+            "format": "snes3bpp",
+            "palette": "mapPalettes"
         },
         "mapGraphics3": {
-            "type": "data",
+            "type": "graphics",
             "name": "Map Graphics (Castle Exterior)",
             "range": "0x1DED40-0x1E8000",
-            "format": "snes3bpp"
+            "format": "snes3bpp",
+            "palette": "mapPalettes"
         },
         "mapGraphics4": {
-            "type": "data",
+            "type": "graphics",
             "name": "Map Graphics (Town Exterior)",
             "range": "0x1E9568-0x1EACC0",
-            "format": "snes3bpp"
+            "format": "snes3bpp",
+            "palette": "mapPalettes"
         },
         "mapGraphics5": {
-            "type": "data",
+            "type": "graphics",
             "name": "Map Graphics (Town Interior)",
             "range": "0x1EACC0-0x1ECFE8",
-            "format": "snes3bpp"
+            "format": "snes3bpp",
+            "palette": "mapPalettes"
         },
         "mapGraphics6": {
-            "type": "data",
+            "type": "graphics",
             "name": "Map Graphics (Castle Interior)",
             "range": "0x1EB8C0-0x1ECFE8",
-            "format": "snes3bpp"
+            "format": "snes3bpp",
+            "palette": "mapPalettes"
         },
         "mapGraphics7": {
-            "type": "data",
+            "type": "graphics",
             "name": "Map Graphics (Crystal Room)",
             "range": "0x1ECFE8-0x1EDFA8",
-            "format": "snes3bpp"
+            "format": "snes3bpp",
+            "palette": "mapPalettes"
         },
         "mapGraphics8": {
-            "type": "data",
+            "type": "graphics",
             "name": "Map Graphics (Tower of Zot/Bab-il)",
             "range": "0x1F9500-0x1FB9C0",
-            "format": "snes3bpp"
+            "format": "snes3bpp",
+            "palette": "mapPalettes"
         },
         "mapGraphics9": {
-            "type": "data",
+            "type": "graphics",
             "name": "Map Graphics (Underground Cave)",
             "range": "0x1F8000-0x1F9500",
-            "format": "snes3bpp"
+            "format": "snes3bpp",
+            "palette": "mapPalettes"
         },
         "mapGraphics10": {
-            "type": "data",
+            "type": "graphics",
             "name": "Map Graphics (Tower of Zot/Bab-il)",
             "range": "0x1F9500-0x1FB9C0",
-            "format": "snes3bpp"
+            "format": "snes3bpp",
+            "palette": "mapPalettes"
         },
         "mapGraphics11": {
-            "type": "data",
+            "type": "graphics",
             "name": "Map Graphics (Tower of Zot/Bab-il)",
             "range": "0x1F9500-0x1FB9C0",
-            "format": "snes3bpp"
+            "format": "snes3bpp",
+            "palette": "mapPalettes"
         },
         "mapGraphics12": {
-            "type": "data",
+            "type": "graphics",
             "name": "Map Graphics (Lunar Core/Moon Cave)",
             "range": "0x1EDFA8-0x1EFC20",
-            "format": "snes3bpp"
+            "format": "snes3bpp",
+            "palette": "mapPalettes"
         },
         "mapGraphics13": {
-            "type": "data",
+            "type": "graphics",
             "name": "Map Graphics (Mountains)",
             "range": "0x1FD208-0x1FE888",
-            "format": "snes3bpp"
+            "format": "snes3bpp",
+            "palette": "mapPalettes"
         },
         "mapGraphics14": {
-            "type": "data",
+            "type": "graphics",
             "name": "Map Graphics (Overworld Cave)",
             "range": "0x1FE888-0x208000",
-            "format": "snes3bpp"
+            "format": "snes3bpp",
+            "palette": "mapPalettes"
         },
         "mapGraphics15": {
-            "type": "data",
+            "type": "graphics",
             "name": "Map Graphics (Ship/Airship)",
             "range": "0x15DC00-0x168000",
-            "format": "snes4bpp"
+            "format": "snes4bpp",
+            "palette": "mapPalettes"
         },
         "mapLayouts": {
             "type": "data",
@@ -2726,7 +2832,8 @@
             },
             "stringTable": {
                 "string": {
-                    "0": "Airship (Overworld)",
+                    "0": "Airship 1 (Overworld)",
+                    "1": "Airship 2 (Overworld)",
                     "2": "Cave Magnes",
                     "3": "Castle Exterior",
                     "4": "Town Exterior",
@@ -2755,7 +2862,8 @@
                     "27": "Palette 27",
                     "28": "Palette 28",
                     "29": "Palette 29",
-                    "30": "Airship (Underground)"
+                    "30": "Airship 1 (Underground)",
+                    "31": "Airship 2 (Underground)"
                 }
             }
         },
@@ -3308,10 +3416,11 @@
             }
         },
         "mapSpriteGraphics": {
-            "type": "data",
+            "type": "graphics",
             "name": "Map Sprite Graphics",
             "range": "0x1B8000-0x1C8000",
-            "format": "snes3bpp"
+            "format": "snes3bpp",
+            "palette": "npcPalettes"
         },
         "mapSpritePalettes": {
             "type": "array",
@@ -4224,7 +4333,8 @@
             },
             "pointerTable": {
                 "range": "0x0ECF00-0x0ECF72",
-                "offset": "0x0E0000"
+                "offset": "0x0E0000",
+                "isMapped": true
             }
         },
         "monsterBossProperties": {
@@ -4752,7 +4862,7 @@
             }
         },
         "monsterGraphics": {
-            "type": "assembly",
+            "type": "graphics",
             "name": "Monster Graphics",
             "range": "0x098000-0x0CB2F8",
             "stringTable": {
@@ -5217,7 +5327,8 @@
             },
             "pointerTable": {
                 "range": "0x0EA6A0-0x0EA860",
-                "offset": "0x0E0000"
+                "offset": "0x0E0000",
+                "isMapped": true
             },
             "reference": [
                 {
@@ -5904,6 +6015,55 @@
             },
             "stringTable": "npcSwitch"
         },
+        "portraitGraphics": {
+            "type": "array",
+            "name": "Character Portrait Graphics",
+            "range": "0x1DD3C0-0x1DED40",
+            "array": {
+                "length": 17
+            },
+            "assembly": {
+                "type": "graphics",
+                "length": "0x0180",
+                "format": "snes3bpp",
+                "palette": "portraitPalette"
+            },
+            "stringTable": {
+                "string": {
+                    "0": "Cecil (Dark Knight)",
+                    "1": "Kain",
+                    "2": "Rydia (Child)",
+                    "3": "Tellah",
+                    "4": "Edward",
+                    "5": "Rosa",
+                    "6": "Yang",
+                    "7": "Palom",
+                    "8": "Porom",
+                    "9": "Cecil (Paladin)",
+                    "10": "Cid",
+                    "11": "Rydia (Adult)",
+                    "12": "Edge",
+                    "13": "FuSoYa",
+                    "14": "Pig",
+                    "15": "Small",
+                    "16": "Toad"
+                }
+            }
+        },
+        "portraitPalette": {
+            "type": "array",
+            "name": "Character Portrait Palette",
+            "range": "0x0D86D0-0x0D87B0",
+            "array": {
+                "length": 14
+            },
+            "assembly": {
+                "type": "assembly",
+                "length": 16,
+                "format": "bgr555"
+            },
+            "stringTable": "portraitGraphics"
+        },
         "shopProperties": {
             "type": "array",
             "name": "Shop Properties",
@@ -6541,6 +6701,22 @@
                 }
             }
         },
+        "windowGraphics": {
+            "type": "graphics",
+            "name": "Menu Window Graphics",
+            "range": "0x0AF000-0x0B8000",
+            "length": "0x0380",
+            "format": "snes2bpp",
+            "palette": "windowPalette",
+            "backColor": true
+        },
+        "windowPalette": {
+            "type": "assembly",
+            "name": "Menu Window Palette",
+            "range": "0x0D87D0-0x0D87F0",
+            "length": 32,
+            "format": "bgr555"
+        },
         "worldBattle": {
             "type": "array",
             "name": "World Battle",
@@ -6604,13 +6780,16 @@
         "worldGraphics": {
             "type": "array",
             "name": "World Graphics",
-            "range": "0x1D8000-0x1DE000",
+            "range": "0x1D8000-0x1DD3C0",
             "array": {
                 "length": 3
             },
             "assembly": {
+                "type": "graphics",
                 "length": "0x2000",
-                "format": "linear4bpp"
+                "format": "linear4bpp",
+                "palette": "worldPalettes[%i]",
+                "backColor": true
             }
         },
         "worldLayout0": {

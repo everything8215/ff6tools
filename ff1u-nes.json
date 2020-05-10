@@ -15,11 +15,34 @@
                     "name": "World Map",
                     "path": "worldMap"
                 }, {
+                    "name": "World Map Graphics",
+                    "path": "worldGraphics"
+                }, {
                     "name": "Maps",
                     "path": "mapProperties"
                 }, {
+                    "name": "Map Graphics",
+                    "path": "mapGraphics"
+                }, {
+                    "name": "Character Graphics",
+                    "path": "mapCharacterGraphics"
+                }, {
+                    "name": "Vehicle Graphics",
+                    "path": "vehicleGraphics"
+                }, {
+                    "name": "NPC Graphics",
+                    "path": "mapSpriteGraphics"
+                }
+            ]
+        }, {
+            "name": "Dialog",
+            "list": [
+                {
                     "name": "Dialog",
                     "path": "dialog"
+                }, {
+                    "name": "Text Graphics",
+                    "path": "textGraphics"
                 }
             ]
         }, {
@@ -29,17 +52,20 @@
                     "name": "Battles",
                     "path": "battleProperties"
                 }, {
+                    "name": "Battle Groups",
+                    "path": "battleGroup"
+                }, {
                     "name": "Battle Message",
                     "path": "battleMessage"
                 }, {
                     "name": "Monsters",
                     "path": "monsterProperties"
                 }, {
+                    "name": "Monster Graphics",
+                    "path": "monsterGraphics"
+                }, {
                     "name": "Monster A.I.",
                     "path": "monsterAI"
-                }, {
-                    "name": "Battle Groups",
-                    "path": "battleGroup"
                 }
             ]
         }, {
@@ -94,7 +120,6 @@
                             "string": {
                                 "0": "None"
                             }
-                            
                         }
                     }
                 }
@@ -113,7 +138,8 @@
             },
             "pointerTable": {
                 "range": "0x0AB600-0x0AB634",
-                "offset": "0x0A0000"
+                "offset": "0x0A0000",
+                "isMapped": true
             },
             "stringTable": {
                 "length": 26,
@@ -148,7 +174,8 @@
             },
             "pointerTable": {
                 "range": "0x0B8F50-0x0B8FEC",
-                "offset": "0x0B0000"
+                "offset": "0x0B0000",
+                "isMapped": true
             },
             "stringTable": {
                 "length": 78,
@@ -480,7 +507,8 @@
             },
             "pointerTable": {
                 "range": "0x0A8000-0x0A8200",
-                "offset": "0x0A0000"
+                "offset": "0x0A0000",
+                "isMapped": true
             },
             "stringTable": {
                 "length": 256,
@@ -636,6 +664,58 @@
                 }
             }
         },
+        "mapBattleProbability": {
+            "type": "array",
+            "name": "Map Battle Probability",
+            "range": "0x0B8C00-0x0B8C40",
+            "array": {
+                "length": 64
+            },
+            "assembly": {
+                "type": "data",
+                "length": 1,
+                "assembly": {
+                    "probability": {
+                        "type": "property",
+                        "name": "Battle Probability",
+                        "begin": 0,
+                        "mask": "0xFF"
+                    }
+                }
+            }
+        },
+        "mapCharacterGraphics": {
+            "type": "array",
+            "name": "Map Character Graphics",
+            "range": "0x029000-0x029D00",
+            "array": {
+                "length": 13
+            },
+            "assembly": {
+                "type": "graphics",
+                "length": "0x0100",
+                "format": "nes2bpp"
+            },
+            "stringTable": {
+                "length": 13,
+                "default": "Map Character Graphics %i",
+                "string": {
+                    "0": "Fighter",
+                    "1": "Thief",
+                    "2": "Black Belt",
+                    "3": "Red Mage",
+                    "4": "White Mage",
+                    "5": "Black Mage",
+                    "6": "Knight",
+                    "7": "Ninja",
+                    "8": "Master",
+                    "9": "Red Wizard",
+                    "10": "White Wizard",
+                    "11": "Black Wizard",
+                    "12": "Misc."
+                }
+            }
+        },
         "mapEntrance": {
             "type": "array",
             "name": "Map Entrance",
@@ -724,12 +804,16 @@
             "type": "array",
             "name": "Map Graphics",
             "range": "0x038000-0x048000",
+            "stringTable": "mapTileset",
             "array": {
                 "length": 8
             },
             "assembly": {
+                "type": "graphics",
                 "length": "0x0800",
-                "format": "nes2bpp"
+                "format": "nes2bpp",
+                "palette": "mapPalette",
+                "backColor": true
             }
         },
         "mapLayout": {
@@ -769,6 +853,7 @@
             "type": "array",
             "name": "Map Palette",
             "range": "0x00A000-0x00AC00",
+            "stringTable": "mapProperties",
             "array": {
                 "length": 64
             },
@@ -793,6 +878,10 @@
                         "type": "property",
                         "name": "Tileset",
                         "stringTable": "mapTileset"
+                    },
+                    "battleProbability": {
+                        "type": "assembly",
+                        "external": "mapBattleProbability[%i+1].probability"
                     },
                     "battle1": {
                         "type": "assembly",
@@ -894,24 +983,6 @@
                     "0x3C": "Titan's Tunnel",
                     "0x3F": "Overworld"
                 }
-            }
-        },
-        "mapSpriteGraphics": {
-            "type": "data",
-            "name": "Map Sprite Graphics",
-            "range": "0x1B8000-0x1C8000",
-            "format": "snes3bpp"
-        },
-        "mapSpritePalettes": {
-            "type": "array",
-            "name": "Map Sprite Palettes",
-            "range": "0x0D8000-0x0D8040",
-            "array": {
-                "length": 4
-            },
-            "assembly": {
-                "length": 16,
-                "format": "bgr555"
             }
         },
         "mapTileProperties": {
@@ -1136,8 +1207,10 @@
                 "length": 30
             },
             "assembly": {
+                "type": "graphics",
                 "length": "0x0100",
-                "format": "nes2bpp"
+                "format": "nes2bpp",
+                "palette": "mapPalette"
             },
             "stringTable": {
                 "length": 30,
@@ -1357,8 +1430,10 @@
                 "length": 16
             },
             "assembly": {
+                "type": "graphics",
                 "length": "0x0800",
-                "format": "nes2bpp"
+                "format": "nes2bpp",
+                "palette": "monsterPalette"
             },
             "stringTable": {
                 "length": 16,
@@ -1434,7 +1509,8 @@
             },
             "pointerTable": {
                 "range": "0x0B94E0-0x0B95E0",
-                "offset": "0x0B0000"
+                "offset": "0x0B0000",
+                "isMapped": true
             },
             "stringTable": {
                 "length": 128,
@@ -1990,7 +2066,8 @@
             },
             "pointerTable": {
                 "range": "0x0E8300-0x0E838E",
-                "offset": "0x0E0000"
+                "offset": "0x0E0000",
+                "isMapped": true
             },
             "stringTable": {
                 "length": 71,
@@ -2225,7 +2302,8 @@
             },
             "pointerTable": {
                 "range": "0x0AB700-0x0AB900",
-                "offset": "0x0A0000"
+                "offset": "0x0A0000",
+                "isMapped": true
             },
             "stringTable": {
                 "length": 256,
@@ -2236,10 +2314,11 @@
             }
         },
         "textGraphics": {
-            "type": "assembly",
+            "type": "graphics",
             "name": "Text Graphics",
             "range": "0x098800-0x099000",
-            "format": "nes2bpp"
+            "format": "nes2bpp",
+            "palette": "mapPalette"
         },
         "tilesetPalette": {
             "type": "array",
@@ -2274,6 +2353,28 @@
                 "stringTable": {
                     "length": 256,
                     "default": "Treasure %i"
+                }
+            }
+        },
+        "vehicleGraphics": {
+            "type": "array",
+            "name": "Vehicle Graphics",
+            "range": "0x029D00-0x02A200",
+            "array": {
+                "length": 3
+            },
+            "assembly": {
+                "type": "graphics",
+                "length": "0x0180",
+                "format": "nes2bpp"
+            },
+            "stringTable": {
+                "length": 3,
+                "default": "Vehicle Graphics %i",
+                "string": {
+                    "0": "Ship",
+                    "1": "Airship",
+                    "2": "Canoe"
                 }
             }
         },
@@ -2313,7 +2414,6 @@
                             "string": {
                                 "0": "None"
                             }
-                            
                         }
                     },
                     "graphics": {
@@ -2343,44 +2443,6 @@
                 }
             }
         },
-        "worldBattle": {
-            "type": "array",
-            "name": "World Battle",
-            "range": "0x0EC542-0x0EC596",
-            "array": {
-                "length": 84
-            },
-            "assembly": {
-                "type": "data",
-                "length": 1,
-                "assembly": {
-                    "battleGroup": {
-                        "type": "property",
-                        "name": "Battle Group",
-                        "link": "battleGroupWorld[%i]",
-                        "stringTable": "battleGroupWorld"
-                    },
-                    "overworldProbability": {
-                        "type": "property",
-                        "name": "Probability",
-                        "external": "worldBattleProbability[%i].probability",
-                        "invalid": "propertyList.editors.FF4Map.m !== 251"
-                    },
-                    "undergroundProbability": {
-                        "type": "property",
-                        "name": "Probability",
-                        "external": "worldBattleProbability[64].probability",
-                        "invalid": "propertyList.editors.FF4Map.m !== 252"
-                    },
-                    "moonProbability": {
-                        "type": "property",
-                        "name": "Probability",
-                        "external": "worldBattleProbability[65].probability",
-                        "invalid": "propertyList.editors.FF4Map.m !== 253"
-                    }
-                }
-            }
-        },
         "worldBattleBackground": {
             "type": "array",
             "name": "Map Battle Background",
@@ -2403,33 +2465,13 @@
                 }
             }
         },
-        "worldBattleProbability": {
-            "type": "array",
-            "name": "Map Battle Probability",
-            "range": "0x0EC300-0x0EC342",
-            "array": {
-                "length": 66
-            },
-            "assembly": {
-                "type": "data",
-                "length": 1,
-                "assembly": {
-                    "probability": {
-                        "type": "property",
-                        "name": "Battle Probability",
-                        "min": 1,
-                        "special": {
-                            "0": "No Battles"
-                        }
-                    }
-                }
-            }
-        },
         "worldGraphics": {
-            "type": "assembly",
+            "type": "graphics",
             "name": "World Graphics",
-            "range": "0x028000-0x038000",
-            "format": "nes2bpp"
+            "range": "0x028000-0x029000",
+            "format": "nes2bpp",
+            "palette": "worldPalette",
+            "backColor": true
         },
         "worldLayout": {
             "type": "array",
