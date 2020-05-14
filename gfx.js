@@ -333,7 +333,7 @@ GFX.encodeNES2bpp = function(data) {
         }
         d += 8;
     }
-    return [new Uint8Array(dest.buffer, dest.byteOffset, dest.byteLength), dest.byteLength];
+    return [new Uint8Array(dest.buffer, dest.byteOffset, dest.byteLength), data.byteLength];
 }
 
 GFX.decodeSNES4bpp = function(data) {
@@ -394,7 +394,7 @@ GFX.encodeSNES4bpp = function(data) {
         }
         d += 16;
     }
-    return [new Uint8Array(dest.buffer, dest.byteOffset, dest.byteLength), dest.byteLength];
+    return [new Uint8Array(dest.buffer, dest.byteOffset, dest.byteLength), data.byteLength];
 }
 
 GFX.decodeSNES3bpp = function(data) {
@@ -457,7 +457,7 @@ GFX.encodeSNES3bpp = function(data) {
         }
         d += 8;
     }
-    return [new Uint8Array(dest.buffer, dest.byteOffset, dest.byteLength), dest.byteLength];
+    return [new Uint8Array(dest.buffer, dest.byteOffset, dest.byteLength), data.byteLength];
 }
 
 GFX.decodeSNES2bpp = function(data) {
@@ -508,7 +508,7 @@ GFX.encodeSNES2bpp = function(data) {
             dest[d++] = bp[1];
         }
     }
-    return [new Uint8Array(dest.buffer, dest.byteOffset, dest.byteLength), dest.byteLength];
+    return [new Uint8Array(dest.buffer, dest.byteOffset, dest.byteLength), data.byteLength];
 }
 
 // from blargg's full palette demo

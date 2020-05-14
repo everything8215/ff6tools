@@ -618,7 +618,7 @@ ROMPropertyList.prototype.graphicsHTML = function(object, options) {
 
     var importButton = document.createElement('button');
     importButton.innerHTML = "Import Graphics";
-    importButton.disabled = true;
+    // importButton.disabled = true;
     importButton.onclick = function() { editor.showImportDialog(); };
     graphicsDiv.appendChild(importButton);
 
@@ -1937,18 +1937,22 @@ ROMGraphicsView.prototype.drawGraphics = function(gfx) {
 
     if (gfx && gfx !== this.gfx) {
         // selected graphics changed
+        this.observer.stopObservingAll();
+        this.observer.startObserving(gfx, this.drawGraphics);
         this.gfx = gfx;
         this.offset = 0;
+        if (gfx.width) this.width = gfx.width;
     }
 
     // calculate window height
     this.height = Math.ceil(this.div.parentElement.clientHeight / 8 / this.zoom);
 
-    // for graphics with multiple formats, the graphics format is the last one
+    // for graphics with multiple formats, the graphics format is the first one
     this.format = this.gfx.format;
-    if (isArray(this.format)) this.format = this.format[this.format.length - 1];
+    if (isArray(this.format)) this.format = this.format[0];
     this.colorDepth = GFX.colorDepth(this.format);
-    this.pal = this.paletteView.getPaletteData(this.paletteView.p * this.colorDepth);
+    this.pal = this.paletteView.getPaletteData(this.paletteView.p * this.colorDepth, this.colorDepth);
+    this.observer.startObserving(this.paletteView.pal, this.drawGraphics);
 
     if (this.gfx.backColor) {
         this.pal[0] = this.paletteView.getbackColor();
@@ -1979,73 +1983,85 @@ ROMGraphicsView.exportFormat = {
         id: "indexed",
         description: "PNG (indexed)",
         default: true,
-        extension: "png"
+        extension: "png",
+        colorDepth: 256
     },
     png: {
         id: "png",
         description: "PNG (non-indexed)",
         default: false,
-        extension: "png"
+        extension: "png",
+        colorDepth: 256
     },
     jpeg: {
         id: "jpeg",
         description: "JPEG (lossless)",
         default: false,
-        extension: "jpeg"
+        extension: "jpeg",
+        colorDepth: 256
     },
     linear8bpp: {
         id: "linear8bpp",
         description: "Linear 8bpp",
         default: false,
-        extension: "bin"
+        extension: "bin",
+        colorDepth: 256
     },
     linear4bpp: {
         id: "linear4bpp",
         description: "Linear 4bpp",
         default: false,
-        extension: "bin"
+        extension: "bin",
+        colorDepth: 16
     },
     linear2bpp: {
         id: "linear2bpp",
         description: "Linear 2bpp",
         default: false,
-        extension: "bin"
+        extension: "bin",
+        colorDepth: 4
     },
     linear1bpp: {
         id: "linear1bpp",
         description: "Linear 1bpp",
         default: false,
-        extension: "bin"
+        extension: "bin",
+        colorDepth: 2
     },
     reverse1bpp: {
         id: "reverse1bpp",
         description: "Reverse 1bpp",
         default: false,
-        extension: "bin"
+        extension: "bin",
+        colorDepth: 2
     },
     nes2bpp: {
         id: "nes2bpp",
         description: "NES 2bpp",
         default: false,
-        extension: "bin"
+        extension: "bin",
+        colorDepth: 4
     },
     snes4bpp: {
         id: "snes4bpp",
         description: "SNES 4bpp",
         default: false,
-        extension: "bin"
+        extension: "bin",
+        colorDepth: 16
     },
     snes3bpp: {
         id: "snes3bpp",
         description: "SNES 3bpp",
         default: false,
-        extension: "bin"
+        extension: "bin",
+        colorDepth: 8
     },
     snes2bpp: {
         id: "snes2bpp",
         description: "SNES 2bpp",
         default: false,
-        extension: "bin"
+        extension: "bin",
+        colorDepth: 4
     }
 }
 
@@ -2053,53 +2069,45 @@ ROMGraphicsView.prototype.showExportDialog = function() {
     // open a dialog box
     var content = openModal("Export Graphics");
 
+    var div = document.createElement('div');
+    content.appendChild(div);
+
     var p = document.createElement('p');
     p.innerHTML = "Select an image format:";
-    content.appendChild(p);
+    div.appendChild(p);
+
+    var list = document.createElement('select');
+    list.id = "export-list";
+    div.appendChild(list);
 
     var keys = Object.keys(ROMGraphicsView.exportFormat);
     for (var i = 0; i < keys.length; i++) {
         var key = keys[i];
-        var fileFormat = ROMGraphicsView.exportFormat[key];
-        var div = document.createElement('div');
-        div.classList.add("modal-div");
+        var imageFormat = ROMGraphicsView.exportFormat[key];
 
-        var button = document.createElement('input');
-        button.type = "radio";
-        button.name = "exportFormat";
-        button.id = "export-" + fileFormat.id;
-        button.classList.add("modal-radio");
-        button.value = fileFormat.id;
-        if (this.format) {
-            button.checked = fileFormat.id === this.format;
-        } else {
-            button.checked = fileFormat.default;
-        }
-        div.appendChild(button);
+        // skip formats that don't have enough color depth
+        if (this.colorDepth > imageFormat.colorDepth) continue;
 
-        var label = document.createElement('label');
-        label.htmlFor = button.id;
-        label.innerHTML = fileFormat.description;
-        if (button.checked) label.innerHTML += " (Default)";
-        div.appendChild(label);
-        content.appendChild(div);
+        var option = document.createElement('option');
+        option.id = "export-" + imageFormat.id;
+        option.innerHTML = imageFormat.description;
+        if (this.format === imageFormat.id) option.innerHTML += " (Default)";
+        option.value = imageFormat.id;
+        if (!this.format && imageFormat.default) list.value = imageFormat.id;
+        list.appendChild(option);
     }
 
+    if (this.format) list.value = this.format;
+
     var editor = this;
-    var saveButton = document.createElement('button');
-    saveButton.innerHTML = "Save Image";
-    saveButton.onclick = function() {
+    var okayButton = document.createElement('button');
+    okayButton.innerHTML = "Okay";
+    okayButton.onclick = function() {
         closeModal();
-        var radioButtons = document.getElementsByClassName('modal-radio');
-        for (var i = 0; i < radioButtons.length; i++) {
-            var button = radioButtons[i];
-            if (!button.checked) continue;
-            var format = ROMGraphicsView.exportFormat[button.value];
-            editor.exportGraphics(format);
-            break;
-        }
+        var imageFormat = ROMGraphicsView.exportFormat[list.value];
+        editor.exportGraphics(imageFormat);
     };
-    content.appendChild(saveButton);
+    content.appendChild(okayButton);
 
     var cancelButton = document.createElement('button');
     cancelButton.innerHTML = "Cancel";
@@ -2111,7 +2119,7 @@ ROMGraphicsView.prototype.exportGraphics = function(format) {
 
     var url;
     var width = this.width * 8;
-    var height = Math.ceil(this.gfx.data.length / this.width) * 8;
+    var height = Math.ceil(this.gfx.data.length / this.width / 64) * 8;
 
     if (format.id === "indexed") {
         // indexed png
@@ -2126,7 +2134,7 @@ ROMGraphicsView.prototype.exportGraphics = function(format) {
         canvas.height = height;
         var context = canvas.getContext('2d');
         var imageData = context.createImageData(width, height);
-        GFX.render(imageData.data, this.gfx.data, this.pal, width);
+        GFX.render(imageData.data, this.gfx.data, this.pal, width, this.pal[0]);
         context.putImageData(imageData, 0, 0);
         var url = canvas.toDataURL("image/png");
 
@@ -2137,7 +2145,7 @@ ROMGraphicsView.prototype.exportGraphics = function(format) {
         canvas.height = height;
         var context = canvas.getContext('2d');
         var imageData = context.createImageData(width, height);
-        GFX.render(imageData.data, this.gfx.data, this.pal, width);
+        GFX.render(imageData.data, this.gfx.data, this.pal, width, this.pal[0]);
         context.putImageData(imageData, 0, 0);
         var url = canvas.toDataURL("image/jpeg", 1.0);
 
@@ -2167,14 +2175,276 @@ ROMGraphicsView.prototype.exportGraphics = function(format) {
 
 ROMGraphicsView.prototype.showImportDialog = function(format) {
 
-    // upload user image file
+    // open a dialog box
+    var content = openModal("Import Graphics");
 
-    // for non-indexed graphics, convert to indexed
-    // https://github.com/leeoniya/RgbQuant.js/
+    var graphicsView = this;
+    var importData = null;
+    var importFormat = this.format;
+    var importGraphics = null;
+    var importPalette = this.pal;
+    var importCustomPalette = false;
+    var importDepth = this.colorDepth;
+    var importBackColor = this.backColor;
 
-    // for indexed graphics, make sure bit depth matches graphics
+    function updateImportPreview() {
+        var okayButton = document.getElementById("import-okay");
+        okayButton.disabled = true;
+        if (!importData) return;
+        okayButton.disabled = false;
 
-    // convert indexed graphics to 8x8 tile format
+        var paletteCheck = document.getElementById("import-palette-check");
+        paletteCheck.disabled = true;
+
+        if (ROM.dataFormat[importFormat]) {
+            // paletteCheck.checked = false;
+            importGraphics = ROM.dataFormat[importFormat].decode(importData)[0];
+            importPalette = graphicsView.pal;
+            drawImportPreview();
+
+        } else if (importFormat === "png" || importFormat === "jpeg") {
+            paletteCheck.disabled = false;
+            if (!importCustomPalette) importPalette = graphicsView.pal;
+            var blob = new Blob([importData], { type: 'image/' + importFormat });
+            var url = URL.createObjectURL(blob);
+            var img = new Image();
+            img.decode = "sync"; // load synchronously
+            img.src = url;
+            img.onload = function() {
+                quantizeImage(img);
+                URL.revokeObjectURL(blob);
+            }
+
+        } else if (importFormat === "indexed") {
+            paletteCheck.disabled = false;
+            if (!importCustomPalette) importPalette = graphicsView.pal;
+            var indexed = pzntg.getIndexed(importData);
+            if (indexed.graphics) importGraphics = indexed.graphics;
+            if (indexed.palette && importCustomPalette) importPalette = new Uint32Array(indexed.palette.buffer);
+
+            // interlace to convert to 8x8 tiles
+            importGraphics = ROM.dataFormat.interlace.decode(importGraphics, 8, 8, graphicsView.width)[0]
+            drawImportPreview();
+
+        } else {
+            importGraphics = importData;
+            importPalette = graphicsView.pal;
+            drawImportPreview();
+        }
+    }
+
+    function drawImportPreview() {
+        var importCanvas = document.getElementById("import-canvas");
+        var width = graphicsView.width * 8;
+        var height = Math.ceil(importGraphics.length / 64 / graphicsView.width) * 8;
+        importCanvas.width = width;
+        importCanvas.height = height;
+        var context = importCanvas.getContext('2d');
+        var imageData = context.createImageData(width, height);
+        GFX.render(imageData.data, importGraphics, importPalette, width, graphicsView.pal[0]);
+        context.putImageData(imageData, 0, 0);
+    }
+
+    function quantizeImage(img) {
+
+        var colorDepth = importBackColor ? importDepth : (importDepth - 1);
+
+        var quantPalette = [];
+        if (!importCustomPalette) {
+            // use the current palette
+            for (var p = 0; p < importPalette.length; p++) {
+
+                // skip transparent color
+                if (p === 0 && !importBackColor) continue;
+
+                var r = importPalette[p] & 0xFF;
+                var g = (importPalette[p] & 0xFF00) >> 8;
+                var b = (importPalette[p] & 0xFF0000) >> 16;
+                quantPalette.push([r,g,b]);
+            }
+        }
+
+        var options = {
+            colors: colorDepth,      // desired palette size
+            method: 2,               // histogram method, 2: min-population threshold within subregions; 1: global top-population
+            boxSize: [8,8],          // subregion dims (if method = 2)
+            boxPxls: 2,              // min-population threshold (if method = 2)
+            initColors: 4096,        // # of top-occurring colors  to start with (if method = 1)
+            minHueCols: 0,           // # of colors per hue group to evaluate regardless of counts, to retain low-count hues
+            dithKern: null,          // dithering kernel name, see available kernels in docs below
+            dithDelta: 0,            // dithering threshhold (0-1) e.g: 0.05 will not dither colors with <= 5% difference
+            dithSerp: false,         // enable serpentine pattern dithering
+            palette: quantPalette,   // a predefined palette to start with in r,g,b tuple format: [[r,g,b],[r,g,b]...]
+            reIndex: false,          // affects predefined palettes only. if true, allows compacting of sparsed palette once target palette size is reached. also enables palette sorting.
+            useCache: true,          // enables caching for perf usually, but can reduce perf in some cases, like pre-def palettes
+            cacheFreq: 10,           // min color occurance count needed to qualify for caching
+            colorDist: "euclidean",  // method used to determine color distance, can also be "manhattan"
+        }
+
+        // quantize the image
+        var q = new RgbQuant(options);
+        q.sample(img);
+
+        // get the palette (false to get an array instead of tuples)
+        if (importCustomPalette) {
+            var quantPalette32 = new Uint32Array(q.palette(false).buffer);
+            importPalette = new Uint32Array(importDepth);
+            if (importBackColor) {
+                importPalette.set(quantPalette32, 0);
+            } else {
+                importPalette.set(quantPalette32, 1);
+            }
+        }
+
+        // get the indexed color data
+        importGraphicsARGB = new Uint8Array(q.reduce(img, 1));
+        importGraphics = new Uint8Array(q.reduce(img, 2));
+
+        // if there is a transparent color, increment every color index
+        if (!importBackColor) {
+            for (var i = 0; i < importGraphics.length; i++) {
+                if (importGraphicsARGB[i * 4 + 3]) {
+                    importGraphics[i]++;
+                }
+            }
+        }
+
+        // interlace to convert to 8x8 tiles
+        importGraphics = ROM.dataFormat.interlace.decode(importGraphics, 8, 8, graphicsView.width)[0]
+        drawImportPreview();
+    }
+
+    // file select button
+    var input = document.createElement('input');
+    input.type = "file";
+    content.appendChild(input);
+    input.onchange = function() {
+        // upload user image file
+        if (!this.files || !this.files[0]) return;
+        var file = this.files[0];
+        this.value = null;
+        var filereader = new FileReader();
+        filereader.readAsArrayBuffer(file);
+        filereader.onload = function() {
+            importData = new Uint8Array(filereader.result);
+            updateImportPreview();
+        }
+    }
+
+    // dropdown list of image formats
+    var div = document.createElement('div');
+    content.appendChild(div);
+
+    var p = document.createElement('p');
+    p.innerHTML = "Select an image format:";
+    div.appendChild(p);
+
+    var list = document.createElement('select');
+    list.onchange = function() {
+        importFormat = this.value;
+        updateImportPreview();
+    }
+    div.appendChild(list);
+
+    var keys = Object.keys(ROMGraphicsView.exportFormat);
+    for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        var imageFormat = ROMGraphicsView.exportFormat[key];
+
+        // skip formats that don't have enough color depth
+        if (this.colorDepth > imageFormat.colorDepth) continue;
+
+        var option = document.createElement('option');
+        option.innerHTML = imageFormat.description;
+        if (this.format === imageFormat.id) option.innerHTML += " (Default)";
+        option.value = imageFormat.id;
+        if (!this.format && imageFormat.default) list.value = imageFormat.id;
+        list.appendChild(option);
+    }
+    if (this.format) list.value = this.format;
+
+    // import canvas
+    var importCanvas = document.createElement('canvas');
+    importCanvas.id = "import-canvas";
+    content.appendChild(importCanvas);
+
+    // import palette check box
+    var paletteCheckDiv = document.createElement('div');
+    content.appendChild(paletteCheckDiv);
+
+    var paletteCheck = document.createElement('input');
+    paletteCheckDiv.appendChild(paletteCheck);
+    paletteCheck.id = "import-palette-check";
+    paletteCheck.type = 'checkbox';
+    paletteCheck.disabled = true;
+    paletteCheck.checked = importCustomPalette;
+    paletteCheck.onchange = function() {
+        importCustomPalette = this.checked;
+        updateImportPreview();
+    };
+
+    var paletteCheckLabel = document.createElement('label');
+    paletteCheckDiv.appendChild(paletteCheckLabel);
+    paletteCheckLabel.innerHTML = "Also Import Palette";
+    paletteCheckLabel.htmlFor = "import-palette-check";
+
+    // trim blank tiles check box
+    var trimCheckDiv = document.createElement('div');
+    content.appendChild(trimCheckDiv);
+
+    var trimCheck = document.createElement('input');
+    trimCheckDiv.appendChild(trimCheck);
+    trimCheck.id = "import-trim-check";
+    trimCheck.type = 'checkbox';
+    trimCheck.checked = true;
+
+    var trimCheckLabel = document.createElement('label');
+    trimCheckDiv.appendChild(trimCheckLabel);
+    trimCheckLabel.innerHTML = "Trim Trailing Blank Tiles";
+    trimCheckLabel.htmlFor = "import-trim-check";
+
+    function trimBlankTiles(data) {
+        var t = Math.floor(data.length / 64);
+        var blankTile = new Uint8Array(64);
+        while (t > 0) {
+            var tile = data.subarray((t - 1) * 64, t * 64);
+            if (!compareTypedArrays(blankTile, tile)) break;
+            t--;
+        }
+        return data.subarray(0, t * 64);
+    }
+
+    // okay button
+    var okayButton = document.createElement('button');
+    okayButton.id = "import-okay";
+    okayButton.disabled = true;
+    okayButton.innerHTML = "Import";
+    okayButton.onclick = function() {
+        closeModal();
+
+        // trim blank tiles
+        if (trimCheck.checked) importGraphics = trimBlankTiles(importGraphics);
+
+        // trim the graphics to fit
+        if (importGraphics.length > graphicsView.gfx.data.length) {
+            importGraphics = importGraphics.subarray(0, graphicsView.gfx.data.length);
+        }
+
+        graphicsView.rom.beginAction();
+        graphicsView.gfx.setData(importGraphics);
+        if (importCustomPalette) {
+            graphicsView.paletteView.importPalette(importPalette);
+        }
+        graphicsView.rom.endAction();
+    };
+    content.appendChild(okayButton);
+
+    // cancel button
+    var cancelButton = document.createElement('button');
+    cancelButton.id = "import-cancel";
+    cancelButton.innerHTML = "Cancel";
+    cancelButton.onclick = function() { closeModal(); };
+    content.appendChild(cancelButton);
 }
 
 // ROMPaletteView
@@ -2193,6 +2463,8 @@ function ROMPaletteView(rom, graphicsView) {
     this.pal = null; // selected palette
     this.p = 0; // palette offset
     this.colorDepth = 16; // colors per palette
+
+    this.observer = new ROMObserver(rom, this);
 
     var paletteView = this;
     this.canvas.onmousedown = function(e) { paletteView.mouseDown(e) };
@@ -2316,11 +2588,12 @@ ROMPaletteView.prototype.selectGraphics = function(graphics) {
 
     // get the color depth
     var format = this.gfx.format;
-    if (isArray(format)) format = format[format.length - 1];
+    if (isArray(format)) format = format[0];
     this.colorDepth = GFX.colorDepth(format);
 
     // create an array of possible palettes
     this.paletteArray = [];
+    this.observer.stopObservingAll();
     if (this.gfx) {
         if (isArray(this.gfx.palette)) {
             // js array of palette paths
@@ -2341,11 +2614,14 @@ ROMPaletteView.prototype.parsePalettePath = function(path) {
     var paletteObject = this.rom.parsePath(path, this.rom, this.gfx.i);
     if (paletteObject instanceof ROMArray) {
         // romarray of palettes
-        for (var i = 0; i < paletteObject.arrayLength; i++)
+        for (var i = 0; i < paletteObject.arrayLength; i++) {
             this.paletteArray.push(paletteObject.item(i));
+            this.observer.startObserving(paletteObject.item(i), this.drawPalette);
+        }
     } else if (paletteObject && paletteObject.data) {
         // single palette assembly
         this.paletteArray.push(paletteObject);
+        this.observer.startObserving(paletteObject, this.drawPalette);
     }
 }
 
@@ -2365,7 +2641,7 @@ ROMPaletteView.prototype.getbackColor = function() {
     }
 }
 
-ROMPaletteView.prototype.getPaletteData = function(offset) {
+ROMPaletteView.prototype.getPaletteData = function(offset, depth) {
     offset = offset || 0;
     var palette;
     if (this.pal.data) {
@@ -2393,12 +2669,15 @@ ROMPaletteView.prototype.getPaletteData = function(offset) {
         palette = new Uint32Array(this.colorDepth);
     }
 
+    if (isNumber(depth)) palette = palette.subarray(0, depth);
+
     return palette;
 }
 
 ROMPaletteView.prototype.drawPalette = function() {
     var paletteData = this.getPaletteData(0);
     var rows = Math.ceil(paletteData.length / this.colorDepth);
+    rows = Math.min(rows, 16); // max of 16 palettes
 
     var colorWidth = 256 / this.colorDepth;
     var colorHeight = 24;
@@ -2441,4 +2720,10 @@ ROMPaletteView.prototype.drawPalette = function() {
     x++; y++; w -= 2; h -= 2;
     context.strokeStyle = "black";
     context.strokeRect(x, y, w, h);
+}
+
+ROMPaletteView.prototype.importPalette = function(palette) {
+    if (!this.pal.setData) return;
+    if (palette.length > this.pal.data.length) palette = palette.subarray(0, this.pal.data.length)
+    this.pal.setData(palette, this.p * this.colorDepth);
 }

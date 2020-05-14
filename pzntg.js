@@ -179,3 +179,140 @@ pzntg.create = function(options) {
 	else
 		return res;
 }
+
+pzntg.getIndexed = function(pngData) {
+	var out = {
+		palette: null,
+		graphics: null
+	}
+
+	var offset = 0;
+	for (var i = 0; i < 8; i++, offset++) {
+		// return if not a png file
+		if (pngData[offset] !== pzntg.spec.png[i]) return out;
+	}
+
+	var chunks = {};
+	var colorCount = 0;
+	var width = 0;
+	var height = 0;
+
+	// parse chunks
+	while (offset < pngData.length) {
+
+		var chunk = {};
+		chunk.len = pzntg.uint8ArrayToInt32(pngData.subarray(offset, offset + 4));
+		offset += 4;
+		chunk.type = pzntg.uint8ArrayToString(pngData.subarray(offset, offset + 4));
+		offset += 4;
+		chunk.data = pngData.subarray(offset, offset + chunk.len);
+		offset += chunk.len;
+		chunk.crc32 = pngData.subarray(offset, offset + 4);
+		offset += 4;
+
+		if (!chunks[chunk.type]) chunks[chunk.type] = chunk;
+
+		if (chunk.type === "IEND") break;
+	}
+
+	// header
+	if (chunks.IHDR) {
+		width = pzntg.uint8ArrayToInt32(chunks.IHDR.data.subarray(0, 4));
+		height = pzntg.uint8ArrayToInt32(chunks.IHDR.data.subarray(4, 8));
+	}
+
+	// color palette
+	if (chunks.PLTE) {
+		colorCount = Math.floor(chunks.PLTE.len / 3);
+		out.palette = new Uint8Array(colorCount * 4);
+		for (var i = 0; i < colorCount; i++) {
+			out.palette[i * 4 + 0] = chunks.PLTE.data[i * 3 + 0];
+			out.palette[i * 4 + 1] = chunks.PLTE.data[i * 3 + 1];
+			out.palette[i * 4 + 2] = chunks.PLTE.data[i * 3 + 2];
+			out.palette[i * 4 + 3] = 0xFF;
+		}
+	}
+
+	// color alpha values
+	if (chunks.tRNS && out.palette) {
+		for (var i = 0; i < colorCount; i++) {
+			if (i > chunks.tRNS.data.length) break;
+			out.palette[i * 4 + 3] = chunks.tRNS.data[i];
+		}
+	}
+
+	// indexed color data
+	if (chunks.IDAT) {
+		out.graphics = new Uint8Array(width * height);
+		var inflatedData = pako.inflate(chunks.IDAT.data);
+
+		// throw out the first byte of each scanline (filter byte)
+		var prev = new Uint8Array(width);
+		for (var row = 0; row < height; row++) {
+			var s = (width + 1) * row;
+			var scanline = inflatedData.subarray(s, s + width + 1);
+			scanline = pzntg.unfilterScanline(scanline, prev)
+			out.graphics.set(scanline.subarray(1), width * row);
+			prev = scanline;
+		}
+	}
+
+	return out;
+}
+
+pzntg.uint8ArrayToInt32 = function(bytes) {
+	var num = 0;
+
+	for (var i = 0; i < 4; i++) {
+		num <<= 8;
+		num |= bytes[i]
+	}
+
+	return num;
+}
+
+pzntg.uint8ArrayToString = function(bytes) {
+	var string = "";
+
+	for (var i = 0; i < bytes.length; i++) {
+		string += String.fromCharCode(bytes[i]);
+	}
+
+	return string;
+}
+
+pzntg.unfilterScanline = function(scanline, prev) {
+	var filter = scanline[0];
+	scanline[0] = 0;
+	if (filter === 1) {
+		for (var i = 1; i < scanline.length; i++) {
+			scanline[i] += scanline[i - 1];
+		}
+	} else if (filter === 2) {
+		for (var i = 1; i < scanline.length; i++) {
+			scanline[i] += prev[i];
+		}
+	} else if (filter === 3) {
+		for (var i = 1; i < scanline.length; i++) {
+			scanline[i] += (prev[i] + scanline[i - 1]) >> 1;
+		}
+	} else if (filter === 4) {
+		for (var i = 1; i < scanline.length; i++) {
+			var a = scanline[i - 1];
+			var b = prev[i];
+			var c = prev[i - 1];
+			var p = a + b - c;
+			var pa = Math.abs(p - a);
+			var pb = Math.abs(p - b);
+			var pc = Math.abs(p - c);
+			if (pa <= pb && pa <= pc) {
+				scanline[i] += a;
+			} else if (pb <= pc) {
+				scanline[i] += b;
+			} else {
+				scanline[i] += c;
+			}
+		}
+	}
+	return scanline;
+}

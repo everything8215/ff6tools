@@ -20,6 +20,15 @@
                 }, {
                     "name": "Color Math",
                     "path": "mapColorMath"
+                }, {
+                    "name": "Map Graphics",
+                    "path": "mapGraphics"
+                }, {
+                    "name": "Map Graphics (Layer 3)",
+                    "path": "mapGraphicsLayer3"
+                }, {
+                    "name": "World Map Graphics",
+                    "path": "worldGraphics"
                 }
             ]
         }, {
@@ -60,6 +69,9 @@
                 }, {
                     "name": "Monsters",
                     "path": "monsterProperties"
+                }, {
+                    "name": "Battle Background Graphics",
+                    "path": "battleBackgroundGraphics"
                 }
             ]
         }, {
@@ -103,7 +115,9 @@
                 "length": 21
             },
             "assembly": {
-                "format": ["snes4bpp", "ff5-lzss"]
+                "type": "graphics",
+                "format": ["snes4bpp", "ff5-lzss"],
+                "palette": "battleBackgroundPalette"
             },
             "pointerTable": {
                 "range": "0xD84196-0xD841D5",
@@ -1437,7 +1451,9 @@
                 "length": 40
             },
             "assembly": {
-                "format": "snes4bpp"
+                "type": "graphics",
+                "format": "snes4bpp",
+                "palette": "mapPalettes"
             },
             "pointerTable": {
                 "range": "0xDC2D84-0xDC2E24",
@@ -1453,7 +1469,9 @@
                 "length": 18
             },
             "assembly": {
-                "format": "snes2bpp"
+                "type": "graphics",
+                "format": "snes2bpp",
+                "palette": "mapPalettes"
             },
             "pointerTable": {
                 "range": "0xDC0000-0xDC0024",
@@ -2565,6 +2583,10 @@
             "range": "0xD50000-0xD83000",
             "array": {
                 "length": 171
+            },
+            "assembly": {
+                "type": "graphics",
+                "palette": "monsterPalette"
             },
             "pointerObject": {
                 "arrayPath": "monsterGraphicsProperties",
@@ -4498,13 +4520,15 @@
         "worldGraphics": {
             "type": "array",
             "name": "World Graphics",
-            "range": "0xDB8000-0xDBE000",
+            "range": "0xDB8000-0xDBD000",
             "array": {
                 "length": 3
             },
             "assembly": {
+                "type": "graphics",
                 "length": "0x2000",
-                "format": "linear4bpp"
+                "format": "linear4bpp",
+                "palette": "worldPalettes[%i]"
             }
         },
         "worldLayouts": {

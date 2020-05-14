@@ -8263,7 +8263,8 @@
                 "type": "graphics",
                 "length": "0x0380",
                 "format": "snes4bpp",
-                "palette": "windowPalette[%i]"
+                "palette": "windowPalette[%i]",
+                "width": 4
             }
         },
         "windowPalette": {

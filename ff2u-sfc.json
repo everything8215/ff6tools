@@ -6905,7 +6905,7 @@
         },
         "worldPalettes": {
             "type": "array",
-            "name": "World Palettes",
+            "name": "World Palette",
             "range": "0x148900-0x148A80",
             "array": {
                 "length": 3

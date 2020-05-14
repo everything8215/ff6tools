@@ -7,20 +7,20 @@ function FF1Map(rom) {
     ROMEditor.call(this, rom);
     this.name = "FF1Map";
     this.tileset = new FF1MapTileset(rom, this);
-    
+
     this.div = document.createElement('div');
     this.div.id = 'map-edit';
-    
+
     this.scrollDiv = document.createElement('div');
     this.scrollDiv.classList.add('no-select');
     this.div.appendChild(this.scrollDiv);
-    
+
     this.canvas = document.createElement('canvas');
     this.canvas.id = "map";
     this.canvas.width = 256;
     this.canvas.height = 256;
     this.scrollDiv.appendChild(this.canvas);
-    
+
     this.cursorCanvas = document.createElement('canvas');
     this.cursorCanvas.id = "map-cursor";
     this.cursorCanvas.width = 16;
@@ -92,7 +92,7 @@ FF1Map.prototype.endAction = function(callback) {
 }
 
 FF1Map.prototype.changeZoom = function() {
-    
+
     // save the old scroll location
     var l = this.div.scrollLeft;
     var t = this.div.scrollTop;
@@ -101,12 +101,12 @@ FF1Map.prototype.changeZoom = function() {
     var oldRect = new Rect(l, l + w, t, t + h);
     var x = Math.round(oldRect.centerX / this.zoom);
     var y = Math.round(oldRect.centerY / this.zoom);
-    
+
     // update zoom
     this.zoom = Math.pow(2, Number(document.getElementById("zoom").value));
     var zoomValue = document.getElementById("zoom-value");
     zoomValue.innerHTML = (this.zoom * 100).toString() + "%";
-    
+
     // update the scroll div size
     var parentWidth = this.ppu.width * this.zoom;
     var parentHeight = this.ppu.height * this.zoom;
@@ -128,7 +128,7 @@ FF1Map.prototype.changeZoom = function() {
 }
 
 FF1Map.prototype.scroll = function() {
-    
+
     this.closeMenu();
 
     // get the visible dimensions
@@ -142,7 +142,7 @@ FF1Map.prototype.scroll = function() {
     this.mapRect.l = Math.max(0, Math.min(x - margin, this.mapRect.r - w));
     this.mapRect.b = Math.min(y + h + margin, this.ppu.height * this.zoom);
     this.mapRect.t = Math.max(0, Math.min(y - margin, this.mapRect.b - h));
-        
+
     this.canvas.style.left = this.mapRect.l.toString() + "px";
     this.canvas.style.top = this.mapRect.t.toString() + "px";
     this.canvas.width = this.mapRect.w;
@@ -157,7 +157,7 @@ FF1Map.prototype.mouseDown = function(e) {
     this.clickedCol = ((e.offsetX / this.zoom + this.ppu.layers[this.l].x) % this.ppu.width) >> 4;
     this.clickedRow = ((e.offsetY / this.zoom + this.ppu.layers[this.l].y) % this.ppu.height) >> 4;
     this.clickButton = e.button;
-    
+
     // update the selection position
     this.selection[1] = this.clickedCol;
     this.selection[2] = this.clickedRow;
@@ -196,7 +196,7 @@ FF1Map.prototype.mouseDown = function(e) {
         this.setTiles();
         this.isDragging = true;
     }
-    
+
     this.drawScreen();
     this.drawCursor();
 }
@@ -207,7 +207,7 @@ FF1Map.prototype.mouseUp = function(e) {
         // save the new trigger position
         var col = this.selectedTrigger.x.value;
         var row = this.selectedTrigger.y.value;
-        
+
         if (col != this.clickedCol || row !== this.clickedRow) {
             // move the trigger back to its old position
             this.selectedTrigger.x.value = this.clickedCol;
@@ -226,13 +226,13 @@ FF1Map.prototype.mouseUp = function(e) {
         this.rom.pushAction(new ROMAction(this, null, this.drawMap, "Redraw Map"));
         this.endAction();
     }
-    
+
     this.isDragging = false;
     this.clickButton = null;
 }
 
 FF1Map.prototype.mouseMove = function(e) {
-    
+
     // return if the menu is open
     if (this.menu.classList.contains("active")) return;
 
@@ -277,7 +277,7 @@ FF1Map.prototype.mouseMove = function(e) {
 }
 
 FF1Map.prototype.mouseEnter = function(e) {
-    
+
     // show the cursor
     this.showCursor = true;
     this.drawScreen();
@@ -287,18 +287,18 @@ FF1Map.prototype.mouseEnter = function(e) {
 }
 
 FF1Map.prototype.mouseLeave = function(e) {
-    
+
     // hide the cursor
     this.showCursor = (this.l === 3);
     this.drawScreen();
     this.drawCursor();
-    
+
     this.mouseUp(e);
 }
 
 FF1Map.prototype.updateMenu = function() {
     this.menu.innerHTML = "";
-    
+
     var self = this;
     function appendMenuItem(label, onclick) {
         var li = document.createElement('li');
@@ -311,7 +311,7 @@ FF1Map.prototype.updateMenu = function() {
         }
         self.menu.appendChild(li);
     }
-    
+
     // make sure there are unused NPCs
     var isFull = true;
     var npcProperties = this.rom.mapNPC.item(this.m);
@@ -321,7 +321,7 @@ FF1Map.prototype.updateMenu = function() {
             break;
         }
     }
-    
+
     appendMenuItem("Insert NPC", (this.isWorld || isFull) ? null : function() { self.insertNPC() });
     appendMenuItem("Delete NPC", !this.selectedTrigger ? null : function() { self.deleteTrigger() });
 }
@@ -329,7 +329,7 @@ FF1Map.prototype.updateMenu = function() {
 FF1Map.prototype.openMenu = function(e) {
     if (this.l !== 3) return; // no menu unless editing triggers
     this.updateMenu();
-    
+
     this.clickedCol = ((e.offsetX / this.zoom + this.ppu.layers[this.l].x) % this.ppu.width) >> 4;
     this.clickedRow = ((e.offsetY / this.zoom + this.ppu.layers[this.l].y) % this.ppu.height) >> 4;
 
@@ -350,7 +350,7 @@ FF1Map.prototype.setTiles = function() {
     var row = this.selection[2];
     var cols = this.selection[3];
     var rows = this.selection[4];
-    
+
     var l = ((col << 4) - this.ppu.layers[this.l].x) & (this.ppu.width - 1);
     var r = l + (cols << 4);
     var t = ((row << 4) - this.ppu.layers[this.l].y) & (this.ppu.height - 1);
@@ -374,7 +374,7 @@ FF1Map.prototype.selectTrigger = function(trigger) {
 FF1Map.prototype.selectTiles = function() {
     // return if not dragging
     if (!isNumber(this.clickedCol) || !isNumber(this.clickedRow)) return;
-    
+
     var col = this.selection[1];
     var row = this.selection[2];
     var cols = Math.abs(col - this.clickedCol) + 1;
@@ -384,7 +384,7 @@ FF1Map.prototype.selectTiles = function() {
 
     this.selection = this.selectedLayer.getLayout(col, row, cols, rows);
     this.selection[2] |= this.l << 6;
-    
+
     if (rows !== 1 || cols !== 1) {
         this.tileset.selection = null;
     } else {
@@ -418,13 +418,13 @@ FF1Map.prototype.selectLayer = function(l) {
     // set the selected layer
     l = Number(l);
     if (isNumber(l)) this.l = l;
-    
+
     if (this.isWorld) {
         this.selectedLayer = this.worldLayer;
     } else {
         this.selectedLayer = this.layer[this.l]
     }
-    
+
     this.showCursor = (this.l === 3);
     this.drawScreen();
     this.drawCursor();
@@ -436,7 +436,7 @@ FF1Map.prototype.selectWorldBattle = function(x, y) {
     x &= 7;
     y &= 7;
     var sector = x + (y << 3);
-    
+
     var battleGroup = this.rom.battleGroup.item(sector);
     propertyList.select(battleGroup);
 }
@@ -485,10 +485,10 @@ FF1Map.prototype.drawScreen = function() {
 }
 
 FF1Map.prototype.drawCursor = function() {
-    
+
     this.cursorCanvas.style.display = "none";
     if (!this.showCursor) return;
-    
+
     var col = this.selection[1];
     var row = this.selection[2];
 
@@ -513,7 +513,7 @@ FF1Map.prototype.drawCursor = function() {
         h = 16 * this.zoom;
         c = "rgba(128, 128, 128, 1.0)";
     }
-    
+
     // draw the cursor
     w = Math.min(this.ppu.width * this.zoom - x, w);
     h = Math.min(this.ppu.height * this.zoom - y, h);
@@ -526,7 +526,7 @@ FF1Map.prototype.drawCursor = function() {
     this.cursorCanvas.style.top = y.toString() + "px";
     this.cursorCanvas.style.display = "block";
     var ctx = this.cursorCanvas.getContext('2d');
-    
+
     // convert the selection to screen coordinates
     ctx.lineWidth = 1;
     ctx.strokeStyle = "black";
@@ -568,7 +568,7 @@ FF1Map.prototype.show = function() {
 }
 
 FF1Map.prototype.loadMap = function(m) {
-    
+
     var layerButtons = document.getElementsByClassName("toolbox-button");
     layerButtons[1].disabled = true;
     layerButtons[2].disabled = true;
@@ -591,15 +591,15 @@ FF1Map.prototype.loadMap = function(m) {
     var t = this.mapProperties.tileset.value;
     var tileset = this.rom.mapTileset.item(t).data;
     var tilesetPalette = this.rom.tilesetPalette.item(t).data;
-    
+
     // get the palette
     var pal = this.rom.mapPalette.item(this.m).data.subarray(this.showRooms ? 32 : 0);
-    
+
     // load graphics
     var gfx = this.rom.mapGraphics.item(t).data;
 
     // load the tile layout
-    var layout = this.rom.mapLayout.item(this.m);    
+    var layout = this.rom.mapLayout.item(this.m);
     this.layer[0].loadLayout({layout: layout, tileset: tileset, paletteAssignment: tilesetPalette, w: 64, h: 64});
 
     // set up the ppu
@@ -628,12 +628,13 @@ FF1Map.prototype.loadMap = function(m) {
     this.selectedTrigger = null;
     this.loadTriggers();
     this.scroll();
-    
-    this.tileset.loadMap(this.m);
+
+    this.tileset.loadMap();
 }
 
-FF1Map.prototype.loadWorldMap = function(m) {
-    
+FF1Map.prototype.loadWorldMap = function() {
+
+    this.m = -1;
     if (this.selectedLayer && this.selectedLayer.type === "layer2") {
         this.selectLayer(0);
     }
@@ -653,7 +654,7 @@ FF1Map.prototype.loadWorldMap = function(m) {
     var layout = [];
     for (var i = 0; i < size; i++) layout.push(rom.worldLayout.item(i));
     this.worldLayer.loadLayout({layout: layout, tileset: tileset, w: 256, h: size, paletteAssignment: paletteAssignment});
-    
+
     // set up the ppu
     this.ppu = new GFX.PPU();
     this.ppu.pal = pal;
@@ -674,13 +675,13 @@ FF1Map.prototype.loadWorldMap = function(m) {
     this.scrollDiv.style.height = (this.ppu.height * this.zoom).toString() + "px";
     this.mapCanvas.width = this.ppu.width;
     this.mapCanvas.height = this.ppu.height;
-    
+
     this.invalidateMap();
     this.selectedTrigger = null;
     this.loadTriggers();
     this.scroll();
 
-    this.tileset.loadMap(m);
+    this.tileset.loadMap();
 }
 
 FF1Map.prototype.invalidateMap = function(rect) {
@@ -703,7 +704,7 @@ FF1Map.prototype.invalidateMap = function(rect) {
 }
 
 FF1Map.prototype.drawMap = function() {
-        
+
     // update the map canvas
     var mapContext = this.mapCanvas.getContext('2d');
     var imageData;
@@ -712,7 +713,7 @@ FF1Map.prototype.drawMap = function() {
     for (var s = 0; s < this.mapSectors.length; s++) {
         // continue if this sector is already drawn
         if (this.mapSectors[s]) continue;
-        
+
         // continue if this sector is not visible
         var col = s % (this.ppu.width >> 8);
         var row = (s / (this.ppu.width >> 8)) | 0;
@@ -722,19 +723,19 @@ FF1Map.prototype.drawMap = function() {
         var b = t + 256;
         var sectorRect = new Rect(l, r, t, b);
         if (this.mapRect.intersect(sectorRect.scale(this.zoom)).isEmpty()) continue;
-        
+
         // draw the sector (256 x 256 pixels)
         imageData = mapContext.createImageData(256, 256);
         this.ppu.renderPPU(imageData.data, sectorRect.l, sectorRect.t, 256, 256);
         mapContext.putImageData(imageData, sectorRect.l, sectorRect.t);
-        
+
         // validate the sector
         this.mapSectors[s] = true;
     }
-    
+
     // redraw dirty portions of the map
     if (this.dirtyRect) {
-    
+
         var rect = this.dirtyRect;
         this.dirtyRect = null;
 
@@ -749,7 +750,7 @@ FF1Map.prototype.drawMap = function() {
     ctx.webkitImageSmoothingEnabled = false;
     var scaledRect = this.mapRect.scale(1 / this.zoom);
     ctx.drawImage(this.mapCanvas, scaledRect.l, scaledRect.t, scaledRect.w, scaledRect.h, 0, 0, this.mapRect.w, this.mapRect.h);
-    
+
     this.drawTriggers();
     this.drawScreen();
     this.drawCursor();
@@ -773,7 +774,7 @@ FF1Map.prototype.loadTriggers = function() {
     // load npcs
     var npcProperties = this.rom.mapNPC.item(this.m);
     this.observer.startObserving(npcProperties, this.reloadTriggers);
-    
+
     for (var i = 0; i < npcProperties.arrayLength; i++) {
         var npc = npcProperties.item(i);
         if (npc.npcID.value === 0) continue;
@@ -783,11 +784,11 @@ FF1Map.prototype.loadTriggers = function() {
 
 FF1Map.prototype.insertNPC = function() {
     this.closeMenu();
-    
+
     // get the npc properties
     if (this.isWorld) return;
     var npcProperties = this.rom.mapNPC.item(this.m);
-    
+
     // find the first unused npc
     var npc;
     for (var n = 0; n < npcProperties.arrayLength; n++) {
@@ -796,53 +797,53 @@ FF1Map.prototype.insertNPC = function() {
         npc = null;
     }
     if (!npc) return;
-    
+
     this.beginAction(this.reloadTriggers);
     npc.x.setValue(this.clickedCol);
     npc.y.setValue(this.clickedRow);
     npc.npcID.setValue(1);
     this.endAction(this.reloadTriggers);
-    
+
     this.selectedTrigger = npc;
     propertyList.select(npc);
 }
 
 FF1Map.prototype.deleteTrigger = function() {
-    
+
     this.closeMenu();
     var trigger = this.selectedTrigger;
     if (!trigger) return;
     var triggers = trigger.parent;
     var index = triggers.array.indexOf(trigger);
     if (index === -1) return;
-    
+
     this.beginAction(this.reloadTriggers);
     triggers.removeAssembly(index);
     this.endAction(this.reloadTriggers);
-    
+
     this.selectedTrigger = null;
     propertyList.select(null);
 }
 
 FF1Map.prototype.drawTriggers = function() {
-    
+
     var zoom = this.zoom;
     var xClient = this.mapRect.l;
     var yClient = this.mapRect.t;
     var ctx = this.canvas.getContext('2d');
-    
+
     // function for drawing trigger rectangles with rounded corners
     function drawTriggerRect(x, y, fill) {
-        
+
         var r = zoom * 2;
         var s = zoom * 16 - 4 + 1;
         x = x * zoom * 16 + 2 - 0.5 - xClient;
         y = y * zoom * 16 + 2 - 0.5 - yClient;
-        
+
         ctx.lineWidth = 1;
         ctx.strokeStyle = "white";
         ctx.fillStyle = fill;
-        
+
         ctx.beginPath();
         ctx.moveTo(x, y + r);
         ctx.arcTo(x, y, x + r, y, r);
@@ -856,7 +857,7 @@ FF1Map.prototype.drawTriggers = function() {
         ctx.fill();
         ctx.stroke();
     }
-    
+
     if (!this.showTriggers) return;
     for (var i = 0; i < this.triggers.length; i++) {
         var trigger = this.triggers[i];
@@ -869,7 +870,7 @@ FF1Map.prototype.drawTriggers = function() {
 }
 
 FF1Map.prototype.triggerAt = function(x, y) {
-    
+
     var triggers = this.triggersAt(x, y);
     if (triggers.length === 0) return null;
     return triggers[0];
@@ -879,16 +880,16 @@ FF1Map.prototype.triggersAt = function (x, y) {
     var left, right, top, bottom;
     var zoom = this.zoom;
     var triggers = [];
-    
+
     for (var i = 0; i < this.triggers.length; i++) {
         var trigger = this.triggers[i];
         left = trigger.x.value * 16 * zoom;
         right = left + 16 * zoom;
         top = trigger.y.value * 16 * zoom;
         bottom = top + 16 * zoom;
-        
+
         if (x >= left && x < right && y >= top && y < bottom)
-            triggers.push(trigger);        
+            triggers.push(trigger);
     }
     return triggers;
 }
@@ -903,7 +904,7 @@ FF1Map.prototype.rectForTrigger = function(trigger) {
 }
 
 FF1Map.prototype.drawNPC = function(npc) {
-    
+
     var x = npc.x.value * 16;
     var y = npc.y.value * 16;
     var w = 16;
@@ -960,7 +961,7 @@ function FF1MapTileset(rom, map) {
     this.canvas.id = "tileset";
     this.canvas.width = 256;
     this.canvas.height = 256;
-    
+
     this.cursorCanvas = document.createElement("canvas");
     this.cursorCanvas.id = "tileset-cursor";
     this.cursorCanvas.width = 256;
@@ -972,7 +973,7 @@ function FF1MapTileset(rom, map) {
     this.selection = new Uint8Array([0x73, 0, 0, 1, 1, 0]);
     this.clickedCol = null;
     this.clickedRow = null;
-    
+
     this.ppu = new GFX.PPU();
 
     var tileset = this;
@@ -1037,7 +1038,7 @@ FF1MapTileset.prototype.mouseMove = function(e) {
             this.selection[5 + i + j * cols] = col + i + (row + j) * 16;
         }
     }
-    
+
     // redraw the cursor and notify the map
     this.drawCursor();
     this.map.selection = new Uint8Array(this.selection);
@@ -1045,7 +1046,7 @@ FF1MapTileset.prototype.mouseMove = function(e) {
 }
 
 FF1MapTileset.prototype.selectLayer = function(l) {
-    
+
     // update layer buttons
     var layerButtons = document.getElementsByClassName("toolbox-button");
     for (var i = 0; i < layerButtons.length; i++) {
@@ -1062,7 +1063,7 @@ FF1MapTileset.prototype.selectLayer = function(l) {
     this.ppu.layers[0].main = false;
     this.ppu.layers[1].main = false;
     this.ppu.layers[2].main = false;
-    
+
     // render the image on the canvas
     this.canvas.width = 256;
     this.canvas.height = 128;
@@ -1082,13 +1083,13 @@ FF1MapTileset.prototype.selectLayer = function(l) {
         this.ppu.renderPPU(imageData.data);
         ctx.putImageData(imageData, 0, 0);
     }
-    
+
     this.drawCursor();
     this.map.selection = new Uint8Array(this.selection);
 }
 
 FF1MapTileset.prototype.drawCursor = function() {
-    
+
     // clear the cursor canvas
     var ctx = this.cursorCanvas.getContext('2d');
     ctx.clearRect(0, 0, this.ppu.width, this.ppu.height);
@@ -1096,7 +1097,7 @@ FF1MapTileset.prototype.drawCursor = function() {
     // return if trigger layer is selected
     if (this.map.l === 3) return;
     if (!this.selection) return;
-    
+
     // get the cursor geometry
     var x = this.selection[1] << 4;
     var y = this.selection[2] << 4;
@@ -1105,7 +1106,7 @@ FF1MapTileset.prototype.drawCursor = function() {
 
     // draw the cursor
     if (w <= 0 || h <= 0) return;
-    
+
     // convert the selection to screen coordinates
     var colors = ["green", "blue", "red", "white"];
     ctx.lineWidth = 1;
@@ -1123,14 +1124,14 @@ FF1MapTileset.prototype.drawCursor = function() {
     ctx.strokeRect(x, y, w, h);
 }
 
-FF1MapTileset.prototype.loadMap = function(m) {
+FF1MapTileset.prototype.loadMap = function() {
 
     // create a sequential tile layout
     var layout = new Uint8Array(128);
     for (var i = 0; i < 128; i++) {
         layout[i] = i;
     }
-    
+
     // set up the ppu
     this.ppu = new GFX.PPU();
     this.ppu.pal = this.map.ppu.pal;
@@ -1140,7 +1141,7 @@ FF1MapTileset.prototype.loadMap = function(m) {
 
     if (this.map.isWorld) {
         this.worldLayer.loadLayout({layout: layout, tileset: this.map.worldLayer.tileset, w: 16, h: 8, paletteAssignment: this.map.worldLayer.paletteAssignment})
-        
+
         // layer 1
         this.ppu.layers[0].format = GFX.TileFormat.snes2bppTile;
         this.ppu.layers[0].rows = 16;
@@ -1148,10 +1149,10 @@ FF1MapTileset.prototype.loadMap = function(m) {
         this.ppu.layers[0].z[0] = GFX.Z.top;
         this.ppu.layers[0].gfx = this.map.ppu.layers[0].gfx;
         this.ppu.layers[0].tiles = this.worldLayer.tiles;
-        
+
     } else {
         this.layer[0].loadLayout({layout: layout, tileset: this.map.layer[0].tileset, paletteAssignment: this.map.layer[0].paletteAssignment, w: 16, h: 8});
-        
+
         // layer 1
         this.ppu.layers[0].format = GFX.TileFormat.snes2bppTile;
         this.ppu.layers[0].rows = 16;
@@ -1161,7 +1162,7 @@ FF1MapTileset.prototype.loadMap = function(m) {
         this.ppu.layers[0].tiles = this.layer[0].tiles;
         this.ppu.layers[0].attr = this.layer[0].attr;
     }
-    
+
     this.selectLayer(this.map.l);
 }
 
@@ -1199,12 +1200,12 @@ FF1MapLayer.prototype.setLayout = function(layout) {
     var y = layout[2];
     var w = layout[3];
     var h = layout[4];
-    
+
     x = x % this.w;
     y = y % this.h;
     var clippedW = Math.min(w, this.w - x);
     var clippedH = Math.min(h, this.h - y);
-    
+
     for (var row = 0; row < clippedH; row++) {
         var ls = 5 + row * w;
         var ld = x + (y + row) * this.w;
@@ -1220,7 +1221,7 @@ FF1MapLayer.prototype.setLayout = function(layout) {
 }
 
 FF1MapLayer.prototype.getLayout = function(col, row, cols, rows) {
-    
+
     // limit the selection rectangle to the size of the layer
     var clippedCol = col % this.w;
     var clippedRow = row % this.h;
@@ -1244,7 +1245,7 @@ FF1MapLayer.prototype.getLayout = function(col, row, cols, rows) {
 }
 
 FF1MapLayer.prototype.decodeLayout = function(x, y, w, h) {
-    
+
     x = x || 0;
     y = y || 0;
     x %= this.w;
@@ -1253,7 +1254,7 @@ FF1MapLayer.prototype.decodeLayout = function(x, y, w, h) {
     h = h || this.h;
     w = Math.min(w, this.w - x);
     h = Math.min(h, this.h - y);
-    
+
     switch (this.type) {
         case FF1MapLayer.Type.layer1:
             this.decodeMapLayout(x, y, w, h);
@@ -1267,7 +1268,7 @@ FF1MapLayer.prototype.decodeLayout = function(x, y, w, h) {
 }
 
 FF1MapLayer.prototype.decodeMapLayout = function(x, y, w, h) {
-    
+
     var layout = this.layout.data || this.layout;
     var l = x + y * this.w;
     var t = x * 2 + y * this.w * 4;
@@ -1305,7 +1306,7 @@ FF1MapLayer.prototype.decodeWorldLayout = function(x, y, w, h) {
 
     for (row = 0; row < h; row++) {
         for (col = 0; col < w; col++) {
-            tile = layout[l + col];   
+            tile = layout[l + col];
             if (tile > 0x7F) tile = 0;
             i = t + col * 2;
             if (i > this.tiles.length) return;

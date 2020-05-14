@@ -672,7 +672,7 @@ function ROMGraphics(rom, definition, parent) {
     ROMAssembly.call(this, rom, definition, parent);
 
     this.palette = definition.palette;
-    this.width = definition.width || 16;
+    this.width = definition.width; // width in 8x8 tiles
     this.backColor = (definition.backColor === true);
 }
 
@@ -683,7 +683,7 @@ Object.defineProperty(ROMGraphics.prototype, "definition", { get: function() {
     var definition = Object.getOwnPropertyDescriptor(ROMAssembly.prototype, "definition").get.call(this);
 
     if (this.palette) definition.palette = this.palette;
-    if (this.width !== 16) definition.width = this.width;
+    if (this.width) definition.width = this.width;
     if (this.backColor) definition.backColor = true;
 
     return definition;
@@ -1645,6 +1645,10 @@ ROM.dataFormat = {
         encode: GFX.encodeLinear4bpp,
         decode: GFX.decodeLinear4bpp
     },
+    "linear8bpp": {
+        encode: GFX.encodeLinear8bpp,
+        decode: GFX.decodeLinear8bpp
+    },
     "nes2bpp": {
         encode: GFX.encodeNES2bpp,
         decode: GFX.decodeNES2bpp
@@ -1704,7 +1708,7 @@ ROM.dataFormat = {
                     dest[d++] = b | 0x80;
                     dest[d++] = 0;
                     s += 255;
-                } else if (l > 2) {
+                } else if (l >= 1) {
                     dest[d++] = b | 0x80;
                     dest[d++] = l + 1;
                     s += l;
