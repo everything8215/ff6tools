@@ -16,6 +16,12 @@ general
  * import/export binary data
  * import custom tbl file
  * add a multi-bank option for assemblies that can span multiple banks
+ * emulate parallax scrolling when screen mask is on
+ * improve fragmented assemblies
+ * organize source/definition files in github folder
+ * add delegates for objects to intercept assembly methods
+ * import/export palettes
+ * store palettes as Uint8Array instead of Uint32Array
 
 gui
 ---
@@ -32,6 +38,7 @@ gui
  * navigator labels should update automatically
  * find a better way to auto-populate battle names
  * array insert/remove
+ * arrayPath/objectPath in navigator
 
 game specific
 -------------
@@ -43,12 +50,17 @@ game specific
  * battle vram viewer for ff5
  * draw enemy characters in ff4 advance
  * ff4 advance japanese version
+ * ff4-sfc monster/summon graphics (fragmented)
+ * ff5-sfc monster graphics (set format automatically)
+ * import ff6 spritesheets
 
 wish list
 ---------
  * battle animation editor
  * cinematic editor
- * graphics import/export
+ * tile layout editor
  * music editor
- * ff2 and ff3 nes
+ * ff1 and ff2 nes/wsc/gba/psp
+ * ff3 nes
  * ff4 wsc and psp
+ * psx versions

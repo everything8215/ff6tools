@@ -87,7 +87,9 @@
                 "length": 22
             },
             "assembly": {
-                "format": ["linear4bpp", "gba-lzss"]
+                "type": "graphics",
+                "format": ["linear4bpp", "gba-lzss"],
+                "palette": "battleBackgroundPalette"
             },
             "pointerTable": {
                 "range": "0x080FA1C0-0x080FA218"
@@ -3347,7 +3349,9 @@
             "name": "World Graphics",
             "isFragmented": true,
             "assembly": {
-                "format": "gba-lzss"
+                "type": "graphics",
+                "format": ["linear8bpp", "gba-lzss"],
+                "palette": "worldPalette"
             },
             "pointerObject": [
                 {

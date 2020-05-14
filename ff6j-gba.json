@@ -16,6 +16,15 @@
                     "name": "Maps",
                     "path": "mapProperties"
                 }, {
+                    "name": "Map Graphics",
+                    "path": "mapGraphics"
+                }, {
+                    "name": "Map Animation Graphics",
+                    "path": "mapAnimationGraphics"
+                }, {
+                    "name": "Map Animation Graphics (Layer 3)",
+                    "path": "mapAnimationGraphicsLayer3"
+                }, {
                     "name": "Map Titles",
                     "path": "stringTable.mapTitle"
                 }, {
@@ -27,6 +36,21 @@
                 }, {
                     "name": "Palette Animation",
                     "path": "mapPaletteAnimation"
+                }, {
+                    "name": "Sprite Overlay Graphics",
+                    "path": "mapOverlayGraphics"
+                }, {
+                    "name": "Map Animation Properties",
+                    "path": "mapAnimationProperties"
+                }, {
+                    "name": "World of Balance Graphics",
+                    "path": "worldGraphics1.graphics"
+                }, {
+                    "name": "World of Ruin Graphics",
+                    "path": "worldGraphics2.graphics"
+                }, {
+                    "name": "Serpent Trench Graphics",
+                    "path": "worldGraphics3.graphics"
                 }
             ]
         }, {
@@ -63,10 +87,24 @@
                     "path": "battleGroupsEvent"
                 }, {
                     "name": "Battle Dialog",
-                    "path": "battleDialog"
+                    "path": "stringTable.battleDialog"
                 }, {
+                    "name": "Attack Message",
+                    "path": "stringTable.attackMessage"
+                }, {
+                    "name": "Battle Background Graphics",
+                    "path": "battleBackgroundGraphics"
+                }
+            ]
+        }, {
+            "name": "Monster",
+            "list": [
+                {
                     "name": "Monsters",
                     "path": "monsterProperties"
+                }, {
+                    "name": "Monster/Esper Graphics",
+                    "path": "monsterGraphics"
                 }, {
                     "name": "Monster A.I. Script",
                     "path": "monsterScript"
@@ -75,10 +113,7 @@
                     "path": "characterAI"
                 }, {
                     "name": "Monster Dialog",
-                    "path": "monsterDialog"
-                }, {
-                    "name": "Attack Messages",
-                    "path": "attackMessage"
+                    "path": "stringTable.monsterDialog"
                 }
             ]
         }, {
@@ -87,6 +122,12 @@
                 {
                     "name": "Characters",
                     "path": "characterProperties"
+                }, {
+                    "name": "Character Graphics",
+                    "path": "mapSpriteGraphics"
+                }, {
+                    "name": "Vehicle Graphics",
+                    "path": "vehicleGraphics"
                 }, {
                     "name": "Espers",
                     "path": "esperProperties"
@@ -174,7 +215,9 @@
                 "length": 75
             },
             "assembly": {
-                "format": ["linear4bpp", "ff6-lzss"]
+                "type": "graphics",
+                "format": ["linear4bpp", "ff6-lzss"],
+                "palette": "battleBackgroundPalette"
             },
             "pointerTable": {
                 "range": "0x085D1650-0x085D1731",
@@ -3281,10 +3324,11 @@
             }
         },
         "mapAnimationGraphics": {
-            "type": "assembly",
+            "type": "graphics",
             "name": "Map Animation Graphics",
             "range": "0x08540000-0x08548000",
-            "format": "linear4bpp"
+            "format": "linear4bpp",
+            "palette": "mapPalettes"
         },
         "mapAnimationGraphicsLayer3": {
             "type": "array",
@@ -3294,7 +3338,9 @@
                 "length": 6
             },
             "assembly": {
-                "format": ["linear4bpp", "ff6-lzss"]
+                "type": "graphics",
+                "format": ["linear4bpp", "ff6-lzss"],
+                "palette": "mapPalettes"
             },
             "pointerTable": {
                 "range": "0x0875B888-0x0875B89D",
@@ -3584,7 +3630,9 @@
                 "max": 128
             },
             "assembly": {
-                "format": "linear4bpp"
+                "type": "graphics",
+                "format": "linear4bpp",
+                "palette": "mapPalettes"
             },
             "pointerTable": {
                 "range": "0x08722B9E-0x08722C94",
@@ -3612,10 +3660,11 @@
                         "length": "0x40"
                     },
                     "graphics": {
-                        "type": "assembly",
+                        "type": "graphics",
                         "begin": "0x40",
                         "length": "0x2000",
-                        "format": "linear4bpp"
+                        "format": "linear4bpp",
+                        "palette": "mapPalettes"
                     }
                 }
             },
@@ -4076,7 +4125,7 @@
             }
         },
         "mapOverlayGraphics": {
-            "type": "assembly",
+            "type": "graphics",
             "name": "Map Overlay Graphics",
             "range": "0x08712DD6-0x08713756",
             "format": "reverse1bpp"
@@ -4154,7 +4203,56 @@
             },
             "stringTable": {
                 "length": 48,
-                "default": "Map Palette %i"
+                "default": "Map Palette %i",
+                "string": {
+                    "0": "Figaro Castle - Exterior",
+                    "1": "Village - Exterior 1 (WoB)",
+                    "2": "Doma Castle - Exterior",
+                    "3": "Town - Exterior (WoB)",
+                    "4": "Docks",
+                    "5": "Caves 1",
+                    "6": "Castle - Interior",
+                    "7": "River",
+                    "8": "Imperial Camp",
+                    "9": "Mountains - Interior",
+                    "10": "Town - Interior 1",
+                    "11": "Opera House 1",
+                    "12": "Narshe - Exterior",
+                    "13": "Snowfields",
+                    "14": "Train - Exterior",
+                    "15": "Train - Interior",
+                    "16": "Zozo - Exterior",
+                    "17": "Vector - Exterior",
+                    "18": "Caves w/ Furniture",
+                    "19": "Floating Island",
+                    "20": "Zozo - Interior",
+                    "21": "Caves 2",
+                    "22": "Village - Exterior 2 (WoR)",
+                    "23": "Mountains - Exterior",
+                    "24": "Magitek Factory",
+                    "25": "Blackjack - Exterior",
+                    "26": "Airship - Interior",
+                    "27": "Cyan's Dream",
+                    "28": "Forest",
+                    "29": "Imperial Castle - Exterior",
+                    "30": "Beach",
+                    "31": "Imperial Castle - Interior",
+                    "32": "Fire Caves",
+                    "33": "Sealed Gate",
+                    "34": "Kefka's Tower",
+                    "35": "Burning Building",
+                    "36": "Town - Interior 2",
+                    "37": "Narshe - Interior",
+                    "38": "Village - Exterior 2 (WoB)",
+                    "39": "Opera House 2",
+                    "40": "Darill's Tomb",
+                    "41": "Town - Exterior (WoR)",
+                    "42": "Fanatics' Tower",
+                    "43": "Kefka's Tower - Top",
+                    "44": "Solitary Island - Cliff",
+                    "45": "Falcon - Exterior",
+                    "46": "Darill's Tomb - Stairway"
+                }
             }
         },
         "mapPaletteAnimation": {
@@ -5135,12 +5233,14 @@
             "type": "array",
             "name": "Map Sprite Graphics",
             "range": "0x08760000-0x08793000",
+            "stringTable": "mapSprites",
             "array": {
                 "length": 165
             },
             "assembly": {
-                "type": "assembly",
-                "format": "linear4bpp"
+                "type": "graphics",
+                "format": "linear4bpp",
+                "palette": "mapSpritePalettes"
             },
             "pointerObject": {
                 "arrayPath": "mapSpritePointers",
@@ -5686,8 +5786,9 @@
             "name": "Monster Graphics",
             "range": "0x0858FF64-0x085CF9A4",
             "assembly": {
-                "type": "assembly",
-                "format": "linear4bpp"
+                "type": "graphics",
+                "format": "linear4bpp",
+                "palette": "monsterPalette"
             },
             "array": {
                 "length": 459
@@ -7544,7 +7645,7 @@
                                     "0": "One Frame",
                                     "1": "Flip Horizontally",
                                     "2": "Two Frames",
-                                    "3": "Four Frames"                                    
+                                    "3": "Four Frames"
                                 }
                             },
                             "disabled": "this.parent.animation.value === 0"
@@ -7559,7 +7660,7 @@
                                     "0": "Fastest",
                                     "1": "Fast",
                                     "2": "Medium",
-                                    "3": "Slow"                                    
+                                    "3": "Slow"
                                 }
                             },
                             "disabled": "this.parent.animation.value === 0"
@@ -7906,7 +8007,7 @@
                                 "0": "One Frame",
                                 "1": "Flip Horizontally",
                                 "2": "Two Frames",
-                                "3": "Four Frames"                                    
+                                "3": "Four Frames"
                             }
                         },
                         "disabled": "this.parent.animation.value === 0"
@@ -7921,7 +8022,7 @@
                                 "0": "Fastest",
                                 "1": "Fast",
                                 "2": "Medium",
-                                "3": "Slow"                                    
+                                "3": "Slow"
                             }
                         },
                         "disabled": "this.parent.animation.value === 0"
@@ -8376,10 +8477,11 @@
             ]
         },
         "vehicleGraphics": {
-            "type": "assembly",
+            "type": "graphics",
             "name": "Vehicle Graphics",
             "range": "0x086F0000-0x086F2000",
-            "format": "linear4bpp"
+            "format": "linear4bpp",
+            "palette": ["mapSpritePalettes[7]", "mapSpritePalettes[11]"]
         },
         "vehicleEvents": {
             "type": "array",
@@ -8539,9 +8641,11 @@
                     "range": "0x0000-0x0400"
                 },
                 "graphics": {
-                    "type": "assembly",
+                    "type": "graphics",
                     "name": "World of Balance Graphics",
-                    "range": "0x0400-0x4400"
+                    "range": "0x0400-0x4400",
+                    "format": "linear8bpp",
+                    "palette": "worldPalette1"
                 }
             }
         },
@@ -8558,9 +8662,11 @@
                     "range": "0x0000-0x0400"
                 },
                 "graphics": {
-                    "type": "assembly",
+                    "type": "graphics",
                     "name": "World of Ruin Graphics",
-                    "range": "0x0400-0x4400"
+                    "range": "0x0400-0x4400",
+                    "format": "linear8bpp",
+                    "palette": "worldPalette2"
                 }
             }
         },
@@ -8577,9 +8683,11 @@
                     "range": "0x0000-0x0400"
                 },
                 "graphics": {
-                    "type": "assembly",
+                    "type": "graphics",
                     "name": "Serpent Trench Graphics",
-                    "range": "0x0400-0x4400"
+                    "range": "0x0400-0x4400",
+                    "format": "linear8bpp",
+                    "palette": "worldPalette3"
                 }
             }
         },
