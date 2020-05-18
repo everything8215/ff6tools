@@ -9,6 +9,8 @@ function FF1Battle(rom) {
 
     this.b = null; // battle index
     this.bg = 0; // battle background index
+    this.ab = 0; // battle A/B
+    this.minMax = 0; // min/max number of monsters
     this.battleProperties = null;
     this.ppu = null;
     this.canvas = document.createElement('canvas');
@@ -19,64 +21,26 @@ function FF1Battle(rom) {
     this.div = document.createElement('div');
     this.div.id = 'map-edit';
     this.div.appendChild(this.canvas);
-    
+
     this.battleRect = new Rect(0, 192, 0, 144);
     this.zoom = 2.0;
 
     this.selectedMonster = null;
     this.showMonsters = true;
-    
+
     this.observer = new ROMObserver(rom, this, {sub: true, link: true, array: true});
 
     var self = this;
     this.canvas.onmousedown = function(e) { self.mouseDown(e) };
-    
+
     this.updateBattleStrings();
 }
 
 FF1Battle.prototype = Object.create(ROMEditor.prototype);
 FF1Battle.prototype.constructor = FF1Battle;
 
-//FF1Battle.prototype.battleName = function(b) {
-//    var battleProperties = this.rom.battleProperties.item(b);
-//    var monster1 = battleProperties.monster1.value;
-//    var monster2 = battleProperties.monster2.value;
-//    var monster3 = battleProperties.monster3.value;
-//    var monster4 = battleProperties.monster4.value;
-//    var m1 = battleProperties.monster1Max.value
-//    var m2 = battleProperties.monster2Max.value
-//    var m3 = battleProperties.monster3Max.value
-//    var m4 = battleProperties.monster4Max.value
-//
-//    if (monster3 === monster4) { m3 += m4; m4 = 0; }
-//    if (monster2 === monster4) { m2 += m4; m4 = 0; }
-//    if (monster1 === monster4) { m1 += m4; m4 = 0; }
-//    if (monster2 === monster3) { m2 += m3; m3 = 0; }
-//    if (monster1 === monster2) { m1 += m2; m2 = 0; }
-//    if (monster1 === monster3) { m1 += m3; m3 = 0; }
-//
-//    var battleName = "";
-//    if (m1 !== 0) {
-//        battleName += "<monsterName[" + monster1.toString() + "]>"
-//    }
-//    if (m2 !== 0) {
-//        if (battleName !== "") battleName += ", ";
-//        battleName += "<monsterName[" + monster2.toString() + "]>"
-//    }
-//    if (m3 !== 0) {
-//        if (battleName !== "") battleName += ", ";
-//        battleName += "<monsterName[" + monster3.toString() + "]>"
-//    }
-//    if (m4 !== 0) {
-//        if (battleName !== "") battleName += ", ";
-//        battleName += "<monsterName[" + monster4.toString() + "]>"
-//    }
-//    if (battleName === "") battleName = "Battle %i";
-//    return battleName;
-//}
-
 FF1Battle.prototype.updateBattleStrings = function() {
-    
+
     for (var b = 0; b < this.rom.battleProperties.arrayLength; b++) {
         var battleProperties = this.rom.battleProperties.item(b);
         var monster1 = battleProperties.monster1.value;
@@ -87,29 +51,45 @@ FF1Battle.prototype.updateBattleStrings = function() {
         var m2 = battleProperties.monster2Max.value
         var m3 = battleProperties.monster3Max.value
         var m4 = battleProperties.monster4Max.value
+        var m1b = battleProperties.monster1MaxB.value
+        var m2b = battleProperties.monster2MaxB.value
 
         if (monster3 === monster4) { m3 += m4; m4 = 0; }
         if (monster2 === monster4) { m2 += m4; m4 = 0; }
         if (monster1 === monster4) { m1 += m4; m4 = 0; }
         if (monster2 === monster3) { m2 += m3; m3 = 0; }
-        if (monster1 === monster2) { m1 += m2; m2 = 0; }
+        if (monster1 === monster2) { m1 += m2; m2 = 0; m1b += m2b; m2b = 0; }
         if (monster1 === monster3) { m1 += m3; m3 = 0; }
 
         var battleName = "";
         if (m1 !== 0) {
-            battleName += "<monsterName[" + monster1.toString() + "]>"
+            battleName += "<monsterName[" + monster1.toString() + "]>";
         }
         if (m2 !== 0) {
             if (battleName !== "") battleName += ", ";
-            battleName += "<monsterName[" + monster2.toString() + "]>"
+            battleName += "<monsterName[" + monster2.toString() + "]>";
         }
         if (m3 !== 0) {
             if (battleName !== "") battleName += ", ";
-            battleName += "<monsterName[" + monster3.toString() + "]>"
+            battleName += "<monsterName[" + monster3.toString() + "]>";
         }
         if (m4 !== 0) {
             if (battleName !== "") battleName += ", ";
-            battleName += "<monsterName[" + monster4.toString() + "]>"
+            battleName += "<monsterName[" + monster4.toString() + "]>";
+        }
+
+        if (m1b + m2b) {
+            battleNameB = "";
+
+            if (m1b !== 0) {
+                battleNameB += "<monsterName[" + monster1.toString() + "]>";
+            }
+            if (m2b !== 0) {
+                if (battleNameB !== "") battleNameB += ", ";
+                battleNameB += "<monsterName[" + monster2.toString() + "]>";
+            }
+
+            if (battleNameB != battleName) battleName += " / " + battleNameB;
         }
         this.rom.stringTable.battleProperties.string[b].value = battleName;
     }
@@ -121,12 +101,12 @@ FF1Battle.prototype.mouseDown = function(e) {
     var y = Math.floor(e.offsetY / this.zoom) + this.battleRect.t;
     this.selectedMonster = this.monsterAtPoint(x, y);
 
-    if (this.selectedMonster) {        
+    if (this.selectedMonster) {
         propertyList.select(this.rom.monsterProperties.item(this.selectedMonster.monster));
     } else {
         propertyList.select(this.battleProperties);
     }
-    
+
     this.drawBattle();
 }
 
@@ -145,7 +125,7 @@ FF1Battle.prototype.show = function() {
     this.showControls();
     this.closeList();
     this.addTwoState("showMonsters", function(checked) { battle.showMonsters = checked; battle.drawBattle(); }, "Monsters", this.showMonsters);
-    
+
     var bgNames = [];
     for (var i = 0; i < this.rom.stringTable.battleBackground.string.length; i++) {
         bgNames.push(this.rom.stringTable.battleBackground.string[i].fString());
@@ -153,6 +133,14 @@ FF1Battle.prototype.show = function() {
     var onChangeBG = function(bg) { battle.bg = bg; battle.drawBattle(); }
     var bgSelected = function(bg) { return battle.bg === bg; }
     this.addList("showBackground", "Background", bgNames, onChangeBG, bgSelected);
+
+    var onChangeAB = function(ab) { battle.ab = ab; battle.drawBattle(); }
+    var abSelected = function(ab) { return battle.ab === ab; }
+    this.addList("showBattleAB", "Battle A/B", ["Battle A", "Battle B"], onChangeAB, abSelected);
+
+    var onChangeMinMax = function(minMax) { battle.minMax = minMax; battle.drawBattle(); }
+    var minMaxSelected = function(minMax) { return battle.minMax === minMax; }
+    this.addList("showBattleMinMax", "Min/Max", ["Minimum", "Maximum", "Average"], onChangeMinMax, minMaxSelected);
 }
 
 FF1Battle.prototype.loadBattle = function(b) {
@@ -164,33 +152,55 @@ FF1Battle.prototype.loadBattle = function(b) {
         this.battleProperties = this.rom.battleProperties.item(b);
         this.observer.startObserving(this.battleProperties, this.loadBattle);
     }
-    
+
     this.selectedMonster = null;
     this.drawBattle();
 }
 
 FF1Battle.prototype.monsterInSlot = function(slot) {
-    
+
     var x, y, h, w;
-    
+
     var i = 0;
     var type = 1;
-    var monsterCount = [0,
-        this.battleProperties.monster1Max.value,
-        this.battleProperties.monster2Max.value,
-        this.battleProperties.monster3Max.value,
-        this.battleProperties.monster4Max.value];
+    var monsterCount = [0, 0, 0, 0, 0];
+
+    if (this.ab === 0) {
+        for (var m = 1; m <= 4; m++) {
+            var slotMin = this.battleProperties["monster" + m + "Min"].value;
+            var slotMax = this.battleProperties["monster" + m + "Max"].value;
+            if (this.minMax === 0) {
+                monsterCount[m] = slotMin;
+            } else if (this.minMax === 1) {
+                monsterCount[m] = slotMax;
+            } else if (this.minMax === 2) {
+                monsterCount[m] = Math.round((slotMin + slotMax) / 2);
+            }
+        }
+    } else {
+        for (var m = 1; m <= 2; m++) {
+            var slotMin = this.battleProperties["monster" + m + "MinB"].value;
+            var slotMax = this.battleProperties["monster" + m + "MaxB"].value;
+            if (this.minMax === 0) {
+                monsterCount[m] = slotMin;
+            } else if (this.minMax === 1) {
+                monsterCount[m] = slotMax;
+            } else if (this.minMax === 2) {
+                monsterCount[m] = Math.round((slotMin + slotMax) / 2);
+            }
+        }
+    }
 
     var g1 = this.battleProperties.monster1Graphics.value;
     var g2 = this.battleProperties.monster2Graphics.value;
     var g3 = this.battleProperties.monster3Graphics.value;
     var g4 = this.battleProperties.monster4Graphics.value;
     var size = this.battleProperties.size.value;
-    
+
     switch (size) {
         case 0: // 9 small monsters
             if (slot > 9) return null;
-            
+
             if (slot <= 3) x = 8;
             else if (slot <= 6) x = 40;
             else x = 72;
@@ -200,27 +210,27 @@ FF1Battle.prototype.monsterInSlot = function(slot) {
             else y = 104;
 
             w = h = 32;
-            
+
             if (g1 === 1 || g1 === 3) monsterCount[1] = 0;
             if (g2 === 1 || g2 === 3) monsterCount[2] = 0;
             if (g3 === 1 || g3 === 3) monsterCount[3] = 0;
             if (g4 === 1 || g4 === 3) monsterCount[4] = 0;
-            
+
             break;
-            
+
         case 1: // 4 large monsters
             if (slot > 4) return null;
-            
+
             x = (slot <= 2) ? 8 : 56;
             y = (slot % 2 === 1) ? 40 : 88;
 
             w = h = 48;
-            
+
             if (g1 === 0 || g1 === 2) monsterCount[1] = 0;
             if (g2 === 0 || g2 === 2) monsterCount[2] = 0;
             if (g3 === 0 || g3 === 2) monsterCount[3] = 0;
             if (g4 === 0 || g4 === 2) monsterCount[4] = 0;
-            
+
             break;
 
         case 2: // 2 large, 6 small
@@ -232,7 +242,7 @@ FF1Battle.prototype.monsterInSlot = function(slot) {
                 if (g2 === 0 || g2 === 2) monsterCount[2] = 0;
                 if (g3 === 0 || g3 === 2) monsterCount[3] = 0;
                 if (g4 === 0 || g4 === 2) monsterCount[4] = 0;
-                
+
             } else if (slot <= 8) {
                 x = (slot <= 5) ? 56 : 88;
                 if ((slot - 2) % 3 === 1) y = 72;
@@ -249,7 +259,7 @@ FF1Battle.prototype.monsterInSlot = function(slot) {
                 return null;
             }
             break;
-            
+
         case 3: // fiend
             if (slot > 1) return null;
             x = 32;
@@ -268,7 +278,7 @@ FF1Battle.prototype.monsterInSlot = function(slot) {
         default:
             return null;
     }
-    
+
     while (i < slot) {
         if (monsterCount[type]) {
             monsterCount[type]--;
@@ -276,7 +286,8 @@ FF1Battle.prototype.monsterInSlot = function(slot) {
             continue;
         }
         type++;
-        if (type > 4) return null;
+        if (this.ab === 0 && type > 4) return null;
+        if (this.ab === 1 && type > 2) return null;
     }
 
     var offset = 0;
@@ -299,7 +310,7 @@ FF1Battle.prototype.monsterInSlot = function(slot) {
 }
 
 FF1Battle.prototype.monsterAtPoint = function(x, y) {
-    
+
     for (var slot = 1; slot <= 9; slot++) {
         var m = this.monsterInSlot(slot);
         if (!m) continue;
@@ -315,11 +326,11 @@ FF1Battle.prototype.drawBattle = function() {
     }
 
     this.zoom = this.div.clientWidth / this.battleRect.w;
-    
+
     var scaledRect = this.battleRect.scale(this.zoom);
     this.canvas.width = scaledRect.w;
     this.canvas.height = scaledRect.h;
-    
+
     var ctx = this.canvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
     ctx.webkitImageSmoothingEnabled = false;
@@ -327,10 +338,10 @@ FF1Battle.prototype.drawBattle = function() {
 }
 
 FF1Battle.prototype.drawMonster = function(slot) {
-    
+
     var m = this.monsterInSlot(slot);
     if (m === null) return; // return if slot is empty
-    
+
     // load graphics
     var g = this.battleProperties.graphics.value;
     var gfx = this.rom.monsterGraphics.item(g).data;
@@ -341,7 +352,7 @@ FF1Battle.prototype.drawMonster = function(slot) {
     var pal = new Uint32Array(16);
     pal.set(this.rom.monsterPalette.item(p1).data, 4);
     pal.set(this.rom.monsterPalette.item(p2).data, 8);
-    
+
     // create tile layout
     var w = m.rect.w >> 3;
     var h = m.rect.h >> 3;
@@ -361,7 +372,7 @@ FF1Battle.prototype.drawMonster = function(slot) {
             var p = map.palette.data[x + y * 8] << 10;
             tiles[i] = map.tiles.data[i] | p;
         }
-        
+
     } else if (m.size === 4) {
         // chaos
         var map = this.rom.monsterMapChaos;
@@ -395,10 +406,10 @@ FF1Battle.prototype.drawMonster = function(slot) {
     var imageData = context.createImageData(ppu.width, ppu.height);
     ppu.renderPPU(imageData.data);
     context.putImageData(imageData, 0, 0);
-    
+
     // tint the selected monster
     if (this.selectedMonster && this.selectedMonster.slot === slot) this.tintMonster();
-    
+
     var ctx = this.battleCanvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
     ctx.webkitImageSmoothingEnabled = false;
@@ -413,7 +424,7 @@ FF1Battle.prototype.tintMonster = function() {
     var ctx = tintCanvas.getContext('2d');
     ctx.fillStyle = 'hsla(210, 100%, 50%, 0.5)';
     ctx.fillRect(0, 0, this.monsterCanvas.width, this.monsterCanvas.height);
-    
+
     ctx = this.monsterCanvas.getContext('2d');
     ctx.globalCompositeOperation = 'source-atop';
     ctx.drawImage(tintCanvas, 0, 0);
@@ -441,16 +452,16 @@ FF1Battle.backgroundLayout = new Uint16Array([
 ]);
 
 FF1Battle.prototype.drawBackground = function() {
-    
+
     var bg = this.bg;
-    
+
     // load the text graphics (for the border)
     var gfx = new Uint8Array(0x10000);
     gfx.set(this.rom.textGraphics.data);
-    
+
     // load the battle backgroud graphics
     gfx.set(this.rom.monsterGraphics.item(bg).data.subarray(0, 0x1000));
-    
+
     // set up the tile layout
     var w = 24;
     var h = 18;
@@ -464,7 +475,7 @@ FF1Battle.prototype.drawBackground = function() {
 //    for (var i = w; i < w*(h-1); i+=w) layout[i] = 0x0C7A;
 //    for (var i = w*2-1; i < w*h-1; i+=w) layout[i] = 0x0C7B;
 //    for (var i = w*(h-1)+1; i < w*h-1; i++) layout[i] = 0x0C7D;
-        
+
     // load the palette
     var pal = new Uint32Array(16);
     pal.set(this.rom.battleBackgroundPalette.item(bg).data);
@@ -472,7 +483,7 @@ FF1Battle.prototype.drawBackground = function() {
     pal[13] = 0xFF666666;
     pal[14] = 0xFF000000;
     pal[15] = 0xFFEEEEEE;
-    
+
     // set up the ppu
     this.ppu = new GFX.PPU();
     this.ppu.pal = pal;

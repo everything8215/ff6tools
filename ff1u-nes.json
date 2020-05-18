@@ -64,6 +64,9 @@
                     "name": "Monster Graphics",
                     "path": "monsterGraphics"
                 }, {
+                    "name": "Character Graphics",
+                    "path": "battleCharacterGraphics"
+                }, {
                     "name": "Monster A.I.",
                     "path": "monsterAI"
                 }
@@ -152,9 +155,54 @@
         "battleBackgroundPalette": {
             "type": "array",
             "name": "Battle Background Palette",
-            "range": "0x00B200-0x00B300",
+            "range": "0x00B200-0x00B240",
             "array": {
-                "length": 24
+                "length": 16
+            },
+            "assembly": {
+                "length": 4,
+                "format": "nesPalette"
+            }
+        },
+        "battleCharacterGraphics": {
+            "type": "array",
+            "name": "Battle Character Graphics",
+            "range": "0x099000-0x09A800",
+            "array": {
+                "length": 12
+            },
+            "assembly": {
+                "type": "graphics",
+                "length": "0x0200",
+                "format": "nes2bpp",
+                "palette": "battleCharacterPalette",
+                "backColor": true
+            },
+            "stringTable": {
+                "length": 12,
+                "default": "Battle Character Graphics %i",
+                "string": {
+                    "0": "Fighter",
+                    "1": "Thief",
+                    "2": "Black Belt",
+                    "3": "Red Mage",
+                    "4": "White Mage",
+                    "5": "Black Mage",
+                    "6": "Knight",
+                    "7": "Ninja",
+                    "8": "Master",
+                    "9": "Red Wizard",
+                    "10": "White Wizard",
+                    "11": "Black Wizard"
+                }
+            }
+        },
+        "battleCharacterPalette": {
+            "type": "array",
+            "name": "Battle Character Palette",
+            "range": "0x0FEBA5-0x0FEBB5",
+            "array": {
+                "length": 4
             },
             "assembly": {
                 "length": 4,
@@ -219,12 +267,14 @@
                     "palette1": {
                         "type": "property",
                         "name": "Palette 1",
-                        "begin": 10
+                        "begin": 10,
+                        "stringTable": "monsterPalette"
                     },
                     "palette2": {
                         "type": "property",
                         "name": "Palette 2",
-                        "begin": 11
+                        "begin": 11,
+                        "stringTable": "monsterPalette"
                     },
                     "surprise": {
                         "type": "property",
@@ -425,6 +475,13 @@
                         "link": "battleProperties[%i]",
                         "stringTable": "battleProperties"
                     },
+                    "battle1B": {
+                        "type": "property",
+                        "name": "Battle 1 B",
+                        "begin": 0,
+                        "mask": "0x80",
+                        "bool": true
+                    },
                     "battle2": {
                         "type": "property",
                         "name": "Battle 2 (12/64)",
@@ -432,6 +489,13 @@
                         "mask": "0x7F",
                         "link": "battleProperties[%i]",
                         "stringTable": "battleProperties"
+                    },
+                    "battle2B": {
+                        "type": "property",
+                        "name": "Battle 2 B",
+                        "begin": 1,
+                        "mask": "0x80",
+                        "bool": true
                     },
                     "battle3": {
                         "type": "property",
@@ -441,6 +505,13 @@
                         "link": "battleProperties[%i]",
                         "stringTable": "battleProperties"
                     },
+                    "battle3B": {
+                        "type": "property",
+                        "name": "Battle 3 B",
+                        "begin": 2,
+                        "mask": "0x80",
+                        "bool": true
+                    },
                     "battle4": {
                         "type": "property",
                         "name": "Battle 4 (12/64)",
@@ -448,6 +519,13 @@
                         "mask": "0x7F",
                         "link": "battleProperties[%i]",
                         "stringTable": "battleProperties"
+                    },
+                    "battle4B": {
+                        "type": "property",
+                        "name": "Battle 4 B",
+                        "begin": 3,
+                        "mask": "0x80",
+                        "bool": true
                     },
                     "battle5": {
                         "type": "property",
@@ -457,6 +535,13 @@
                         "link": "battleProperties[%i]",
                         "stringTable": "battleProperties"
                     },
+                    "battle5B": {
+                        "type": "property",
+                        "name": "Battle 5 B",
+                        "begin": 4,
+                        "mask": "0x80",
+                        "bool": true
+                    },
                     "battle6": {
                         "type": "property",
                         "name": "Battle 6 (6/64)",
@@ -464,6 +549,13 @@
                         "mask": "0x7F",
                         "link": "battleProperties[%i]",
                         "stringTable": "battleProperties"
+                    },
+                    "battle6B": {
+                        "type": "property",
+                        "name": "Battle 6 B",
+                        "begin": 5,
+                        "mask": "0x80",
+                        "bool": true
                     },
                     "battle7": {
                         "type": "property",
@@ -473,6 +565,13 @@
                         "link": "battleProperties[%i]",
                         "stringTable": "battleProperties"
                     },
+                    "battle7B": {
+                        "type": "property",
+                        "name": "Battle 7 B",
+                        "begin": 6,
+                        "mask": "0x80",
+                        "bool": true
+                    },
                     "battle8": {
                         "type": "property",
                         "name": "Battle 8 (1/64)",
@@ -480,6 +579,13 @@
                         "mask": "0x7F",
                         "link": "battleProperties[%i]",
                         "stringTable": "battleProperties"
+                    },
+                    "battle8B": {
+                        "type": "property",
+                        "name": "Battle 8 B",
+                        "begin": 7,
+                        "mask": "0x80",
+                        "bool": true
                     }
                 }
             },
@@ -694,7 +800,8 @@
             "assembly": {
                 "type": "graphics",
                 "length": "0x0100",
-                "format": "nes2bpp"
+                "format": "nes2bpp",
+                "palette": "mapPalette"
             },
             "stringTable": {
                 "length": 13,
@@ -714,6 +821,18 @@
                     "11": "Black Wizard",
                     "12": "Misc."
                 }
+            }
+        },
+        "mapCharacterPalette": {
+            "type": "array",
+            "name": "Map Character Palette",
+            "range": "0x0083A0-0x008400",
+            "array": {
+                "length": 12
+            },
+            "assembly": {
+                "length": "2",
+                "format": "nesPalette"
             }
         },
         "mapEntrance": {
@@ -887,33 +1006,65 @@
                         "type": "assembly",
                         "external": "battleGroup[%i+64].battle1"
                     },
+                    "battle1B": {
+                        "type": "assembly",
+                        "external": "battleGroup[%i+64].battle1B"
+                    },
                     "battle2": {
                         "type": "assembly",
                         "external": "battleGroup[%i+64].battle2"
+                    },
+                    "battle2B": {
+                        "type": "assembly",
+                        "external": "battleGroup[%i+64].battle2B"
                     },
                     "battle3": {
                         "type": "assembly",
                         "external": "battleGroup[%i+64].battle3"
                     },
+                    "battle3B": {
+                        "type": "assembly",
+                        "external": "battleGroup[%i+64].battle3B"
+                    },
                     "battle4": {
                         "type": "assembly",
                         "external": "battleGroup[%i+64].battle4"
+                    },
+                    "battle4B": {
+                        "type": "assembly",
+                        "external": "battleGroup[%i+64].battle4B"
                     },
                     "battle5": {
                         "type": "assembly",
                         "external": "battleGroup[%i+64].battle5"
                     },
+                    "battle5B": {
+                        "type": "assembly",
+                        "external": "battleGroup[%i+64].battle5B"
+                    },
                     "battle6": {
                         "type": "assembly",
                         "external": "battleGroup[%i+64].battle6"
+                    },
+                    "battle6B": {
+                        "type": "assembly",
+                        "external": "battleGroup[%i+64].battle6B"
                     },
                     "battle7": {
                         "type": "assembly",
                         "external": "battleGroup[%i+64].battle7"
                     },
+                    "battle7B": {
+                        "type": "assembly",
+                        "external": "battleGroup[%i+64].battle7B"
+                    },
                     "battle8": {
                         "type": "assembly",
                         "external": "battleGroup[%i+64].battle8"
+                    },
+                    "battle8B": {
+                        "type": "assembly",
+                        "external": "battleGroup[%i+64].battle8B"
                     }
                 }
             },
@@ -1433,7 +1584,8 @@
                 "type": "graphics",
                 "length": "0x0800",
                 "format": "nes2bpp",
-                "palette": "monsterPalette"
+                "palette": ["battleBackgroundPalette[%i]", "monsterPalette"],
+                "backColor": true
             },
             "stringTable": {
                 "length": 16,
@@ -1527,6 +1679,76 @@
             "assembly": {
                 "length": 4,
                 "format": "nesPalette"
+            },
+            "stringTable": {
+                "default": "Monster Palette %i",
+                "length": 64,
+                "string": {
+                    "0": "IMP, Wolf",
+                    "1": "GrIMP, GrWOLF, IGUANA",
+                    "2": "WrWOLF, GIANT",
+                    "3": "AGAMA, R.GIANT, FIRE, R.HYDRA",
+                    "4": "FrWOLF, FrGIANT, AIR",
+                    "5": "SAURIA",
+                    "6": "ASTOS",
+                    "7": "GrSHARK, GHOST, Frost D",
+                    "8": "R.SAHAG, OddEYE",
+                    "9": "SAHAG, SHARK, BigEYE",
+                    "10": "KYZOKU",
+                    "11": "WzSAHAG, PIRATE",
+                    "12": "BONE, CRAWL, GrPEDE",
+                    "13": "R.BONE, CREEP, CEREBUS, Red D",
+                    "14": "OGRE, MEDUSA",
+                    "15": "GrOGRE, GrMEDUSA",
+                    "16": "HYENA, WzOGRE",
+                    "17": "ASP, BULL",
+                    "18": "COBRA, TROLL",
+                    "19": "SeaSNAKE, LOBSTER, WATER, NAGA, GARLAND",
+                    "20": "SeaTROLL, Blue D",
+                    "21": "SCORPION, PEDE",
+                    "22": "ZomBULL, ZOMBIE, PHANTOM, ZombieD",
+                    "23": "GHOUL, EYE, EVILMAN",
+                    "24": "IMAGE, GEIST",
+                    "25": "WRAITH, SPECTER, Grey W",
+                    "26": "SHADOW, Saber T, MUCK, SPIDER",
+                    "27": "WORM",
+                    "28": "Sand W, EARTH, ANKYLO",
+                    "29": "CATMAN, TIGER, MANTICOR",
+                    "30": "MANCAT",
+                    "31": "VAMPIRE, GARGOYLE",
+                    "32": "WzVAMP, R.GOYLE",
+                    "33": "SCUM, ARACHNID, Gas D",
+                    "34": "OOZE, R.ANKYLO",
+                    "35": "SPHINX",
+                    "36": "SLIME, BADMAN, MAGE",
+                    "37": "MUMMY, PERILISK",
+                    "38": "WzMUMMY, COCTRICE",
+                    "39": "WYRM",
+                    "40": "WYVERN, T REX",
+                    "41": "TYRO",
+                    "42": "CARIBE, HYDRA",
+                    "43": "GATOR, OCHO",
+                    "44": "R.CARIBE, NAOCHO",
+                    "45": "FrGATOR, GrNAGA",
+                    "46": "GUARD, IronGOL, FIGHTER",
+                    "47": "SENTRY, WarMECH",
+                    "48": "CHIMERA",
+                    "49": "JIMERA",
+                    "50": "WIZARD, MADPONY",
+                    "51": "SORCERER, NITEMARE",
+                    "52": "MudGOL",
+                    "53": "RockGOL",
+                    "54": "LICH 1",
+                    "55": "LICH 2",
+                    "56": "KARY 1",
+                    "57": "KARY 2",
+                    "58": "KRAKEN 1",
+                    "59": "KRAKEN 2",
+                    "60": "TIAMAT 1",
+                    "61": "TIAMAT 2",
+                    "62": "CHAOS 1",
+                    "63": "CHAOS 2"
+                }
             }
         },
         "monsterProperties": {
@@ -1807,9 +2029,17 @@
                         "type": "property",
                         "name": "Battle",
                         "begin": 3,
+                        "mask": "0x7F",
                         "invalid": "this.parent.event.value !== 0x94AA",
                         "link": "battleProperties[%i]",
                         "stringTable": "battleProperties"
+                    },
+                    "battleB": {
+                        "type": "property",
+                        "name": "Battle B",
+                        "begin": 3,
+                        "mask": "0x80",
+                        "bool": true
                     }
                 }
             },
