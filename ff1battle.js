@@ -325,6 +325,8 @@ FF1Battle.prototype.drawBattle = function() {
         for (var slot = 1; slot <= 9; slot++) this.drawMonster(slot);
     }
 
+    for (var slot = 1; slot <= 4; slot++) this.drawCharacter(slot);
+
     this.zoom = this.div.clientWidth / this.battleRect.w;
 
     var scaledRect = this.battleRect.scale(this.zoom);
@@ -428,6 +430,36 @@ FF1Battle.prototype.tintMonster = function() {
     ctx = this.monsterCanvas.getContext('2d');
     ctx.globalCompositeOperation = 'source-atop';
     ctx.drawImage(tintCanvas, 0, 0);
+}
+
+FF1Battle.prototype.drawCharacter = function(slot) {
+
+    var charRect = new Rect(168, 184, 16 + slot * 24, 40 + slot * 24);
+
+    var g, p;
+    switch (slot) {
+        case 1: g = 0; p = 1; break;
+        case 2: g = 1; p = 0; break;
+        case 3: g = 3; p = 1; break;
+        case 4: g = 5; p = 0; break;
+    }
+
+    var gfx = this.rom.battleCharacterGraphics.item(g);
+    var pal = this.rom.battleCharacterPalette.item(p);
+
+    // draw the character
+    this.monsterCanvas.width = charRect.w;
+    this.monsterCanvas.height = charRect.h;
+    var context = this.monsterCanvas.getContext('2d');
+    var imageData = context.createImageData(charRect.w, charRect.h);
+    GFX.render(imageData.data, gfx.data, pal.data, 16);
+    context.putImageData(imageData, 0, 0);
+
+    // draw on the battle canvas
+    var ctx = this.battleCanvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    ctx.webkitImageSmoothingEnabled = false;
+    ctx.drawImage(this.monsterCanvas, 0, 0, charRect.w, charRect.h, charRect.l, charRect.t, charRect.w, charRect.h);
 }
 
 FF1Battle.backgroundLayout = new Uint16Array([
