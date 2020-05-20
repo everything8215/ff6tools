@@ -342,8 +342,9 @@ FF1LevelProgression.prototype.updateStats = function() {
             luck.min = Math.min(luck.min + 1, 99);
             luck.avg = Math.min(luck.avg + 0.75, 99);
         }
+        var maxMP = (this.classProperties.i < 2) ? 4 : 9;
         for (var l = 0; l < 8; l++) {
-            if (mp[l] >= 9) continue;
+            if (mp[l] >= maxMP) continue;
             if (levelStats.mp.value & (1 << l)) mp[l]++;
         }
 
