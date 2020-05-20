@@ -10,7 +10,7 @@ function FF1Battle(rom) {
     this.b = null; // battle index
     this.bg = 0; // battle background index
     this.ab = 0; // battle A/B
-    this.minMax = 0; // min/max number of monsters
+    this.minMax = 2; // min/max number of monsters
     this.battleProperties = null;
     this.ppu = null;
     this.canvas = document.createElement('canvas');

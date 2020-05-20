@@ -24,9 +24,6 @@
                     "name": "Map Graphics",
                     "path": "mapGraphics"
                 }, {
-                    "name": "Character Graphics",
-                    "path": "mapCharacterGraphics"
-                }, {
                     "name": "Vehicle Graphics",
                     "path": "vehicleGraphics"
                 }, {
@@ -64,11 +61,22 @@
                     "name": "Monster Graphics",
                     "path": "monsterGraphics"
                 }, {
-                    "name": "Character Graphics",
-                    "path": "battleCharacterGraphics"
-                }, {
                     "name": "Monster A.I.",
                     "path": "monsterAI"
+                }
+            ]
+        }, {
+            "name": "Character",
+            "list": [
+                {
+                    "name": "Classes",
+                    "path": "classProperties"
+                }, {
+                    "name": "Map Character Graphics",
+                    "path": "mapCharacterGraphics"
+                }, {
+                    "name": "Battle Character Graphics",
+                    "path": "battleCharacterGraphics"
                 }
             ]
         }, {
@@ -599,6 +607,567 @@
                 }
             }
         },
+        "classExperience": {
+            "type": "array",
+            "name": "Class Experience",
+            "range": "0x0B9000-0x0B9093",
+            "array": {
+                "length": 49
+            },
+            "assembly": {
+                "type": "data",
+                "length": 3,
+                "assembly": {
+                    "exp": {
+                        "type": "property",
+                        "name": "Experience",
+                        "mask": "0xFFFFFF"
+                    }
+                }
+            }
+        },
+        "classHitRate": {
+            "type": "array",
+            "name": "Hit %/Level",
+            "range": "0x0B9DDC-0x0B9DE8",
+            "array": {
+                "length": 12
+            },
+            "assembly": {
+                "type": "data",
+                "length": 1,
+                "assembly": {
+                    "hitRate": {
+                        "type": "property",
+                        "name": "Hit %/Level"
+                    }
+                }
+            }
+        },
+        "classProperties": {
+            "type": "array",
+            "name": "Class Properties",
+            "range": "0x00B040-0x00B0A0",
+            "array": {
+                "length": 6
+            },
+            "assembly": {
+                "type": "data",
+                "length": 16,
+                "editor": "FF1LevelProgression",
+                "assembly": {
+                    "classIndex": {
+                        "type": "property",
+                        "name": "Class Index",
+                        "begin": 0
+                    },
+                    "className": {
+                        "type": "assembly",
+                        "name": "Name",
+                        "external": "text[%i+240]"
+                    },
+                    "classHitRate": {
+                        "type": "assembly",
+                        "name": "Hit %/Level",
+                        "external": "classHitRate[%i].hitRate"
+                    },
+                    "classMagDef": {
+                        "type": "assembly",
+                        "name": "Mag.Def/Level",
+                        "external": "classMagDef[%i].magDef"
+                    },
+                    "cat-upgrade": "Class Upgrade",
+                    "upgradeName": {
+                        "type": "assembly",
+                        "name": "Name",
+                        "external": "text[%i+246]"
+                    },
+                    "upgradeHitRate": {
+                        "type": "assembly",
+                        "name": "Hit %/Level",
+                        "external": "classHitRate[%i+6].hitRate"
+                    },
+                    "upgradeMagDef": {
+                        "type": "assembly",
+                        "name": "Mag.Def/Level",
+                        "external": "classMagDef[%i+6].magDef"
+                    },
+                    "cat-initial-stats": "Initial Stats",
+                    "hp": {
+                        "type": "property",
+                        "name": "HP",
+                        "begin": 1
+                    },
+                    "strength": {
+                        "type": "property",
+                        "name": "Strength",
+                        "begin": 2
+                    },
+                    "agility": {
+                        "type": "property",
+                        "name": "Agility",
+                        "begin": 3
+                    },
+                    "intelligence": {
+                        "type": "property",
+                        "name": "Intelligence",
+                        "begin": 4
+                    },
+                    "vitality": {
+                        "type": "property",
+                        "name": "Vitality",
+                        "begin": 5
+                    },
+                    "luck": {
+                        "type": "property",
+                        "name": "Luck",
+                        "begin": 6
+                    },
+                    "damage": {
+                        "type": "property",
+                        "name": "Damage",
+                        "begin": 7
+                    },
+                    "hitRate": {
+                        "type": "property",
+                        "name": "Hit %",
+                        "begin": 8
+                    },
+                    "evade": {
+                        "type": "property",
+                        "name": "Evade",
+                        "begin": 9
+                    },
+                    "magDef": {
+                        "type": "property",
+                        "name": "Magic Defense",
+                        "begin": 10
+                    },
+                    "cat-white-magic": "White Magic",
+                    "whiteMagic1": {
+                        "type": "assembly",
+                        "external": "classSpells[%i].whiteMagic1"
+                    },
+                    "whiteMagic2": {
+                        "type": "assembly",
+                        "external": "classSpells[%i].whiteMagic2"
+                    },
+                    "whiteMagic3": {
+                        "type": "assembly",
+                        "external": "classSpells[%i].whiteMagic3"
+                    },
+                    "whiteMagic4": {
+                        "type": "assembly",
+                        "external": "classSpells[%i].whiteMagic4"
+                    },
+                    "whiteMagic5": {
+                        "type": "assembly",
+                        "external": "classSpells[%i].whiteMagic5"
+                    },
+                    "whiteMagic6": {
+                        "type": "assembly",
+                        "external": "classSpells[%i].whiteMagic6"
+                    },
+                    "whiteMagic7": {
+                        "type": "assembly",
+                        "external": "classSpells[%i].whiteMagic7"
+                    },
+                    "whiteMagic8": {
+                        "type": "assembly",
+                        "external": "classSpells[%i].whiteMagic8"
+                    },
+                    "cat-black-magic": "Black Magic",
+                    "blackMagic1": {
+                        "type": "assembly",
+                        "external": "classSpells[%i].blackMagic1"
+                    },
+                    "blackMagic2": {
+                        "type": "assembly",
+                        "external": "classSpells[%i].blackMagic2"
+                    },
+                    "blackMagic3": {
+                        "type": "assembly",
+                        "external": "classSpells[%i].blackMagic3"
+                    },
+                    "blackMagic4": {
+                        "type": "assembly",
+                        "external": "classSpells[%i].blackMagic4"
+                    },
+                    "blackMagic5": {
+                        "type": "assembly",
+                        "external": "classSpells[%i].blackMagic5"
+                    },
+                    "blackMagic6": {
+                        "type": "assembly",
+                        "external": "classSpells[%i].blackMagic6"
+                    },
+                    "blackMagic7": {
+                        "type": "assembly",
+                        "external": "classSpells[%i].blackMagic7"
+                    },
+                    "blackMagic8": {
+                        "type": "assembly",
+                        "external": "classSpells[%i].blackMagic8"
+                    },
+                    "cat-white-magic-upgrade": "White Magic (Upgrade)",
+                    "whiteMagicUpgrade1": {
+                        "type": "assembly",
+                        "external": "classSpells[%i+6].whiteMagic1"
+                    },
+                    "whiteMagicUpgrade2": {
+                        "type": "assembly",
+                        "external": "classSpells[%i+6].whiteMagic2"
+                    },
+                    "whiteMagicUpgrade3": {
+                        "type": "assembly",
+                        "external": "classSpells[%i+6].whiteMagic3"
+                    },
+                    "whiteMagicUpgrade4": {
+                        "type": "assembly",
+                        "external": "classSpells[%i+6].whiteMagic4"
+                    },
+                    "whiteMagicUpgrade5": {
+                        "type": "assembly",
+                        "external": "classSpells[%i+6].whiteMagic5"
+                    },
+                    "whiteMagicUpgrade6": {
+                        "type": "assembly",
+                        "external": "classSpells[%i+6].whiteMagic6"
+                    },
+                    "whiteMagicUpgrade7": {
+                        "type": "assembly",
+                        "external": "classSpells[%i+6].whiteMagic7"
+                    },
+                    "whiteMagicUpgrade8": {
+                        "type": "assembly",
+                        "external": "classSpells[%i+6].whiteMagic8"
+                    },
+                    "cat-black-magic-upgrade": "Black Magic (Upgrade)",
+                    "blackMagicUpgrade1": {
+                        "type": "assembly",
+                        "external": "classSpells[%i+6].blackMagic1"
+                    },
+                    "blackMagicUpgrade2": {
+                        "type": "assembly",
+                        "external": "classSpells[%i+6].blackMagic2"
+                    },
+                    "blackMagicUpgrade3": {
+                        "type": "assembly",
+                        "external": "classSpells[%i+6].blackMagic3"
+                    },
+                    "blackMagicUpgrade4": {
+                        "type": "assembly",
+                        "external": "classSpells[%i+6].blackMagic4"
+                    },
+                    "blackMagicUpgrade5": {
+                        "type": "assembly",
+                        "external": "classSpells[%i+6].blackMagic5"
+                    },
+                    "blackMagicUpgrade6": {
+                        "type": "assembly",
+                        "external": "classSpells[%i+6].blackMagic6"
+                    },
+                    "blackMagicUpgrade7": {
+                        "type": "assembly",
+                        "external": "classSpells[%i+6].blackMagic7"
+                    },
+                    "blackMagicUpgrade8": {
+                        "type": "assembly",
+                        "external": "classSpells[%i+6].blackMagic8"
+                    }
+                }
+            },
+            "stringTable": {
+                "length": 6,
+                "default": "<text[%i+240]> / <text[%i+246]>"
+            }
+        },
+        "classMagDef": {
+            "type": "array",
+            "name": "Mag.Def/Level",
+            "range": "0x0B9DE8-0x0B9DF4",
+            "array": {
+                "length": 12
+            },
+            "assembly": {
+                "type": "data",
+                "length": 1,
+                "assembly": {
+                    "magDef": {
+                        "type": "property",
+                        "name": "Mag.Def/Level"
+                    }
+                }
+            }
+        },
+        "classSpells": {
+            "type": "array",
+            "name": "Class Spells",
+            "range": "0x0EAD18-0x0EBFF0",
+            "array": {
+                "length": 12
+            },
+            "assembly": {
+                "type": "data",
+                "length": 8,
+                "assembly": {
+                    "whiteMagic1": {
+                        "type": "property",
+                        "name": "Level 1",
+                        "begin": 0,
+                        "mask": "0xF0",
+                        "flag": true,
+                        "invert": true,
+                        "stringTable": {
+                            "length": 4,
+                            "default": "<stringTable.spell[3-%i]>"
+                        }
+                    },
+                    "whiteMagic2": {
+                        "type": "property",
+                        "name": "Level 2",
+                        "begin": 1,
+                        "mask": "0xF0",
+                        "flag": true,
+                        "invert": true,
+                        "stringTable": {
+                            "length": 4,
+                            "default": "<stringTable.spell[11-%i]>"
+                        }
+                    },
+                    "whiteMagic3": {
+                        "type": "property",
+                        "name": "Level 3",
+                        "begin": 2,
+                        "mask": "0xF0",
+                        "flag": true,
+                        "invert": true,
+                        "stringTable": {
+                            "length": 4,
+                            "default": "<stringTable.spell[19-%i]>"
+                        }
+                    },
+                    "whiteMagic4": {
+                        "type": "property",
+                        "name": "Level 4",
+                        "begin": 3,
+                        "mask": "0xF0",
+                        "flag": true,
+                        "invert": true,
+                        "stringTable": {
+                            "length": 4,
+                            "default": "<stringTable.spell[27-%i]>"
+                        }
+                    },
+                    "whiteMagic5": {
+                        "type": "property",
+                        "name": "Level 5",
+                        "begin": 4,
+                        "mask": "0xF0",
+                        "flag": true,
+                        "invert": true,
+                        "stringTable": {
+                            "length": 4,
+                            "default": "<stringTable.spell[35-%i]>"
+                        }
+                    },
+                    "whiteMagic6": {
+                        "type": "property",
+                        "name": "Level 6",
+                        "begin": 5,
+                        "mask": "0xF0",
+                        "flag": true,
+                        "invert": true,
+                        "stringTable": {
+                            "length": 4,
+                            "default": "<stringTable.spell[43-%i]>"
+                        }
+                    },
+                    "whiteMagic7": {
+                        "type": "property",
+                        "name": "Level 7",
+                        "begin": 6,
+                        "mask": "0xF0",
+                        "flag": true,
+                        "invert": true,
+                        "stringTable": {
+                            "length": 4,
+                            "default": "<stringTable.spell[51-%i]>"
+                        }
+                    },
+                    "whiteMagic8": {
+                        "type": "property",
+                        "name": "Level 8",
+                        "begin": 7,
+                        "mask": "0xF0",
+                        "flag": true,
+                        "invert": true,
+                        "stringTable": {
+                            "length": 4,
+                            "default": "<stringTable.spell[59-%i]>"
+                        }
+                    },
+                    "blackMagic1": {
+                        "type": "property",
+                        "name": "Level 1",
+                        "begin": 0,
+                        "mask": "0x0F",
+                        "flag": true,
+                        "invert": true,
+                        "stringTable": {
+                            "length": 4,
+                            "default": "<stringTable.spell[7-%i]>"
+                        }
+                    },
+                    "blackMagic2": {
+                        "type": "property",
+                        "name": "Level 2",
+                        "begin": 1,
+                        "mask": "0x0F",
+                        "flag": true,
+                        "invert": true,
+                        "stringTable": {
+                            "length": 4,
+                            "default": "<stringTable.spell[15-%i]>"
+                        }
+                    },
+                    "blackMagic3": {
+                        "type": "property",
+                        "name": "Level 3",
+                        "begin": 2,
+                        "mask": "0x0F",
+                        "flag": true,
+                        "invert": true,
+                        "stringTable": {
+                            "length": 4,
+                            "default": "<stringTable.spell[23-%i]>"
+                        }
+                    },
+                    "blackMagic4": {
+                        "type": "property",
+                        "name": "Level 4",
+                        "begin": 3,
+                        "mask": "0x0F",
+                        "flag": true,
+                        "invert": true,
+                        "stringTable": {
+                            "length": 4,
+                            "default": "<stringTable.spell[31-%i]>"
+                        }
+                    },
+                    "blackMagic5": {
+                        "type": "property",
+                        "name": "Level 5",
+                        "begin": 4,
+                        "mask": "0x0F",
+                        "flag": true,
+                        "invert": true,
+                        "stringTable": {
+                            "length": 4,
+                            "default": "<stringTable.spell[39-%i]>"
+                        }
+                    },
+                    "blackMagic6": {
+                        "type": "property",
+                        "name": "Level 6",
+                        "begin": 5,
+                        "mask": "0x0F",
+                        "flag": true,
+                        "invert": true,
+                        "stringTable": {
+                            "length": 4,
+                            "default": "<stringTable.spell[47-%i]>"
+                        }
+                    },
+                    "blackMagic7": {
+                        "type": "property",
+                        "name": "Level 7",
+                        "begin": 6,
+                        "mask": "0x0F",
+                        "flag": true,
+                        "invert": true,
+                        "stringTable": {
+                            "length": 4,
+                            "default": "<stringTable.spell[55-%i]>"
+                        }
+                    },
+                    "blackMagic8": {
+                        "type": "property",
+                        "name": "Level 8",
+                        "begin": 7,
+                        "mask": "0x0F",
+                        "flag": true,
+                        "invert": true,
+                        "stringTable": {
+                            "length": 4,
+                            "default": "<stringTable.spell[63-%i]>"
+                        }
+                    }
+                }
+            }
+        },
+        "classStats": {
+            "type": "array",
+            "name": "Class Stats",
+            "range": "0x0B9094-0x0B92E0",
+            "arrayLength": 6,
+            "pointerTable": {
+                "range": "0x0B9DF4-0x0B9E0C",
+                "offset": "0x0B0000",
+                "isMapped": true
+            },
+            "assembly": {
+                "type": "array",
+                "length": 98,
+                "arrayLength": 49,
+                "assembly": {
+                    "type": "data",
+                    "length": 2,
+                    "assembly": {
+                        "exp": {
+                            "type": "assembly",
+                            "name": "Experience",
+                            "external": "classExperience[%i].exp"
+                        },
+                        "stats": {
+                            "type": "property",
+                            "name": "Stats",
+                            "mask": "0x3F",
+                            "flag": true,
+                            "stringTable": {
+                                "string": {
+                                    "5": "HP Bonus",
+                                    "4": "Strength",
+                                    "3": "Agility",
+                                    "2": "Intelligence",
+                                    "1": "Vitality",
+                                    "0": "Luck"
+                                }
+                            }
+                        },
+                        "mp": {
+                            "type": "property",
+                            "name": "Magic",
+                            "begin": 1,
+                            "mask": "0xFF",
+                            "flag": true,
+                            "stringTable": {
+                                "string": {
+                                    "0": "Level 1",
+                                    "1": "Level 2",
+                                    "2": "Level 3",
+                                    "3": "Level 4",
+                                    "4": "Level 5",
+                                    "5": "Level 6",
+                                    "6": "Level 7",
+                                    "7": "Level 8"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "dialog": {
             "type": "array",
             "name": "Dialog",
@@ -647,10 +1216,10 @@
         "itemProperties": {
             "type": "array",
             "name": "Item Properties",
-            "range": "0x0DBC00-0x0DBE00",
+            "range": "0x0DBC00-0x0DBDE0",
             "stringTable": "text",
             "array": {
-                "length": 256
+                "length": 240
             },
             "assembly": {
                 "type": "data",
@@ -800,8 +1369,7 @@
             "assembly": {
                 "type": "graphics",
                 "length": "0x0100",
-                "format": "nes2bpp",
-                "palette": "mapPalette"
+                "format": "nes2bpp"
             },
             "stringTable": {
                 "length": 13,
@@ -2188,7 +2756,7 @@
                     "0x9C": "Onrac - 10",
                     "0x9D": "Onrac - 11",
                     "0x9E": "Onrac - 12",
-                    "0x9F": "Onrac - 13",
+                    "0x9F": "Onrac - Kope",
                     "0xA0": "Onrac - 14",
                     "0xA3": "Mermaid - 1",
                     "0xA4": "Mermaid - 2",
@@ -2373,28 +2941,6 @@
                     "68": "Item Shop (Unused)",
                     "69": "Item Shop (Unused)",
                     "70": "Item Shop (Caravan)"
-                }
-            }
-        },
-        "spellClass": {
-            "type": "array",
-            "name": "Spell Class",
-            "range": "0x0EAD18-0x0EBFF0",
-            "array": {
-                "length": 12
-            },
-            "assembly": {
-                "type": "data",
-                "length": 8,
-                "assembly": {
-                    "spell": {
-                        "type": "property",
-                        "name": "spell",
-                        "begin": 0,
-                        "flag": true,
-                        "invert": true,
-                        "stringTable": "spell"
-                    }
                 }
             }
         },
@@ -2596,7 +3142,8 @@
             "assembly": {
                 "type": "graphics",
                 "length": "0x0180",
-                "format": "nes2bpp"
+                "format": "nes2bpp",
+                "palette": "worldPalette"
             },
             "stringTable": {
                 "length": 3,
@@ -3202,6 +3749,7 @@
         }
     },
     "freeSpace": [
-        "0x06AC9A-0x078000"
+        "0x06AC9A-0x078000",
+        "0x0DBDE0-0x0DBE00"
     ]
 }
