@@ -1255,7 +1255,7 @@
                 "length": 39
             },
             "assembly": {
-                "format": ["linear4bpp", "gba-lzss"]
+                "format": ["linear4bpp", "tose-graphics", "gba-lzss"]
             },
             "pointerTable": {
                 "range": "0x08708D0C-0x08708DA8"
@@ -1269,7 +1269,7 @@
                 "length": 17
             },
             "assembly": {
-                "format": ["linear4bpp", "gba-lzss"]
+                "format": ["linear4bpp", "tose-graphics", "gba-lzss"]
             },
             "pointerTable": {
                 "range": "0x08708DA8-0x08708DEC"
@@ -1297,7 +1297,7 @@
                 "length": 44
             },
             "assembly": {
-                "format": "bgr555"
+                "format": ["bgr555", "tose-palette"]
             },
             "pointerTable": {
                 "range": "0x08708DEC-0x08708E9C"
@@ -2099,7 +2099,7 @@
             "range": "0x08125800-0x08125D00",
             "array": {
                 "length": 80
-                
+
             },
             "assembly": {
                 "type": "data",
@@ -2136,19 +2136,19 @@
             "type": "assembly",
             "name": "Map Sprite Graphics 1",
             "range": "0x083098A0-0x0830E694",
-            "format": ["linear4bpp", "gba-lzss"]
+            "format": ["linear4bpp", "tose-graphics", "gba-lzss"]
         },
         "mapSpriteGraphics2": {
             "type": "assembly",
             "name": "Map Sprite Graphics 2",
             "range": "0x0830E694-0x08313048",
-            "format": ["linear4bpp", "gba-lzss"]
+            "format": ["linear4bpp", "tose-graphics", "gba-lzss"]
         },
         "mapSpriteGraphics3": {
             "type": "assembly",
             "name": "Map Sprite Graphics 3",
             "range": "0x08313048-0x08315D64",
-            "format": ["linear4bpp", "gba-lzss"]
+            "format": ["linear4bpp", "tose-graphics", "gba-lzss"]
         },
         "mapSpritePalettes": {
             "type": "array",
@@ -2247,6 +2247,9 @@
             "range": "0x082FB750-0x083098A0",
             "array": {
                 "length": 28
+            },
+            "assembly": {
+                "format": "tose-layout"
             },
             "pointerTable": {
                 "range": "0x08708E9C-0x08708F0C"
@@ -3303,7 +3306,7 @@
                 "length": 3
             },
             "assembly": {
-                "format": ["linear8bpp", "gba-lzss"]
+                "format": ["linear8bpp", "tose-graphics", "gba-lzss"]
             },
             "pointerTable": {
                 "range": "0x08708F0C-0x08708F18"
@@ -3345,7 +3348,7 @@
                 "length": 3
             },
             "assembly": {
-                "format": "bgr555"
+                "format": ["bgr555", "tose-palette"]
             },
             "pointerTable": {
                 "range": "0x08708F1C-0x08708F28"
@@ -3459,6 +3462,9 @@
             "range": "0x08278F88-0x08279BAC",
             "array": {
                 "length": 3
+            },
+            "assembly": {
+                "format": "tose-layout"
             },
             "pointerTable": {
                 "range": "0x08708F34-0x08708F40"

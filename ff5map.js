@@ -7,20 +7,20 @@ function FF5Map(rom) {
     ROMEditor.call(this, rom);
     this.name = "FF5Map";
     this.tileset = new FF5MapTileset(rom, this);
-    
+
     this.div = document.createElement('div');
     this.div.id = 'map-edit';
-    
+
     this.scrollDiv = document.createElement('div');
     this.scrollDiv.classList.add('no-select');
     this.div.appendChild(this.scrollDiv);
-    
+
     this.canvas = document.createElement('canvas');
     this.canvas.id = "map";
     this.canvas.width = 256;
     this.canvas.height = 256;
     this.scrollDiv.appendChild(this.canvas);
-    
+
     this.cursorCanvas = document.createElement('canvas');
     this.cursorCanvas.id = "map-cursor";
     this.cursorCanvas.width = 16;
@@ -96,7 +96,7 @@ FF5Map.prototype.endAction = function(callback) {
 }
 
 FF5Map.prototype.changeZoom = function() {
-    
+
     // save the old scroll location
     var l = this.div.scrollLeft;
     var t = this.div.scrollTop;
@@ -105,12 +105,12 @@ FF5Map.prototype.changeZoom = function() {
     var oldRect = new Rect(l, l + w, t, t + h);
     var x = Math.round(oldRect.centerX / this.zoom);
     var y = Math.round(oldRect.centerY / this.zoom);
-    
+
     // update zoom
     this.zoom = Math.pow(2, Number(document.getElementById("zoom").value));
     var zoomValue = document.getElementById("zoom-value");
     zoomValue.innerHTML = (this.zoom * 100).toString() + "%";
-    
+
     // update the scroll div size
     var parentWidth = this.ppu.width * this.zoom;
     var parentHeight = this.ppu.height * this.zoom;
@@ -132,9 +132,9 @@ FF5Map.prototype.changeZoom = function() {
 }
 
 FF5Map.prototype.scroll = function() {
-    
+
     this.closeMenu();
-    
+
     // get the visible dimensions
     var x = this.div.scrollLeft;
     var y = this.div.scrollTop;
@@ -146,7 +146,7 @@ FF5Map.prototype.scroll = function() {
     this.mapRect.l = Math.max(0, Math.min(x - margin, this.mapRect.r - w));
     this.mapRect.b = Math.min(y + h + margin, this.ppu.height * this.zoom);
     this.mapRect.t = Math.max(0, Math.min(y - margin, this.mapRect.b - h));
-        
+
     this.canvas.style.left = this.mapRect.l.toString() + "px";
     this.canvas.style.top = this.mapRect.t.toString() + "px";
     this.canvas.width = this.mapRect.w;
@@ -156,14 +156,14 @@ FF5Map.prototype.scroll = function() {
 }
 
 FF5Map.prototype.mouseDown = function(e) {
-    
+
     this.closeMenu();
     this.clickedCol = ((e.offsetX / this.zoom + this.ppu.layers[this.l].x) % this.ppu.width) >> 4;
     if (this.clickedCol < 0) this.clickedCol += 64;
     this.clickedRow = ((e.offsetY / this.zoom + this.ppu.layers[this.l].y) % this.ppu.height) >> 4;
     if (this.clickedRow < 0) this.clickedRow += 64;
     this.clickButton = e.button;
-    
+
     // update the selection position
     this.selection[1] = this.clickedCol;
     this.selection[2] = this.clickedRow;
@@ -187,7 +187,7 @@ FF5Map.prototype.mouseDown = function(e) {
             // clear trigger selection selection and select map properties
             this.selectedTrigger = null;
             if (this.m < 3) {
-                this.selectWorldBattle(this.clickedCol, this.clickedRow) 
+                this.selectWorldBattle(this.clickedCol, this.clickedRow)
             } else if (this.m >= 5) {
                 propertyList.select(this.mapProperties);
             }
@@ -202,7 +202,7 @@ FF5Map.prototype.mouseDown = function(e) {
         this.rom.doAction(new ROMAction(this.selectedLayer, this.selectedLayer.decodeLayout, null, "Decode Layout"));
         this.setTiles();
     }
-    
+
     this.drawScreen();
     this.drawCursor();
 }
@@ -213,7 +213,7 @@ FF5Map.prototype.mouseUp = function(e) {
         // save the new trigger position
         var col = this.selectedTrigger.x.value;
         var row = this.selectedTrigger.y.value;
-        
+
         if (col != this.clickedCol || row !== this.clickedRow) {
             // move the trigger back to its old position
             this.selectedTrigger.x.value = this.clickedCol;
@@ -229,14 +229,14 @@ FF5Map.prototype.mouseUp = function(e) {
         this.rom.doAction(new ROMAction(this.selectedLayer, null, this.selectedLayer.decodeLayout, "Decode Layout"));
         this.endAction(this.drawMap);
     }
-    
+
     this.clickedCol = null;
     this.clickedRow = null;
     this.clickButton = null;
 }
 
 FF5Map.prototype.mouseMove = function(e) {
-    
+
     var col = ((e.offsetX / this.zoom + this.ppu.layers[this.l].x) % this.ppu.width) >> 4;
     if (col < 0) col += 64;
     var row = ((e.offsetY / this.zoom + this.ppu.layers[this.l].y) % this.ppu.height) >> 4;
@@ -273,7 +273,7 @@ FF5Map.prototype.mouseMove = function(e) {
 }
 
 FF5Map.prototype.mouseEnter = function(e) {
-    
+
     // show the cursor
     this.showCursor = true;
     this.drawScreen();
@@ -283,19 +283,19 @@ FF5Map.prototype.mouseEnter = function(e) {
 }
 
 FF5Map.prototype.mouseLeave = function(e) {
-    
+
     // hide the cursor
     this.showCursor = (this.l === 3);
     this.drawScreen();
     this.drawCursor();
-    
+
     this.mouseUp(e);
 }
 
 
 FF5Map.prototype.updateMenu = function() {
     this.menu.innerHTML = "";
-    
+
     var self = this;
     function appendMenuItem(label, onclick) {
         var li = document.createElement('li');
@@ -308,7 +308,7 @@ FF5Map.prototype.updateMenu = function() {
         }
         self.menu.appendChild(li);
     }
-    
+
     appendMenuItem("Insert Entrance Trigger", function() {self.insertTrigger('entranceTriggers')});
     appendMenuItem("Insert Event Trigger", function() {self.insertTrigger('eventTriggers')});
     appendMenuItem("Insert Treasure", this.m < 5 ? null : function() {self.insertTrigger('treasureProperties')});
@@ -319,7 +319,7 @@ FF5Map.prototype.updateMenu = function() {
 FF5Map.prototype.openMenu = function(e) {
     if (this.l !== 3) return; // no menu unless editing triggers
     this.updateMenu();
-    
+
     this.clickPoint = {
         x: ((e.offsetX / this.zoom + this.ppu.layers[this.l].x) % this.ppu.width) >> 4,
         y: ((e.offsetY / this.zoom + this.ppu.layers[this.l].y) % this.ppu.height) >> 4,
@@ -343,7 +343,7 @@ FF5Map.prototype.setTiles = function() {
     var row = this.selection[2];
     var cols = this.selection[3];
     var rows = this.selection[4];
-    
+
     var l = ((col << 4) - this.ppu.layers[this.l].x) & (this.ppu.width - 1);
     var r = l + (cols << 4);
     var t = ((row << 4) - this.ppu.layers[this.l].y) & (this.ppu.height - 1);
@@ -359,7 +359,7 @@ FF5Map.prototype.setTiles = function() {
 FF5Map.prototype.selectTiles = function() {
     // return if not dragging
     if (!isNumber(this.clickedCol) || !isNumber(this.clickedRow)) return;
-    
+
     var col = this.selection[1];
     var row = this.selection[2];
     var cols = Math.abs(col - this.clickedCol) + 1;
@@ -369,7 +369,7 @@ FF5Map.prototype.selectTiles = function() {
 
     this.selection = this.selectedLayer.getLayout(col, row, cols, rows);
     this.selection[2] |= this.l << 6;
-    
+
     if (rows !== 1 || cols !== 1) {
         this.tileset.selection = null;
     } else {
@@ -402,13 +402,13 @@ FF5Map.prototype.selectLayer = function(l) {
     // set the selected layer
     l = Number(l);
     if (isNumber(l)) this.l = l;
-    
+
     if (this.m < 5) {
         this.selectedLayer = this.worldLayer;
     } else {
         this.selectedLayer = this.layer[this.l]
     }
-    
+
     this.showCursor = (this.l === 3);
     this.drawScreen();
     this.drawCursor();
@@ -416,10 +416,10 @@ FF5Map.prototype.selectLayer = function(l) {
 
 FF5Map.prototype.selectWorldBattle = function(x, y) {
     if (this.m > 2) return;
-    
+
     x >>= 5;
     y >>= 5;
-    
+
     var sector = x | (y << 3) | (this.m << 6);
     var battleGroup = this.rom.worldBattleGroup.item(sector);
     propertyList.select(battleGroup);
@@ -480,10 +480,10 @@ FF5Map.prototype.drawScreen = function() {
 }
 
 FF5Map.prototype.drawCursor = function() {
-    
+
     this.cursorCanvas.style.display = "none";
     if (!this.showCursor) return;
-    
+
     var col = this.selection[1];
     var row = this.selection[2];
 
@@ -525,7 +525,7 @@ FF5Map.prototype.drawCursor = function() {
             case "npcProperties": c = "rgba(128, 128, 128, 1.0)"; break;
         }
     }
-    
+
     // draw the cursor
     w = Math.min(this.ppu.width * this.zoom - x, w);
     h = Math.min(this.ppu.height * this.zoom - y, h);
@@ -538,7 +538,7 @@ FF5Map.prototype.drawCursor = function() {
     this.cursorCanvas.style.top = y.toString() + "px";
     this.cursorCanvas.style.display = "block";
     var ctx = this.cursorCanvas.getContext('2d');
-    
+
     // convert the selection to screen coordinates
     ctx.lineWidth = 1;
     ctx.strokeStyle = "black";
@@ -562,7 +562,7 @@ FF5Map.prototype.selectObject = function(object) {
 }
 
 FF5Map.prototype.show = function() {
-    
+
     var map = this;
 
     this.resetControls();
@@ -581,7 +581,7 @@ FF5Map.prototype.hide = function() {
 }
 
 FF5Map.prototype.loadMap = function(m) {
-    
+
     var layerButtons = document.getElementsByClassName("toolbox-button");
     layerButtons[1].disabled = false;
     layerButtons[2].disabled = false;
@@ -612,18 +612,18 @@ FF5Map.prototype.loadMap = function(m) {
     var gfx1 = this.rom.mapGraphics.item(map.gfx1.value).data;
     var gfx2 = this.rom.mapGraphics.item(map.gfx2.value).data;
     var gfx3 = this.rom.mapGraphics.item(map.gfx3.value).data;
-    if (this.rom.isGBA) {
-        gfx1 = gfx1.subarray(16);
-        gfx2 = gfx2.subarray(16);
-        gfx3 = gfx3.subarray(16);
-    }
+    // if (this.rom.isGBA) {
+    //     gfx1 = gfx1.subarray(16);
+    //     gfx2 = gfx2.subarray(16);
+    //     gfx3 = gfx3.subarray(16);
+    // }
     gfx.set(gfx1, 0x0000);
     gfx.set(gfx2, 0x4000);
     gfx.set(gfx3, 0x8000);
 
     // load layer 3 graphics
     var graphicsLayer3 = this.rom.mapGraphicsLayer3.item(map.gfxLayer3.value).data;
-    if (this.rom.isGBA) graphicsLayer3 = graphicsLayer3.subarray(16);
+    // if (this.rom.isGBA) graphicsLayer3 = graphicsLayer3.subarray(16);
     gfx.set(graphicsLayer3, 0xC000);
 
     if (map.animation.value) {
@@ -669,13 +669,13 @@ FF5Map.prototype.loadMap = function(m) {
 
     // load palette
     var pal = this.rom.mapPalettes.item(map.palette.value).data;
-    if (this.rom.isGBA) pal = pal.subarray(4);
+    // if (this.rom.isGBA) pal = pal.subarray(4);
     pal[0] = 0xFF000000; // set background color to black
 
     var layout, tileset;
     var tileset = this.rom.mapTilesets.item(map.tileset.value).data;
-    if (this.rom.isGBA) tileset = tileset.subarray(12);
-    
+    // if (this.rom.isGBA) tileset = tileset.subarray(12);
+
     var tilePriority;
     if (this.rom.isGBA) {
         tilePriority = this.rom.mapTilePriority.item(map.tileset.value);
@@ -787,12 +787,12 @@ FF5Map.prototype.loadMap = function(m) {
     this.selectedTrigger = null;
     this.loadTriggers();
     this.scroll();
-    
+
     this.tileset.loadMap(m);
 }
 
 FF5Map.prototype.loadWorldMap = function(m) {
-    
+
     if (this.selectedLayer && (this.selectedLayer.type === "layer2" || this.selectedLayer.type === "layer3")) {
         this.selectLayer(0);
     }
@@ -813,11 +813,11 @@ FF5Map.prototype.loadWorldMap = function(m) {
     var paletteAssignment = this.rom.isSFC ? this.rom.worldPaletteAssignments.item(this.world).data : null;
     var tileset = this.rom.worldTilesets.item(this.world).data;
 
-    if (this.rom.isGBA) {
-        gfx = gfx.subarray(8);
-        pal = pal.subarray(4);
-        tileset = tileset.subarray(12);
-    }
+    // if (this.rom.isGBA) {
+    //     gfx = gfx.subarray(8);
+    //     pal = pal.subarray(4);
+    //     tileset = tileset.subarray(12);
+    // }
 
     var layout = [];
     if (this.rom.isSFC) {
@@ -825,9 +825,9 @@ FF5Map.prototype.loadWorldMap = function(m) {
     } else {
         for (var i = 0; i < 256; i++) layout.push(this.rom.worldLayouts.item(m).layout.item(i));
     }
-    
+
     this.worldLayer.loadLayout({layout: layout, tileset: tileset, w: 256, h: 256, paletteAssignment: paletteAssignment});
-    
+
     // set up the ppu
     this.ppu = new GFX.PPU();
     this.ppu.pal = pal;
@@ -849,7 +849,7 @@ FF5Map.prototype.loadWorldMap = function(m) {
     this.scrollDiv.style.height = (this.ppu.height * this.zoom).toString() + "px";
     this.mapCanvas.width = this.ppu.width;
     this.mapCanvas.height = this.ppu.height;
-    
+
     this.invalidateMap();
     this.selectedTrigger = null;
     this.loadTriggers();
@@ -878,7 +878,7 @@ FF5Map.prototype.invalidateMap = function(rect) {
 }
 
 FF5Map.prototype.drawMap = function() {
-        
+
     // update the map canvas
     var mapContext = this.mapCanvas.getContext('2d');
     var imageData;
@@ -887,7 +887,7 @@ FF5Map.prototype.drawMap = function() {
     for (var s = 0; s < this.mapSectors.length; s++) {
         // continue if this sector is already drawn
         if (this.mapSectors[s]) continue;
-        
+
         // continue if this sector is not visible
         var col = s % (this.ppu.width >> 8);
         var row = (s / (this.ppu.width >> 8)) | 0;
@@ -897,20 +897,20 @@ FF5Map.prototype.drawMap = function() {
         var b = t + 256;
         var sectorRect = new Rect(l, r, t, b);
         if (this.mapRect.intersect(sectorRect.scale(this.zoom)).isEmpty()) continue;
-        
+
         // draw the sector (256 x 256 pixels)
         imageData = mapContext.createImageData(256, 256);
         this.ppu.renderPPU(imageData.data, sectorRect.l, sectorRect.t, 256, 256);
 //        mapContext.clearRect(sectorRect.l, sectorRect.t, sectorRect.w, sectorRect.h);
         mapContext.putImageData(imageData, sectorRect.l, sectorRect.t);
-        
+
         // validate the sector
         this.mapSectors[s] = true;
     }
-    
+
     // redraw dirty portions of the map
     if (this.dirtyRect) {
-    
+
         var rect = this.dirtyRect;
         this.dirtyRect = null;
 
@@ -927,7 +927,7 @@ FF5Map.prototype.drawMap = function() {
     var scaledRect = this.mapRect.scale(1 / this.zoom);
 //    ctx.clearRect(scaledRect.l, scaledRect.t, scaledRect.w, scaledRect.h);
     ctx.drawImage(this.mapCanvas, scaledRect.l, scaledRect.t, scaledRect.w, scaledRect.h, 0, 0, this.mapRect.w, this.mapRect.h);
-    
+
     this.drawTriggers();
     this.drawScreen();
     this.drawCursor();
@@ -943,7 +943,7 @@ FF5Map.prototype.loadTriggers = function() {
     var i;
     this.triggers = [];
     this.selectedTrigger = null;
-    
+
     var triggers = this.rom.eventTriggers.item(this.m);
     this.observer.startObserving(triggers, this.reloadTriggers);
     for (i = 0; i < triggers.arrayLength; i++) {
@@ -975,9 +975,9 @@ FF5Map.prototype.loadTriggers = function() {
 }
 
 FF5Map.prototype.insertTrigger = function(type) {
-    
+
     this.closeMenu();
-    
+
     var triggers;
 //    if (type === "treasureProperties") {
 //        triggers = this.rom.treasureProperties;
@@ -990,10 +990,10 @@ FF5Map.prototype.insertTrigger = function(type) {
 //    if (type === "treasureProperties") {
 //        var mapTreasures = this.rom.mapTreasures;
 //        var treasureIndex = mapTreasures.item(this.m + 1).treasure;
-//        
+//
 //        // insert the new trigger
 //        triggers.insertAssembly(trigger, treasureIndex.value);
-//        
+//
 //        // increment all succeeding maps' treasure indices by 1
 //        for (var m = this.m + 1; m < mapTreasures.arrayLength; m++) {
 //            treasureIndex = mapTreasures.item(m).treasure;
@@ -1005,31 +1005,31 @@ FF5Map.prototype.insertTrigger = function(type) {
     trigger.x.setValue(this.clickPoint.x);
     trigger.y.setValue(this.clickPoint.y);
     this.endAction(this.reloadTriggers);
-    
+
     this.selectedTrigger = trigger;
     propertyList.select(trigger);
 }
 
 FF5Map.prototype.deleteTrigger = function() {
-    
+
     this.closeMenu();
     var trigger = this.selectedTrigger;
     if (!trigger) return;
     var triggers = trigger.parent;
     var index = triggers.array.indexOf(trigger);
     if (index === -1) return;
-    
+
     this.beginAction(this.reloadTriggers);
 //    if (triggers.key === "treasureProperties") {
 //        var mapTreasures = this.rom.mapTreasures;
 //        var treasureIndex = mapTreasures.item(this.m + 1).treasure;
-//        
+//
 //        // decrement all succeeding maps' treasure indices by 1
 //        for (var m = this.m + 1; m < mapTreasures.arrayLength; m++) {
 //            treasureIndex = mapTreasures.item(m).treasure;
 //            treasureIndex.setValue(treasureIndex.value - 1);
 //        }
-//        
+//
 //        // remove the trigger
 //        triggers.removeAssembly(index);
 //
@@ -1037,30 +1037,30 @@ FF5Map.prototype.deleteTrigger = function() {
         triggers.removeAssembly(index);
 //    }
     this.endAction(this.reloadTriggers);
-    
+
     this.selectedTrigger = null;
     propertyList.select(null);
 }
 
 FF5Map.prototype.drawTriggers = function() {
-    
+
     var zoom = this.zoom;
     var xClient = this.mapRect.l;
     var yClient = this.mapRect.t;
     var ctx = this.canvas.getContext('2d');
-    
+
     // function for drawing trigger rectangles with rounded corners
     function drawTriggerRect(x, y, fill) {
-        
+
         var r = zoom * 2;
         var s = zoom * 16 - 4 + 1;
         x = x * zoom * 16 + 2 - 0.5 - xClient;
         y = y * zoom * 16 + 2 - 0.5 - yClient;
-        
+
         ctx.lineWidth = 1;
         ctx.strokeStyle = "white";
         ctx.fillStyle = fill;
-        
+
         ctx.beginPath();
         ctx.moveTo(x, y + r);
         ctx.arcTo(x, y, x + r, y, r);
@@ -1074,7 +1074,7 @@ FF5Map.prototype.drawTriggers = function() {
         ctx.fill();
         ctx.stroke();
     }
-    
+
     if (!this.showTriggers) return;
     for (var i = 0; i < this.triggers.length; i++) {
         var trigger = this.triggers[i];
@@ -1097,7 +1097,7 @@ FF5Map.prototype.drawTriggers = function() {
         }
         drawTriggerRect(trigger.x.value, trigger.y.value, c);
     }
-    
+
     // draw npcs (sort by y-coordinate and sprite priority)
     var npcs = this.triggers.filter(function(trigger) {
         return (trigger.key === "npcProperties");
@@ -1114,7 +1114,7 @@ FF5Map.prototype.drawTriggers = function() {
 }
 
 FF5Map.prototype.triggerAt = function(x, y) {
-    
+
     var triggers = this.triggersAt(x, y);
     if (triggers.length === 0) return null;
     return triggers[0];
@@ -1124,14 +1124,14 @@ FF5Map.prototype.triggersAt = function (x, y) {
     var left, right, top, bottom, length, vertical;
     var zoom = this.zoom;
     var triggers = [];
-    
+
     for (var i = 0; i < this.triggers.length; i++) {
         var trigger = this.triggers[i];
         left = trigger.x.value * 16 * zoom;
         right = left + 16 * zoom;
         top = trigger.y.value * 16 * zoom;
         bottom = top + 16 * zoom;
-        
+
         if (trigger.vertical) {
             length = trigger.length.value;
             vertical = trigger.vertical.value;
@@ -1141,9 +1141,9 @@ FF5Map.prototype.triggersAt = function (x, y) {
                 right = left + 16 * zoom * (length);
             }
         }
-        
+
         if (x >= left && x < right && y >= top && y < bottom)
-            triggers.push(trigger);        
+            triggers.push(trigger);
     }
     return triggers;
 }
@@ -1153,7 +1153,7 @@ FF5Map.prototype.rectForTrigger = function(trigger) {
     var r = l + 16 * this.zoom;
     var t = trigger.y.value * 16 * this.zoom;
     var b = t + 16 * this.zoom;
-    
+
     if (trigger.vertical) {
         var length = trigger.length.value;
         var vertical = trigger.vertical.value;
@@ -1168,7 +1168,7 @@ FF5Map.prototype.rectForTrigger = function(trigger) {
 }
 
 FF5Map.prototype.drawNPC = function(npc) {
-    
+
     var x = npc.x.value * 16;
     var y = npc.y.value * 16;
     var w = 16;
@@ -1224,14 +1224,14 @@ FF5Map.prototype.drawNPC = function(npc) {
         tileCount = 64;
         w = 32;
         h = 32;
-        tiles = [0x0400, 0x0401, 0x4401, 0x4400, 
+        tiles = [0x0400, 0x0401, 0x4401, 0x4400,
                  0x0410, 0x0411, 0x4411, 0x4410,
                  0x0402, 0x0403, 0x4403, 0x4402,
                  0x0412, 0x0413, 0x4413, 0x4412];
         gfxOffset = 0x12A00;
         x -= 8;
         y -= 19;
-        
+
     } else if (g === 0x68) {
         // hiryuu head
         p = 2 << 9; // force palette 2
@@ -1242,16 +1242,16 @@ FF5Map.prototype.drawNPC = function(npc) {
         y -= 15;
     }
     gfxOffset = gfxOffset << 1;
-    
+
     // decode graphics
     var gfx = new Uint8Array(tileCount * 0x40);
     if (this.rom.isSFC) {
         var rawGraphics = this.rom.mapSpriteGraphics.data;
         gfx = rawGraphics.slice(gfxOffset, gfxOffset + tileCount * 0x40);
     } else {
-        var rawGraphics1 = this.rom.mapSpriteGraphics1.data.subarray(16);
-        var rawGraphics2 = this.rom.mapSpriteGraphics2.data.subarray(16);
-        var rawGraphics3 = this.rom.mapSpriteGraphics3.data.subarray(16);
+        var rawGraphics1 = this.rom.mapSpriteGraphics1.data;
+        var rawGraphics2 = this.rom.mapSpriteGraphics2.data;
+        var rawGraphics3 = this.rom.mapSpriteGraphics3.data;
         var rawGraphics = new Uint8Array(rawGraphics1.length + rawGraphics2.length + rawGraphics3.length);
         rawGraphics.set(rawGraphics1, 0);
         rawGraphics.set(rawGraphics2, rawGraphics1.length);
@@ -1306,7 +1306,7 @@ function FF5MapTileset(rom, map) {
     this.canvas.id = "tileset";
     this.canvas.width = 256;
     this.canvas.height = 256;
-    
+
     this.cursorCanvas = document.createElement("canvas");
     this.cursorCanvas.id = "tileset-cursor";
     this.cursorCanvas.width = 256;
@@ -1320,7 +1320,7 @@ function FF5MapTileset(rom, map) {
     this.selection = new Uint8Array([0x73, 0, 0, 1, 1, 0]);
     this.clickedCol = null;
     this.clickedRow = null;
-    
+
     this.ppu = new GFX.PPU();
 
     var tileset = this;
@@ -1386,7 +1386,7 @@ FF5MapTileset.prototype.mouseMove = function(e) {
             this.selection[5 + i + j * cols] = col + i + (row + j) * 16;
         }
     }
-    
+
     // redraw the cursor and notify the map
     this.drawCursor();
     this.map.selection = new Uint8Array(this.selection);
@@ -1394,7 +1394,7 @@ FF5MapTileset.prototype.mouseMove = function(e) {
 }
 
 FF5MapTileset.prototype.selectLayer = function(l) {
-    
+
     // update layer buttons
     var layerButtons = document.getElementsByClassName("toolbox-button");
     for (var i = 0; i < layerButtons.length; i++) {
@@ -1411,7 +1411,7 @@ FF5MapTileset.prototype.selectLayer = function(l) {
     this.ppu.layers[0].main = false;
     this.ppu.layers[1].main = false;
     this.ppu.layers[2].main = false;
-    
+
     // render the image on the canvas
     this.canvas.width = 256;
     this.cursorCanvas.width = 256;
@@ -1437,13 +1437,13 @@ FF5MapTileset.prototype.selectLayer = function(l) {
         this.ppu.renderPPU(imageData.data);
         ctx.putImageData(imageData, 0, 0);
     }
-        
+
     this.drawCursor();
     this.map.selection = new Uint8Array(this.selection);
 }
 
 FF5MapTileset.prototype.drawCursor = function() {
-    
+
     // clear the cursor canvas
     var ctx = this.cursorCanvas.getContext('2d');
     ctx.clearRect(0, 0, this.ppu.width, this.ppu.height);
@@ -1451,7 +1451,7 @@ FF5MapTileset.prototype.drawCursor = function() {
     // return if trigger layer is selected
     if (this.map.l === 3) return;
     if (!this.selection) return;
-    
+
     // get the cursor geometry
     var x = this.selection[1] << 4;
     var y = this.selection[2] << 4;
@@ -1460,7 +1460,7 @@ FF5MapTileset.prototype.drawCursor = function() {
 
     // draw the cursor
     if (w <= 0 || h <= 0) return;
-    
+
     // convert the selection to screen coordinates
     var colors = ["green", "blue", "red", "white"];
     ctx.lineWidth = 1;
@@ -1494,7 +1494,7 @@ FF5MapTileset.prototype.loadMap = function(m) {
 
         this.ppu.height = 192;
         this.worldLayer.loadLayout({layout: layout, tileset: this.map.worldLayer.tileset, w: 16, h: 12, paletteAssignment: this.map.worldLayer.paletteAssignment})
-        
+
         // layer 1
         this.ppu.layers[0].format = this.rom.isSFC ? GFX.TileFormat.snes4bppTile : GFX.TileFormat.gba4bppTile;
         this.ppu.layers[0].rows = 24;
@@ -1503,7 +1503,7 @@ FF5MapTileset.prototype.loadMap = function(m) {
         this.ppu.layers[0].z[1] = GFX.Z.snes1H;
         this.ppu.layers[0].gfx = this.map.ppu.layers[0].gfx;
         this.ppu.layers[0].tiles = this.worldLayer.tiles;
-        
+
     } else {
         // create a sequential tile layout
         var layout = new Uint8Array(1024);
@@ -1516,7 +1516,7 @@ FF5MapTileset.prototype.loadMap = function(m) {
         this.layer[0].loadLayout({layout: layout, tileset: this.map.layer[0].tileset, w: 16, h: 16, tilePriority: this.map.layer[0].tilePriority});
         this.layer[1].loadLayout({layout: layout, tileset: this.map.layer[1].tileset, w: 16, h: 16, tilePriority: this.map.layer[1].tilePriority});
         this.layer[2].loadLayout({layout: layout, tileset: this.map.layer[2].tileset, w: 16, h: 16, tilePriority: this.map.layer[2].tilePriority});
-        
+
         // layer 1
         this.ppu.layers[0].format = this.rom.isSFC ? GFX.TileFormat.snes4bppTile : GFX.TileFormat.gba4bppTile;
         this.ppu.layers[0].rows = 32;
@@ -1544,7 +1544,7 @@ FF5MapTileset.prototype.loadMap = function(m) {
         this.ppu.layers[2].gfx = this.map.ppu.layers[2].gfx;
         this.ppu.layers[2].tiles = this.layer[2].tiles;
     }
-    
+
     this.selectLayer(this.map.l);
 }
 
@@ -1585,12 +1585,12 @@ FF5MapLayer.prototype.setLayout = function(layout) {
     var y = layout[2];
     var w = layout[3];
     var h = layout[4];
-    
+
     x = x % this.w;
     y = y % this.h;
     var clippedW = Math.min(w, this.w - x);
     var clippedH = Math.min(h, this.h - y);
-    
+
     for (var row = 0; row < clippedH; row++) {
         var ls = 5 + row * w;
         if (this.type === "world") {
@@ -1606,7 +1606,7 @@ FF5MapLayer.prototype.setLayout = function(layout) {
 }
 
 FF5MapLayer.prototype.getLayout = function(col, row, cols, rows) {
-    
+
     // limit the selection rectangle to the size of the layer
     var clippedCol = col % this.w;
     var clippedRow = row % this.h;
@@ -1630,7 +1630,7 @@ FF5MapLayer.prototype.getLayout = function(col, row, cols, rows) {
 }
 
 FF5MapLayer.prototype.decodeLayout = function(x, y, w, h) {
-    
+
     x = x || 0;
     y = y || 0;
     x %= this.w;
@@ -1655,7 +1655,7 @@ FF5MapLayer.prototype.decodeLayout = function(x, y, w, h) {
 }
 
 FF5MapLayer.prototype.decodeMapLayout = function(x, y, w, h) {
-    
+
     var layout = this.layout.data || this.layout;
     var l = x + y * 64;
     var t = x * 2 + y * this.w * 4;
@@ -1677,7 +1677,7 @@ FF5MapLayer.prototype.decodeMapLayout = function(x, y, w, h) {
             l += 64;
         }
     } else {
-        
+
         var tileset = new Uint8Array(this.tileset);
         if (this.tilePriority) {
             for (var i = 0; i < 1024; i++) {
@@ -1714,7 +1714,7 @@ FF5MapLayer.prototype.decodeWorldLayout = function(x, y, w, h) {
             tileset[i] = t | p;
         }
     }
-    
+
     var layout = this.layout;
     if (layout[0] instanceof ROMAssembly) {
         layout = new Uint8Array(0x10000);

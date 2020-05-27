@@ -392,12 +392,12 @@ ROMAssembly.prototype.disassemble = function(data) {
     // validate the range vs. the input data
     if (range.begin > data.length) {
         // beginning of range is past the end of the data
-//        this.rom.log("Invalid range " + range.toString() + " for data of length " + data.length);
+//        this.rom.log("Invalid range " + range + " for data of length " + data.length);
         range.begin = 0;
         range.end = 0;
     } else if (range.end > data.length) {
         // end of range is past the end of the data
-//        this.rom.log("Range " + range.toString() + " exceeds data length " + hexString(data.length, 6));
+//        this.rom.log("Range " + range + " exceeds data length " + hexString(data.length, 6));
         range.end = data.length;
     }
 
@@ -545,7 +545,7 @@ ROMAssembly.prototype.setData = function(newData, offset) {
         assembly.disassemble();
         assembly.notifyObservers();
     }
-    var description = "Set " + this.name + " data [" + offset.toString() + "-" + (offset + newData.length).toString() + "]";
+    var description = "Set " + this.name + " data [" + offset + "-" + (offset + newData.length) + "]";
     var action = new ROMAction(this, undo, redo, description);
     this.rom.doAction(action);
 }
@@ -1673,6 +1673,10 @@ ROM.dataFormat = {
         encode: GFX.encodeSNES4bpp,
         decode: GFX.decodeSNES4bpp
     },
+    "gba4bppTile": {
+        encode: GFX.encodeGBA4bppTile,
+        decode: GFX.decodeGBA4bppTile
+    },
     "terminated": {
         encode: function(data, terminator, stride) {
             terminator = terminator || 0;
@@ -2250,6 +2254,72 @@ ROM.dataFormat = {
         decode: function(data) {
             var decoder = new Tose70Decoder();
             return decoder.decode(data);
+        }
+    },
+    "tose-graphics": {
+        encode: function(data) {
+            var header = new Uint32Array(2);
+            header[0] = 1;
+            header[1] = Math.floor(data.length / 32)
+            var header8 = new Uint8Array(header.buffer);
+            var dest = new Uint8Array(8 + data.length);
+            dest.set(header8, 0);
+            dest.set(data, 8);
+            return [dest, data.length];
+        },
+        decode: function(data) {
+            header = new Uint32Array(data.buffer, data.byteOffset, 2);
+            var mode = header[0]; // always 1
+            if (mode !== 1) console.log("Invalid TOSE graphics format " + mode);
+            var count = header[1]; // tile count
+            var dest = data.subarray(8);
+            return [dest, data.length];
+        }
+    },
+    "tose-layout": {
+        encode: function(data, width, height) {
+            var header = new Uint32Array(2);
+            header[0] = 2;
+            header[1] = Math.floor(data.length / 2)
+            var header8 = new Uint8Array(header.buffer);
+            var dest = new Uint8Array(12 + data.length);
+            dest.set(header8, 0);
+            data[8] = width;
+            data[9] = height;
+            dest.set(data, 12);
+            return [dest, data.length];
+        },
+        decode: function(data, width, height) {
+            header = new Uint32Array(data.buffer, data.byteOffset, 2);
+            var mode = header[0]; // always 2
+            if (mode !== 2) console.log("Invalid TOSE layout format " + mode);
+            var count = header[1]; // tile count
+            var width = data[8];
+            var height = data[9];
+            var dest = data.subarray(12);
+            return [dest, data.length];
+        }
+    },
+    "tose-palette": {
+        encode: function(data) {
+            var count = data.length >> 1; // number of 16-bit colors
+            data = data.subarray(0, count * 2);
+            var header = new Uint32Array(2);
+            header[0] = 3;
+            header[1] = count;
+            var header8 = new Uint8Array(header.buffer);
+            var dest = new Uint8Array(8 + data.length);
+            dest.set(header8, 0);
+            dest.set(data, 8);
+            return [dest, data.length];
+        },
+        decode: function(data) {
+            header = new Uint32Array(data.buffer, data.byteOffset, 2);
+            var mode = header[0]; // always 3
+            if (mode !== 3) console.log("Invalid TOSE palette format " + mode);
+            var count = header[1]; // number of 16-bit colors
+            var dest = data.subarray(8);
+            return [dest, 8 + count << 1];
         }
     },
     "ff5a-world": {
@@ -3128,15 +3198,45 @@ function ROMArray(rom, definition, parent) {
 }
 
 /*
-    i've spent a good 17 thousand hours trying to make pointer offsets work effectively, so i figured it would be a good idea to document what my strategy is, because i'm inevitably going to have to fix something or add new functionality.
+    i've spent a good 17 thousand hours trying to make pointer offsets work
+    effectively, so i figured it would be a good idea to document what my
+    strategy is, because i'm inevitably going to have to fix something or
+    add new functionality.
 
-    most pointers are pretty simple. there is a pointer offset, which is stored in the definition file as an unmapped address (meaning the same format that the assembly code needs it to be in). when the file is opened, the pointer offset immediately gets mapped into a rom offset. each pointer value gets offset by this amount, and then the parent array's offset is subtracted out, then the data can be read. when data gets saved, the new pointers start out relative to the parent array, then the parent array's offset is added, and then the pointer offset gets subtracted out to get the pointer that is written to the rom.
+    most pointers are pretty simple. there is a pointer offset, which is stored
+    in the definition file as an unmapped address (meaning the same format that
+    the assembly code needs it to be in). when the file is opened, the pointer
+    offset immediately gets mapped into a rom offset. each pointer value gets
+    offset by this amount, and then the parent array's offset is subtracted out,
+    then the data can be read. when data gets saved, the new pointers start out
+    relative to the parent array, then the parent array's offset is added, and
+    then the pointer offset gets subtracted out to get the pointer that is
+    written to the rom.
 
-    this doesn't work for absolute pointers though, because a pointer offset of 0 is going to get mapped to something which doesn't unmap back to zero. instead, absolute pointers have an undefined pointer offset (not 0). instead of offseting the pointers by a mapped pointer offset, the pointers themselves get mapped. in order for this to work, the "isMapped" property of the array must be set to true. when the data gets saved, the parent array's offset is still added, but then the pointers themselves are unmapped back into assembly addresses.
+    this doesn't work for absolute pointers though, because a pointer offset of
+    0 is going to get mapped to something which doesn't unmap back to zero.
+    instead, absolute pointers have an undefined pointer offset (not 0). instead
+    of offseting the pointers by a mapped pointer offset, the pointers
+    themselves get mapped. in order for this to work, the "isMapped" property of
+    the array must be set to true. when the data gets saved, the parent array's
+    offset is still added, but then the pointers themselves are unmapped back
+    into assembly addresses.
 
-    these two types of pointers cover almost everything i've come across. one exception is for nes and lorom mapping where the pointer offsets can't be mapped. in particular, this is an issue for the ff1 world map layout. the solution i came up with is to leave the pointer offset as an unmapped address, add the pointer offset, and then map the resulting value. when the data gets saved, the pointers get mapped first, and then the pointer offset gets subtracted. this doesn't work if the data spans more than one bank though, so it only gets used in specific cases, again by setting "isMapped" to true.
+    these two types of pointers cover almost everything i've come across. one
+    exception is for nes and lorom mapping where the pointer offsets can't be
+    mapped. in particular, this is an issue for the ff1 world map layout. the
+    solution i came up with is to leave the pointer offset as an unmapped
+    address, add the pointer offset, and then map the resulting value. when the
+    data gets saved, the pointers get mapped first, and then the pointer offset
+    gets subtracted. this doesn't work if the data spans more than one bank
+    though, so it only gets used in specific cases, again by setting "isMapped"
+    to true.
 
-    there are also fragmented arrays, which live in the array's parent rather than the array itself. the only difference for these is that all of the rom addresses are calculated relative to the parent rather than the array. these are nice, but because there is no specified subrange they run into issues when it's not obvious where each array item ends
+    there are also fragmented arrays, which live in the array's parent rather
+    than the array itself. the only difference for these is that all of the rom
+    addresses are calculated relative to the parent rather than the array. these
+    are nice, but because there is no specified subrange they run into issues
+    when it's not obvious where each array item ends
 */
 
 ROMArray.prototype = Object.create(ROMAssembly.prototype);
@@ -4985,7 +5085,8 @@ if (!String.prototype.padStart) {
         else {
             targetLength = targetLength-this.length;
             if (targetLength > padString.length) {
-                padString += padString.repeat(targetLength/padString.length); //append to original to ensure we are longer than needed
+                // append to original to ensure we are longer than needed
+                padString += padString.repeat(targetLength/padString.length);
             }
             return padString.slice(0,targetLength) + String(this);
         }

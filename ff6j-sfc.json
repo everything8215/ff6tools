@@ -4090,7 +4090,8 @@
             "type": "graphics",
             "name": "Map Overlay Graphics",
             "range": "0xC0E2A0-0xC0EEA0",
-            "format": "reverse1bpp"
+            "format": "reverse1bpp",
+            "backColor": true
         },
         "mapOverlayLayout": {
             "type": "assembly",

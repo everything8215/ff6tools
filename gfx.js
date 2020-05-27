@@ -599,14 +599,8 @@ GFX.encodeBGR555 = function(data) {
 GFX.makeGrayPalette = function(n, invert) {
     var pal = new Uint32Array(n);
     for (var i = 0; i < n; i++) {
-        var c = Math.round(i / (n - 1) * 255);
-        c = c | (c << 8) | (c << 16) | 0xFF000000;
-
-        if (invert) {
-            pal[n - i - 1] = c;
-        } else {
-            pal[i] = c;
-        }
+        var c = Math.round((invert ? (n - i - 1) : i) / (n - 1) * 255);
+        pal[i] = c | (c << 8) | (c << 16) | 0xFF000000;
     }
     return pal;
 }
@@ -616,6 +610,30 @@ GFX.vgaPalette = new Uint32Array([
     0xFF808080, 0xFFFF0000, 0xFF00FF00, 0xFFFFFF00, 0xFF0000FF, 0xFFFF00FF, 0xFF00FFFF, 0xFFFFFFFF
 
 ]);
+
+GFX.decodeGBA4bppTile = function(data) {
+
+    // 16-bit source, 32-bit destination
+    var src = new Uint16Array(data.buffer, data.byteOffset, Math.floor(data.byteLength / 2));
+    var dest = new Uint32Array(src.length);
+
+    var s = 0;
+    var d = 0;
+    var v, h, z, p, t;
+
+    // zpppvhtt tttttttt
+    // --vhzzzz pppppppp tttttttt tttttttt
+    while (s < src.length) {
+        t = src[s++];
+        z = (t & 0x8000) << 9;
+        p = (t & 0x7000) << 8;
+        v = (t & 0x0800) << 18;
+        h = (t & 0x0400) << 18;
+        t &= 0x03FF;
+        dest[d++] = v | h | z | p | t;
+    }
+    return [dest, data.length];
+}
 
 GFX.createPNG = function(gfx, pal, ppl) {
     // de-interlace 8x8 tiles
@@ -786,6 +804,21 @@ GFX.PPU.prototype.renderPPU = function(dest, x, y, width, height) {
         ++lx;
     }
 
+    // --vhzzzz pppppppp mmmmmmmm mmmmmmmm
+    function updateTileGeneric() {
+        var row = (ly >> 3) % layer.rows;
+        var col = (lx >> 3) % layer.cols;
+        t = layer.tiles[col + row * layer.cols];
+        p = (t & 0x00FF0000) >> 16; // palette (color) offset
+        z = (t & 0x0F000000) >> 24; // z-level
+        h = (t & 0x10000000); // horizontal flip
+        v = (t & 0x20000000); // vertical flip
+        t = (t & 0x0000FFFF) << 6; // tile (graphics) offset
+        ty = (v ? (7 - (ly & 7)) : (ly & 7)) << 3;
+        m = 255;
+    }
+
+    // mmmmmmmm
     function updateTileGBA8bpp() {
         var row = (ly >> 3) % layer.rows;
         var col = (lx >> 3) % layer.cols;
@@ -799,6 +832,7 @@ GFX.PPU.prototype.renderPPU = function(dest, x, y, width, height) {
         m = 255;
     }
 
+    // zpppvhmm mmmmmmmm
     function updateTileGBA4bpp() {
         var row = (ly >> 3) % layer.rows;
         var col = (lx >> 3) % layer.cols;
@@ -812,6 +846,7 @@ GFX.PPU.prototype.renderPPU = function(dest, x, y, width, height) {
         m = 15;
     }
 
+    // zpppvhmm mmmmmmmm
     function updateTileGBA2bpp() {
         var row = (ly >> 3) % layer.rows;
         var col = (lx >> 3) % layer.cols;
@@ -825,6 +860,7 @@ GFX.PPU.prototype.renderPPU = function(dest, x, y, width, height) {
         m = 3;
     }
 
+    // vhzpppmm mmmmmmmm
     function updateTileSNES4bpp() {
         var row = (ly >> 3) % layer.rows;
         var col = (lx >> 3) % layer.cols;
@@ -838,6 +874,7 @@ GFX.PPU.prototype.renderPPU = function(dest, x, y, width, height) {
         m = 15;
     }
 
+    // vhzpppmm mmmmmmmm
     function updateTileSNES2bpp() {
         var row = (ly >> 3) % layer.rows;
         var col = (lx >> 3) % layer.cols;
@@ -851,6 +888,7 @@ GFX.PPU.prototype.renderPPU = function(dest, x, y, width, height) {
         m = 3;
     }
 
+    // vhzzpppm mmmmmmmm
     function updateTileSNESSprite() {
         var row = (ly >> 3) % layer.rows;
         var col = (lx >> 3) % layer.cols;
@@ -864,6 +902,7 @@ GFX.PPU.prototype.renderPPU = function(dest, x, y, width, height) {
         m = 15;
     }
 
+    // mmmmmmmm (palette from attr table)
     function updateTileNESBG() {
         var row = (ly >> 3) % layer.rows;
         var col = (lx >> 3) % layer.cols;
@@ -937,6 +976,7 @@ GFX.PPU.prototype.renderPPU = function(dest, x, y, width, height) {
                     case GFX.TileFormat.snes4bppTile: updateTile = updateTileSNES4bpp; break;
                     case GFX.TileFormat.snesSpriteTile: updateTile = updateTileSNESSprite; break;
                     case GFX.TileFormat.nesBGTile: updateTile = updateTileNESBG; break;
+                    default: updateTile = updateTileGeneric; break;
                 }
                 renderLayerLine();
             }
@@ -965,7 +1005,7 @@ GFX.PPU.prototype.renderPPU = function(dest, x, y, width, height) {
                     case GFX.TileFormat.snes2bppTile: updateTile = updateTileSNES2bpp; break;
                     case GFX.TileFormat.snes4bppTile: updateTile = updateTileSNES4bpp; break;
                     case GFX.TileFormat.snesSpriteTile: updateTile = updateTileSNESSprite; break;
-                    case GFX.TileFormat.nesBGTile: updateTile = updateTileNESBG; break;
+                    default: updateTile = updateTileGeneric; break;
                 }
                 math = layer.math ? ppuMath : GFX.mathNone;
                 renderLayerLine();

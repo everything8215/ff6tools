@@ -452,11 +452,11 @@ FF5Battle.prototype.drawMonster = function(slot) {
         // decode the graphics
         var graphicsData = this.rom.monsterGraphics.item(m.id * 2);
         if (!graphicsData.format) {
-            graphicsData.format = ["linear4bpp", "gba-lzss"];
+            graphicsData.format = ["linear4bpp", "tose-graphics", "gba-lzss"];
             graphicsData.disassemble(graphicsData.parent.data);
         }
 
-        graphics = graphicsData.data.subarray(16);
+        graphics = graphicsData.data;
 
         // load size
         w = m.rect.w >> 3;
@@ -468,10 +468,10 @@ FF5Battle.prototype.drawMonster = function(slot) {
         // load palette
         var paletteData = this.rom.monsterGraphics.item(m.id * 2 + 1);
         if (!paletteData.format) {
-            paletteData.format = "bgr555";
+            paletteData.format = ["bgr555", "tose-palette"];
             paletteData.disassemble(paletteData.parent.data);
         }
-        pal = paletteData.data.subarray(4);
+        pal = paletteData.data;
     }
 
     // set up the ppu
@@ -610,10 +610,10 @@ FF5Battle.prototype.drawBackgroundGBA = function() {
     var gfx = new Uint8Array(0x10000);
     var graphicsData = this.rom.battleBackgroundGraphics.item(bg);
     if (!graphicsData.format) {
-        graphicsData.format = ["linear4bpp", "gba-lzss"];
+        graphicsData.format = ["linear4bpp", "tose-graphics", "gba-lzss"];
         graphicsData.disassemble(graphicsData.parent.data);
     }
-    gfx.set(graphicsData.data.subarray(16));
+    gfx.set(graphicsData.data);
 
     // load layout
     var layout = this.rom.battleBackgroundGraphics.item(bg + 1).data.subarray(12);
@@ -623,11 +623,11 @@ FF5Battle.prototype.drawBackgroundGBA = function() {
     var pal = new Uint32Array(0x100);
     var paletteData = this.rom.battleBackgroundGraphics.item(bg + 2);
     if (!paletteData.format) {
-        paletteData.format = "bgr555";
+        paletteData.format = ["bgr555", "tose-palette"];
         paletteData.disassemble(paletteData.parent.data);
     }
     pal[0] = 0xFF000000;
-    pal.set(paletteData.data.subarray(4));
+    pal.set(paletteData.data);
 
     // set up the ppu
     this.ppu = new GFX.PPU();

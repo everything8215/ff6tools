@@ -1120,14 +1120,14 @@ FF4MapGBA.prototype.loadWorldMap = function(m) {
     // load graphics
     var gfx = new Uint8Array(0x10000);
     var graphics1 = this.mapProperties.graphics1.target;
-    if (graphics1) gfx.set(graphics1.data.subarray(8));
+    if (graphics1) gfx.set(graphics1.data);
     var graphics2 = this.mapProperties.graphics2.target;
-    if (graphics2) gfx.set(graphics2.data.subarray(8), 0x4000);
+    if (graphics2) gfx.set(graphics2.data, 0x4000);
 
     // load palette
     var pal = new Uint32Array(0x200);
     var palette = this.mapProperties.palette.target;
-    if (palette) pal.set(palette.data.subarray(4));
+    if (palette) pal.set(palette.data);
     pal[0] = 0xFF000000;
 
     // load tileset

@@ -49,6 +49,8 @@
                 }, {
                     "name": "Serpent Trench Graphics",
                     "path": "worldGraphics3.graphics"
+                }, {
+                    "path": "worldCloudsGraphics"
                 }
             ]
         }, {
@@ -173,6 +175,29 @@
                 }, {
                     "name": "Manual Equip Items",
                     "path": "itemManualEquip"
+                }
+            ]
+        }, {
+            "name": "Cinematic",
+            "list": [
+                {
+                    "path": "titleIntroGraphics.snowGraphics"
+                }, {
+                    "path": "titleIntroGraphics.magitekGraphics"
+                }, {
+                    "path": "titleIntroGraphics.introGraphics"
+                }, {
+                    "path": "titleIntroGraphics.introFontGraphics"
+                }, {
+                    "path": "titleIntroGraphics.flames2bpp"
+                }, {
+                    "path": "titleIntroGraphics.flames4bpp"
+                }, {
+                    "path": "titleIntroGraphics.splashBackground"
+                }, {
+                    "path": "titleIntroGraphics.splashSprites"
+                }, {
+                    "path": "vectorApproachGraphics"
                 }
             ]
         }, {
@@ -1988,6 +2013,44 @@
                 }
             },
             "stringTable": "characterNames"
+        },
+        "cinematicProgram": {
+            "type": "data",
+            "name": "Cinematic Program",
+            "range": "0xC2686C-0xC28A60",
+            "format": "ff6-lzss",
+            "assembly": {
+                "splashPalette": {
+                    "type": "graphics",
+                    "name": "Splash Palette",
+                    "range": "0x0135-0x0155",
+                    "format": "bgr555"
+                },
+                "introFontPalette": {
+                    "type": "graphics",
+                    "name": "Intro Font Palette",
+                    "range": "0x1400-0x1410",
+                    "format": "bgr555"
+                },
+                "snowPalette": {
+                    "type": "graphics",
+                    "name": "Magitek March Background Palette",
+                    "range": "0x1410-0x1470",
+                    "format": "bgr555"
+                },
+                "magitekPalette": {
+                    "type": "graphics",
+                    "name": "Magitek March Sprite Palette",
+                    "range": "0x1470-0x1490",
+                    "format": "bgr555"
+                },
+                "introPalette": {
+                    "type": "graphics",
+                    "name": "Intro Palette",
+                    "range": "0x2B43-0x2C63",
+                    "format": "bgr555"
+                }
+            }
         },
         "danceAttacks": {
             "type": "array",
@@ -4499,7 +4562,8 @@
             "type": "graphics",
             "name": "Map Overlay Graphics",
             "range": "0xC0E2A0-0xC0EEA0",
-            "format": "reverse1bpp"
+            "format": "reverse1bpp",
+            "backColor": true
         },
         "mapOverlayLayout": {
             "type": "assembly",
@@ -8754,6 +8818,96 @@
                 "default": "<swdTechNames[%i]>"
             }
         },
+        "titleIntroGraphics": {
+            "type": "data",
+            "name": "Title/Intro Cinematic Graphics Data",
+            "range": "0xD8F000-0xD94E95",
+            "format": "ff6-lzss",
+            "isSequential": true,
+            "assembly": {
+                "magitekGraphics": {
+                    "type": "graphics",
+                    "name": "Magitek March Sprite Graphics",
+                    "range": "0x0000-0x0940",
+                    "format": "snes4bpp",
+                    "palette": "cinematicProgram.magitekPalette"
+                },
+                "snowGraphics": {
+                    "type": "graphics",
+                    "name": "Magitek March Background Graphics",
+                    "range": "0x0940-0x0BC0",
+                    "format": "snes4bpp",
+                    "palette": "cinematicProgram.snowPalette"
+                },
+                "snowLayout": {
+                    "type": "assembly",
+                    "name": "Magitek March Tile Layout",
+                    "range": "0x0BC0-0x1BC0"
+                },
+                "introLayout": {
+                    "type": "assembly",
+                    "name": "Intro Tile Layout",
+                    "range": "0x1BC0-0x33C0"
+                },
+                "introGraphics": {
+                    "type": "graphics",
+                    "name": "Intro Background Graphics",
+                    "range": "0x33C0-0x75C0",
+                    "format": "snes4bpp",
+                    "palette": "cinematicProgram.introPalette"
+                },
+                "introFontGraphics": {
+                    "type": "graphics",
+                    "name": "Intro Font Graphics",
+                    "range": "0x75C0-0x7930",
+                    "format": "snes2bpp",
+                    "palette": "cinematicProgram.introFontPalette"
+                },
+                "flames2bppLayout": {
+                    "type": "assembly",
+                    "name": "Intro Flame Tile Layout (2bpp)",
+                    "range": "0x7930-0x7B30"
+                },
+                "flames2bpp": {
+                    "type": "graphics",
+                    "name": "Intro Flame Graphics (2bpp)",
+                    "range": "0x7B30-0x81E0",
+                    "format": "snes2bpp",
+                    "palette": "cinematicProgram.introPalette"
+                },
+                "flames4bppLayout": {
+                    "type": "assembly",
+                    "name": "Intro Flame Tile Layout (4bpp)",
+                    "range": "0x81E0-0x83E0"
+                },
+                "flames4bpp": {
+                    "type": "graphics",
+                    "name": "Intro Flame Graphics (4bpp)",
+                    "range": "0x83E0-0x8BE0",
+                    "format": "snes4bpp",
+                    "palette": "cinematicProgram.introPalette"
+                },
+                "splashLayout": {
+                    "type": "assembly",
+                    "name": "Splash Screen Tile Layout",
+                    "range": "0x8BE0-0x8DE0"
+                },
+                "splashBackground": {
+                    "type": "graphics",
+                    "name": "Splash Screen Background Graphics",
+                    "range": "0x8DE0-0x9EF0",
+                    "format": "snes4bpp",
+                    "palette": "cinematicProgram.splashPalette"
+                },
+                "splashSprites": {
+                    "type": "graphics",
+                    "name": "Intro/Splash Sprite Graphics",
+                    "range": "0x9EF0-0xAEA8",
+                    "format": "snes4bpp",
+                    "palette": ["cinematicProgram.introPalette", "cinematicProgram.splashPalette"]
+                }
+            }
+        },
         "treasureProperties": {
             "type": "array",
             "name": "Treasure Properties",
@@ -8885,6 +9039,25 @@
                     "offset": -2
                 }
             ]
+        },
+        "vectorApproachGraphics": {
+            "type": "graphics",
+            "name": "Vector Approach Graphics",
+            "range": "0xD8DFB8-0xD8E5BF",
+            "format": ["snes4bpp", "ff6-lzss"],
+            "palette": "vectorApproachPalette"
+        },
+        "vectorApproachLayout": {
+            "type": "assembly",
+            "name": "Vector Approach Tile Layout",
+            "range": "0xD8E5BF-0xD8E6B9",
+            "format": "ff6-lzss"
+        },
+        "vectorApproachPalette": {
+            "type": "assembly",
+            "name": "Vector Approach Palette",
+            "range": "0xEFCE77-0xEFCE97",
+            "format": "bgr555"
         },
         "vehicleGraphics": {
             "type": "graphics",
@@ -9022,6 +9195,13 @@
                     }
                 }
             }
+        },
+        "worldCloudsGraphics": {
+            "type": "graphics",
+            "name": "World Map Clouds Graphics",
+            "range": "0xEEB290-0xEEC295",
+            "format": ["snes4bpp", "ff6-lzss"],
+            "palette": ["worldPalette1", "worldPalette2"]
         },
         "worldLayout1": {
             "type": "assembly",

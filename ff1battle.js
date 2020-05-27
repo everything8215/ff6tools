@@ -462,6 +462,9 @@ FF1Battle.prototype.drawCharacter = function(slot) {
     ctx.drawImage(this.monsterCanvas, 0, 0, charRect.w, charRect.h, charRect.l, charRect.t, charRect.w, charRect.h);
 }
 
+// this is hardcoded, mostly at 0F/F28D (menus) and 0F/F385 (backdrop)
+// instead of using the attribute table at 0F/F400, i treated these like
+// the 2bpp snes tile format
 FF1Battle.backgroundLayout = new Uint16Array([
     0x0C77, 0x0C78, 0x0C78, 0x0C78, 0x0C78, 0x0C78, 0x0C78, 0x0C78, 0x0C78, 0x0C78, 0x0C78, 0x0C78, 0x0C78, 0x0C78, 0x0C78, 0x0C79, 0x0C77, 0x0C78, 0x0C78, 0x0C78, 0x0C78, 0x0C78, 0x0C78, 0x0C79,
     0x0C7A, 0x0001, 0x0002, 0x0003, 0x0004, 0x0003, 0x0004, 0x0001, 0x0002, 0x0001, 0x0002, 0x0003, 0x0004, 0x0003, 0x0004, 0x0C7B, 0x0C7A, 0x0001, 0x0002, 0x0003, 0x0004, 0x0003, 0x0004, 0x0C7B,
@@ -483,6 +486,9 @@ FF1Battle.backgroundLayout = new Uint16Array([
     0x0C7C, 0x0C7D, 0x0C7D, 0x0C7D, 0x0C7D, 0x0C7D, 0x0C7D, 0x0C7D, 0x0C7D, 0x0C7D, 0x0C7D, 0x0C7D, 0x0C7D, 0x0C7D, 0x0C7D, 0x0C7E, 0x0C7C, 0x0C7D, 0x0C7D, 0x0C7D, 0x0C7D, 0x0C7D, 0x0C7D, 0x0C7E
 ]);
 
+// border palette is hardcoded at 0F/EB29
+FF1Battle.borderPalette = new Uint8Array([0x0F, 0x00, 0x0F, 0x30]);
+
 FF1Battle.prototype.drawBackground = function() {
 
     var bg = this.bg;
@@ -497,24 +503,12 @@ FF1Battle.prototype.drawBackground = function() {
     // set up the tile layout
     var w = 24;
     var h = 18;
-//    var layout = new Uint16Array(w * h);
-//    for (var i = 0; i < w * h; i++) layout[i] = 0x0C7F;
-//    layout[0] = 0x0C77;
-//    layout[w-1] = 0x0C79;
-//    layout[w*(h-1)] = 0x0C7C;
-//    layout[w*h-1] = 0x0C7E;
-//    for (var i = 1; i < (w-1); i++) layout[i] = 0x0C78;
-//    for (var i = w; i < w*(h-1); i+=w) layout[i] = 0x0C7A;
-//    for (var i = w*2-1; i < w*h-1; i+=w) layout[i] = 0x0C7B;
-//    for (var i = w*(h-1)+1; i < w*h-1; i++) layout[i] = 0x0C7D;
 
     // load the palette
     var pal = new Uint32Array(16);
     pal.set(this.rom.battleBackgroundPalette.item(bg).data);
-    pal[12] = 0xFF000000;
-    pal[13] = 0xFF666666;
-    pal[14] = 0xFF000000;
-    pal[15] = 0xFFEEEEEE;
+    var borderPalette = GFX.decodeNESPalette(FF1Battle.borderPalette);
+    pal.set(borderPalette[0], 12);
 
     // set up the ppu
     this.ppu = new GFX.PPU();

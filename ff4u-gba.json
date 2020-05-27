@@ -18,6 +18,8 @@
                 }, {
                     "name": "Map Tilesets",
                     "path": "mapTileset"
+                }, {
+                    "path": "worldGraphics"
                 }
             ]
         }, {
@@ -37,6 +39,9 @@
                 {
                     "name": "Battles",
                     "path": "battleProperties"
+                }, {
+                    "name": "Battle Background Graphics",
+                    "path": "battleBackgroundGraphics"
                 }, {
                     "name": "Map Battle Groups",
                     "path": "mapBattle"
@@ -88,8 +93,9 @@
             },
             "assembly": {
                 "type": "graphics",
-                "format": ["linear4bpp", "gba-lzss"],
-                "palette": "battleBackgroundPalette"
+                "format": ["linear4bpp", "tose-graphics", "gba-lzss"],
+                "palette": "battleBackgroundPalette[%i]",
+                "width": 32
             },
             "pointerTable": {
                 "range": "0x080F6EB8-0x080F6F10"
@@ -103,7 +109,7 @@
                 "length": 22
             },
             "assembly": {
-                "format": "bgr555"
+                "format": ["bgr555", "tose-palette"]
             },
             "pointerTable": {
                 "range": "0x080F6F14-0x080F6F6C"
@@ -115,6 +121,9 @@
             "range": "0x08182C74-0x0818857C",
             "array": {
                 "length": 22
+            },
+            "assembly": {
+                "format": ["gba4bppTile", "tose-layout"]
             },
             "pointerTable": {
                 "range": "0x080F6F70-0x080F6FC8"
@@ -3346,7 +3355,7 @@
             "isFragmented": true,
             "assembly": {
                 "type": "graphics",
-                "format": ["linear8bpp", "gba-lzss"],
+                "format": ["linear8bpp", "tose-graphics", "gba-lzss"],
                 "palette": "worldPalette"
             },
             "pointerObject": [
@@ -3359,8 +3368,16 @@
                 }
             ],
             "stringTable": {
-                "length": 7,
-                "default": "World Graphics %i"
+                "length": 6,
+                "default": "World Graphics %i",
+                "string": {
+                    "0": "Overworld - Layer 1",
+                    "1": "Overworld - Layer 2",
+                    "2": "Underground",
+                    "3": "Moon",
+                    "4": "Overworld - Layer 1 (Cid's Trial)",
+                    "5": "Overworld - Layer 2 (Cid's Trial)"
+                }
             }
         },
         "worldLayout": {
@@ -3377,8 +3394,18 @@
                 }
             ],
             "stringTable": {
-                "length": 5,
-                "default": "World Layout %i"
+                "length": 8,
+                "default": "World Layout %i",
+                "string": {
+                    "0": "Overworld - Layer 1",
+                    "1": "Overworld - Layer 2",
+                    "2": "Underground",
+                    "3": "Moon",
+                    "4": "Overworld - Layer 1 (Cid's Trial)",
+                    "5": "Overworld - Layer 2 (Cid's Trial)",
+                    "6": "Debug World - Layer 1",
+                    "7": "Debug World - Layer 2"
+                }
             }
         },
         "worldPalette": {
@@ -3387,15 +3414,21 @@
             "isFragmented": true,
             "assembly": {
                 "length": "0x0108",
-                "format": "bgr555"
+                "format": ["bgr555", "tose-palette"]
             },
             "pointerObject": {
                 "arrayPath": "worldProperties",
                 "pointerPath": "palette"
             },
             "stringTable": {
-                "length": 5,
-                "default": "World Palette %i"
+                "length": 4,
+                "default": "World Palette %i",
+                "string": {
+                    "0": "Overworld",
+                    "1": "Underground",
+                    "2": "Moon",
+                    "3": "Overworld (Cid's Trial)"
+                }
             }
         },
         "worldProperties": {
@@ -3551,8 +3584,16 @@
                 }
             ],
             "stringTable": {
-                "length": 5,
-                "default": "World Tileset %i"
+                "length": 6,
+                "default": "World Tileset %i",
+                "string": {
+                    "0": "Overworld - Layer 1",
+                    "1": "Overworld - Layer 2",
+                    "2": "Underground",
+                    "3": "Moon",
+                    "4": "Overworld - Layer 1 (Cid's Trial)",
+                    "5": "Overworld - Layer 2 (Cid's Trial)"
+                }
             }
         },
         "worldTileProperties": {

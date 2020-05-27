@@ -23,7 +23,7 @@ function FF4Battle(rom) {
     this.div.id = 'map-edit';
     this.div.appendChild(this.canvas);
 
-    this.battleRect = new Rect(8, 249, 1, 141);
+    // this.battleRect = new Rect(0, 256, 0, 256);
     this.battleRect = new Rect(8, 249, this.rom.isSFC ? 1 : 8, this.rom.isSFC ? 141 : 120);
     this.zoom = 2.0;
 
@@ -556,16 +556,16 @@ FF4Battle.prototype.drawMonsterGBA = function(slot) {
     var graphicsData = this.rom.monsterGraphics.item(m.m * 2 + 1);
     if (!graphicsData.format) {
         if (graphicsData.data[0] === 0x10) {
-            graphicsData.format = ["linear4bpp", "gba-lzss"];
+            graphicsData.format = ["linear4bpp", "tose-graphics", "gba-lzss"];
         } else if (graphicsData.data[0] === 0x70) {
-            graphicsData.format = ["linear4bpp", "tose-70"];
+            graphicsData.format = ["linear4bpp", "tose-graphics", "tose-70"];
         } else {
-            graphicsData.format = "gba-lzss";
+            graphicsData.format = ["gba-lzss", "tose-graphics"];
         }
         graphicsData.disassemble(this.rom.monsterGraphics.data);
     }
 
-    var graphics = graphicsData.data.subarray(16);
+    var graphics = graphicsData.data;
 
     // load size
     var w = m.rect.w >> 3;
@@ -577,10 +577,10 @@ FF4Battle.prototype.drawMonsterGBA = function(slot) {
     // load palette
     var paletteData = this.rom.monsterGraphics.item(m.m * 2);
     if (!paletteData.format) {
-        paletteData.format = "bgr555";
+        paletteData.format = ["bgr555", "tose-palette"];
         paletteData.disassemble(paletteData.parent.data);
     }
-    var pal = paletteData.data.subarray(4);
+    var pal = paletteData.data;
 
     // set up the ppu
     var ppu = new GFX.PPU();
@@ -691,6 +691,7 @@ FF4Battle.prototype.drawBackground = function() {
     layout = this.rom.battleBackgroundLayoutUpper.item(properties.top.value).data;
     tiles.set(layout);
     if (properties.middle.value) {
+        // only used for field and final battle (0 and 16)
         layout = this.rom.battleBackgroundLayoutUpper.item(properties.middle.value).data;
         tiles.set(layout, 0x100);
     }
@@ -730,17 +731,16 @@ FF4Battle.prototype.drawBackgroundGBA = function() {
     // load graphics
     var gfx = new Uint8Array(0x10000);
     var graphicsData = this.rom.battleBackgroundGraphics.item(this.bg);
-    gfx.set(graphicsData.data.subarray(16));
+    gfx.set(graphicsData.data);
 
     // load layout
-    var layout = this.rom.battleBackgroundLayout.item(this.bg).data.subarray(12);
-    var tiles = new Uint16Array(layout.buffer, layout.byteOffset);
+    var tiles = this.rom.battleBackgroundLayout.item(this.bg).data;
 
     // load palette
     var pal = new Uint32Array(0x100);
     var paletteData = this.rom.battleBackgroundPalette.item(this.bg);
     pal[0] = 0xFF000000;
-    pal.set(paletteData.data.subarray(4));
+    pal.set(paletteData.data);
 
     // set up the ppu
     this.ppu = new GFX.PPU();
@@ -750,7 +750,7 @@ FF4Battle.prototype.drawBackgroundGBA = function() {
     this.ppu.back = true;
 
     // layer 2
-    this.ppu.layers[1].format = GFX.TileFormat.gba4bppTile;
+    this.ppu.layers[1].format = undefined;
     this.ppu.layers[1].cols = 32;
     this.ppu.layers[1].rows = 32;
     this.ppu.layers[1].z[0] = GFX.Z.snes2L;

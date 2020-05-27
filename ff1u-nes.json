@@ -469,7 +469,7 @@
             "name": "Battle Group",
             "range": "0x0B8000-0x0B8400",
             "array": {
-                "length": 128
+                "length": 125
             },
             "assembly": {
                 "type": "data",
@@ -603,7 +603,7 @@
                     "64": "River (South)",
                     "65": "River (North)",
                     "66": "Ocean",
-                    "67-128": "<stringTable.mapProperties[%i-64]>"
+                    "67-125": "<stringTable.mapProperties[%i-64]>"
                 }
             }
         },
