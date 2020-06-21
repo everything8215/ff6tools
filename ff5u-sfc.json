@@ -6268,6 +6268,20 @@
                 "0xFF": "\\pad"
             }
         },
+        "menuDTE": {
+            "name": "Menu DTE",
+            "char": {
+                "0xA4": "ti",
+                "0xA5": "fi",
+                "0xA6": "Bla",
+                "0xA8": "pel",
+                "0xAC": "if",
+                "0xAD": "It",
+                "0xAE": "tl",
+                "0xAF": "ir",
+                "0xB0": "tt"
+            }
+        },
         "nullTerminated": {
             "name": "Null-Terminated",
             "char": {
@@ -6369,15 +6383,6 @@
                 "0xA1": "!",
                 "0xA2": "?",
                 "0xA3": ".",
-                "0xA4": "ti",
-                "0xA5": "fi",
-                "0xA6": "Bla",
-                "0xA8": "pel",
-                "0xAC": "if",
-                "0xAD": "It",
-                "0xAE": "tl",
-                "0xAF": "ir",
-                "0xB0": "tt",
                 "0xC2": "\\potion",
                 "0xC3": "\\robe",
                 "0xC5": "-",
