@@ -30,7 +30,8 @@ ROMObject.Type = {
     string: "string",
     stringTable: "stringTable",
     text: "text",
-    textEncoding: "textEncoding"
+    textEncoding: "textEncoding",
+    tilemap: "tilemap"
 };
 
 // ROMObject factory method
@@ -64,6 +65,8 @@ ROMObject.create = function(rom, definition, parent) {
         return new ROMText(rom, definition, parent);
     case ROMObject.Type.textEncoding:
         return new ROMTextEncoding(rom, definition, parent);
+    case ROMObject.Type.tilemap:
+        return new ROMTilemap(rom, definition, parent);
     default:
         return new ROMAssembly(rom, definition, parent);
     }
@@ -94,7 +97,8 @@ Object.defineProperty(ROMObject.prototype, "path", { get: function() {
 ROMObject.prototype.parseIndex = function(path, index) {
     if (!isNumber(index)) index = this.i;
     if (!isNumber(index)) index = this.value;
-    if (isNumber(index)) path = path.replace(/%i/g, index.toString());
+    if (!isNumber(index)) index = 0;
+    path = path.replace(/%i/g, index.toString());
     return path;
 }
 
@@ -673,7 +677,9 @@ function ROMGraphics(rom, definition, parent) {
 
     this.palette = definition.palette;
     this.width = definition.width; // width in 8x8 tiles
-    this.backColor = (definition.backColor === true);
+    this.height = definition.height; // height in 8x8 tiles
+    this.backColor = (definition.backColor === true); // no transparent color
+    this.spriteSheet = definition.spriteSheet;
 }
 
 ROMGraphics.prototype = Object.create(ROMAssembly.prototype);
@@ -684,6 +690,47 @@ Object.defineProperty(ROMGraphics.prototype, "definition", { get: function() {
 
     if (this.palette) definition.palette = this.palette;
     if (this.width) definition.width = this.width;
+    if (this.height) definition.height = this.height;
+    if (this.backColor) definition.backColor = true;
+    if (this.spriteSheet) definition.spriteSheet = this.spriteSheet;
+
+    return definition;
+}});
+
+// ROMTilemap
+function ROMTilemap(rom, definition, parent) {
+    ROMAssembly.call(this, rom, definition, parent);
+
+    this.tiles = []; // tile layout
+    this.tileFormat = definition.tileFormat; // tile format
+    this.graphics = definition.graphics; // graphics definition
+    this.tileOffset = definition.tileOffset; // tile offset
+    this.palette = definition.palette; // palette definition
+    this.colorOffset = definition.colorOffset; // color offset
+    this.zLevel = definition.zLevel; // z-level definition
+    this.vFlip = definition.vFlip; // vertical flip definition
+    this.hFlip = definition.hFlip; // horizontal flip definition
+    this.width = definition.width; // width in 8x8 tiles
+    this.height = definition.height; // height in 8x8 tiles
+    this.backColor = (definition.backColor === true); // no transparent color
+}
+
+ROMTilemap.prototype = Object.create(ROMAssembly.prototype);
+ROMTilemap.prototype.constructor = ROMTilemap;
+
+Object.defineProperty(ROMTilemap.prototype, "definition", { get: function() {
+    var definition = Object.getOwnPropertyDescriptor(ROMAssembly.prototype, "definition").get.call(this);
+
+    if (this.tileFormat) definition.tileFormat = this.tileFormat;
+    if (this.graphics) definition.graphics = this.graphics;
+    if (this.tileOffset) definition.tileOffset = this.tileOffset;
+    if (this.palette) definition.palette = this.palette;
+    if (this.colorOffset) definition.colorOffset = this.colorOffset;
+    if (this.zLevel) definition.zLevel = this.zLevel;
+    if (this.vFlip) definition.vFlip = this.vFlip;
+    if (this.hFlip) definition.hFlip = this.hFlip;
+    if (this.width) definition.width = this.width;
+    if (this.height) definition.height = this.height;
     if (this.backColor) definition.backColor = true;
 
     return definition;
@@ -1570,9 +1617,9 @@ ROM.crc32 = function(data) {
 
 ROM.dataFormat = {
     // generic formats
-    "bgr555": {
-        encode: GFX.encodeBGR555,
-        decode: GFX.decodeBGR555
+    "none": {
+        encode: function(data) { return [data, data.length]; },
+        decode: function(data) { return [data, data.length]; }
     },
     "byteSwapped": {
         encode: function(data) {
@@ -1582,14 +1629,68 @@ ROM.dataFormat = {
             return [data.slice().reverse(), data.length];
         }
     },
+    "multiplier": {
+        "encode": function(data, multiplier, wordSize) {
+            var newData8 = new Uint8Array(data);
+            if (wordSize === 4) {
+                newData = new Uint32Array(newData8.buffer, newData8.byteOffset, newData8.byteLength >> 2);
+            } else if (wordSize === 2) {
+                newData = new Uint16Array(newData8.buffer, newData8.byteOffset, newData8.byteLength >> 1);
+            } else {
+                newData = newData8;
+            }
+            for (var i = 0; i < newData.length; i++) newData[i] /= multiplier;
+            return [newData8, data.length];
+        },
+        "decode": function(data, multiplier, wordSize) {
+            var newData8 = new Uint8Array(data);
+            if (wordSize === 4) {
+                newData = new Uint32Array(newData8.buffer, newData8.byteOffset, newData8.byteLength >> 2);
+            } else if (wordSize === 2) {
+                newData = new Uint16Array(newData8.buffer, newData8.byteOffset, newData8.byteLength >> 1);
+            } else {
+                newData = newData8;
+            }
+            for (var i = 0; i < newData.length; i++) newData[i] *= multiplier;
+            return [newData8, data.length];
+        }
+    },
+    "offset": {
+        "encode": function(data, offset, wordSize) {
+            var newData8 = new Uint8Array(data);
+            if (wordSize === 4) {
+                newData = new Uint32Array(newData8.buffer, newData8.byteOffset, newData8.byteLength >> 2);
+            } else if (wordSize === 2) {
+                newData = new Uint16Array(newData8.buffer, newData8.byteOffset, newData8.byteLength >> 1);
+            } else {
+                newData = newData8;
+            }
+            for (var i = 0; i < newData.length; i++) newData[i] -= offset;
+            return [newData8, data.length];
+        },
+        "decode": function(data, offset, wordSize) {
+            var newData8 = new Uint8Array(data);
+            if (wordSize === 4) {
+                newData = new Uint32Array(newData8.buffer, newData8.byteOffset, newData8.byteLength >> 2);
+            } else if (wordSize === 2) {
+                newData = new Uint16Array(newData8.buffer, newData8.byteOffset, newData8.byteLength >> 1);
+            } else {
+                newData = newData8;
+            }
+            for (var i = 0; i < newData.length; i++) newData[i] += offset;
+            return [newData8, data.length];
+        }
+    },
     "interlace": {
         encode: function(data, word, layers, stride) {
-            var src = data;
+            var step = word * layers;
+            var block = step * stride;
+            var length = Math.ceil(data.length / block) * block;
+            var src = new Uint8Array(length);
+            src.set(data);
             var s = 0;
-            var dest = new Uint8Array(data.length);
+            var dest = new Uint8Array(length);
             var d = 0;
-            var step = word * layers; // 2
-            var block = word * stride * layers; // 512
             while (s < src.length) {
                 var s1 = s;
                 while ((s1 - s) < step) {
@@ -1597,85 +1698,40 @@ ROM.dataFormat = {
                     while ((s2 - s) < block) {
                         dest.set(src.subarray(s2, s2 + word), d);
                         d += word;
-                        s2 += stride * word;
+                        s2 += step;
                     }
                     s1 += word;
                 }
                 s += block;
             }
 
-            return [dest, data.length];
+            return [dest.slice(0, data.length), data.length];
         },
         decode: function(data, word, layers, stride) {
-            var src = data;
+            var step = word * stride;
+            var block = step * layers;
+            var length = Math.ceil(data.length / block) * block;
+            var src = new Uint8Array(length);
+            src.set(data);
             var s = 0;
-            var dest = new Uint8Array(data.length);
+            var dest = new Uint8Array(length);
             var d = 0;
-            var block = word * stride * layers; // 512
             while (s < src.length) {
                 var s1 = s;
-                while ((s1 - s) < stride * word) {
+                while ((s1 - s) < step) {
                     var s2 = s1;
                     while ((s2 - s) < block) {
                         dest.set(src.subarray(s2, s2 + word), d);
                         d += word;
-                        s2 += stride * word;
+                        s2 += step;
                     }
                     s1 += word;
                 }
                 s += block;
             }
 
-            return [dest, data.length];
+            return [dest.slice(0, data.length), data.length];
         }
-    },
-    "reverse1bpp": {
-        encode: GFX.encodeReverse1bpp,
-        decode: GFX.decodeReverse1bpp
-    },
-    "linear1bpp": {
-        encode: GFX.encodeLinear1bpp,
-        decode: GFX.decodeLinear1bpp
-    },
-    "linear2bpp": {
-        encode: GFX.encodeLinear2bpp,
-        decode: GFX.decodeLinear2bpp
-    },
-    "linear4bpp": {
-        encode: GFX.encodeLinear4bpp,
-        decode: GFX.decodeLinear4bpp
-    },
-    "linear8bpp": {
-        encode: GFX.encodeLinear8bpp,
-        decode: GFX.decodeLinear8bpp
-    },
-    "nes2bpp": {
-        encode: GFX.encodeNES2bpp,
-        decode: GFX.decodeNES2bpp
-    },
-    "nesPalette": {
-        encode: GFX.encodeNESPalette,
-        decode: GFX.decodeNESPalette
-    },
-    "none": {
-        encode: function(data) { return [data, data.length]; },
-        decode: function(data) { return [data, data.length]; }
-    },
-    "snes2bpp": {
-        encode: GFX.encodeSNES2bpp,
-        decode: GFX.decodeSNES2bpp
-    },
-    "snes3bpp": {
-        encode: GFX.encodeSNES3bpp,
-        decode: GFX.decodeSNES3bpp
-    },
-    "snes4bpp": {
-        encode: GFX.encodeSNES4bpp,
-        decode: GFX.decodeSNES4bpp
-    },
-    "gba4bppTile": {
-        encode: GFX.encodeGBA4bppTile,
-        decode: GFX.decodeGBA4bppTile
     },
     "terminated": {
         encode: function(data, terminator, stride) {
@@ -1694,6 +1750,33 @@ ROM.dataFormat = {
             return [data.subarray(0, length), length + 1];
         }
     },
+
+    // graphics formats
+    "linear8bpp": GFX.graphicsFormat.linear8bpp,
+    "linear4bpp": GFX.graphicsFormat.linear4bpp,
+    "linear2bpp": GFX.graphicsFormat.linear2bpp,
+    "linear1bpp": GFX.graphicsFormat.linear1bpp,
+    "nes2bpp": GFX.graphicsFormat.nes2bpp,
+    "snes2bpp": GFX.graphicsFormat.snes2bpp,
+    "snes3bpp": GFX.graphicsFormat.snes3bpp,
+    "snes4bpp": GFX.graphicsFormat.snes4bpp,
+
+    // palette formats
+    "rgb888": GFX.paletteFormat.rgb888,
+    "bgr555": GFX.paletteFormat.bgr555,
+    "nesPalette": GFX.paletteFormat.nesPalette,
+
+    // tile formats
+    "defaultTile": GFX.tileFormat.defaultTile,
+    "generic8bppTile": GFX.tileFormat.generic8bppTile,
+    "generic4bppTile": GFX.tileFormat.generic4bppTile,
+    "generic2bppTile": GFX.tileFormat.generic2bppTile,
+    "gba8bppTile": GFX.tileFormat.gba8bppTile,
+    "gba4bppTile": GFX.tileFormat.gba4bppTile,
+    "gba2bppTile": GFX.tileFormat.gba2bppTile,
+    "snes4bppTile": GFX.tileFormat.snes4bppTile,
+    "snes3bppTile": GFX.tileFormat.snes3bppTile,
+    "snes2bppTile": GFX.tileFormat.snes2bppTile,
 
     // game-specific formats
     "ff1-map": {
@@ -1747,17 +1830,17 @@ ROM.dataFormat = {
     },
     "ff1-shop": {
         encode: function(data) {
-            var newData = new Uint8Array(5);
+            var newData = new Uint8Array(6);
             var d = 0;
-            for (var i = 0; i < 4; i++) {
+            for (var i = 0; i < 5; i++) {
                 if (!data[i]) continue;
                 newData[d++] = data[i];
             }
             newData[d++] = 0;
-            return [newData.slice(0, d), 4];
+            return [newData.slice(0, d), 5];
         },
         decode: function(data) {
-            var newData = new Uint8Array(4);
+            var newData = new Uint8Array(5);
             for (var i = 0; i < data.length; i++) {
                 newData[i] = data[i];
             }
@@ -1766,14 +1849,15 @@ ROM.dataFormat = {
     },
     "ff4-battlebg": {
         encode: function(data) {
-            var newData = new Uint8Array(data.length);
-            for (var i = 0; i < data.length; i++) {
-                var t = data[i] & 0x3F;
-                var p = data[i] & 0x0400;
-                var v = data[i] & 0x8000;
-                newData[i] = t | (p >> 4) | (v >> 8);
+            var src = new Uint16Array(data.buffer, data.byteOffset, Math.floor(data.byteLength / 2));
+            var dest = new Uint8Array(src.length);
+            for (var i = 0; i < src.length; i++) {
+                var t = src[i] & 0x3F;
+                var p = src[i] & 0x0400;
+                var v = src[i] & 0x8000;
+                dest[i] = t | (p >> 4) | (v >> 8);
             }
-            return [newData, data.length];
+            return [dest, data.length];
         },
         decode: function(data) {
             var newData = new Uint16Array(data.length);
@@ -1783,7 +1867,7 @@ ROM.dataFormat = {
                 var v = data[i] & 0x80;
                 newData[i] = t | (p << 4) | (v << 8);
             }
-            return [newData, data.length];
+            return [new Uint8Array(newData.buffer, newData.byteOffset, newData.byteLength), data.length];
         }
     },
     "ff4-monster": {
@@ -1978,7 +2062,68 @@ ROM.dataFormat = {
     },
     "ff5-battlebg": {
         encode: function(data) {
-            return [data, data.length];
+            var src = new Uint16Array(data.buffer, data.byteOffset, data.byteLength >> 1);
+            var dest = new Uint8Array(0x280);
+            var s = 0;
+            var d = 0;
+            var b;
+
+            while (s < 0x0280) {
+
+                var s0 = src[s];
+                var s1 = src[s+1];
+                var s2 = src[s+2];
+                var s3 = src[s+3];
+                var s4 = src[s+4];
+                var s5 = src[s+5];
+
+                // if (s0 === s1 && s1 === s2 && s2 === s3 && s3 === s4 && s4 !== s5) {
+                //     // this is a very specific case where exactly 5 identical
+                //     // bytes in a row can be compressed more efficiently via
+                //     // the second method than the first
+                //     s += 5;
+                //     dest[d++] = 0xFF;
+                //     dest[d++] = 5;
+                //     dest[d++] = s0;
+                //     if (s0 & 0x0400) dest[d-1] |= 0x80;
+                //     dest[d++] = 0;
+                // } else
+                if (s0 !== s1 && s0 === s2 && s0 === s4 && s1 === s3 && s1 === s5) {
+                    b = 3;
+                    s += 6;
+                    while (src[s-2] === src[s] && src[s-1] === src[s+1] && b < 0x40) {
+                        b++;
+                        s += 2
+                    }
+                    dest[d++] = 0xFF;
+                    dest[d++] = b | 0x80;
+                    dest[d++] = s0 & 0x7F;
+                    if (s0 & 0x0400) dest[d-1] |= 0x80;
+                    dest[d++] = s1 & 0x7F;
+                    if (s1 & 0x0400) dest[d-1] |= 0x80;
+                } else if ((s1 - s0) === (s2 - s1) &&
+                           (s2 - s1) === (s3 - s2) &&
+                           (s3 - s2) === (s4 - s3)) {
+                    var delta = s1 - s0;
+                    s += 4;
+                    b = 4;
+                    while ((src[s] - src[s - 1]) === delta && b < 0x40) {
+                        s++; b++;
+                    }
+                    if (delta < 0) b |= 0x40;
+                    dest[d++] = 0xFF;
+                    dest[d++] = b;
+                    dest[d++] = s0 & 0x7F;
+                    if (s0 & 0x0400) dest[d-1] |= 0x80;
+                    dest[d++] = (delta >= 0 ? delta : -delta);
+                } else {
+                    dest[d++] = s0 & 0x7F;
+                    if (s0 & 0x0400) dest[d-1] |= 0x80;
+                    s++;
+                }
+            }
+
+            return [dest.slice(0, d), 0x500];
         },
         decode: function(data) {
             var newData = new Uint16Array(0x0280);
@@ -2016,19 +2161,50 @@ ROM.dataFormat = {
                 }
             }
             for (var i = 0; i < 0x0280; i++) {
-                var b = newData[i];
-                if (b & 0x80) {
-                    newData[i] |= 0x0880;
-                } else {
-                    newData[i] |= 0x0480;
+                if (newData[i] & 0x80) {
+                    newData[i] &= 0x007F;
+                    newData[i] |= 0x0400;
                 }
             }
-            return [newData, data.length];
+            return [new Uint8Array(newData.buffer, newData.byteOffset, newData.byteLength), data.length];
         }
     },
     "ff5-battlebgflip": {
         encode: function(data) {
-            return [data, data.length];
+            var src = data;
+            var dest = new Uint8Array(0x50);
+            var s = 0;
+            var d = 0;
+            var run = 0;
+
+            while (s < src.length) {
+                var b = 0;
+                // get the next 8 bits
+                for (var i = 0; i < 8; i++) {
+                    b <<= 1;
+                    if (src[s++]) b |= 0x01;
+                }
+
+                if (b === 0) {
+                    // 8 sequential zeros
+                    run++;
+                } else {
+                    if (run) {
+                        // encode sequential zeros
+                        dest[d++] = 0;
+                        dest[d++] = run;
+                        run = 0;
+                    }
+                    dest[d++] = b;
+                }
+            }
+            if (run) {
+                // fill in leftover run of zeros
+                dest[d++] = 0;
+                dest[d++] = run;
+            }
+
+            return [dest.slice(0, d), 0x0280];
         },
         decode: function(data) {
             var newData = new Uint8Array(0x0280);
@@ -2272,7 +2448,7 @@ ROM.dataFormat = {
             var mode = header[0]; // always 1
             if (mode !== 1) console.log("Invalid TOSE graphics format " + mode);
             var count = header[1]; // tile count
-            var dest = data.subarray(8);
+            var dest = data.slice(8);
             return [dest, data.length];
         }
     },
@@ -2296,7 +2472,7 @@ ROM.dataFormat = {
             var count = header[1]; // tile count
             var width = data[8];
             var height = data[9];
-            var dest = data.subarray(12);
+            var dest = data.slice(12);
             return [dest, data.length];
         }
     },
@@ -2318,7 +2494,7 @@ ROM.dataFormat = {
             var mode = header[0]; // always 3
             if (mode !== 3) console.log("Invalid TOSE palette format " + mode);
             var count = header[1]; // number of 16-bit colors
-            var dest = data.subarray(8);
+            var dest = data.slice(8);
             return [dest, 8 + count << 1];
         }
     },
@@ -3194,6 +3370,8 @@ function ROMArray(rom, definition, parent) {
             this.isMapped = true;
         }
         this.pointerOffset = offset;
+    } else if (definition.itemRanges) {
+        this.itemRanges = definition.itemRanges;
     }
 }
 
@@ -3288,6 +3466,8 @@ Object.defineProperty(ROMArray.prototype, "definition", { get: function() {
             pointerTableDefinition.offset = hexString(offset);
         }
         definition.pointerTable = pointerTableDefinition;
+    } else if (this.itemRanges) {
+        definition.itemRanges = this.itemRanges;
     }
 
     return definition;
@@ -3369,6 +3549,7 @@ ROMArray.prototype.assemble = function(data) {
                 sharedData = {pointer: length, data: assemblyData};
                 duplicates.push(sharedData);
                 length += assemblyData.length;
+                if (length % assembly.align) length = Math.ceil(length / assembly.align) * assembly.align;
             }
 
             // relocate the assembly
@@ -3392,7 +3573,7 @@ ROMArray.prototype.disassemble = function(data) {
     ROMAssembly.prototype.disassemble.call(this, data);
 
     // disassemble the pointer table
-    if (this.pointerTable) this.pointerTable.disassemble(data);
+    // if (this.pointerTable) this.pointerTable.disassemble(data);
 
     // determine the range of each item in the array
     this.pointers = [];
@@ -3423,6 +3604,15 @@ ROMArray.prototype.disassemble = function(data) {
             if (itemRanges.length === this.arrayLength) break;
         }
 
+    } else if (this.itemRanges) {
+        // static item ranges
+        for (var p = 0; p < this.itemRanges.length; p++) {
+            var range = ROMRange.parse(this.itemRanges[p]);
+            if (!this.isMapped) range = this.rom.mapRange(range);
+            range = range.offset(-this.range.begin);
+            itemRanges.push(range);
+        }
+
     } else if (!this.pointerTable && !this.pointerObject) {
         // fixed-length items
         var length = this.assembly.range.length || 1;
@@ -3440,6 +3630,7 @@ ROMArray.prototype.disassemble = function(data) {
 
     } else if (this.isSequential) {
         // sequential items
+        if (this.pointerTable) this.pointerTable.disassemble(data);
         var pointerRanges = {};
         var unsorted = this.pointerObject ? this.readPointerObjects() : this.readPointerTable();
         for (i = 0; i < (unsorted.length - 1); i++) {
@@ -3456,6 +3647,7 @@ ROMArray.prototype.disassemble = function(data) {
 
     } else {
         // read pointers
+        if (this.pointerTable) this.pointerTable.disassemble(data);
         var unsorted = this.pointerObject ? this.readPointerObjects() : this.readPointerTable();
 
         // sort pointers in descending order
@@ -3578,8 +3770,7 @@ ROMArray.prototype.createPointerTable = function(definition) {
     definition.type = definition.type || ROMObject.Type.assembly;
     definition.name = definition.name || (this.name + " Pointer Table");
     definition.key = definition.key || (this.key + "PointerTable");
-    var pointerTable = this.parent.addAssembly(definition);
-    return pointerTable;
+    return this.parent.addAssembly(definition);
 }
 
 ROMArray.prototype.createPointer = function(i) {

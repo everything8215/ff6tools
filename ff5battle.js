@@ -21,7 +21,7 @@ function FF5Battle(rom) {
     this.div.appendChild(this.canvas);
 
     this.battleRect = new Rect(8, 248, this.rom.isSFC ? 1 : 8, this.rom.isSFC ? 160 : 128);
-    this.zoom = 2.0;
+    this.zoom = 1.0;
 
     this.selectedMonster = null;
     this.showMonsters = true;
@@ -34,6 +34,7 @@ function FF5Battle(rom) {
     this.canvas.onmouseup = function(e) { self.mouseUp(e) };
 //    this.canvas.onmouseenter = function(e) { self.mouseEnter(e) };
     this.canvas.onmouseleave = function(e) { self.mouseLeave(e) };
+    this.resizeSensor = null;
     this.monsterPoint = null;
     this.clickedPoint = null;
 
@@ -225,7 +226,7 @@ FF5Battle.prototype.selectObject = function(object) {
 
 FF5Battle.prototype.show = function() {
     var battle = this;
-    document.getElementById('toolbox-buttons').classList.add("hidden");
+    document.getElementById('toolbox-layer-div').classList.add("hidden");
     document.getElementById('toolbox-div').classList.add("hidden");
 
     this.resetControls();
@@ -240,10 +241,16 @@ FF5Battle.prototype.show = function() {
     var onChangeBG = function(bg) { battle.bg = bg; battle.drawBattle(); }
     var bgSelected = function(bg) { return battle.bg === bg; }
     this.addList("showBackground", "Background", bgNames, onChangeBG, bgSelected);
+
+    this.resizeSensor = new ResizeSensor(document.getElementById("edit-top"), function() { battle.drawBattle(); });
 }
 
 FF5Battle.prototype.hide = function() {
     this.observer.stopObservingAll();
+    if (this.resizeSensor) {
+        this.resizeSensor.detach(document.getElementById("edit-top"));
+        this.resizeSensor = null;
+    }
 }
 
 FF5Battle.prototype.loadBattle = function(b) {
@@ -254,6 +261,7 @@ FF5Battle.prototype.loadBattle = function(b) {
         this.b = b;
         this.battleProperties = this.rom.battleProperties.item(b);
         this.observer.startObserving(this.battleProperties, this.loadBattle);
+        this.observer.startObserving(this.rom.monsterPosition.item(b), this.drawBattle);
     }
 
     this.selectedMonster = null;
@@ -353,7 +361,8 @@ FF5Battle.prototype.drawBattle = function() {
         for (var slot = 8; slot > 0; slot--) this.drawMonster(slot);
     }
 
-    this.zoom = this.div.clientWidth / this.battleRect.w;
+    this.zoom = Math.min(this.div.clientWidth / this.battleRect.w, this.div.clientHeight / this.battleRect.h);
+    this.zoom = Math.min(Math.max(this.zoom, 1.0), 4.0);
 
     var scaledRect = this.battleRect.scale(this.zoom);
     this.canvas.width = scaledRect.w;
@@ -481,7 +490,7 @@ FF5Battle.prototype.drawMonster = function(slot) {
     ppu.height = h * 8;
 
     // layer 1
-    ppu.layers[0].format = GFX.TileFormat.snesSpriteTile;
+    ppu.layers[0].format = GFX.tileFormat.snesSpriteTile;
     ppu.layers[0].cols = w;
     ppu.layers[0].rows = h;
     ppu.layers[0].z[0] = GFX.Z.snesS0;
@@ -552,9 +561,11 @@ FF5Battle.prototype.drawBackground = function() {
     // load graphics
     var gfx = new Uint8Array(0x10000);
     var g = properties.graphics.value;
+    var gfxPointer = this.rom.battleBackgroundGraphicsPointer.item(g);
+    var gfxObject = gfxPointer.pointer.target;
     var gfxOffset = this.rom.battleBackgroundGraphicsOffset.item(g).offset.value;
 //    gfxOffset -= 0x7FC000;
-    gfx.set(this.rom.battleBackgroundGraphics.item(g).data.subarray(gfxOffset << 1), 0x2000);
+    gfx.set(gfxObject.data.subarray(gfxOffset << 6));
 
     // load layout
     var l = properties.layout.value;
@@ -565,31 +576,31 @@ FF5Battle.prototype.drawBackground = function() {
     var v = properties.vFlip.value;
     var vFlip = new Uint8Array(0x0280);
     if (v !== 0xFF) hFlip = this.rom.battleBackgroundTileFlip.item(v).data;
-    var tiles = new Uint16Array(0x0280);
+    var tiles = new Uint32Array(0x0280);
     for (var i = 0; i < layout.length; i++) {
         tiles[i] = layout[i];
-        if (hFlip[i]) tiles[i] |= 0x4000;
-        if (vFlip[i]) tiles[i] |= 0x8000;
+        if (hFlip[i]) tiles[i] |= 0x10000000;
+        if (vFlip[i]) tiles[i] |= 0x20000000;
     }
 
     var pal = new Uint32Array(0x80);
     pal[0] = 0xFF000000;
     var p1 = properties.palette1.value;
     var p2 = properties.palette2.value;
-    pal.set(this.rom.battleBackgroundPalette.item(p1).data, 0x10);
-    pal.set(this.rom.battleBackgroundPalette.item(p2).data, 0x20);
+    pal.set(this.rom.battleBackgroundPalette.item(p1).data, 0x00);
+    pal.set(this.rom.battleBackgroundPalette.item(p2).data, 0x10);
 
     // set up the ppu
     this.ppu = new GFX.PPU();
     this.ppu.pal = pal;
-    this.ppu.height = 256;
     this.ppu.width = 256;
+    this.ppu.height = 160;
     this.ppu.back = true;
 
     // layer 2
-    this.ppu.layers[1].format = GFX.TileFormat.snes4bppTile;
+    // this.ppu.layers[1].format = GFX.tileFormat.snes4bppTile;
     this.ppu.layers[1].cols = 32;
-    this.ppu.layers[1].rows = 32;
+    this.ppu.layers[1].rows = 20;
     this.ppu.layers[1].z[0] = GFX.Z.snes2L;
     this.ppu.layers[1].z[1] = GFX.Z.snes2H;
     this.ppu.layers[1].gfx = gfx;
@@ -597,8 +608,8 @@ FF5Battle.prototype.drawBackground = function() {
     this.ppu.layers[1].main = true;
 
     var context = this.battleCanvas.getContext('2d');
-    imageData = context.createImageData(256, 256);
-    this.ppu.renderPPU(imageData.data, 0, 0, 256, 256);
+    imageData = context.createImageData(256, 160);
+    this.ppu.renderPPU(imageData.data, 0, 0, 256, 160);
     context.putImageData(imageData, 0, 0);
 }
 
@@ -616,8 +627,14 @@ FF5Battle.prototype.drawBackgroundGBA = function() {
     gfx.set(graphicsData.data);
 
     // load layout
-    var layout = this.rom.battleBackgroundGraphics.item(bg + 1).data.subarray(12);
-    var tiles = new Uint16Array(layout.buffer, layout.byteOffset);
+    var layout = this.rom.battleBackgroundGraphics.item(bg + 1);
+    if (!layout.format) {
+        layout.format = ["gba4bppTile", "tose-layout"];
+        layout.width = 32;
+        layout.height = 17;
+        layout.disassemble(layout.parent.data);
+    }
+    var tiles = new Uint32Array(layout.data.buffer, layout.data.byteOffset);
 
     // load palette
     var pal = new Uint32Array(0x100);
@@ -632,14 +649,14 @@ FF5Battle.prototype.drawBackgroundGBA = function() {
     // set up the ppu
     this.ppu = new GFX.PPU();
     this.ppu.pal = pal;
-    this.ppu.height = 256;
     this.ppu.width = 256;
+    this.ppu.height = 136;
     this.ppu.back = true;
 
     // layer 2
-    this.ppu.layers[1].format = GFX.TileFormat.gba4bppTile;
+    // this.ppu.layers[1].format = GFX.tileFormat.gba4bppTile;
     this.ppu.layers[1].cols = 32;
-    this.ppu.layers[1].rows = 32;
+    this.ppu.layers[1].rows = 17;
     this.ppu.layers[1].z[0] = GFX.Z.snes2L;
     this.ppu.layers[1].z[1] = GFX.Z.snes2H;
     this.ppu.layers[1].gfx = gfx;
@@ -647,7 +664,106 @@ FF5Battle.prototype.drawBackgroundGBA = function() {
     this.ppu.layers[1].main = true;
 
     var context = this.battleCanvas.getContext('2d');
-    imageData = context.createImageData(256, 256);
-    this.ppu.renderPPU(imageData.data, 0, 0, 256, 256);
+    imageData = context.createImageData(256, 136);
+    this.ppu.renderPPU(imageData.data, 0, 0, 256, 136);
     context.putImageData(imageData, 0, 0);
+}
+
+// FF5BattleBackgroundEditor
+function FF5BattleBackgroundEditor(rom) {
+    ROMTilemapView.call(this, rom);
+    this.name = "FF5BattleBackgroundEditor";
+    this.bgProperties = null;
+    this.layout = null;
+    this.observer.options.sub = true;
+    this.observer.options.link = true;
+}
+
+FF5BattleBackgroundEditor.prototype = Object.create(ROMTilemapView.prototype);
+FF5BattleBackgroundEditor.prototype.constructor = FF5BattleBackgroundEditor;
+
+FF5BattleBackgroundEditor.prototype.selectObject = function(object) {
+
+    this.bgProperties = object;
+
+    var self = this;
+    function reload() {
+        self.updateBackgroundLayout();
+        ROMTilemapView.prototype.selectObject.call(self, self.layout);
+        self.observer.startObserving(self.bgProperties, reload);
+    }
+    reload();
+}
+
+FF5BattleBackgroundEditor.prototype.updateBackgroundLayout = function() {
+
+    if (this.rom.isGBA) {
+        this.updateBackgroundLayoutGBA();
+        return;
+    }
+
+    var l = this.bgProperties.layout.value;
+    this.layout = this.rom.battleBackgroundLayout.item(l);
+
+    // create graphics definition
+    var g = this.bgProperties.graphics.value;
+    var gfxPointer = this.rom.battleBackgroundGraphicsPointer.item(g).pointer;
+    var gfxObject = gfxPointer.target;
+    this.layout.graphics = "battleBackgroundGraphics[" + gfxObject.i + "]";
+
+    var graphicsOffset = this.rom.battleBackgroundGraphicsOffset.item(g);
+    this.layout.tileOffset = graphicsOffset.offset.value;
+
+    // create palette definition
+    this.layout.palette = [[]];
+    var p1 = this.bgProperties.palette1.value;
+    var p2 = this.bgProperties.palette2.value;
+    this.layout.palette[0].push({
+        path: "battleBackgroundPalette[" + p1 + "]",
+        offset: "0x00"
+    });
+    this.layout.palette[0].push({
+        path: "battleBackgroundPalette[" + p2 + "]",
+        offset: "0x10"
+    });
+
+    // create hFlip and vFlip definitions
+    var vFlip = this.bgProperties.vFlip.value;
+    if (vFlip !== 0xFF) this.layout.vFlip = "battleBackgroundTileFlip[" + vFlip + "]";
+    var hFlip = this.bgProperties.hFlip.value;
+    if (hFlip !== 0xFF) this.layout.hFlip = "battleBackgroundTileFlip[" + hFlip + "]";
+}
+
+FF5BattleBackgroundEditor.prototype.updateBackgroundLayoutGBA = function() {
+    var bg = this.bgProperties.i * 3;
+
+    // load layout
+    var layout = this.rom.battleBackgroundGraphics.item(bg + 1);
+    if (!layout.format) {
+        layout.format = ["gba4bppTile", "tose-layout"];
+        layout.width = 32;
+        layout.height = 17;
+        layout.disassemble(layout.parent.data);
+    }
+    this.layout = layout;
+
+    // create graphics definition
+    var graphicsData = this.rom.battleBackgroundGraphics.item(bg);
+    if (!graphicsData.format) {
+        graphicsData.format = ["linear4bpp", "tose-graphics", "gba-lzss"];
+        graphicsData.disassemble(graphicsData.parent.data);
+    }
+    this.layout.graphics = {
+        path: "battleBackgroundGraphics[" + bg + "]",
+        width: 32,
+        height: 17
+    };
+
+    // create palette definition
+    var paletteData = this.rom.battleBackgroundGraphics.item(bg + 2);
+    if (!paletteData.format) {
+        paletteData.format = ["bgr555", "tose-palette"];
+        paletteData.disassemble(paletteData.parent.data);
+    }
+    this.layout.palette = "battleBackgroundGraphics[" + (bg + 2) + "]";
 }

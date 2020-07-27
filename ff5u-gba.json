@@ -21,6 +21,9 @@
                 }, {
                     "name": "Color Math",
                     "path": "mapColorMath"
+                }, {
+                    "name": "World Map Graphics",
+                    "path": "worldGraphics"
                 }
             ]
         }, {
@@ -61,6 +64,9 @@
                 }, {
                     "name": "Monsters",
                     "path": "monsterProperties"
+                }, {
+                    "name": "Battle Backgrounds",
+                    "path": "battleBackgroundProperties"
                 }
             ]
         }
@@ -70,8 +76,12 @@
             "type": "array",
             "name": "Battle Background Graphics",
             "range": "0x0815A4D0-0x081C7B0C",
+            "align": 4,
             "array": {
                 "length": 102
+            },
+            "assembly": {
+                "align": 4
             },
             "pointerTable": {
                 "range": "0x081305F8-0x08130790"
@@ -80,94 +90,51 @@
         "battleBackgroundProperties": {
             "type": "array",
             "name": "Battle Background Properties",
-            "range": "0xD4BA21-0xD4BB31",
             "array": {
                 "length": 34
             },
             "assembly": {
-                "type": "data",
-                "length": 8,
-                "assembly": {
-                    "graphics": {
-                        "type": "property",
-                        "name": "Graphics",
-                        "begin": 0
-                    },
-                    "palette1": {
-                        "type": "property",
-                        "name": "Palette 1",
-                        "begin": 1
-                    },
-                    "palette2": {
-                        "type": "property",
-                        "name": "Palette 2",
-                        "begin": 2
-                    },
-                    "layout": {
-                        "type": "property",
-                        "name": "Layout",
-                        "begin": 3
-                    },
-                    "hFlip": {
-                        "type": "property",
-                        "name": "H-Flip",
-                        "begin": 4
-                    },
-                    "vFlip": {
-                        "type": "property",
-                        "name": "V-Flip",
-                        "begin": 5
-                    },
-                    "animation": {
-                        "type": "property",
-                        "name": "Tile Animation",
-                        "begin": 6
-                    },
-                    "paletteAnimation": {
-                        "type": "property",
-                        "name": "Palette Animation",
-                        "begin": 7
-                    }
-                }
+                "type": "assembly",
+                "editor": "FF5BattleBackgroundEditor"
             },
             "stringTable": {
                 "length": 34,
                 "default": "Battle Background %i",
                 "string": {
-                    "0": "Grass",
+                    "0": "Grass (Bartz' World)",
                     "1": "Forest",
                     "2": "Desert",
                     "3": "Swamp",
                     "4": "Beach",
-                    "5": "Ship Graveyard (Interior)",
+                    "5": "Ship Graveyard Interior",
                     "6": "Cave",
-                    "7": "Cave (Water)",
+                    "7": "Cave w/ Water",
                     "8": "Phoenix Tower",
-                    "9": "Tower (Exterior)",
+                    "9": "Tower Exterior",
                     "10": "Shrine",
-                    "11": "Castle (Interior)",
-                    "12": "Castle (Exterior)",
+                    "11": "Castle Interior",
+                    "12": "Castle Exterior (Bartz' World)",
                     "13": "Library",
-                    "14": "Ship (Interior)",
-                    "15": "Forest of Moore (Exterior)",
-                    "16": "Mountain (Exterior)",
+                    "14": "Ship Interior",
+                    "15": "Forest of Moore Exterior",
+                    "16": "Mountain Exterior",
                     "17": "Pyramid",
                     "18": "Flying Fortress",
-                    "19": "Forest of Moore (Interior)",
+                    "19": "Forest of Moore Interior",
                     "20": "Castle Exdeath",
-                    "21": "Ship (Exterior)",
+                    "21": "Ship Exterior",
                     "22": "Fire-Powered Ship",
                     "23": "The Void",
                     "24": "Ronka Ruins",
-                    "25": "Ship Graveyard (Exterior)",
-                    "26": "Karnak Castle (Interior)",
-                    "27": "Phoenix Tower (Wall)",
+                    "25": "Ship Graveyard Exterior",
+                    "26": "Karnak Castle Interior",
+                    "27": "Phoenix Tower w/ Wall",
                     "28": "Final Battle",
                     "29": "Tower of Walse (Underwater)",
                     "30": "Desert w/ Holes",
                     "31": "Neo Exdeath",
-                    "32": "Alt. Castle (Exterior)",
-                    "33": "Alt. Grass"
+                    "32": "Castle Exterior (Galuf's World)",
+                    "33": "Grass (Galuf's World)"
                 }
             }
         },
@@ -3306,7 +3273,9 @@
                 "length": 3
             },
             "assembly": {
-                "format": ["linear8bpp", "tose-graphics", "gba-lzss"]
+                "type": "graphics",
+                "format": ["linear8bpp", "tose-graphics", "gba-lzss"],
+                "palette": "worldPalettes[%i]"
             },
             "pointerTable": {
                 "range": "0x08708F0C-0x08708F18"

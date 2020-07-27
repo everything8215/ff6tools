@@ -69,13 +69,13 @@ function FF5Map(rom) {
 
     var map = this;
     this.div.onscroll = function() { map.scroll() };
-//    window.addEventListener("resize", map.scroll, false);
     this.scrollDiv.onmousedown = function(e) { map.mouseDown(e) };
     this.scrollDiv.onmouseup = function(e) { map.mouseUp(e) };
     this.scrollDiv.onmousemove = function(e) { map.mouseMove(e) };
     this.scrollDiv.onmouseenter = function(e) { map.mouseEnter(e) };
     this.scrollDiv.onmouseleave = function(e) { map.mouseLeave(e) };
     this.scrollDiv.oncontextmenu = function(e) { map.openMenu(e); return false; };
+    this.resizeSensor = null;
 
     this.observer = new ROMObserver(rom, this, {sub: true, link: true, array: true});
 }
@@ -557,7 +557,6 @@ FF5Map.prototype.drawCursor = function() {
 
 FF5Map.prototype.selectObject = function(object) {
     this.show();
-    this.tileset.show();
     this.loadMap(object.i);
 }
 
@@ -574,10 +573,17 @@ FF5Map.prototype.show = function() {
     this.addTwoState("showScreen", function() { map.changeLayer("showScreen"); }, "Screen", this.showScreen);
     this.addZoom(this.zoom, function() { map.changeZoom(); });
 
+    if (!this.resizeSensor) this.resizeSensor = new ResizeSensor(document.getElementById("edit-top"), function() { map.scroll(); });
+    this.tileset.show();
 }
 
 FF5Map.prototype.hide = function() {
     this.observer.stopObservingAll();
+    if (this.resizeSensor) {
+        this.resizeSensor.detach(document.getElementById("edit-top"));
+        this.resizeSensor = null;
+    }
+    this.tileset.hide();
 }
 
 FF5Map.prototype.loadMap = function(m) {
@@ -587,21 +593,21 @@ FF5Map.prototype.loadMap = function(m) {
     layerButtons[2].disabled = false;
 
     // set the map index
-    m = Number(m);
-    if (isNumber(m) && this.m !== m) {
-        this.m = m;
-        this.observer.stopObservingAll();
-        if (this.m < 5) {
-            this.loadWorldMap(this.m);
-            return;
-        }
-        this.mapProperties = this.rom.mapProperties.item(this.m);
-        this.observer.startObserving(this.mapProperties, this.loadMap);
+    if (!isNumber(m)) m = this.m;
 
-        // set the default battle background
-        var battleEditor = propertyList.getEditor("FF5Battle");
-        if (battleEditor) battleEditor.bg = this.mapProperties.battleBackground.value;
+    if (m < 5) {
+        this.loadWorldMap(m);
+        return;
     }
+
+    this.m = m;
+    this.isWorld = false;
+    this.observer.stopObservingAll();
+    this.mapProperties = this.rom.mapProperties.item(this.m);
+    this.observer.startObserving(this.mapProperties, this.loadMap);
+
+    var battleEditor = propertyList.getEditor("FF5Battle");
+    if (battleEditor) battleEditor.bg = this.mapProperties.battleBackground.value;
 
     // get map properties
     var map = this.mapProperties;
@@ -636,15 +642,15 @@ FF5Map.prototype.loadMap = function(m) {
                 var flag = anim["flag" + (i + 1).toString()].value;
                 var t = anim["tile" + (i + 1).toString()].value;
                 if (flag) {
-                    gfx.set(GFX.decodeSNES4bpp(animGfx.data.subarray(t, t + 0x80))[0], 0xB800 + i * 0x0100);
+                    gfx.set(GFX.graphicsFormat.snes4bpp.decode(animGfx.data.subarray(t, t + 0x80))[0], 0xB800 + i * 0x0100);
                 } else {
-                    gfx.set(GFX.decodeSNES4bpp(animGfx2.data.subarray(t, t + 0x80))[0], 0xB800 + i * 0x0100);
+                    gfx.set(GFX.graphicsFormat.snes4bpp.decode(animGfx2.data.subarray(t, t + 0x80))[0], 0xB800 + i * 0x0100);
                 }
             }
         } else {
             for (i = 0; i < 8; i++) {
                 var t = anim["tile" + (i + 1).toString()].value * 0x20;
-                gfx.set(GFX.decodeLinear4bpp(animGfx.data.subarray(t, t + 0x80))[0], 0xB800 + i * 0x0100);
+                gfx.set(GFX.graphicsFormat.snes4bpp.decode(animGfx.data.subarray(t, t + 0x80))[0], 0xB800 + i * 0x0100);
             }
         }
 
@@ -654,15 +660,15 @@ FF5Map.prototype.loadMap = function(m) {
                 var flag = anim["flag" + (i + 1).toString() + "Layer3"].value;
                 var t = anim["tile" + (i + 1).toString() + "Layer3"].value;
                 if (flag) {
-                    gfx.set(GFX.decodeSNES2bpp(animGfx.data.subarray(t, t + 0x40))[0], 0xFC00 + i * 0x0100);
+                    gfx.set(GFX.graphicsFormat.snes2bpp.decode(animGfx.data.subarray(t, t + 0x40))[0], 0xFC00 + i * 0x0100);
                 } else {
-                    gfx.set(GFX.decodeSNES2bpp(animGfx2.data.subarray(t, t + 0x40))[0], 0xFC00 + i * 0x0100);
+                    gfx.set(GFX.graphicsFormat.snes2bpp.decode(animGfx2.data.subarray(t, t + 0x40))[0], 0xFC00 + i * 0x0100);
                 }
             }
         } else {
             for (i = 0; i < 4; i++) {
                 var t = anim["tile" + (i + 1).toString() + "Layer3"].value * 0x20;
-                gfx.set(GFX.decodeLinear4bpp(animGfx.data.subarray(t, t + 0x80))[0], 0xFC00 + i * 0x0100);
+                gfx.set(GFX.graphicsFormat.linear4bpp.decode(animGfx.data.subarray(t, t + 0x80))[0], 0xFC00 + i * 0x0100);
             }
         }
     }
@@ -793,6 +799,13 @@ FF5Map.prototype.loadMap = function(m) {
 
 FF5Map.prototype.loadWorldMap = function(m) {
 
+    this.isWorld = true;
+    if (!isNumber(m)) m = this.m;
+    this.m = m;
+    this.world = this.rom.isSFC ? 0 : 1; // worlds are swapped in gba versions
+    if (m === 1) this.world ^= 1;
+    if (m > 2) this.world = 2; // sea floor
+
     if (this.selectedLayer && (this.selectedLayer.type === "layer2" || this.selectedLayer.type === "layer3")) {
         this.selectLayer(0);
     }
@@ -800,24 +813,24 @@ FF5Map.prototype.loadWorldMap = function(m) {
     layerButtons[1].disabled = true;
     layerButtons[2].disabled = true;
 
+    this.observer.stopObservingAll();
     this.mapProperties = null;
     propertyList.select(null);
 
     // load graphics and layout
-    this.world = this.rom.isSFC ? 0 : 1;
-    if (m === 1) this.world ^= 1;
-    if (m > 2) this.world = 2;
+    var gfx = this.rom.worldGraphics.item(this.world);
+    var palette = this.rom.worldPalettes.item(this.world);
+    var tileset = this.rom.worldTilesets.item(this.world);
 
-    var gfx = this.rom.worldGraphics.item(this.world).data;
-    var pal = this.rom.worldPalettes.item(this.world).data;
-    var paletteAssignment = this.rom.isSFC ? this.rom.worldPaletteAssignments.item(this.world).data : null;
-    var tileset = this.rom.worldTilesets.item(this.world).data;
+    this.observer.startObserving(gfx, this.loadMap);
+    this.observer.startObserving(palette, this.loadMap);
+    this.observer.startObserving(tileset, this.loadMap);
 
-    // if (this.rom.isGBA) {
-    //     gfx = gfx.subarray(8);
-    //     pal = pal.subarray(4);
-    //     tileset = tileset.subarray(12);
-    // }
+    var paletteAssignment = null;
+    if (this.rom.isSFC) {
+        paletteAssignment = this.rom.worldPaletteAssignments.item(this.world);
+        this.observer.startObserving(paletteAssignment, this.loadMap);
+    }
 
     var layout = [];
     if (this.rom.isSFC) {
@@ -826,11 +839,11 @@ FF5Map.prototype.loadWorldMap = function(m) {
         for (var i = 0; i < 256; i++) layout.push(this.rom.worldLayouts.item(m).layout.item(i));
     }
 
-    this.worldLayer.loadLayout({layout: layout, tileset: tileset, w: 256, h: 256, paletteAssignment: paletteAssignment});
+    this.worldLayer.loadLayout({layout: layout, tileset: tileset.data, w: 256, h: 256, paletteAssignment: paletteAssignment});
 
     // set up the ppu
     this.ppu = new GFX.PPU();
-    this.ppu.pal = pal;
+    this.ppu.pal = palette.data;
     this.ppu.width = 256 * 16;
     this.ppu.height = 256 * 16;
     this.ppu.back = true;
@@ -841,7 +854,7 @@ FF5Map.prototype.loadWorldMap = function(m) {
     this.ppu.layers[0].rows = 256 * 2;
     this.ppu.layers[0].z[0] = GFX.Z.snes1L;
     this.ppu.layers[0].z[1] = GFX.Z.snes1H;
-    this.ppu.layers[0].gfx = gfx;
+    this.ppu.layers[0].gfx = gfx.data;
     this.ppu.layers[0].tiles = this.worldLayer.tiles;
     this.ppu.layers[0].main = this.showLayer1; // layer 1 always in main screen
 
@@ -924,8 +937,8 @@ FF5Map.prototype.drawMap = function() {
     var ctx = this.canvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
     ctx.webkitImageSmoothingEnabled = false;
+    ctx.globalCompositeOperation = 'copy';
     var scaledRect = this.mapRect.scale(1 / this.zoom);
-//    ctx.clearRect(scaledRect.l, scaledRect.t, scaledRect.w, scaledRect.h);
     ctx.drawImage(this.mapCanvas, scaledRect.l, scaledRect.t, scaledRect.w, scaledRect.h, 0, 0, this.mapRect.w, this.mapRect.h);
 
     this.drawTriggers();
@@ -1048,6 +1061,7 @@ FF5Map.prototype.drawTriggers = function() {
     var xClient = this.mapRect.l;
     var yClient = this.mapRect.t;
     var ctx = this.canvas.getContext('2d');
+    ctx.globalCompositeOperation = 'source-over';
 
     // function for drawing trigger rectangles with rounded corners
     function drawTriggerRect(x, y, fill) {
@@ -1292,6 +1306,7 @@ FF5Map.prototype.drawNPC = function(npc) {
     var ctx = this.canvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
     ctx.webkitImageSmoothingEnabled = false;
+    ctx.globalCompositeOperation = 'source-over';
     npcRect = npcRect.offset(-this.mapRect.l, -this.mapRect.t);
     ctx.drawImage(this.npcCanvas, 0, 0, w, h, npcRect.l, npcRect.t, npcRect.w, npcRect.h);
 }
@@ -1304,19 +1319,20 @@ function FF5MapTileset(rom, map) {
 
     this.canvas = document.createElement('canvas');
     this.canvas.id = "tileset";
-    this.canvas.width = 256;
-    this.canvas.height = 256;
+
+    this.tilesetCanvas = document.createElement('canvas');
+    this.tilesetCanvas.width = 256;
+    this.tilesetCanvas.height = 256;
 
     this.cursorCanvas = document.createElement("canvas");
     this.cursorCanvas.id = "tileset-cursor";
-    this.cursorCanvas.width = 256;
-    this.cursorCanvas.height = 256;
 
     this.layer = [new FF5MapLayer(rom, FF5MapLayer.Type.layer1),
                   new FF5MapLayer(rom, FF5MapLayer.Type.layer2),
                   new FF5MapLayer(rom, FF5MapLayer.Type.layer3)];
     this.worldLayer = new FF5MapLayer(rom, FF5MapLayer.Type.world);
 
+    this.zoom = 1.0;
     this.selection = new Uint8Array([0x73, 0, 0, 1, 1, 0]);
     this.clickedCol = null;
     this.clickedRow = null;
@@ -1329,28 +1345,43 @@ function FF5MapTileset(rom, map) {
     this.canvas.onmousemove = function(e) { tileset.mouseMove(e) };
     this.canvas.onmouseout = function(e) { tileset.mouseOut(e) };
     this.canvas.oncontextmenu = function() { return false; };
+    this.resizeSensor = null;
+
     var tilesetButtons = document.getElementsByClassName("toolbox-button")
     for (var i = 0; i < tilesetButtons.length; i++) {
         var button = tilesetButtons[i];
         button.onclick = function() { tileset.selectLayer(this.value); };
-//        button.addEventListener("click", function() { tileset.selectLayer(this.value); });
     }
 }
 
 FF5MapTileset.prototype.show = function() {
+
+    // reset the toolbox div
     this.div = document.getElementById('toolbox-div');
     this.div.innerHTML = "";
     this.div.classList.remove('hidden');
     this.div.appendChild(this.canvas);
     this.div.appendChild(this.cursorCanvas);
 
+    // show the cursor and toolbox buttons
     this.cursorCanvas.classList.remove('hidden');
-    document.getElementById("toolbox-buttons").classList.remove('hidden');
+    document.getElementById("toolbox-layer-div").classList.remove('hidden');
+
+    // notify on resize
+    var self = this;
+    this.resizeSensor = new ResizeSensor(document.getElementById("toolbox"), function() { self.redraw(); });
+}
+
+FF5MapTileset.prototype.hide = function() {
+    if (this.resizeSensor) {
+        this.resizeSensor.detach(document.getElementById("toolbox"));
+        this.resizeSensor = null;
+    }
 }
 
 FF5MapTileset.prototype.mouseDown = function(e) {
-    var x = e.offsetX;
-    var y = e.offsetY;
+    var x = e.offsetX / this.zoom;
+    var y = e.offsetY / this.zoom;
     this.clickedCol = x >> 4;
     this.clickedRow = y >> 4;
     this.mouseMove(e);
@@ -1370,8 +1401,8 @@ FF5MapTileset.prototype.mouseMove = function(e) {
     // return unless dragging (except if trigger layer selected)
     if (!isNumber(this.clickedCol) || !isNumber(this.clickedRow) || this.map.l === 3) return;
 
-    var col = Math.min(e.offsetX >> 4, 15);
-    var row = Math.min(e.offsetY >> 4, 15);
+    var col = Math.min((e.offsetX / this.zoom) >> 4, 15);
+    var row = Math.min((e.offsetY / this.zoom) >> 4, 15);
     if (this.map.m < 5) row = Math.min(row, 11);
     var cols = Math.abs(col - this.clickedCol) + 1;
     var rows = Math.abs(row - this.clickedRow) + 1;
@@ -1393,106 +1424,22 @@ FF5MapTileset.prototype.mouseMove = function(e) {
     if (cols === 1 && rows === 1) this.map.selectTileProperties(this.selection[5]);
 }
 
-FF5MapTileset.prototype.selectLayer = function(l) {
-
-    // update layer buttons
-    var layerButtons = document.getElementsByClassName("toolbox-button");
-    for (var i = 0; i < layerButtons.length; i++) {
-        // deselect all layer buttons
-        layerButtons[i].classList.remove("selected")
-    }
-    // select the clicked layer
-    layerButtons[l].classList.add("selected")
-
-    // set the selected layer
-    this.map.selectLayer(l);
-
-    // turn on the selected layer
-    this.ppu.layers[0].main = false;
-    this.ppu.layers[1].main = false;
-    this.ppu.layers[2].main = false;
-
-    // render the image on the canvas
-    this.canvas.width = 256;
-    this.cursorCanvas.width = 256;
-    var ctx = this.canvas.getContext('2d');
-    if (this.map.l === 3) {
-        this.canvas.style.display = "none";
-        this.cursorCanvas.style.display = "none";
-        this.canvas.parentElement.style.height = "0px";
-    } else {
-        this.canvas.style.display = "block";
-        this.cursorCanvas.style.display = "block";
-        if (this.map.m < 5) {
-            this.canvas.height = 192;
-            this.cursorCanvas.height = 192;
-            this.canvas.parentElement.style.height = "192px";
-        } else {
-            this.canvas.height = 256;
-            this.cursorCanvas.height = 256;
-            this.canvas.parentElement.style.height = "256px";
-        }
-        var imageData = ctx.createImageData(this.ppu.width, this.ppu.height);
-        this.ppu.layers[this.map.l].main = true;
-        this.ppu.renderPPU(imageData.data);
-        ctx.putImageData(imageData, 0, 0);
-    }
-
-    this.drawCursor();
-    this.map.selection = new Uint8Array(this.selection);
-}
-
-FF5MapTileset.prototype.drawCursor = function() {
-
-    // clear the cursor canvas
-    var ctx = this.cursorCanvas.getContext('2d');
-    ctx.clearRect(0, 0, this.ppu.width, this.ppu.height);
-
-    // return if trigger layer is selected
-    if (this.map.l === 3) return;
-    if (!this.selection) return;
-
-    // get the cursor geometry
-    var x = this.selection[1] << 4;
-    var y = this.selection[2] << 4;
-    var w = this.selection[3] << 4;
-    var h = this.selection[4] << 4;
-
-    // draw the cursor
-    if (w <= 0 || h <= 0) return;
-
-    // convert the selection to screen coordinates
-    var colors = ["green", "blue", "red", "white"];
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = "black";
-    x += 0.5; y += 0.5; w--; h--;
-    ctx.strokeRect(x, y, w, h);
-    x++; y++; w -= 2; h -= 2;
-    ctx.strokeStyle = colors[this.map.l];
-    ctx.strokeRect(x, y, w, h);
-    x++; y++; w -= 2; h -= 2;
-    ctx.strokeStyle = "white";
-    ctx.strokeRect(x, y, w, h);
-    x++; y++; w -= 2; h -= 2;
-    ctx.strokeStyle = "black";
-    ctx.strokeRect(x, y, w, h);
-}
-
 FF5MapTileset.prototype.loadMap = function(m) {
 
     // set up the ppu
     this.ppu = new GFX.PPU();
     this.ppu.pal = this.map.ppu.pal;
-    this.ppu.height = 256;
-    this.ppu.width = 256;
     this.ppu.back = true;
 
     if (this.map.m < 5) {
         // create a sequential tile layout
-        var layout = new Uint8Array(256);
-        for (var i = 0; i < 256; i++) layout[i] = i;
+        var layout = new Uint8Array(192);
+        for (var i = 0; i < 192; i++) layout[i] = i;
 
+        this.ppu.width = 256;
         this.ppu.height = 192;
+        this.tilesetCanvas.width = 256;
+        this.tilesetCanvas.height = 192;
         this.worldLayer.loadLayout({layout: layout, tileset: this.map.worldLayer.tileset, w: 16, h: 12, paletteAssignment: this.map.worldLayer.paletteAssignment})
 
         // layer 1
@@ -1513,6 +1460,10 @@ FF5MapTileset.prototype.loadMap = function(m) {
             }
         }
 
+        this.ppu.width = 256;
+        this.ppu.height = 256;
+        this.tilesetCanvas.width = 256;
+        this.tilesetCanvas.height = 256;
         this.layer[0].loadLayout({layout: layout, tileset: this.map.layer[0].tileset, w: 16, h: 16, tilePriority: this.map.layer[0].tilePriority});
         this.layer[1].loadLayout({layout: layout, tileset: this.map.layer[1].tileset, w: 16, h: 16, tilePriority: this.map.layer[1].tilePriority});
         this.layer[2].loadLayout({layout: layout, tileset: this.map.layer[2].tileset, w: 16, h: 16, tilePriority: this.map.layer[2].tilePriority});
@@ -1546,6 +1497,108 @@ FF5MapTileset.prototype.loadMap = function(m) {
     }
 
     this.selectLayer(this.map.l);
+}
+
+FF5MapTileset.prototype.selectLayer = function(l) {
+
+    // update layer buttons
+    var layerButtons = document.getElementsByClassName("toolbox-button");
+    for (var i = 0; i < layerButtons.length; i++) {
+        // deselect all layer buttons
+        layerButtons[i].classList.remove("selected")
+    }
+    // select the clicked layer
+    layerButtons[l].classList.add("selected")
+
+    // set the selected layer
+    this.map.selectLayer(l);
+
+    this.redraw();
+}
+
+FF5MapTileset.prototype.redraw = function() {
+    this.drawTileset();
+    this.drawCursor();
+}
+
+FF5MapTileset.prototype.drawTileset = function() {
+    var toolbox = document.getElementById("toolbox");
+    var toolboxDiv = document.getElementById("toolbox-div");
+
+    if (this.map.l === 3) {
+        // hide the canvas is the trigger layer is selected
+        toolboxDiv.style.height = "0px";
+        toolboxDiv.classList.add("hidden");
+        return;
+    }
+
+    // reset element sizes
+    this.zoom = toolbox.clientWidth / this.ppu.width;
+    var w = this.ppu.width * this.zoom;
+    var h = this.ppu.height * this.zoom;
+    toolboxDiv.style.width = w + "px";
+    toolboxDiv.style.height = h + "px";
+    toolboxDiv.classList.remove("hidden");
+    this.canvas.width = w;
+    this.canvas.height = h;
+    this.cursorCanvas.width = w;
+    this.cursorCanvas.height = h;
+
+    // turn on only the selected layer
+    this.ppu.layers[0].main = false;
+    this.ppu.layers[1].main = false;
+    this.ppu.layers[2].main = false;
+    this.ppu.layers[this.map.l].main = true;
+
+    // draw tileset to offscreen canvas
+    var tilesetCtx = this.tilesetCanvas.getContext('2d');
+    tilesetCtx.globalCompositeOperation = 'copy';
+    var imageData = tilesetCtx.createImageData(this.ppu.width, this.ppu.height);
+    this.ppu.renderPPU(imageData.data);
+    tilesetCtx.putImageData(imageData, 0, 0);
+
+    // draw tileset image
+    var ctx = this.canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    ctx.webkitImageSmoothingEnabled = false;
+    ctx.globalCompositeOperation = "copy";
+    ctx.drawImage(this.tilesetCanvas, 0, 0, w, h);
+}
+
+FF5MapTileset.prototype.drawCursor = function() {
+
+    // clear the cursor canvas
+    var ctx = this.cursorCanvas.getContext('2d');
+    ctx.clearRect(0, 0, this.cursorCanvas.width, this.cursorCanvas.height);
+
+    // return if trigger layer is selected
+    if (this.map.l === 3) return;
+    if (!this.selection) return;
+
+    // get the cursor geometry
+    var x = Math.round((this.selection[1] << 4) * this.zoom);
+    var y = Math.round((this.selection[2] << 4) * this.zoom);
+    var w = Math.ceil((this.selection[3] << 4) * this.zoom);
+    var h = Math.ceil((this.selection[4] << 4) * this.zoom);
+
+    // draw the cursor
+    if (w <= 0 || h <= 0) return;
+
+    // convert the selection to screen coordinates
+    var colors = ["green", "blue", "red", "white"];
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "black";
+    x += 0.5; y += 0.5; w--; h--;
+    ctx.strokeRect(x, y, w, h);
+    x++; y++; w -= 2; h -= 2;
+    ctx.strokeStyle = colors[this.map.l];
+    ctx.strokeRect(x, y, w, h);
+    x++; y++; w -= 2; h -= 2;
+    ctx.strokeStyle = "white";
+    ctx.strokeRect(x, y, w, h);
+    x++; y++; w -= 2; h -= 2;
+    ctx.strokeStyle = "black";
+    ctx.strokeRect(x, y, w, h);
 }
 
 // FF5MapLayer
@@ -1710,7 +1763,7 @@ FF5MapLayer.prototype.decodeWorldLayout = function(x, y, w, h) {
         var tileset = new Uint16Array(768);
         for (var i = 0; i < 768; i++) {
             var t = this.tileset[i];
-            var p = this.paletteAssignment[t] << 6;
+            var p = this.paletteAssignment.data[t] << 6;
             tileset[i] = t | p;
         }
     }

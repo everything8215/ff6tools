@@ -22,7 +22,7 @@ function FF6LevelProgression(rom) {
 
     this.showStat = [true, true, true];
     this.showLegend = true;
-    
+
     this.c = 0;
     this.selectedPoint = null;
     this.characterStats = null;
@@ -34,7 +34,10 @@ function FF6LevelProgression(rom) {
     this.div.onresize = function() { levelProg.resize() };
     this.div.onmousedown = function(e) { levelProg.mouseDown(e) };
     this.div.onmouseup = function(e) { levelProg.mouseUp(e) };
+    this.div.onmouseleave = function(e) { levelProg.mouseLeave(e) };
     this.div.onmousemove = function(e) { levelProg.mouseMove(e) };
+
+    this.resizeSensor = null;
 }
 
 FF6LevelProgression.prototype = Object.create(ROMEditor.prototype);
@@ -49,7 +52,7 @@ FF6LevelProgression.prototype.resize = function() {
     if (!this.div.parentElement) return;
     this.canvas.width = this.div.parentElement.clientWidth;
     this.canvas.height = this.div.parentElement.clientHeight - 4;
-    
+
     var l = 50;
     var r = this.canvas.width - 20;
     var t = 20;
@@ -64,11 +67,17 @@ FF6LevelProgression.prototype.mouseDown = function(e) {
 }
 
 FF6LevelProgression.prototype.mouseUp = function(e) {
-    
+
+}
+
+FF6LevelProgression.prototype.mouseLeave = function(e) {
+    this.selectedPoint = null;
+    this.drawChart();
+    this.tooltip.removeAttribute("data-balloon-visible");
 }
 
 FF6LevelProgression.prototype.mouseMove = function(e) {
-    
+
     this.selectedPoint = null;
     var point = this.canvasToPoint(e.offsetX, e.offsetY);
     if (!point) {
@@ -76,13 +85,13 @@ FF6LevelProgression.prototype.mouseMove = function(e) {
         this.tooltip.removeAttribute("data-balloon-visible");
         return;
     }
-    
+
     for (var p = 0; p < this.chartData.length; p++) {
         if (this.chartData[p].level !== point.x) continue;
         this.selectedPoint = this.chartData[p];
         break;
     }
-    
+
     if (!this.selectedPoint) return;
 
     this.drawChart();
@@ -91,17 +100,21 @@ FF6LevelProgression.prototype.mouseMove = function(e) {
     var level = this.selectedPoint.level.toString();
     var statLabel = "Level: " + level;
     var closestValue;
-    
+
     for (var s = 0; s < 3; s++) {
         if (!this.showStat[s]) continue;
-        
+
         var statName = FF6LevelProgression.stats[s].name;
         var statKey = FF6LevelProgression.stats[s].key;
         var multiplier = FF6LevelProgression.stats[s].multiplier;
-        
+
         var value = this.selectedPoint[statKey];
 
-        statLabel += "\n" + statName + ": " + Math.round(value);
+        if (value >= 10000) {
+            statLabel += "\n" + statName + ": " + Math.round(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        } else {
+            statLabel += "\n" + statName + ": " + Math.round(value);
+        }
 
         if (closestValue === undefined || Math.abs(value / multiplier - point.y) < Math.abs(closestValue - point.y)) {
             closestValue = value / multiplier;
@@ -124,7 +137,7 @@ FF6LevelProgression.prototype.mouseMove = function(e) {
     } else if (closestValue < 10 && level > 90) {
         this.tooltip.style.left = (point.x + 17) + "px";
         this.tooltip.style.top = (point.y - this.tooltip.clientHeight - 15) + "px";
-        this.tooltip.setAttribute("data-balloon-pos", "up-right");            
+        this.tooltip.setAttribute("data-balloon-pos", "up-right");
     } else if (level > 90) {
         this.tooltip.style.left = (point.x - 15) + "px";
         this.tooltip.style.top = (point.y - this.tooltip.clientHeight) + "px";
@@ -138,7 +151,7 @@ FF6LevelProgression.prototype.mouseMove = function(e) {
 
 FF6LevelProgression.prototype.show = function() {
 
-    document.getElementById('toolbox-buttons').classList.add("hidden");
+    document.getElementById('toolbox-layer-div').classList.add("hidden");
     document.getElementById('toolbox-div').classList.add("hidden");
 
     this.resetControls();
@@ -152,12 +165,12 @@ FF6LevelProgression.prototype.show = function() {
             levelProg.drawChart();
         }
     }
-    
+
     for (var s = 0; s < 3; s++) {
         var statName = FF6LevelProgression.stats[s].name;
         this.addTwoState("show" + statName, statFunction(s), statName, this.showStat[s]);
     }
-    
+
     var charNames = [];
     for (var i = 0; i < this.rom.characterProperties.arrayLength; i++) {
         charNames.push(this.rom.stringTable.characterNames.string[i].fString());
@@ -168,6 +181,19 @@ FF6LevelProgression.prototype.show = function() {
     this.addList("selectChar", "Character", charNames, onChangeChar, charSelected);
 
     this.addTwoState("showLegend", function(checked) { levelProg.showLegend = checked; levelProg.drawChart(); }, "Legend", this.showLegend);
+
+    if (!this.resizeSensor) this.resizeSensor = new ResizeSensor(document.getElementById("edit-top"), function() {
+        levelProg.resize();
+        levelProg.drawChart();
+    });
+}
+
+FF6LevelProgression.prototype.hide = function() {
+    this.observer.stopObservingAll();
+    if (this.resizeSensor) {
+        this.resizeSensor.detach(document.getElementById("edit-top"));
+        this.resizeSensor = null;
+    }
 }
 
 FF6LevelProgression.stats = [
@@ -199,36 +225,36 @@ FF6LevelProgression.stats = [
 ]
 
 FF6LevelProgression.prototype.loadCharacter = function(c) {
-    
+
     this.tooltip.removeAttribute("data-balloon-visible");
-    
+
     this.observer.stopObservingAll();
 
     this.c = c || this.c;
-    
+
     this.characterProperties = this.rom.characterProperties.item(this.c);
     this.expProgression = this.rom.characterExpProgression;
     this.hpProgression = this.rom.characterHPProgression;
     this.mpProgression = this.rom.characterMPProgression;
     if (!this.characterProperties || !this.expProgression) return;
     propertyList.select(this.characterProperties);
-    
+
     this.observer.startObserving(this.characterProperties, this.updateStats);
     this.observer.startObserving(this.expProgression, this.updateStats);
     this.observer.startObserving(this.hpProgression, this.updateStats);
     this.observer.startObserving(this.mpProgression, this.updateStats);
     this.selectedPoint = null;
-    
+
     this.updateStats();
 }
 
 FF6LevelProgression.prototype.updateStats = function(c) {
-    
+
     var level = 1;
     var exp = 0;
     var hp = this.characterProperties.hp.value;
     var mp = this.characterProperties.mp.value;
-    
+
     this.chartData = [{
         level: level,
         exp: exp,
@@ -241,7 +267,7 @@ FF6LevelProgression.prototype.updateStats = function(c) {
         var expMod = this.expProgression.item(level - 2).exp.value;
         var hpMod = this.hpProgression.item(level - 2).hp.value;
         var mpMod = this.mpProgression.item(level - 2).mp.value;
-        
+
         exp = Math.min(exp + expMod, 9999999);
         hp = Math.min(hp + hpMod, 9999);
         mp = Math.min(mp + mpMod, 999);
@@ -254,18 +280,18 @@ FF6LevelProgression.prototype.updateStats = function(c) {
             object: this.expProgression.item(level - 2)
         });
     }
-    
+
     this.resize();
     this.drawChart();
 }
 
 FF6LevelProgression.prototype.drawChart = function() {
-    
+
     this.resize();
-    
+
     var ctx = this.canvas.getContext('2d');
     ctx.textBaseline = 'middle';
-    
+
     // draw the chart area
     ctx.fillStyle = "white";
     ctx.fillRect(this.chartRect.l, this.chartRect.t, this.chartRect.w, this.chartRect.h);
@@ -280,10 +306,10 @@ FF6LevelProgression.prototype.drawChart = function() {
     ctx.lineTo(this.chartRect.r + 0.5, this.chartRect.t - 0.5);
     ctx.closePath();
     ctx.stroke();
-    
+
     // draw gridlines and labels
     ctx.textAlign = 'center';
-    ctx.font = 'small sans-serif';
+    ctx.font = '12px sans-serif';
     ctx.lineWidth = 0.5;
     for (var x = 0; x <= 100; x += 10) {
         // vertical gridlines
@@ -299,12 +325,12 @@ FF6LevelProgression.prototype.drawChart = function() {
         ctx.stroke();
     }
     var labelPoint = this.pointToCanvas(50, 0);
-    ctx.font = 'medium sans-serif';
+    ctx.font = '14px sans-serif';
     ctx.fillStyle = "black";
     ctx.fillText("Level", labelPoint.x, labelPoint.y + 45);
-    
+
     ctx.textAlign = 'right';
-    ctx.font = 'small sans-serif';
+    ctx.font = '12px sans-serif';
     for (var y = 0; y <= 100; y += 10) {
         // horizontal gridlines
         var startPoint = this.pointToCanvas(0, y);
@@ -318,13 +344,13 @@ FF6LevelProgression.prototype.drawChart = function() {
         ctx.lineTo(endPoint.x, endPoint.y + 0.5);
         ctx.stroke();
     }
-    
+
     // draw stats
     for (var s = 0; s < 3; s++) {
         if (!this.showStat[s]) continue;
         this.drawStat(s, ctx);
     }
-    
+
     // draw legend
     if (this.showLegend) {
         this.drawLegend(ctx);
@@ -343,14 +369,14 @@ FF6LevelProgression.prototype.drawStat = function(stat, ctx) {
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.moveTo(startPoint.x, startPoint.y)
-    
+
     for (var p = 1; p < this.chartData.length; p++) {
         var dataValue = this.chartData[p];
         var point = this.pointToCanvas(dataValue.level, dataValue[statKey] / multiplier);
         ctx.lineTo(point.x, point.y);
     }
     ctx.stroke();
-    
+
     // draw the selected point
     if (this.selectedPoint) {
         point = this.pointToCanvas(this.selectedPoint.level, this.selectedPoint[statKey] / multiplier);
@@ -362,12 +388,12 @@ FF6LevelProgression.prototype.drawStat = function(stat, ctx) {
 }
 
 FF6LevelProgression.prototype.drawLegend = function(ctx) {
-    
+
     // find the widest stat
     var maxWidth = 0;
     var height = 10;
     var lineHeight = 15;
-    ctx.font = 'small sans-serif';
+    ctx.font = '12px sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
     for (var s = 0; s < 8; s++) {
@@ -378,14 +404,14 @@ FF6LevelProgression.prototype.drawLegend = function(ctx) {
         height += lineHeight;
     }
     if (maxWidth === 0) return;
-    
+
     var l = this.chartRect.l + 10;
     var t = this.chartRect.t + 10;
     var r = l + 20 + maxWidth;
     var b = t + height;
-    
+
     var legendRect = new Rect(l, r, t, b);
-        
+
     // draw the legend box
     ctx.fillStyle = "white";
     ctx.fillRect(legendRect.l, legendRect.t, legendRect.w, legendRect.h);
@@ -399,18 +425,18 @@ FF6LevelProgression.prototype.drawLegend = function(ctx) {
     ctx.lineTo(legendRect.r + 0.5, legendRect.t - 0.5);
     ctx.closePath();
     ctx.stroke();
-    
+
     // draw stat names and color blobs
     var x = l + 10;
     var y = t + 5;
     for (var s = 0; s < 8; s++) {
         if (!this.showStat[s]) continue;
-        
+
         ctx.fillStyle = FF6LevelProgression.stats[s].color;
         ctx.fillRect(x, y + 2, 9, 9);
         ctx.strokeStyle = "black";
         ctx.strokeRect(x - 0.5, y + 1.5, 10, 10);
-        
+
         ctx.fillStyle = "black";
         var name = FF6LevelProgression.stats[s].axis || FF6LevelProgression.stats[s].name;
         ctx.fillText(name, x + 15, y);

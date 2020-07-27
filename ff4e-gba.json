@@ -18,6 +18,8 @@
                 }, {
                     "name": "Map Tilesets",
                     "path": "mapTileset"
+                }, {
+                    "path": "worldGraphics"
                 }
             ]
         }, {
@@ -38,8 +40,8 @@
                     "name": "Battles",
                     "path": "battleProperties"
                 }, {
-                    "name": "Battle Background Graphics",
-                    "path": "battleBackgroundGraphics"
+                    "name": "Battle Backgrounds",
+                    "path": "battleBackgroundLayout"
                 }, {
                     "name": "Map Battle Groups",
                     "path": "mapBattle"
@@ -86,11 +88,13 @@
             "type": "array",
             "name": "Battle Background Graphics",
             "range": "0x081314A0-0x08182DE8",
+            "align": 4,
             "array": {
                 "length": 22
             },
             "assembly": {
                 "type": "graphics",
+                "align": 4,
                 "format": ["linear4bpp", "tose-graphics", "gba-lzss"],
                 "palette": "battleBackgroundPalette[%i]",
                 "width": 32
@@ -121,7 +125,16 @@
                 "length": 22
             },
             "assembly": {
-                "format": ["gba4bppTile", "tose-layout", "gba-lzss"]
+                "type": "tilemap",
+                "format": ["gba4bppTile", "tose-layout", "gba-lzss"],
+                "graphics": {
+                    "path": "battleBackgroundGraphics[%i]",
+                    "width": 32,
+                    "height": 16
+                },
+                "palette": "battleBackgroundPalette[%i]",
+                "width": 32,
+                "height": 16
             },
             "pointerTable": {
                 "range": "0x080FA278-0x080FA2D0"

@@ -67,11 +67,60 @@
                     "name": "Event Battle Groups",
                     "path": "battleGroupEvent"
                 }, {
+                    "name": "Battle Dialogue",
+                    "path": "battleDialog"
+                }, {
+                    "name": "Battle Messages",
+                    "path": "battleMessage"
+                }, {
                     "name": "Monsters",
                     "path": "monsterProperties"
                 }, {
-                    "name": "Battle Background Graphics",
-                    "path": "battleBackgroundGraphics"
+                    "name": "Battle Backgrounds",
+                    "path": "battleBackgroundProperties"
+                }
+            ]
+        }, {
+            "name": "Character",
+            "list": [
+                {
+                    "name": "Character Properties",
+                    "path": "characterProperties"
+                }, {
+                    "name": "Character Names",
+                    "path": "characterNames"
+                }, {
+                    "name": "Spell Names",
+                    "path": "spellName"
+                }, {
+                    "name": "Battle Command Names",
+                    "path": "battleCommandName"
+                }, {
+                    "name": "Ability Names",
+                    "path": "abilityName"
+                }, {
+                    "name": "Attack Names",
+                    "path": "attackName"
+                }, {
+                    "name": "Long Attack Names",
+                    "path": "attackNameLong"
+                }, {
+                    "name": "Job Names",
+                    "path": "jobName"
+                }
+            ]
+        }, {
+            "name": "Item",
+            "list": [
+                {
+                    "name": "Item Names",
+                    "path": "itemNames"
+                }, {
+                    "name": "Item Descriptions",
+                    "path": "itemDescription"
+                }, {
+                    "name": "Shop Properties",
+                    "path": "shopProperties"
                 }
             ]
         }, {
@@ -85,13 +134,31 @@
         }
     ],
     "assembly": {
+        "abilityName": {
+            "type": "array",
+            "name": "Ability Name",
+            "range": "0xE70900-0xE70F90",
+            "array": {
+                "length": 105,
+                "max": 105
+            },
+            "assembly": {
+                "type": "text",
+                "length": 16,
+                "encoding": "fixedLength"
+            },
+            "stringTable": {
+                "length": 105,
+                "default": "<abilityName[%i]>"
+            }
+        },
         "attackName": {
             "type": "array",
             "name": "Attack Name",
-            "range": "0xE70F90-0xE717DC",
+            "range": "0xE70F90-0xE71780",
             "array": {
-                "length": 169,
-                "max": 169
+                "length": 168,
+                "max": 168
             },
             "assembly": {
                 "type": "text",
@@ -103,25 +170,54 @@
                 "default": "Attack %i",
                 "string": {
                     "0-87": "<spellName[%i]>",
-                    "87-256": "<attackName[%i-87]>"
+                    "87-255": "<attackName[%i-87]>"
                 }
+            }
+        },
+        "attackNameLong": {
+            "type": "array",
+            "name": "Attack Name (Long)",
+            "range": "0xE71780-0xE72740",
+            "array": {
+                "length": 168,
+                "max": 168
+            },
+            "assembly": {
+                "type": "text",
+                "length": 24,
+                "encoding": "fixedLength"
+            },
+            "stringTable": {
+                "length": 168,
+                "default": "<attackNameLong[%i]>"
             }
         },
         "battleBackgroundGraphics": {
             "type": "array",
             "name": "Battle Background Graphics",
-            "range": "0xD841D5-0xD8DF00",
-            "array": {
-                "length": 21
-            },
+            "range": "0xD841D5-0xD8DE36",
+            "arrayLength": 9,
             "assembly": {
                 "type": "graphics",
                 "format": ["snes4bpp", "ff5-lzss"],
                 "palette": "battleBackgroundPalette"
             },
-            "pointerTable": {
-                "range": "0xD84196-0xD841D5",
-                "pointerLength": 3
+            "pointerObject": {
+                "arrayPath": "battleBackgroundGraphicsPointer",
+                "pointerPath": "pointer"
+            },
+            "stringTable": {
+                "string": {
+                    "0": "Tower, Shrine, Castle, Pyramid",
+                    "1": "Swamp, Library, Forest of Moore Interior, Castle Exdeath, Ship Exterior",
+                    "2": "Flying Fortress, Ronka Ruins",
+                    "3": "Forest, Desert, Beach, Cave",
+                    "4": "Ship Interior, Mountain, Fire-Powered Ship",
+                    "5": "Grass, The Void",
+                    "6": "Final Battle",
+                    "7": "Phoenix Tower w/ Wall",
+                    "8": "Neo Exdeath"
+                }
             }
         },
         "battleBackgroundGraphicsOffset": {
@@ -137,10 +233,59 @@
                 "assembly": {
                     "offset": {
                         "type": "property",
-                        "name": "Offset",
-                        "mask": "0xFFFFFF",
-                        "offset": "0xFF804000"
+                        "name": "Tile Offset",
+                        "mask": "0xFFFFE0",
+                        "offset": "-261632"
                     }
+                }
+            }
+        },
+        "battleBackgroundGraphicsPointer": {
+            "type": "array",
+            "name": "Battle Background Graphics Pointer",
+            "range": "0xD84196-0xD841D5",
+            "array": {
+                "length": 21
+            },
+            "assembly": {
+                "type": "data",
+                "length": 3,
+                "assembly": {
+                    "pointer": {
+                        "type": "property",
+                        "name": "Graphics Pointer",
+                        "mask": "0xFFFFFF",
+                        "pointerTo": "battleBackgroundGraphics"
+                    },
+                    "offset": {
+                        "type": "assembly",
+                        "external": "battleBackgroundGraphicsOffset[%i].offset"
+                    }
+                }
+            },
+            "stringTable": {
+                "string": {
+                    "0": "Desert, Beach",
+                    "1": "Forest of Moore Exterior",
+                    "2": "Cave",
+                    "3": "Cave w/ Water",
+                    "4": "Mountain Exterior",
+                    "5": "Forest",
+                    "6": "Tower, Shrine",
+                    "7": "Castle, Pyramid",
+                    "8": "Library",
+                    "9": "Swamp, Ship Exterior",
+                    "10": "Ship Interior",
+                    "11": "Fire-Powered Ship",
+                    "12": "Neo Exdeath",
+                    "13": "Grass",
+                    "14": "Forest of Moore Interior",
+                    "15": "Castle Exdeath",
+                    "16": "Flying Fortress",
+                    "17": "The Void",
+                    "18": "Ronka Ruins",
+                    "19": "Phoenix Tower w/ Wall",
+                    "20": "Final Battle"
                 }
             }
         },
@@ -157,22 +302,89 @@
             "pointerTable": {
                 "range": "0xD4C736-0xD4C748",
                 "offset": "0xD40000"
+            },
+            "stringTable": {
+                "string": {
+                    "0": "None",
+                    "1": "Forest",
+                    "2": "Forest of Moore Exterior",
+                    "3": "Mountain Exterior",
+                    "4": "Beach",
+                    "5": "Grass",
+                    "6": "The Void",
+                    "7": "Desert w/ Holes",
+                    "8": "Final Battle"
+                }
             }
         },
         "battleBackgroundLayout": {
             "type": "array",
             "name": "Battle Background Layout",
-            "range": "0xD4C8A5-0xD4F000",
+            "range": "0xD4C8A5-0xD4EFF1",
+            "pointerAlign": "0x10000",
+            "canRelocate": true,
             "array": {
                 "length": 28
             },
             "assembly": {
-                "format": "ff5-battlebg"
+                "type": "tilemap",
+                "format": ["snes4bppTile", "ff5-battlebg"],
+                "width": 32,
+                "height": 21
             },
             "pointerTable": {
                 "range": "0xD4C86D-0xD4C8A5",
-                "offset": "0xD40000"
-            }
+                "offset": "0xD40000",
+                "canRelocate": true,
+                "reference": [
+                    {
+                        "begin": "0xC133E2",
+                        "mask": "0xFFFFFF"
+                    }, {
+                        "begin": "0xC133E8",
+                        "mask": "0xFFFFFF",
+                        "offset": -1
+                    }
+                ]
+            },
+            "stringTable": {
+                "string": {
+                    "0": "Grass",
+                    "1": "Beach",
+                    "2": "Desert",
+                    "3": "Forest",
+                    "4": "Forest of Moore Exterior",
+                    "5": "Cave",
+                    "6": "Cave w/ Water",
+                    "7": "Mountain Exterior",
+                    "8": "Swamp",
+                    "9": "Tower Interior",
+                    "10": "Tower Exterior",
+                    "11": "Shrine",
+                    "12": "Castle Interior",
+                    "13": "Castle Exterior",
+                    "14": "Library",
+                    "15": "Pyramid",
+                    "16": "Ship Interior",
+                    "17": "Ship Graveyard Interior",
+                    "18": "Fire-Powered Ship",
+                    "19": "Ship Exterior",
+                    "20": "Flying Fortress",
+                    "21": "Forest of Moore Interior",
+                    "22": "Castle Exdeath",
+                    "23": "The Void",
+                    "24": "Desert w/ Holes",
+                    "25": "Ronka Ruins",
+                    "26": "Phoenix Tower w/ Wall",
+                    "27": "Final Battle"
+                }
+            },
+            "reference": [
+                {
+                    "begin": "0xC133EE",
+                    "bankByte": true
+                }
+            ]
         },
         "battleBackgroundPalette": {
             "type": "array",
@@ -184,6 +396,96 @@
             "assembly": {
                 "length": 32,
                 "format": "bgr555"
+            },
+            "stringTable": {
+                "length": 84,
+                "default": "Battle Background Palette %i",
+                "string": {
+                    "0": "Grass (Bartz' World) 1",
+                    "1": "Grass (Bartz' World) 2",
+                    "2": "Beach 1",
+                    "3": "Beach 2",
+                    "4": "Desert 1",
+                    "5": "Desert 2",
+                    "6": "Forest 1",
+                    "7": "Forest 2",
+                    "8": "Forest of Moore Exterior 1",
+                    "9": "Forest of Moore Exterior 2",
+                    "10": "Cave 1",
+                    "11": "Cave 2",
+                    "12": "Cave w/ Water 1",
+                    "13": "Cave w/ Water 2",
+                    "14": "Mountain Exterior 1",
+                    "15": "Mountain Exterior 2",
+                    "16": "Tower Interior 1",
+                    "17": "Tower Interior 2",
+                    "18": "Tower Exterior 1",
+                    "19": "Tower Exterior 2",
+                    "20": "Castle Interior 1",
+                    "21": "Castle Interior 2",
+                    "22": "Shrine 1",
+                    "23": "Shrine 2",
+                    "24": "Castle Exterior (Bartz' World) 1",
+                    "25": "Castle Exterior (Bartz' World) 2",
+                    "26": "Library 1",
+                    "27": "Library 2",
+                    "28": "Pyramid 1",
+                    "29": "Pyramid 2",
+                    "30": "Swamp 1",
+                    "31": "Swamp 2",
+                    "32": "Ship Interior 1",
+                    "33": "Ship Interior 2",
+                    "34": "Ship Graveyard Interior 1",
+                    "35": "Ship Graveyard Interior 2",
+                    "36": "The Void 1A",
+                    "37": "The Void 2B",
+                    "38": "Fire-Powered Ship 1",
+                    "39": "Fire-Powered Ship 2",
+                    "40": "Ship Exterior 1",
+                    "41": "Ship Exterior 2",
+                    "42": "Forest of Moore Interior 1",
+                    "43": "Forest of Moore Interior 2",
+                    "44": "Castle Exdeath 1",
+                    "45": "Castle Exdeath 2",
+                    "46": "Ronka Ruins 1",
+                    "47": "Ronka Ruins 2",
+                    "48": "Flying Fortress 1A",
+                    "49": "Flying Fortress 2A",
+                    "50": "Flying Fortress 1B",
+                    "51": "Flying Fortress 1C",
+                    "52": "Flying Fortress 2B",
+                    "53": "Flying Fortress 2C",
+                    "54": "Castle Exdeath (Unused?)",
+                    "55": "Castle Exdeath (Unused?)",
+                    "56": "The Void 1B",
+                    "57": "The Void 2B",
+                    "58": "The Void 1C",
+                    "59": "The Void 2C",
+                    "60": "Neo Exdeath 1",
+                    "61": "Neo Exdeath 2",
+                    "62": "Neo Exdeath 3",
+                    "63": "Neo Exdeath 4",
+                    "64": "Neo Exdeath 5",
+                    "65": "Neo Exdeath 6",
+                    "66": "Neo Exdeath 7",
+                    "67": "Neo Exdeath 8",
+                    "68": "Neo Exdeath 9",
+                    "69": "Neo Exdeath 10",
+                    "70": "Neo Exdeath 11",
+                    "71": "Neo Exdeath 12",
+                    "72": "Ship Graveyard Exterior 1",
+                    "73": "Ship Graveyard Exterior 2",
+                    "74": "Karnak Castle Interior 1",
+                    "75": "Karnak Castle Interior 2",
+                    "76": "Tower of Walse (Underwater) 1",
+                    "77": "Tower of Walse (Underwater) 2",
+                    "78": "Castle Exterior (Galuf's World) 1",
+                    "79": "Castle Exterior (Galuf's World) 2",
+                    "80": "Final Battle 1",
+                    "81": "Final Battle 2",
+                    "82": "Grass (Galuf's World) 1",
+                    "83": "Grass (Galuf's World) 2"
+                }
             }
         },
         "battleBackgroundProperties": {
@@ -196,46 +498,81 @@
             "assembly": {
                 "type": "data",
                 "length": 8,
+                "editor": "FF5BattleBackgroundEditor",
                 "assembly": {
                     "graphics": {
                         "type": "property",
                         "name": "Graphics",
-                        "begin": 0
+                        "begin": 0,
+                        "link": "battleBackgroundGraphicsPointer[%i]",
+                        "stringTable": "battleBackgroundGraphicsPointer"
                     },
                     "palette1": {
                         "type": "property",
                         "name": "Palette 1",
-                        "begin": 1
+                        "begin": 1,
+                        "stringTable": "battleBackgroundPalette"
                     },
                     "palette2": {
                         "type": "property",
                         "name": "Palette 2",
-                        "begin": 2
+                        "begin": 2,
+                        "stringTable": "battleBackgroundPalette"
                     },
                     "layout": {
                         "type": "property",
                         "name": "Layout",
-                        "begin": 3
+                        "begin": 3,
+                        "link": "battleBackgroundLayout[%i]",
+                        "stringTable": "battleBackgroundLayout"
                     },
                     "hFlip": {
                         "type": "property",
                         "name": "H-Flip",
-                        "begin": 4
+                        "begin": 4,
+                        "stringTable": "battleBackgroundTileFlip",
+                        "special": {
+                            "0xFF": "None"
+                        }
                     },
                     "vFlip": {
                         "type": "property",
                         "name": "V-Flip",
-                        "begin": 5
+                        "begin": 5,
+                        "stringTable": "battleBackgroundTileFlip",
+                        "special": {
+                            "0xFF": "None"
+                        }
                     },
                     "animation": {
                         "type": "property",
                         "name": "Tile Animation",
-                        "begin": 6
+                        "begin": 6,
+                        "stringTable": {
+                            "string": {
+                                "0": "None",
+                                "1": "Cave w/ Water",
+                                "2": "Fire Powered Ship",
+                                "3": "Unknown",
+                                "4": "Beach",
+                                "5": "Flying Fortress",
+                                "6": "Castle Exdeath",
+                                "7": "Castle Interior"
+                            }
+                        }
                     },
                     "paletteAnimation": {
                         "type": "property",
                         "name": "Palette Animation",
-                        "begin": 7
+                        "begin": 7,
+                        "stringTable": {
+                            "string": {
+                                "0": "Flying Fortress",
+                                "1": "The Void",
+                                "2": "Neo Exdeath",
+                                "255": "None"
+                            }
+                        }
                     }
                 }
             },
@@ -251,7 +588,7 @@
                     "5": "Ship Graveyard Interior",
                     "6": "Cave",
                     "7": "Cave w/ Water",
-                    "8": "Phoenix Tower",
+                    "8": "Tower Interior",
                     "9": "Tower Exterior",
                     "10": "Shrine",
                     "11": "Castle Interior",
@@ -278,6 +615,44 @@
                     "32": "Castle Exterior (Galuf's World)",
                     "33": "Grass (Galuf's World)"
                 }
+            }
+        },
+        "battleCommandName": {
+            "type": "array",
+            "name": "Battle Command Name",
+            "range": "0xE01150-0xE013F0",
+            "array": {
+                "length": 96
+            },
+            "assembly": {
+                "type": "text",
+                "length": 7,
+                "encoding": "fixedLength"
+            },
+            "stringTable": {
+                "length": 96,
+                "default": "<battleCommandName[%i]>"
+            }
+        },
+        "battleDialog": {
+            "type": "array",
+            "name": "Battle Dialogue",
+            "range": "0xE73B00-0xE74FAD",
+            "array": {
+                "length": 234
+            },
+            "assembly": {
+                "type": "text",
+                "encoding": "battleText",
+                "multiLine": true
+            },
+            "pointerTable": {
+                "range": "0xD0F000-0xD0F1D4",
+                "offset": "0xE70000"
+            },
+            "stringTable": {
+                "length": 234,
+                "default": "<battleDialog[%i]>"
             }
         },
         "battleGroupEvent": {
@@ -362,6 +737,27 @@
             "stringTable": {
                 "length": 256,
                 "default": "Random Battle Group %i"
+            }
+        },
+        "battleMessage": {
+            "type": "array",
+            "name": "Battle Message",
+            "range": "0xE72760-0xE72F00",
+            "array": {
+                "length": 256
+            },
+            "assembly": {
+                "type": "text",
+                "encoding": "battleText",
+                "multiLine": true
+            },
+            "pointerTable": {
+                "range": "0xD139A9-0xD13BA9",
+                "offset": "0xE70000"
+            },
+            "stringTable": {
+                "length": 256,
+                "default": "<battleMessage[%i]>"
             }
         },
         "battleProperties": {
@@ -808,6 +1204,197 @@
                 "default": "<characterNames[%i]>"
             }
         },
+        "characterProperties": {
+            "type": "array",
+            "name": "Character Properties",
+            "range": "0xD17000-0xD17140",
+            "array": {
+                "length": 4
+            },
+            "stringTable": "eventCharacter",
+            "assembly": {
+                "type": "data",
+                "length": 80,
+                "assembly": {
+                    "job": {
+                        "type": "property",
+                        "name": "Job",
+                        "begin": 1,
+                        "stringTable": "jobName"
+                    },
+                    "level": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 2
+                    },
+                    "exp": {
+                        "type": "property",
+                        "name": "Experience",
+                        "begin": 3,
+                        "mask": "0xFFFFFF"
+                    },
+                    "currentHP": {
+                        "type": "property",
+                        "name": "Current HP",
+                        "begin": 6,
+                        "mask": "0xFFFF"
+                    },
+                    "maxHP": {
+                        "type": "property",
+                        "name": "Max HP",
+                        "begin": 8,
+                        "mask": "0xFFFF"
+                    },
+                    "currentMP": {
+                        "type": "property",
+                        "name": "Current MP",
+                        "begin": 10,
+                        "mask": "0xFFFF"
+                    },
+                    "maxMP": {
+                        "type": "property",
+                        "name": "Max MP",
+                        "begin": 12,
+                        "mask": "0xFFFF"
+                    },
+                    "helmet": {
+                        "type": "property",
+                        "name": "Helmet",
+                        "begin": 14,
+                        "stringTable": "itemNames"
+                    },
+                    "armor": {
+                        "type": "property",
+                        "name": "Armor",
+                        "begin": 15,
+                        "stringTable": "itemNames"
+                    },
+                    "accessory": {
+                        "type": "property",
+                        "name": "Accessory",
+                        "begin": 16,
+                        "stringTable": "itemNames"
+                    },
+                    "shieldRight": {
+                        "type": "property",
+                        "name": "Shield (R)",
+                        "begin": 17,
+                        "stringTable": "itemNames"
+                    },
+                    "shieldLeft": {
+                        "type": "property",
+                        "name": "Shield (L)",
+                        "begin": 18,
+                        "stringTable": "itemNames"
+                    },
+                    "weaponRight": {
+                        "type": "property",
+                        "name": "Weapon (R)",
+                        "begin": 19,
+                        "stringTable": "itemNames"
+                    },
+                    "weaponLeft": {
+                        "type": "property",
+                        "name": "Weapon (L)",
+                        "begin": 20,
+                        "stringTable": "itemNames"
+                    },
+                    "caughtMonster": {
+                        "type": "property",
+                        "name": "Caught Monster",
+                        "begin": 21,
+                        "stringTable": "monsterName"
+                    },
+                    "evade": {
+                        "type": "property",
+                        "name": "Evade",
+                        "begin": 44
+                    },
+                    "defense": {
+                        "type": "property",
+                        "name": "Defense",
+                        "begin": 45
+                    },
+                    "magEvade": {
+                        "type": "property",
+                        "name": "Magic Evade",
+                        "begin": 46
+                    },
+                    "magDefense": {
+                        "type": "property",
+                        "name": "Magic Defense",
+                        "begin": 47
+                    },
+                    "cat-battleCommands": "Battle Commands",
+                    "command1": {
+                        "type": "property",
+                        "name": "Command 1",
+                        "begin": 22,
+                        "stringTable": "battleCommandName"
+                    },
+                    "command2": {
+                        "type": "property",
+                        "name": "Command 2",
+                        "begin": 23,
+                        "stringTable": "battleCommandName"
+                    },
+                    "command3": {
+                        "type": "property",
+                        "name": "Command 3",
+                        "begin": 24,
+                        "stringTable": "battleCommandName"
+                    },
+                    "command4": {
+                        "type": "property",
+                        "name": "Command 4",
+                        "begin": 25,
+                        "stringTable": "battleCommandName"
+                    },
+                    "cat-baseStats": "Base Stats",
+                    "strength": {
+                        "type": "property",
+                        "name": "Strength",
+                        "begin": 36
+                    },
+                    "agility": {
+                        "type": "property",
+                        "name": "Agility",
+                        "begin": 37
+                    },
+                    "stamina": {
+                        "type": "property",
+                        "name": "Stamina",
+                        "begin": 38
+                    },
+                    "magicPower": {
+                        "type": "property",
+                        "name": "Magic Power",
+                        "begin": 39
+                    },
+                    "cat-currentStats": "Current Stats",
+                    "strength2": {
+                        "type": "property",
+                        "name": "Strength",
+                        "begin": 40
+                    },
+                    "agility2": {
+                        "type": "property",
+                        "name": "Agility",
+                        "begin": 41
+                    },
+                    "stamina2": {
+                        "type": "property",
+                        "name": "Stamina",
+                        "begin": 42
+                    },
+                    "magicPower2": {
+                        "type": "property",
+                        "name": "Magic Power",
+                        "begin": 43
+                    }
+                }
+            }
+        },
         "dialog": {
             "type": "array",
             "name": "Dialog",
@@ -817,7 +1404,7 @@
             },
             "assembly": {
                 "type": "text",
-                "encoding": "nullTerminated",
+                "encoding": "dialog",
                 "multiLine": true
             },
             "pointerTable": {
@@ -867,12 +1454,28 @@
                         "xDest": {
                             "type": "property",
                             "name": "X Destination",
-                            "begin": 4
+                            "begin": 4,
+                            "mask": "0x3F",
+                            "invalid": "this.parent.map.value < 5"
+                        },
+                        "xDestWorld": {
+                            "type": "property",
+                            "name": "X Destination",
+                            "begin": 4,
+                            "invalid": "this.parent.map.value >= 5"
                         },
                         "yDest": {
                             "type": "property",
                             "name": "Y Destination",
-                            "begin": 5
+                            "begin": 5,
+                            "mask": "0x3F",
+                            "invalid": "this.parent.map.value < 5"
+                        },
+                        "yDestWorld": {
+                            "type": "property",
+                            "name": "Y Destination",
+                            "begin": 5,
+                            "invalid": "this.parent.map.value >= 5"
                         }
                     },
                     "length": 6
@@ -1043,6 +1646,27 @@
                 }
             ]
         },
+        "itemDescription": {
+            "type": "array",
+            "name": "Item Description",
+            "range": "0xE75200-0xE75800",
+            "array": {
+                "length": 128
+            },
+            "assembly": {
+                "type": "text",
+                "encoding": "nullTerminated",
+                "multiLine": true
+            },
+            "pointerTable": {
+                "range": "0xE75100-0xE75200",
+                "offset": "0xE70000"
+            },
+            "stringTable": {
+                "length": 128,
+                "default": "<itemDescription[%i]>"
+            }
+        },
         "itemNames": {
             "type": "array",
             "name": "Item Names",
@@ -1076,12 +1700,8 @@
                 "encoding": "fixedLength"
             },
             "stringTable": {
-                "string": {
-                    "0-8": "<jobName[7-%i]>",
-                    "8-16": "<jobName[23-%i]>",
-                    "18": "Freelancer",
-                    "19-24": "<jobName[39-%i]>"
-                }
+                "length": 24,
+                "default": "<jobName[%i]>"
             }
         },
         "mapAnimationGraphics": {
@@ -2520,13 +3140,14 @@
         "mapTitle": {
             "type": "array",
             "name": "Map Title",
-            "range": "0xE70000-0xE707D6",
+            "range": "0xE70000-0xE70673",
+            "endPointer": true,
             "array": {
                 "length": 163
             },
             "assembly": {
                 "type": "text",
-                "encoding": "nullTerminated"
+                "encoding": "dialog"
             },
             "pointerTable": {
                 "range": "0xD07000-0xD070146",
@@ -5188,7 +5809,14 @@
                             "type": "property",
                             "name": "Job",
                             "begin": 1,
-                            "stringTable": "jobName"
+                            "stringTable": {
+                                "string": {
+                                    "0-8": "<jobName[7-%i]>",
+                                    "8-16": "<jobName[23-%i]>",
+                                    "18": "Freelancer",
+                                    "19-24": "<jobName[39-%i]>"
+                                }
+                            }
                         }
                     }
                 },
@@ -6261,37 +6889,23 @@
         }
     },
     "charTable": {
-        "fixedLength": {
-            "name": "Fixed Length",
-            "char": {
-                "0xFE": " ",
-                "0xFF": "\\pad"
-            }
-        },
-        "menuDTE": {
-            "name": "Menu DTE",
-            "char": {
-                "0xA4": "ti",
-                "0xA5": "fi",
-                "0xA6": "\\Bla",
-                "0xA8": "\\p",
-                "0xA9": "el",
-                "0xAC": "if",
-                "0xAD": "It",
-                "0xAE": "tl",
-                "0xAF": "ir",
-                "0xB0": "tt"
-            }
-        },
-        "nullTerminated": {
-            "name": "Null-Terminated",
+        "battleText": {
+            "name": "Battle Text",
             "char": {
                 "0x00": "\\0",
-                "0xFF": " "
+                "0x01": "\\n",
+                "0x05": "\\t[",
+                "0x10": "\\var[",
+                "0x11": "\\lvlchar",
+                "0x12": "\\item",
+                "0x13": "\\spell",
+                "0x15": "\\ability",
+                "0x16": "\\char00",
+                "0xCF": ":"
             }
         },
-        "text": {
-            "name": "Text",
+        "dialogEscape": {
+            "name": "Dialogue Escape Codes",
             "char": {
                 "0x00": "\\0",
                 "0x01": "\\n",
@@ -6305,7 +6919,80 @@
                 "0x10": "\\gp",
                 "0x11": "\\item",
                 "0x12": "\\spell",
-                "0x17": "\\wait[",
+                "0x17": "\\wait["
+            }
+        },
+        "dte": {
+            "name": "DTE",
+            "char": {
+                "0x94": "il",
+                "0x95": "it",
+                "0x97": "li",
+                "0x98": "ll",
+                "0xA4": "ti",
+                "0xA5": "fi",
+                "0xA6A7": "Bla",
+                "0xA8A9": "pel",
+                "0xAC": "if",
+                "0xAD": "It",
+                "0xAE": "tl",
+                "0xAF": "ir",
+                "0xB0": "tt"
+            }
+        },
+        "fixedLength": {
+            "name": "Fixed Length",
+            "char": {
+                "0xFE": " ",
+                "0xFF": "\\pad"
+            }
+        },
+        "itemSymbols": {
+            "name": "Item Symbols",
+            "char": {
+                "0xBC": "\\key",
+                "0xBD": "\\shoes",
+                "0xBE": "\\special",
+                "0xBF": "\\hammer",
+                "0xC0": "\\tent",
+                "0xC1": "\\bowtie",
+                "0xC2": "\\potion",
+                "0xC3": "\\robe",
+                "0xC4": "\\music",
+                "0xC6": "\\star",
+                "0xC8": "\\scroll",
+                "0xCA": "\\claw",
+                "0xCC": "\\gauntlet",
+                "0xE3": "\\sword",
+                "0xE4": "\\white",
+                "0xE5": "\\black",
+                "0xE6": "\\time",
+                "0xE7": "\\dagger",
+                "0xE8": "\\spear",
+                "0xE9": "\\hammer",
+                "0xEA": "\\katana",
+                "0xEB": "\\rod",
+                "0xEC": "\\staff",
+                "0xED": "\\bow",
+                "0xEE": "\\harp",
+                "0xEF": "\\whip",
+                "0xF0": "\\bell",
+                "0xF1": "\\shield",
+                "0xF2": "\\cap",
+                "0xF3": "\\armor",
+                "0xF4": "\\ring"
+            }
+        },
+        "nullTerminated": {
+            "name": "Null-Terminated",
+            "char": {
+                "0x00": "\\0",
+                "0xFF": " "
+            }
+        },
+        "text": {
+            "name": "Text",
+            "char": {
                 "0x53": "0",
                 "0x54": "1",
                 "0x55": "2",
@@ -6316,6 +7003,9 @@
                 "0x5A": "7",
                 "0x5B": "8",
                 "0x5C": "9",
+                "0x5D": "\\m",
+                "0x5E": "\\h",
+                "0x5F": "\\p",
                 "0x60": "A",
                 "0x61": "B",
                 "0x62": "C",
@@ -6368,11 +7058,7 @@
                 "0x91": "x",
                 "0x92": "y",
                 "0x93": "z",
-                "0x94": "il",
-                "0x95": "it",
                 "0x96": " ",
-                "0x97": "li",
-                "0x98": "ll",
                 "0x99": "’",
                 "0x9A": "”",
                 "0x9B": ":",
@@ -6386,41 +7072,42 @@
                 "0xA3": ".",
                 "0xAA": "‘",
                 "0xAB": "“",
-                "0xC2": "\\potion",
-                "0xC3": "\\robe",
                 "0xC5": "-",
-                "0xE3": "\\sword",
-                "0xE4": "\\white",
-                "0xE5": "\\black",
-                "0xE6": "\\time",
-                "0xE7": "\\dagger",
-                "0xE8": "\\spear",
-                "0xE9": "\\hammer",
-                "0xEA": "\\katana",
-                "0xEB": "\\rod",
-                "0xEC": "\\staff",
-                "0xED": "\\bow",
-                "0xEE": "\\harp",
-                "0xEF": "\\whip",
-                "0xF0": "\\bell",
-                "0xF1": "\\shield",
-                "0xF2": "\\cap",
-                "0xF3": "\\armor",
-                "0xF4": "\\relic"
+                "0xCD": "%"
             }
         }
     },
     "textEncoding": {
+        "battleText": {
+            "name": "Battle Text",
+            "charTable": [
+                "dte",
+                "nullTerminated",
+                "text",
+                "battleText"
+            ]
+        },
+        "dialog": {
+            "name": "Dialog",
+            "charTable": [
+                "dialogEscape",
+                "nullTerminated",
+                "text"
+            ]
+        },
         "fixedLength": {
             "name": "Fixed Length",
             "charTable": [
+                "dte",
                 "fixedLength",
+                "itemSymbols",
                 "text"
             ]
         },
         "nullTerminated": {
             "name": "Null-Terminated",
             "charTable": [
+                "dte",
                 "nullTerminated",
                 "text"
             ]
@@ -6868,7 +7555,9 @@
         "0xCDF9FF-0xCDFA40",
         "0xCFD7CB-0xCFD800",
         "0xD13600-0xD13840",
+        "0xD4EFF1-0xD4F000",
         "0xE36FBB-0xE70000",
+        "0xE70673-0xE70900",
         "0xE75900-0xE7F800"
     ]
 }

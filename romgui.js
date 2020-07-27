@@ -484,6 +484,11 @@ ROMPropertyList.prototype.showProperties = function() {
         if (!graphicsHTML) return;
         properties.appendChild(graphicsHTML);
         this.observer.startObserving(object, this.showProperties);
+    } else if (object instanceof ROMTilemap) {
+        var tilemapHTML = this.tilemapHTML(object);
+        if (!tilemapHTML) return;
+        properties.appendChild(tilemapHTML);
+        this.observer.startObserving(object, this.showProperties);
     }
 
     this.updateLabels();
@@ -610,19 +615,68 @@ ROMPropertyList.prototype.graphicsHTML = function(object, options) {
     var graphicsDiv = document.createElement('div');
     graphicsDiv.classList.add("property-div");
 
-    var editor = this.getEditor("ROMGraphicsView");
+    var graphicsView = this.getEditor("ROMGraphicsView");
+    var paletteView = graphicsView.paletteView;
     var exportButton = document.createElement('button');
     exportButton.innerHTML = "Export Graphics";
-    exportButton.onclick = function() { editor.showExportDialog(); };
+    exportButton.onclick = function() {
+        var exporter = new ROMGraphicsExporter();
+        exporter.export({
+            tilemap: graphicsView.tilemap,
+            graphics: graphicsView.graphics,
+            palette: paletteView.palette,
+            width: graphicsView.width,
+            backColor: graphicsView.backColor
+        });
+    };
     graphicsDiv.appendChild(exportButton);
 
     var importButton = document.createElement('button');
     importButton.innerHTML = "Import Graphics";
     // importButton.disabled = true;
-    importButton.onclick = function() { editor.showImportDialog(); };
+    importButton.onclick = function() {
+        function callback(graphics, palette) {
+
+            graphicsView.rom.beginAction();
+            if (graphics) {
+                // trim the graphics to fit
+                if (graphics.length > graphicsView.graphics.length) {
+                    graphics = graphics.subarray(0, graphicsView.graphics.length);
+                }
+
+                // set the new graphics data
+                graphicsView.object.setData(graphics);
+            }
+
+            if (palette) {
+                paletteView.importPalette(palette);
+            }
+            graphicsView.rom.endAction();
+        }
+        var importer = new ROMGraphicsImporter(rom, graphicsView, callback);
+    };
     graphicsDiv.appendChild(importButton);
 
     return graphicsDiv;
+}
+
+ROMPropertyList.prototype.tilemapHTML = function(object, options) {
+    var tilemapDiv = document.createElement('div');
+    tilemapDiv.classList.add("property-div");
+
+    // var editor = this.getEditor("ROMTilemapView");
+    // var exportButton = document.createElement('button');
+    // exportButton.innerHTML = "Export Graphics";
+    // exportButton.onclick = function() { editor.showExportDialog(); };
+    // graphicsDiv.appendChild(exportButton);
+
+    // var importButton = document.createElement('button');
+    // importButton.innerHTML = "Import Graphics";
+    // // importButton.disabled = true;
+    // importButton.onclick = function() { editor.showImportDialog(); };
+    // graphicsDiv.appendChild(importButton);
+
+    return tilemapDiv;
 }
 
 ROMPropertyList.prototype.propertyHTML = function(object, options) {
@@ -1282,6 +1336,8 @@ ROMPropertyList.prototype.showEditor = function(object) {
     var editor;
     if (object instanceof ROMGraphics) {
         editor = this.getEditor("ROMGraphicsView");
+    } else if (object instanceof ROMTilemap) {
+        editor = this.getEditor("ROMTilemapView");
     } else if (object.editor) {
         editor = this.getEditor(object.editor);
     }
@@ -1705,6 +1761,18 @@ function ROMEditor(rom) {
     this.list = [];
 }
 
+ROMEditor.prototype.beginAction = function(callback) {
+    this.rom.beginAction();
+    this.rom.doAction(new ROMAction(this.observer, this.observer.wake, this.observer.sleep));
+    if (callback) this.rom.doAction(new ROMAction(this, callback, null));
+}
+
+ROMEditor.prototype.endAction = function(callback) {
+    if (callback) this.rom.doAction(new ROMAction(this, null, callback));
+    this.rom.doAction(new ROMAction(this.observer, this.observer.sleep, this.observer.wake));
+    this.rom.endAction();
+}
+
 ROMEditor.prototype.hideControls = function() {
     this.editorControls.classList.add("hidden");
 }
@@ -1832,144 +1900,898 @@ ROMEditor.prototype.closeList = function() {
 }
 
 // ROMGraphicsView
-function ROMGraphicsView(rom) {
+function ROMGraphicsView(rom, tilemapView) {
     ROMEditor.call(this, rom);
     this.name = "ROMGraphicsView";
+    this.tilemapView = tilemapView;
     this.paletteView = new ROMPaletteView(rom, this);
+    this.editorMode = false;
+    this.toolboxMode = false;
+    this.importMode = false;
 
-    this.zoom = 4.0;
+    this.zoom = 2.0;
     this.width = 16; // width in tiles
     this.height = 16; // height in tiles
-    this.offset = 0;
-    this.gfx = null;
-    this.pal = null;
-    this.format = null;
-    this.colorDepth = 16;
-    this.invertPalette = true;
+    this.backColor = false;
+    this.graphics = new Uint8Array(64);
+    this.tilemap = new Uint32Array();
+    this.spriteSheet = null;
+    this.ss = 0; // sprite sheet index
+    this.object = null;
+    this.definition = null;
+    this.format = GFX.graphicsFormat.linear8bpp;
+    this.page = 0;
+    this.hFlip = false;
+    this.vFlip = false;
+    this.z = 0;
     this.canvas = document.createElement('canvas');
     this.graphicsCanvas = document.createElement('canvas');
 
-    this.div = document.createElement('div');
-    this.div.id = 'map-edit';
-    this.div.appendChild(this.canvas);
-    this.div.tabIndex = 0;
-    this.div.style.outline = "none";
+    this.selection = {x: 0, y: 0, w: 0, h: 0, tilemap: new Uint32Array()};
+    this.cursorCanvas = document.createElement("canvas");
+    this.cursorCanvas.id = "tileset-cursor";
 
-    var graphics = this;
-    this.div.onkeydown = function(e) { graphics.onKeyDown(e); };
-    this.div.onwheel = function(e) { graphics.onWheel(e); };
+    this.clickedCol = null;
+    this.clickedRow = null;
+
+    this.canvasDiv = document.createElement('div');
+    this.canvasDiv.appendChild(this.canvas);
+    this.canvasDiv.appendChild(this.cursorCanvas);
+    this.canvasDiv.style.position = "relative";
+
+    this.div = document.createElement('div');
 
     this.observer = new ROMObserver(rom, this);
+
+    var self = this;
+    this.canvas.onmousedown = function(e) { self.mouseDown(e) };
+    this.canvas.onmouseup = function(e) { self.mouseUp(e) };
+    this.canvas.onmousemove = function(e) { self.mouseMove(e) };
+    this.canvas.onmouseout = function(e) { self.mouseOut(e) };
+    this.canvas.oncontextmenu = function() { return false; };
 }
 
 ROMGraphicsView.prototype = Object.create(ROMEditor.prototype);
 ROMGraphicsView.prototype.constructor = ROMGraphicsView;
 
 ROMGraphicsView.prototype.selectObject = function(object) {
-    this.paletteView.selectGraphics(object);
-    this.paletteView.show()
-    this.drawGraphics(object);
+
+    this.editorMode = true;
+    this.div.innerHTML = "";
+    this.div.id = "map-edit";
+    this.div.tabIndex = 0;
+    this.div.style.outline = "none";
+    this.div.appendChild(this.canvasDiv);
+
+    // select an object with this view as the editor
+    if (!(object instanceof ROMGraphics)) return;
+
+    // start observing the graphics object
+    this.observer.stopObservingAll();
+
+    this.object = object;
+    this.graphics = object.data;
+    this.definition = null;
+    this.width = object.width || 16;
+    this.height = object.height || 16;
+    this.backColor = object.backColor;
+    this.selection = {x: 0, y: 0, w: 0, h: 0, tilemap: new Uint32Array};
+    this.spriteSheet = null;
+
+    // get the graphics format
+    var formatKey = this.object.format;
+
+    // for assemblies with multiple formats, the graphics format is the first one
+    if (isArray(formatKey)) formatKey = formatKey[0];
+
+    // ignore format parameters
+    if (formatKey.includes("(")) {
+        formatKey = formatKey.substring(0, formatKey.indexOf("("));
+    }
+    this.format = GFX.graphicsFormat[formatKey];
+
+    var self = this;
+    this.observer.startObserving(object, function() {
+        self.selectObject(object);
+        self.redraw();
+    });
+
     this.show();
+    this.updateTilemap();
+
+    // load the palette
+    this.paletteView.loadDefinition(object.palette);
+    this.paletteView.updateToolbox();
+    this.paletteView.redraw();
+    this.redraw();
 }
 
 ROMGraphicsView.prototype.show = function() {
-    document.getElementById('toolbox-buttons').classList.add("hidden");
-    document.getElementById('toolbox-div').classList.remove("hidden");
 
     this.resetControls();
     this.showControls();
     this.closeList();
 
-    var graphics = this;
-    this.addZoom(this.zoom, function() { graphics.changeZoom(); }, 0, 4);
+    // update the toolbox div
+    var toolboxDiv = document.getElementById('toolbox-div');
+    toolboxDiv.innerHTML = "";
+    toolboxDiv.classList.remove('hidden');
+    toolboxDiv.style.height = "auto";
+    toolboxDiv.appendChild(this.paletteView.div);
+
+    document.getElementById("toolbox-layer-div").classList.add('hidden');
 
     this.div.focus();
 }
 
+ROMGraphicsView.prototype.resetControls = function() {
+    ROMEditor.prototype.resetControls.call(this);
+
+    var self = this;
+
+    // add a control to select the sprite sheet
+    if (this.object && this.object.spriteSheet) {
+        var onChangeSpriteSheet = function(ss) {
+            self.ss = ss;
+            self.updateTilemap();
+            self.drawGraphics();
+        }
+        var spriteSheetSelected = function(ss) {
+            return (ss === self.ss);
+        }
+
+        // create a list of tilemap options
+        var spriteSheetList = [];
+        if (isArray(this.object.spriteSheet)) {
+            for (var ss = 0; ss < this.object.spriteSheet.length; ss++) {
+                spriteSheetList.push(this.object.spriteSheet[ss].name || ("Sprite Sheet " + ss));
+            }
+        } else {
+            spriteSheetList.push(this.object.spriteSheet.name || "Default");
+        }
+        // select the first available tilemap if the current selection is unavailable
+        if (this.ss >= spriteSheetList.length) this.ss = 0;
+
+        // no tilemap is always the last option
+        spriteSheetList.push("None");
+        this.addList("changeSpriteSheet", "Sprite Sheet", spriteSheetList, onChangeSpriteSheet, spriteSheetSelected);
+
+    } else {
+        this.ss = 0;
+    }
+
+    this.addZoom(this.zoom, function() { self.changeZoom(); }, 0, 4);
+}
+
 ROMGraphicsView.prototype.hide = function() {
     this.observer.stopObservingAll();
-}
-
-ROMGraphicsView.prototype.onKeyDown = function(e) {
-    switch (e.key) {
-        case "ArrowLeft": this.offset -= e.shiftKey ? 1 : 64; break;
-        case "ArrowUp": this.offset -= 64 * this.width; break;
-        case "PageUp": this.offset -= 64 * this.width * this.height; break;
-        case "ArrowRight": this.offset += e.shiftKey ? 1 : 64; break;
-        case "ArrowDown": this.offset += 64 * this.width; break;
-        case "PageDown": this.offset += 64 * this.width * this.height; break;
-        case "Home": this.offset = 0; break;
-        case "End": this.offset = this.gfx.data.length - 64; break;
-        case "[": this.width--; break;
-        case "]": this.width++; break;
-        case "{": this.width >>= 1; break;
-        case "}": this.width <<= 1; break;
-        default: return;
+    if (this.resizeSensor) {
+        this.resizeSensor.detach(document.getElementById("toolbox"));
+        this.resizeSensor = null;
     }
-    this.offset = Math.max(this.offset, 0);
-    this.offset = Math.min(this.offset, this.gfx.data.length);
-    this.width = Math.max(this.width, 1);
-    this.width = Math.min(this.width, Math.floor(this.gfx.data.length / 64));
-    this.drawGraphics();
-    e.preventDefault();
+
+    this.paletteView.hide();
 }
 
-ROMGraphicsView.prototype.onWheel = function(e) {
-    this.offset += Math.round(e.deltaX / 8) * 64;
-    this.offset += Math.round(e.deltaY / 8) * 64 * this.width;
-    this.offset = Math.max(this.offset, 0);
-    this.offset = Math.min(this.offset, this.gfx.data.length);
-    this.drawGraphics();
-    e.preventDefault();
+ROMGraphicsView.prototype.mouseDown = function(e) {
+    this.closeList();
+    var x = e.offsetX / this.zoom;
+    var y = e.offsetY / this.zoom;
+    this.clickedCol = x >> 3;
+    this.clickedRow = y >> 3;
+    this.mouseMove(e);
+}
+
+ROMGraphicsView.prototype.mouseUp = function(e) {
+    this.clickedCol = null;
+    this.clickedRow = null;
+}
+
+ROMGraphicsView.prototype.mouseOut = function(e) {
+    this.mouseUp(e);
+}
+
+ROMGraphicsView.prototype.mouseMove = function(e) {
+
+    var col = (e.offsetX / this.zoom) >> 3;
+    var row = (e.offsetY / this.zoom) >> 3;
+    col = Math.min(col, this.width - 1);
+    row = Math.min(row, this.height - 1);
+
+    // update the displayed coordinates (editor mode only)
+    if (this.object) {
+        var coordinates = document.getElementById("coordinates");
+        coordinates.innerHTML = "(" + col + ", " + row + ")";
+    }
+
+    // return unless dragging (except if trigger layer selected)
+    if (!isNumber(this.clickedCol) || !isNumber(this.clickedRow)) return;
+
+    var cols = Math.abs(col - this.clickedCol) + 1;
+    var rows = Math.abs(row - this.clickedRow) + 1;
+    col = Math.min(col, this.clickedCol);
+    row = Math.min(row, this.clickedRow);
+
+    // create the tile selection
+    this.selection.x = col;
+    this.selection.y = row;
+    this.selection.w = cols;
+    this.selection.h = rows;
+    this.selection.tilemap = new Uint32Array(cols * rows);
+    for (var y = 0; y < rows; y++) {
+        var begin = col + (row + y) * this.width + this.page * this.height * this.width;
+        var end = begin + cols;
+        var line = this.tilemap.subarray(begin, end);
+        this.selection.tilemap.set(line, y * cols);
+        // for (var j = 0; j < rows; j++) {
+        //     var tile =
+        //     this.selection.tilemap.push(this.tilemap[col + i + (row + j) * this.width]);
+        // }
+    }
+
+    // redraw the cursor and notify the tilemap view
+    this.drawCursor();
+    if (this.tilemapView) {
+        this.tilemapView.selection = {
+            x: 0, y: 0, w: cols, h: rows,
+            tilemap: new Uint32Array(this.selection.tilemap)
+        };
+    }
+}
+
+ROMGraphicsView.prototype.selectTile = function(tile) {
+    // select a single tile from the tilemap view
+
+    var t = tile & 0xFFFF;
+    var v = tile & 0x20000000;
+    var h = tile & 0x10000000;
+    var z = tile & 0x0F000000;
+
+    var tilesPerPage = this.width * this.height;
+    this.page = Math.floor(t / tilesPerPage);
+    t %= tilesPerPage;
+
+    var x = t % this.width;
+    var y = Math.floor(t / this.width);
+
+    this.hFlip = h ? true : false;
+    this.vFlip = v ? true : false;
+
+    if (this.hFlip) x = this.width - x - 1;
+    if (this.vFlip) y = this.height - y - 1;
+
+    this.selection = {
+        x: x, y: y, w: 1, h: 1,
+        tilemap: new Uint32Array(1)
+    };
+    this.updateTilemap();
+    this.redraw();
+
+    var vButton = document.getElementById("graphics-v-flip");
+    if (vButton) {
+        vButton.checked = this.vFlip;
+        twoState(vButton);
+    }
+
+    var hButton = document.getElementById("graphics-h-flip");
+    if (hButton) {
+        hButton.checked = this.hFlip;
+        twoState(hButton);
+    }
+}
+
+ROMGraphicsView.prototype.updateToolbox = function() {
+
+    var self = this;
+    this.div.innerHTML = "";
+
+    function valueForDefinition(definition, index) {
+
+        if (!definition) return null;
+        var path = definition.path || definition;
+        if (!isString(path)) return null;
+
+        if (isNumber(index)) path += "[" + index + "]";
+
+        if (isString(definition)) return JSON.stringify({path: path});
+
+        var value = {};
+        Object.assign(value, definition);
+        value.path = path;
+        return JSON.stringify(value);
+    }
+
+    if (this.graphicsArray.length) {
+        // create a dropdown for array graphics
+        var graphicsSelectDiv = document.createElement('div');
+        graphicsSelectDiv.classList.add("property-div");
+        this.div.appendChild(graphicsSelectDiv);
+
+        var graphicsSelectControl = document.createElement('select');
+        graphicsSelectControl.classList.add("property-control");
+        graphicsSelectControl.id = "graphics-select-control";
+        graphicsSelectDiv.appendChild(graphicsSelectControl);
+
+        var option;
+        var index = 0;
+        if (this.tilemapView) {
+            index = this.tilemapView.object.i;
+        }
+        var selectedValue = null;
+        for (var i = 0; i < this.graphicsArray.length; i++) {
+            var graphicsDefinition = this.graphicsArray[i];
+            if (!graphicsDefinition) continue;
+            var graphicsPath = graphicsDefinition.path || graphicsDefinition;
+            if (!isString(graphicsPath)) continue;
+            graphicsPath = this.rom.parseIndex(graphicsPath, index);
+            var graphicsObject = this.rom.parsePath(graphicsPath);
+            if (!graphicsObject) continue;
+
+            if (graphicsObject instanceof ROMArray) {
+                for (var j = 0; j < graphicsObject.arrayLength; j++) {
+                    var value = valueForDefinition(graphicsDefinition, j);
+                    if (!value) continue;
+                    option = document.createElement('option');
+                    option.value = value;
+                    if (graphicsDefinition.name) {
+                        option.innerHTML = graphicsDefinition.name;
+                    } else if (graphicsObject.stringTable) {
+                        var stringTable = this.rom.stringTable[graphicsObject.stringTable];
+                        var string = stringTable.string[j];
+                        if (string) {
+                            option.innerHTML = j + ": " + string.fString(40);
+                        } else {
+                            option.innerHTML = j + ": " + graphicsObject.name + " " + j;
+                        }
+                    } else {
+                        option.innerHTML = j + ": " + graphicsObject.name + " " + j;
+                    }
+                    if (!selectedValue) selectedValue = option.value;
+                    if (option.value === this.selectedValue) selectedValue = option.value;
+                    graphicsSelectControl.appendChild(option);
+                }
+            } else if (graphicsObject instanceof ROMAssembly) {
+                var value = valueForDefinition(graphicsDefinition);
+                if (!value) continue;
+                option = document.createElement('option');
+                option.value = value;
+                if (graphicsDefinition.name) {
+                    option.innerHTML = graphicsDefinition.name;
+                } else if (isNumber(graphicsObject.i)) {
+                    if (graphicsObject.parent.stringTable) {
+                        var stringTable = this.rom.stringTable[graphicsObject.parent.stringTable];
+                        var string = stringTable.string[graphicsObject.i];
+                        if (string) {
+                            option.innerHTML = string.fString(40);
+                        } else {
+                            option.innerHTML = graphicsObject.name + " " + graphicsObject.i;
+                        }
+                    } else {
+                        option.innerHTML = graphicsObject.name + " " + graphicsObject.i;
+                    }
+                } else {
+                    option.innerHTML = graphicsObject.name;
+                }
+                if (!selectedValue) selectedValue = option.value;
+                if (option.value === this.selectedValue) selectedValue = option.value;
+                graphicsSelectControl.appendChild(option);
+            }
+        }
+        graphicsSelectControl.value = selectedValue;
+        this.loadGraphics(JSON.parse(selectedValue));
+        this.selectedValue = selectedValue;
+
+        var self = this;
+        graphicsSelectControl.onchange = function() {
+
+            self.loadGraphics(JSON.parse(this.value));
+            self.selectedValue = this.value;
+            self.redraw();
+            if (self.tilemapView) self.tilemapView.redraw();
+        }
+    }
+
+    // add page selection buttons
+    var tileCount = this.graphics.length >> 6;
+    var tilesPerPage = this.width * this.height;
+    var pageCount = Math.ceil(tileCount / tilesPerPage);
+    if (pageCount > 1) {
+        if (this.page >= pageCount) this.page = 0;
+
+        var pageDiv = document.createElement("div");
+        pageDiv.classList.add("toolbox-button-div");
+        this.div.appendChild(pageDiv);
+
+        for (var page = 0; page < pageCount; page++) {
+            var pageButton = document.createElement("button");
+            pageDiv.appendChild(pageButton);
+            pageButton.classList.add("graphics-page-button");
+            if (page === this.page) pageButton.classList.add("selected");
+            pageButton.value = page;
+            pageButton.innerHTML = "Page " + (page + 1);
+            pageButton.onclick = function() {
+                if (self.page === Number(this.value)) return;
+                self.page = Number(this.value);
+                self.showCursor = false;
+                self.updateTilemap();
+                self.redraw();
+            }
+        }
+    } else {
+        this.page = 0;
+    }
+
+    // show the graphics canvas
+    this.div.appendChild(this.canvasDiv);
+
+    // add controls for v/h flip, z-level
+    if (this.format.vFlip || this.format.hFlip) {
+
+        var flipDiv = document.createElement('div');
+        this.div.appendChild(flipDiv);
+    }
+
+    if (this.format.vFlip) {
+        var vLabel = document.createElement('label');
+        vLabel.classList.add("two-state");
+        vLabel.style.display = "inline-block";
+        if (this.vFlip) vLabel.classList.add("checked");
+        flipDiv.appendChild(vLabel);
+
+        var vInput = document.createElement('input');
+        vInput.type = 'checkbox';
+        vInput.checked = this.vFlip;
+        vInput.id = "graphics-v-flip";
+        vInput.onclick = function() {
+            twoState(this);
+            self.vFlip = this.checked;
+            self.tilemapView.toggleSelectionVFlip();
+            self.selection.y = self.height - self.selection.y - self.selection.h;
+            self.updateTilemap();
+            self.redraw();
+        };
+        vLabel.appendChild(vInput);
+
+        var vText = document.createElement('p');
+        vText.innerHTML = "V-Flip";
+        vLabel.appendChild(vText);
+    }
+
+    if (this.format.hFlip) {
+        var hLabel = document.createElement('label');
+        hLabel.classList.add("two-state");
+        hLabel.style.display = "inline-block";
+        if (this.hFlip) hLabel.classList.add("checked");
+        flipDiv.appendChild(hLabel);
+
+        var hInput = document.createElement('input');
+        hInput.type = 'checkbox';
+        hInput.checked = this.hFlip;
+        hInput.id = "graphics-h-flip";
+        hInput.onclick = function() {
+            twoState(this);
+            self.hFlip = this.checked;
+            self.tilemapView.toggleSelectionHFlip();
+            self.selection.x = self.width - self.selection.x - self.selection.w;
+            self.updateTilemap();
+            self.redraw();
+        };
+        hLabel.appendChild(hInput);
+
+        var hText = document.createElement('p');
+        hText.innerHTML = "H-Flip";
+        hLabel.appendChild(hText);
+    }
+
+    // add graphics import/export buttons
+    var importExportDiv = document.createElement('div');
+    importExportDiv.classList.add("property-div");
+    this.div.appendChild(importExportDiv);
+
+    var exportButton = document.createElement('button');
+    exportButton.innerHTML = "Export Graphics";
+    exportButton.onclick = function() {
+        var exporter = new ROMGraphicsExporter();
+        exporter.export({
+            tilemap: self.tilemap,
+            graphics: self.graphics,
+            palette: self.paletteView.palette,
+            width: self.width,
+            backColor: self.backColor
+        });
+    };
+    importExportDiv.appendChild(exportButton);
+
+    var importButton = document.createElement('button');
+    importButton.innerHTML = "Import Graphics";
+    importButton.onclick = function() {
+        function callback(graphics, palette) {
+            // set the new graphics/palette data
+            self.rom.beginAction();
+            if (graphics) self.importGraphics(graphics);
+            if (palette) self.paletteView.importPalette(palette);
+            self.rom.endAction();
+        }
+        var importer = new ROMGraphicsImporter(rom, self, callback);
+    };
+    importExportDiv.appendChild(importButton);
 }
 
 ROMGraphicsView.prototype.changeZoom = function() {
+    // this only applies in editor mode
+    if (!this.editorMode) return;
 
     // update zoom
     this.zoom = Math.pow(2, Number(document.getElementById("zoom").value));
     var zoomValue = document.getElementById("zoom-value");
     zoomValue.innerHTML = (this.zoom * 100).toString() + "%";
 
-    this.drawGraphics();
+    this.redraw();
 }
 
-ROMGraphicsView.prototype.drawGraphics = function(gfx) {
+ROMGraphicsView.prototype.loadDefinition = function(definition) {
 
-    if (gfx && gfx !== this.gfx) {
-        // selected graphics changed
-        this.observer.stopObservingAll();
-        this.observer.startObserving(gfx, this.drawGraphics);
-        this.gfx = gfx;
-        this.offset = 0;
-        if (gfx.width) this.width = gfx.width;
+    this.toolboxMode = true;
+
+    // load graphics from a definition (via ROMTilemapView)
+    this.definition = definition;
+    this.format = this.tilemapView.format;
+    this.backColor = this.tilemapView.backColor;
+    this.graphicsArray = [];
+    this.canvasDiv.classList.add("background-gradient");
+
+    this.observer.stopObservingAll();
+
+    // clear the graphics
+    this.graphics = new Uint8Array();
+    this.width = null;
+    this.height = null;
+
+    // load graphics from the definition
+    this.loadGraphics(definition);
+    if (!this.width) this.width = 16;
+    if (!this.height) {
+        this.height = Math.ceil(this.graphics.length / 64 / this.width);
+        this.height = Math.min(this.height, 16); // maximum height is 16
     }
 
-    // calculate window height
-    this.height = Math.ceil(this.div.parentElement.clientHeight / 8 / this.zoom);
+    // notify on resize
+    var self = this;
+    this.resizeSensor = new ResizeSensor(document.getElementById("toolbox"), function() {
+        var toolbox = document.getElementById("toolbox");
+        var toolboxDiv = document.getElementById("toolbox-div");
+        var width = toolbox.offsetWidth;
+        toolboxDiv.style.width = width + "px";
+        self.redraw(width);
+    });
+}
 
-    // for graphics with multiple formats, the graphics format is the first one
-    this.format = this.gfx.format;
-    if (isArray(this.format)) this.format = this.format[0];
-    this.colorDepth = GFX.colorDepth(this.format);
-    this.pal = this.paletteView.getPaletteData(this.paletteView.p * this.colorDepth, this.colorDepth);
-    this.observer.startObserving(this.paletteView.pal, this.drawGraphics);
+ROMGraphicsView.prototype.loadGraphics = function(definition) {
+    if (!definition) return;
 
-    if (this.gfx.backColor) {
-        this.pal[0] = this.paletteView.getbackColor();
+    // multiple choice of graphics (outer array)
+    if (isArray(definition)) {
+        if (definition.length === 0) return;
+        if (definition.length > 1) {
+            for (var i = 0; i < definition.length; i++)  this.graphicsArray.push(definition[i])
+        }
+        // load the first array element as a placeholder
+        definition = definition[0];
+    }
+
+    // recursively load multiple graphics (inner array)
+    if (isArray(definition)) {
+        for (var i = 0; i < definition.length; i++) this.loadGraphics(definition[i]);
+        return;
+    }
+
+    // get path
+    var path = isString(definition) ? definition : definition.path;
+    if (!path) return;
+
+    // parse object
+    var index = 0;
+    if (this.tilemapView) {
+        index = this.tilemapView.object.i;
+    }
+    var object = this.rom.parsePath(path, this.rom, index);
+
+    // load ROMArray objects as multiple choice
+    if (object instanceof ROMArray) {
+        this.graphicsArray.push(definition);
+
+        // load the first array item as a placeholder
+        object = object.item(0);
+    }
+
+    // get object data
+    if (!object) return;
+    var data = object.data;
+    if (!object.data) return;
+
+    if (definition.width) this.width = definition.width;
+    if (definition.height) this.height = definition.height;
+
+    var self = this;
+    this.observer.startObserving(object, function() {
+        self.loadDefinition(self.definition);
+        var graphicsSelectControl = document.getElementById('graphics-select-control');
+        if (graphicsSelectControl) {
+            self.loadGraphics(JSON.parse(graphicsSelectControl.value));
+        }
+        self.updateTilemap();
+        self.redraw();
+        if (self.tilemapView) self.tilemapView.redraw();
+    });
+
+    // parse data range
+    var range;
+    if (definition.range) {
+        range = ROMRange.parse(definition.range);
+        data = data.subarray(range.begin, range.end);
     } else {
-        // transparent background
-        this.pal[0] = 0;
+        range = new ROMRange(0, data.length);
     }
 
-    this.graphicsCanvas.width = this.width * 8;
-    this.graphicsCanvas.height = this.height * 8;
+    // parse offset
+    var offset = Number(definition.offset) || 0;
+
+    if (this.graphics.length < (offset + data.length)) {
+        // increase the size of the graphics buffer
+        var newGraphics = new Uint8Array(offset + data.length);
+        newGraphics.set(this.graphics);
+        this.graphics = newGraphics;
+    }
+    this.graphics.set(data, offset);
+}
+
+ROMGraphicsView.prototype.importGraphics = function(graphics, offset) {
+    offset = offset || 0;
+    if ((graphics.length + offset) > this.graphics.length) {
+        // trim the palette to fit
+        graphics = graphics.subarray(0, this.graphics.length - offset);
+    }
+
+    this.graphics.set(graphics, offset);
+
+    this.observer.sleep();
+    if (isArray(this.definition)) {
+        if (this.definition.length === 1) this.saveGraphics(this.definition[0]);
+    } else {
+        this.saveGraphics(this.definition);
+    }
+
+    var graphicsSelectControl = document.getElementById('graphics-select-control');
+    if (graphicsSelectControl) {
+        this.saveGraphics(JSON.parse(graphicsSelectControl.value));
+    }
+    this.observer.wake();
+
+    // redraw the view
+    this.redraw();
+    if (this.tilemapView) this.tilemapView.redraw();
+}
+
+ROMGraphicsView.prototype.saveGraphics = function(definition) {
+
+    if (!definition) return;
+
+    // recursively save graphics
+    if (isArray(definition)) {
+        for (var i = 0; i < definition.length; i++) this.saveGraphics(definition[i]);
+        return;
+    }
+
+    // get path
+    var path = isString(definition) ? definition : definition.path;
+    if (!path) return;
+
+    // parse object
+    var index = 0;
+    if (this.tilemapView) {
+        index = this.tilemapView.object.i;
+    }
+    var object = this.rom.parsePath(path, this.rom, index);
+
+    // ignore ROMArray objects for now
+    if (object instanceof ROMArray) return;
+
+    // get object data
+    if (!object || !object.data) return;
+    var data = object.data;
+
+    // parse data range
+    var range;
+    if (definition.range) {
+        range = ROMRange.parse(definition.range);
+    } else {
+        range = new ROMRange(0, data.length);
+    }
+
+    // parse offset
+    var offset = Number(definition.offset) || 0;
+
+    var graphics = this.graphics.subarray(offset, offset + range.length);
+
+    // convert to and from the native format to validate the data
+    if (object.format) {
+        // get the palette format
+        var formatKey = object.format;
+
+        // for assemblies with multiple formats, the palette format is the first one
+        if (isArray(formatKey)) formatKey = formatKey[0];
+
+        // ignore format parameters
+        if (formatKey.includes("(")) {
+            formatKey = formatKey.substring(0, formatKey.indexOf("("));
+        }
+        var format = GFX.graphicsFormat[formatKey];
+
+        if (format) graphics = format.decode(format.encode(graphics)[0])[0];
+    }
+
+    if (range.begin + graphics.length > object.data.length) {
+        graphics = graphics.subarray(0, object.data.length - range.begin);
+    }
+    object.setData(graphics, range.begin);
+}
+
+ROMGraphicsView.prototype.updateTilemap = function() {
+
+    if (this.object && this.object.spriteSheet) {
+        var spriteSheetArray = this.object.spriteSheet;
+        if (!isArray(spriteSheetArray)) spriteSheetArray = [spriteSheetArray];
+        this.spriteSheet = spriteSheetArray[this.ss];
+    }
+
+    // never use a sprite sheet in toolbox mode
+    if (this.toolboxMode) {
+
+        this.spriteSheet = null;
+        var tileCount = this.graphics.length >> 6;
+        var tilesPerPage = this.height * this.width;
+        var pageCount = Math.ceil(tileCount / tilesPerPage);
+        if (pageCount > 1) {
+            // multiple pages
+            var pageButtons = document.getElementsByClassName("graphics-page-button");
+            if (this.page >= pageButtons.length) this.page = 0;
+            for (var p = 0; p < pageButtons.length; p++) {
+                if (p === this.page) {
+                    pageButtons[this.page].classList.add("selected");
+                } else {
+                    pageButtons[p].classList.remove("selected");
+                }
+            }
+        }
+
+        this.tilemap = new Uint32Array(tilesPerPage * pageCount);
+        this.tilemap.fill(0xFFFFFFFF);
+
+        var p = (this.paletteView.p * this.paletteView.colorsPerPalette) << 16;
+        for (var t = 0; t < tileCount; t++) this.tilemap[t] = t | p;
+
+    } else if (this.spriteSheet) {
+        // use a sprite sheet
+        this.width = this.spriteSheet.width || this.width;
+        this.height = this.spriteSheet.height || Math.ceil(this.graphics.length / 64 / this.width);
+        this.tilemap = new Uint32Array(this.height * this.width);
+        this.tilemap.fill(0xFFFFFFFF);
+        for (var t = 0; t < this.tilemap.length; t++) {
+            var tile = Number(this.spriteSheet.tilemap[t]);
+            if (isNumber(tile) && tile !== -1) this.tilemap[t] = tile;
+        }
+
+    } else {
+        // no sprite sheet
+        if (this.object) this.width = this.object.width || 16;
+        this.height = Math.ceil(this.graphics.length / 64 / this.width) || 1;
+        this.tilemap = new Uint32Array(this.height * this.width);
+        this.tilemap.fill(0xFFFF);
+        var p = (this.paletteView.p * this.paletteView.colorsPerPalette) << 16;
+        for (var t = 0; t < this.tilemap.length; t++) this.tilemap[t] = t | p;
+    }
+
+    if (this.vFlip) {
+        var vTilemap = new Uint32Array(this.tilemap.length);
+        var t = 0;
+        var pageOffset = 0;
+        while (t < tileCount) {
+            for (var y = 0; y < this.height; y++) {
+                for (var x = 0; x < this.width; x++) {
+                    var t1 = x + (this.height - y - 1) * this.width + pageOffset;
+                    vTilemap[t1] = this.tilemap[t++] ^ 0x20000000;
+                }
+            }
+            pageOffset += tilesPerPage;
+        }
+        this.tilemap = vTilemap;
+    }
+
+    if (this.hFlip) {
+        var hTilemap = new Uint32Array(this.tilemap.length);
+        var t = 0;
+        var pageOffset = 0;
+        while (t < tileCount) {
+            for (var y = 0; y < this.height; y++) {
+                for (var x = 0; x < this.width; x++) {
+                    var t1 = (this.width - x - 1) + y * this.width + pageOffset;
+                    hTilemap[t1] = this.tilemap[t++] ^ 0x10000000;
+                }
+            }
+            pageOffset += tilesPerPage;
+        }
+        this.tilemap = hTilemap;
+    }
+}
+
+ROMGraphicsView.prototype.redraw = function() {
+    this.drawGraphics();
+    this.drawCursor();
+}
+
+ROMGraphicsView.prototype.drawGraphics = function() {
+
+    var ppu = new GFX.PPU();
+    ppu.back = this.backColor;
+
+    // create the palette
+    var palette = new Uint32Array(this.paletteView.palette);
+    // if (this.backColor) {
+    //     // use first palette color as back color
+    //     palette[0] = this.paletteView.palette[0];
+    //     ppu.back = true;
+    // } else {
+    //     // use a transparent background
+    //     palette[0] = 0;
+    //     ppu.back = false;
+    // }
+
+    ppu.pal = palette;
+    ppu.width = this.width * 8;
+    ppu.height = this.height * 8;
+    if (ppu.height === 0) return;
+
+    // layer 1
+    ppu.layers[0].format = null;
+    ppu.layers[0].cols = this.width;
+    ppu.layers[0].rows = this.height;
+    ppu.layers[0].z[0] = GFX.Z.top;
+    ppu.layers[0].z[1] = GFX.Z.top;
+    ppu.layers[0].z[2] = GFX.Z.top;
+    ppu.layers[0].z[3] = GFX.Z.top;
+    ppu.layers[0].gfx = this.graphics;
+    ppu.layers[0].tiles = this.tilemap.subarray(this.page * this.width * this.height);
+    ppu.layers[0].main = true;
+
+    // draw layout image
+    this.graphicsCanvas.width = ppu.width;
+    this.graphicsCanvas.height = ppu.height;
     var context = this.graphicsCanvas.getContext('2d');
-    var imageData = context.createImageData(this.width * 8, this.height * 8);
-    GFX.render(imageData.data, this.gfx.data.subarray(this.offset), this.pal, this.width * 8, this.pal[0]);
+    imageData = context.createImageData(ppu.width, ppu.height);
+    ppu.renderPPU(imageData.data, 0, 0, ppu.width, ppu.height);
     context.putImageData(imageData, 0, 0);
 
-    this.canvas.width = this.width * 8 * this.zoom;
-    this.canvas.height = this.div.parentElement.clientHeight;
+    if (this.toolboxMode) {
+        // recalculate zoom
+        var toolbox = document.getElementById("toolbox");
+        var toolboxDiv = document.getElementById("toolbox-div");
+        this.zoom = toolbox.clientWidth / ppu.width;
+        toolboxDiv.style.width = ppu.width * this.zoom + "px";
+    }
+
+    // scale image to zoom setting
+    this.canvas.width = ppu.width * this.zoom;
+    this.canvas.height = ppu.height * this.zoom;
+    this.cursorCanvas.width = this.canvas.width;
+    this.cursorCanvas.height = this.canvas.height;
+    this.canvasDiv.style.width = this.canvas.width + "px";
+    // if (this.canvas.height > 256) {
+    //     this.canvasDiv.style.height = "256px";
+    //     this.canvasDiv.style.overflowY = "scroll";
+    // } else {
+        this.canvasDiv.style.height = this.canvas.height + "px";
+        // this.canvasDiv.style.overflowY = "hidden";
+    // }
     context = this.canvas.getContext('2d');
     context.imageSmoothingEnabled = false;
     context.webkitImageSmoothingEnabled = false;
@@ -1978,134 +2800,1433 @@ ROMGraphicsView.prototype.drawGraphics = function(gfx) {
         0, 0, this.canvas.width, this.canvas.height);
 }
 
-ROMGraphicsView.exportFormat = {
-    indexed: {
-        id: "indexed",
-        description: "PNG (indexed)",
-        default: true,
-        extension: "png",
-        colorDepth: 256
-    },
-    png: {
-        id: "png",
-        description: "PNG (non-indexed)",
-        default: false,
-        extension: "png",
-        colorDepth: 256
-    },
-    jpeg: {
-        id: "jpeg",
-        description: "JPEG (lossless)",
-        default: false,
-        extension: "jpeg",
-        colorDepth: 256
-    },
-    linear8bpp: {
-        id: "linear8bpp",
-        description: "Linear 8bpp",
-        default: false,
-        extension: "bin",
-        colorDepth: 256
-    },
-    linear4bpp: {
-        id: "linear4bpp",
-        description: "Linear 4bpp",
-        default: false,
-        extension: "bin",
-        colorDepth: 16
-    },
-    linear2bpp: {
-        id: "linear2bpp",
-        description: "Linear 2bpp",
-        default: false,
-        extension: "bin",
-        colorDepth: 4
-    },
-    linear1bpp: {
-        id: "linear1bpp",
-        description: "Linear 1bpp",
-        default: false,
-        extension: "bin",
-        colorDepth: 2
-    },
-    reverse1bpp: {
-        id: "reverse1bpp",
-        description: "Reverse 1bpp",
-        default: false,
-        extension: "bin",
-        colorDepth: 2
-    },
-    nes2bpp: {
-        id: "nes2bpp",
-        description: "NES 2bpp",
-        default: false,
-        extension: "bin",
-        colorDepth: 4
-    },
-    snes4bpp: {
-        id: "snes4bpp",
-        description: "SNES 4bpp",
-        default: false,
-        extension: "bin",
-        colorDepth: 16
-    },
-    snes3bpp: {
-        id: "snes3bpp",
-        description: "SNES 3bpp",
-        default: false,
-        extension: "bin",
-        colorDepth: 8
-    },
-    snes2bpp: {
-        id: "snes2bpp",
-        description: "SNES 2bpp",
-        default: false,
-        extension: "bin",
-        colorDepth: 4
+ROMGraphicsView.prototype.drawCursor = function() {
+    // clear the cursor canvas
+    var ctx = this.cursorCanvas.getContext('2d');
+    ctx.clearRect(0, 0, this.cursorCanvas.width, this.cursorCanvas.height);
+
+    // return if trigger layer is selected
+    if (!this.selection.tilemap.length) return;
+
+    // get the cursor geometry
+    var x = Math.round((this.selection.x * 8) * this.zoom);
+    var y = Math.round((this.selection.y * 8) * this.zoom);
+    var w = Math.round((this.selection.w * 8) * this.zoom);
+    var h = Math.round((this.selection.h * 8) * this.zoom);
+
+    // draw the cursor
+    if (w <= 0 || h <= 0) return;
+
+    // convert the selection to screen coordinates
+    // var colors = ["green", "blue", "red", "white"];
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "black";
+    x += 0.5; y += 0.5; w--; h--;
+    ctx.strokeRect(x, y, w, h);
+    x++; y++; w -= 2; h -= 2;
+    ctx.strokeStyle = "hsl(210, 100%, 50%)";
+    ctx.strokeRect(x, y, w, h);
+    x++; y++; w -= 2; h -= 2;
+    ctx.strokeStyle = "white";
+    ctx.strokeRect(x, y, w, h);
+    x++; y++; w -= 2; h -= 2;
+    ctx.strokeStyle = "black";
+    ctx.strokeRect(x, y, w, h);
+}
+
+// ROMPaletteView
+function ROMPaletteView(rom, graphicsView) {
+
+    this.rom = rom;
+    this.graphicsView = graphicsView; // associated graphics view
+    this.tilemapView = null; // associated tilemap view
+
+    this.div = document.createElement('div');
+
+    this.canvas = document.createElement('canvas');
+    this.canvas.id = "palette";
+    this.canvas.width = 256;
+    this.canvas.height = 24;
+
+    this.palette = new Uint32Array();
+    this.definition = null;
+    this.p = 0; // selected palette index
+    this.colorsPerPalette = 16; // number of colors per palette
+    this.rowsPerPalette = 1; // number of rows per palette
+    this.colorHeight = 24;
+    this.showCursor = true;
+
+    this.observer = new ROMObserver(rom, this);
+
+    var paletteView = this;
+    this.resizeSensor = null;
+}
+
+ROMPaletteView.prototype.updateToolbox = function() {
+
+    this.div.innerHTML = "";
+
+    // add controls to toolbox
+    var toolbox = document.getElementById("toolbox");
+    var toolboxDiv = document.getElementById("toolbox-div");
+
+    // heading div
+    var paletteHeadingDiv = document.createElement('div');
+    paletteHeadingDiv.classList.add("property-heading");
+    this.div.appendChild(paletteHeadingDiv);
+
+    var paletteHeading = document.createElement('p');
+    paletteHeading.innerHTML = "Palette";
+    paletteHeadingDiv.appendChild(paletteHeading);
+
+    function valueForDefinition(definition, index) {
+
+        if (!definition) return null;
+        var path = definition.path || definition;
+        if (!isString(path)) return null;
+
+        if (isNumber(index)) path += "[" + index + "]";
+
+        if (isString(definition)) return JSON.stringify({path: path});
+
+        var value = {};
+        Object.assign(value, definition);
+        value.path = path;
+        return JSON.stringify(value);
+    }
+
+    if (this.paletteArray.length) {
+        // create a dropdown for array palettes
+        var paletteSelectDiv = document.createElement('div');
+        paletteSelectDiv.classList.add("property-div");
+        this.div.appendChild(paletteSelectDiv);
+
+        var paletteSelectControl = document.createElement('select');
+        paletteSelectControl.classList.add("property-control");
+        paletteSelectControl.id = "palette-select-control";
+        paletteSelectDiv.appendChild(paletteSelectControl);
+
+        var option;
+        var index = 0;
+        if (this.tilemapView) {
+            index = this.tilemapView.object.i;
+        } else if (this.graphicsView.object) {
+            index = this.graphicsView.object.i;
+        }
+        var selectedValue = null;
+        for (var i = 0; i < this.paletteArray.length; i++) {
+            var paletteDefinition = this.paletteArray[i];
+            if (!paletteDefinition) continue;
+            var palettePath = paletteDefinition.path || paletteDefinition;
+            if (!isString(palettePath)) continue;
+            palettePath = this.rom.parseIndex(palettePath, index);
+            var paletteObject = this.rom.parsePath(palettePath);
+            if (!paletteObject) continue;
+
+            if (paletteObject instanceof ROMArray) {
+                for (var j = 0; j < paletteObject.arrayLength; j++) {
+                    var value = valueForDefinition(paletteDefinition, j);
+                    if (!value) continue;
+                    option = document.createElement('option');
+                    option.value = value;
+                    if (paletteDefinition.name) {
+                        option.innerHTML = paletteDefinition.name;
+                    } else if (paletteObject.stringTable) {
+                        var stringTable = this.rom.stringTable[paletteObject.stringTable];
+                        var string = stringTable.string[j];
+                        if (string) {
+                            option.innerHTML = j + ": " + string.fString(40);
+                        } else {
+                            option.innerHTML = j + ": " + paletteObject.name + " " + j;
+                        }
+                    } else {
+                        option.innerHTML = j + ": " + paletteObject.name + " " + j;
+                    }
+                    if (!selectedValue) selectedValue = option.value;
+                    if (option.value === this.selectedValue) selectedValue = option.value;
+                    paletteSelectControl.appendChild(option);
+                }
+            } else if (paletteObject instanceof ROMAssembly) {
+                var value = valueForDefinition(paletteDefinition);
+                if (!value) continue;
+                option = document.createElement('option');
+                option.value = value;
+                if (paletteDefinition.name) {
+                    option.innerHTML = paletteDefinition.name;
+                } else if (isNumber(paletteObject.i)) {
+                    if (paletteObject.parent.stringTable) {
+                        var stringTable = this.rom.stringTable[paletteObject.parent.stringTable];
+                        var string = stringTable.string[paletteObject.i];
+                        if (string) {
+                            option.innerHTML = string.fString(40);
+                        } else {
+                            option.innerHTML = paletteObject.name + " " + paletteObject.i;
+                        }
+                    } else {
+                        option.innerHTML = paletteObject.name + " " + paletteObject.i;
+                    }
+                } else {
+                    option.innerHTML = paletteObject.name;
+                }
+                if (!selectedValue) selectedValue = option.value;
+                if (option.value === this.selectedValue) selectedValue = option.value;
+                paletteSelectControl.appendChild(option);
+            }
+        }
+        if (!selectedValue) selectedValue = JSON.stringify({path: "grayscale"});
+        paletteSelectControl.value = selectedValue;
+        this.loadPalette(JSON.parse(selectedValue));
+        this.selectedValue = selectedValue;
+
+        var self = this;
+        paletteSelectControl.onchange = function() {
+
+            self.loadPalette(JSON.parse(this.value));
+            self.selectedValue = this.value;
+            self.redraw();
+            self.graphicsView.redraw();
+            if (self.tilemapView) self.tilemapView.redraw();
+        }
+    }
+
+    // show the palette canvas
+    var width = toolbox.offsetWidth;
+    toolboxDiv.style.width = width + "px";
+    toolboxDiv.classList.remove("hidden");
+    this.resize(width);
+    this.div.appendChild(this.canvas);
+
+    // add palette import/export buttons
+    var importExportDiv = document.createElement('div');
+    importExportDiv.classList.add("property-div");
+    // this.div.appendChild(importExportDiv);
+
+    var exportButton = document.createElement('button');
+    exportButton.innerHTML = "Export Palette";
+    exportButton.disabled = true;
+    exportButton.onclick = function() {
+    };
+    importExportDiv.appendChild(exportButton);
+
+    var importButton = document.createElement('button');
+    importButton.innerHTML = "Import Palette";
+    importButton.disabled = true;
+    importButton.onclick = function() {
+    };
+    importExportDiv.appendChild(importButton);
+}
+
+ROMPaletteView.prototype.loadDefinition = function(definition) {
+
+    definition = definition || "grayscale";
+
+    this.format = this.graphicsView.format;
+    this.colorsPerPalette = this.format.colorsPerPalette;
+    var colorsPerRow = Math.min(this.colorsPerPalette, 16); // max 16 colors per row
+    // this.rowsPerPalette = this.colorsPerPalette / colorsPerRow;
+    this.definition = definition;
+    this.paletteArray = [];
+
+    this.observer.stopObservingAll();
+
+    // clear the palette
+    this.palette = new Uint32Array();
+
+    // load a palette from the definition
+    this.loadPalette(definition);
+
+    // set the palette index to zero if it is greater than the number of palettes
+    var paletteCount = Math.floor(this.palette.length / this.colorsPerPalette);
+    if (this.p >= paletteCount) this.p = 0;
+    this.resize();
+
+    // add event handlers
+    var self = this;
+    this.canvas.onmousedown = function(e) { self.mouseDown(e) };
+    this.resizeSensor = new ResizeSensor(document.getElementById("toolbox"), function() {
+        var toolbox = document.getElementById("toolbox");
+        var toolboxDiv = document.getElementById("toolbox-div");
+        var width = toolbox.offsetWidth;
+        toolboxDiv.style.width = width + "px";
+        self.resize();
+        self.redraw();
+    });
+}
+
+ROMPaletteView.prototype.resize = function() {
+
+    var toolbox = document.getElementById("toolbox");
+    var width = toolbox.offsetWidth;
+
+    // recalculate number of rows per palette
+    if (this.graphicsView.format) {
+        this.colorsPerPalette = this.graphicsView.format.colorsPerPalette;
+    } else {
+        // default to 16 colors per palette
+        this.colorsPerPalette = 16;
+    }
+    this.colorsPerRow = Math.min(this.colorsPerPalette, 16); // max 16 colors per row
+    this.rowsPerPalette = this.colorsPerPalette / this.colorsPerRow;
+
+    // recalculate element sizes
+    this.colorWidth = width / this.colorsPerRow;
+    var paletteCount = Math.ceil(this.palette.length / this.colorsPerPalette);
+    if (paletteCount > 1) {
+        this.rows = Math.ceil(this.palette.length / this.colorsPerPalette) * this.rowsPerPalette;
+    } else {
+        this.rows = Math.ceil(this.palette.length / this.colorsPerRow);
+    }
+    this.rows = Math.min(this.rows, 16); // max of 16 palettes
+    // toolboxDiv.style.width = width + "px";
+    // toolboxDiv.classList.remove("hidden");
+    this.canvas.width = width;
+    this.canvas.height = this.rows * this.colorHeight;
+}
+
+ROMPaletteView.prototype.loadPalette = function(definition) {
+    if (!definition) {
+        return;
+    } else if (definition === "grayscale") {
+        this.palette = GFX.makeGrayPalette(this.colorsPerPalette, false);
+        return;
+    } else if (definition === "inverseGrayscale") {
+        this.palette = GFX.makeGrayPalette(this.colorsPerPalette, true);
+        return;
+    }
+
+    // multiple choice of palettes (outer array)
+    if (isArray(definition)) {
+        if (definition.length === 0) return;
+        if (definition.length > 1) {
+            for (var i = 0; i < definition.length; i++)  this.paletteArray.push(definition[i])
+        }
+        // load the first array element as a placeholder
+        definition = definition[0];
+    }
+
+    // recursively load multiple palettes (inner array)
+    if (isArray(definition)) {
+        for (var i = 0; i < definition.length; i++) this.loadPalette(definition[i]);
+        return;
+    }
+
+    // get path
+    var path = isString(definition) ? definition : definition.path;
+    if (!path) return;
+
+    // parse object
+    var index = 0;
+    if (this.tilemapView) {
+        index = this.tilemapView.object.i;
+    } else if (this.graphicsView.object) {
+        index = this.graphicsView.object.i;
+    }
+    var object = this.rom.parsePath(path, this.rom, index);
+
+    // load ROMArray objects as multiple choice
+    if (object instanceof ROMArray) {
+        if (!this.paletteArray.includes(definition)) this.paletteArray.push(definition);
+
+        // load the first array item as a placeholder
+        object = object.item(0);
+    }
+
+    // get object data
+    if (!object || !object.data) return;
+    var data = object.data;
+
+    var self = this;
+    this.observer.startObserving(object, function() {
+        self.loadDefinition(self.definition);
+        var paletteSelectControl = document.getElementById('palette-select-control');
+        if (paletteSelectControl) {
+            self.loadPalette(JSON.parse(paletteSelectControl.value));
+        }
+        self.redraw();
+        self.graphicsView.redraw();
+        if (self.tilemapView) self.tilemapView.redraw();
+    });
+
+    // data must be 32-bit
+    data = new Uint32Array(data.buffer, data.byteOffset, data.byteLength >> 2);
+
+    // parse data range
+    var range;
+    if (definition.range) {
+        range = ROMRange.parse(definition.range);
+        data = data.subarray(range.begin, range.end);
+    } else {
+        range = new ROMRange(0, data.length);
+    }
+
+    // parse offset
+    var offset = Number(definition.offset) || 0;
+
+    if (this.palette.length < (offset + data.length)) {
+        // increase the size of the graphics buffer
+        var newPalette = new Uint32Array(offset + data.length);
+        newPalette.fill(0xFF000000);
+        newPalette.set(this.palette);
+        this.palette = newPalette;
+    }
+    this.palette.set(data, offset);
+}
+
+ROMPaletteView.prototype.importPalette = function(palette, offset) {
+    offset = offset || 0;
+    if ((palette.length + offset) > this.palette.length) {
+        // trim the palette to fit
+        palette = palette.subarray(0, this.palette.length - offset);
+    }
+
+    // copy imported data to the current palette
+    this.palette.set(palette, offset);
+
+    // set palette data
+    this.observer.sleep();
+    if (isArray(this.definition)) {
+        if (this.definition.length === 1) this.savePalette(this.definition[0]);
+    } else {
+        this.savePalette(this.definition);
+    }
+
+    var paletteSelectControl = document.getElementById('palette-select-control');
+    if (paletteSelectControl) {
+        this.savePalette(JSON.parse(paletteSelectControl.value));
+    }
+    this.observer.wake();
+
+    // redraw the view
+    this.redraw();
+    this.graphicsView.redraw();
+    if (this.tilemapView) this.tilemapView.redraw();
+}
+
+ROMPaletteView.prototype.savePalette = function(definition) {
+
+    if (!definition || definition === "grayscale" || definition === "inverseGrayscale") {
+        return;
+    }
+
+    // recursively save palettes
+    if (isArray(definition)) {
+        for (var i = 0; i < definition.length; i++) this.savePalette(definition[i]);
+        return;
+    }
+
+    // get path
+    var path = isString(definition) ? definition : definition.path;
+    if (!path) return;
+
+    // parse object
+    var index = 0;
+    if (this.tilemapView) {
+        index = this.tilemapView.object.i;
+    } else if (this.graphicsView.object) {
+        index = this.graphicsView.object.i;
+    }
+    var object = this.rom.parsePath(path, this.rom, index);
+
+    // ignore ROMArray objects for now
+    if (object instanceof ROMArray) return;
+
+    // get object data
+    if (!object || !object.data) return;
+    var data = object.data;
+
+    // data must be 32-bit
+    data = new Uint32Array(data.buffer, data.byteOffset, data.byteLength >> 2);
+
+    // parse data range
+    var range;
+    if (definition.range) {
+        range = ROMRange.parse(definition.range);
+        // data = data.subarray(range.begin, range.end);
+    } else {
+        range = new ROMRange(0, data.length);
+    }
+
+    // parse offset
+    var offset = Number(definition.offset) || 0;
+
+    var palette = this.palette.subarray(offset, offset + range.length);
+
+    // convert to and from the native format to validate the data
+    if (object.format) {
+        // get the graphics format
+        var formatKey = object.format;
+
+        // for assemblies with multiple formats, the graphics format is the first one
+        if (isArray(formatKey)) formatKey = formatKey[0];
+
+        // ignore format parameters
+        if (formatKey.includes("(")) {
+            formatKey = formatKey.substring(0, formatKey.indexOf("("));
+        }
+        var format = GFX.paletteFormat[formatKey];
+
+        if (format) palette = format.decode(format.encode(palette)[0])[0];
+    }
+
+    object.setData(palette, range.begin);
+}
+
+ROMPaletteView.prototype.show = function() {
+}
+
+ROMPaletteView.prototype.hide = function() {
+    this.observer.stopObservingAll();
+    if (this.resizeSensor) {
+        this.resizeSensor.detach(document.getElementById("toolbox"));
+        this.resizeSensor = null;
     }
 }
 
-ROMGraphicsView.prototype.showExportDialog = function() {
+ROMPaletteView.prototype.mouseDown = function(e) {
+    var row = Math.floor(e.offsetY / this.colorHeight);
+    this.p = Math.floor(row / this.rowsPerPalette);
+    this.redraw();
+    this.graphicsView.updateTilemap();
+    this.graphicsView.redraw();
+    if (this.graphicsView.tilemapView) {
+        this.graphicsView.tilemapView.selectPalette(this.p * this.colorsPerPalette);
+        this.graphicsView.tilemapView.redraw();
+    }
+}
+
+ROMPaletteView.prototype.redraw = function() {
+    this.drawPalette();
+    this.drawCursor();
+}
+
+ROMPaletteView.prototype.drawPalette = function() {
+
+    // clear the canvas
+    var ctx = this.canvas.getContext('2d');
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+    var c = 0;
+    for (var y = 0; y < this.rows; y++) {
+        for (var x = 0; x < this.colorsPerRow; x++) {
+            var color = this.palette[c++];
+            if (!isNumber(color)) color = 0;
+            var r = (color & 0xFF);
+            var g = (color & 0xFF00) >> 8;
+            var b = (color & 0xFF0000) >> 16;
+            ctx.fillStyle = "rgb(" + r + "," + g + "," + b + ")";
+
+            var xStart = Math.round(x * this.colorWidth);
+            var xEnd = Math.round((x + 1) * this.colorWidth) - xStart;
+            ctx.fillRect(xStart, y * this.colorHeight, xEnd, this.colorHeight);
+        }
+    }
+}
+
+ROMPaletteView.prototype.drawCursor = function() {
+
+    if (!this.showCursor) return;
+
+    // draw the cursor
+    var w = this.canvas.width;
+    var h = this.colorHeight * this.rowsPerPalette;
+    var x = 0;
+    var y = this.p * h;
+    if (y + h > this.canvas.height) h = this.canvas.height - y;
+
+    var ctx = this.canvas.getContext('2d');
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "black";
+    x += 0.5; y += 0.5; w--; h--;
+    ctx.strokeRect(x, y, w, h);
+    x++; y++; w -= 2; h -= 2;
+    ctx.strokeStyle = "hsl(210, 100%, 50%)";
+    ctx.strokeRect(x, y, w, h);
+    x++; y++; w -= 2; h -= 2;
+    ctx.strokeStyle = "white";
+    ctx.strokeRect(x, y, w, h);
+    x++; y++; w -= 2; h -= 2;
+    ctx.strokeStyle = "black";
+    ctx.strokeRect(x, y, w, h);
+}
+
+// ROMTilemapView
+function ROMTilemapView(rom) {
+    ROMEditor.call(this, rom);
+    this.name = "ROMTilemapView";
+
+    this.graphicsView = new ROMGraphicsView(rom, this);
+    this.graphicsView.backColor = 0xFF000000;
+    this.paletteView = this.graphicsView.paletteView;
+    this.paletteView.tilemapView = this;
+
+    this.div = document.createElement('div');
+    this.div.id = 'map-edit';
+    this.div.tabIndex = 0;
+    this.div.style.outline = "none";
+
+    this.zoom = 2.0;
+    this.width = 16; // width in tiles
+    this.height = 16; // height in tiles
+    this.backColor = false;
+    this.object = null;
+    this.tilemap = new Uint32Array();
+    this.format = GFX.tileFormat.defaultTile;
+    this.canvas = document.createElement('canvas');
+    this.div.appendChild(this.canvas);
+    this.layoutCanvas = document.createElement('canvas');
+    this.cursorCanvas = document.createElement('canvas');
+    this.cursorCanvas.id = "map-cursor";
+    this.cursorCanvas.width = 8;
+    this.cursorCanvas.height = 8;
+    this.div.appendChild(this.cursorCanvas);
+
+    // this.tiles = null;
+    // this.gfx = null;
+    // this.pal = null;
+
+    this.selection = {x: 0, y: 0, w: 1, h: 1, tilemap: new Uint32Array(1)};
+    this.clickPoint = null;
+    this.showCursor = false;
+    this.showPalette = true;
+    this.showGraphics = true;
+
+    var self = this;
+    this.canvas.onmousedown = function(e) { self.mouseDown(e) };
+    this.canvas.onmousemove = function(e) { self.mouseMove(e) };
+    this.canvas.onmouseup = function(e) { self.mouseUp(e) };
+    this.canvas.onmouseenter = function(e) { self.mouseEnter(e) };
+    this.canvas.onmouseleave = function(e) { self.mouseLeave(e) };
+    this.canvas.oncontextmenu = function(e) { return false; };
+
+    this.observer = new ROMObserver(rom, this);
+}
+
+ROMTilemapView.prototype = Object.create(ROMEditor.prototype);
+ROMTilemapView.prototype.constructor = ROMTilemapView;
+
+ROMTilemapView.prototype.selectObject = function(object) {
+
+    this.object = object || this.object;
+
+    // get the tile format
+    var formatKey = this.object.format;
+
+    // for assemblies with multiple formats, the graphics format is the first one
+    if (isArray(formatKey)) formatKey = formatKey[0];
+
+    // ignore format parameters
+    if (formatKey.includes("(")) {
+        formatKey = formatKey.substring(0, formatKey.indexOf("("));
+    }
+    this.format = GFX.tileFormat[formatKey] || GFX.tileFormat.defaultTile;
+
+    this.show();
+    this.loadTilemap();
+}
+
+ROMTilemapView.prototype.show = function() {
+    document.getElementById('toolbox-layer-div').classList.add("hidden");
+
+    this.resetControls();
+    this.showControls();
+    this.closeList();
+
+    var self = this;
+    this.addTwoState("showPalette", function(show) {
+        self.showPalette = show;
+        self.updateToolbox();
+    }, "Palette", this.showPalette);
+    this.addTwoState("showGraphics", function(show) {
+        self.showGraphics = show;
+        self.updateToolbox();
+    }, "Graphics", this.showGraphics);
+    this.addZoom(this.zoom, function() { self.changeZoom(); }, 0, 4);
+
+    this.updateToolbox();
+    this.div.focus();
+}
+
+ROMTilemapView.prototype.hide = function() {
+    this.observer.stopObservingAll();
+    this.graphicsView.hide();
+}
+
+ROMTilemapView.prototype.changeZoom = function() {
+
+    // update zoom
+    var zoomControl = document.getElementById("zoom");
+    var z = Number(zoomControl.value);
+    this.zoom = Math.pow(2, z);
+    var zoomValue = document.getElementById("zoom-value");
+    zoomValue.innerHTML = (this.zoom * 100).toString() + "%";
+
+    this.drawTilemap();
+}
+
+ROMTilemapView.prototype.updateToolbox = function() {
+    var toolboxDiv = document.getElementById("toolbox-div");
+    toolboxDiv.innerHTML = "";
+    toolboxDiv.style.height = "auto";
+    if (this.showGraphics) toolboxDiv.appendChild(this.graphicsView.div);
+    if (this.showPalette) toolboxDiv.appendChild(this.paletteView.div);
+}
+
+ROMTilemapView.prototype.mouseDown = function(e) {
+
+    this.closeList();
+
+    this.clickPoint = {
+        x: (e.offsetX / this.zoom) >> 3,
+        y: (e.offsetY / this.zoom) >> 3,
+        button: e.button
+    };
+
+    if (this.clickPoint.button === 2) {
+        this.selectTiles();
+        this.isDragging = true;
+    } else {
+        this.setTiles();
+        this.isDragging = true;
+    }
+
+    this.drawCursor();
+}
+
+ROMTilemapView.prototype.mouseMove = function(e) {
+
+    var col = (e.offsetX / this.zoom) >> 3;
+    var row = (e.offsetY / this.zoom) >> 3;
+
+    // update the displayed coordinates
+    var coordinates = document.getElementById("coordinates");
+    coordinates.innerHTML = "(" + col + ", " + row + ")";
+
+    // return if the cursor position didn't change
+    if (this.selection.x === col && this.selection.y === row) return;
+
+    // update the selection position
+    this.selection.x = col;
+    this.selection.y = row;
+
+    if (this.isDragging && this.clickPoint) {
+        if (this.clickPoint.button === 0) this.setTiles();
+        if (this.clickPoint.button === 2) this.selectTiles();
+    }
+
+    // update the cursor
+    this.drawCursor();
+}
+
+ROMTilemapView.prototype.mouseUp = function(e) {
+    if (this.isDragging) {
+        this.setTilemap();
+    }
+
+    this.isDragging = false;
+    this.clickPoint = null;
+    this.mouseMove(e);
+}
+
+ROMTilemapView.prototype.mouseEnter = function(e) {
+
+    // show the cursor
+    this.showCursor = true;
+    this.drawCursor();
+    this.mouseUp(e);
+}
+
+ROMTilemapView.prototype.mouseLeave = function(e) {
+
+    // hide the cursor
+    this.showCursor = false;
+    this.drawCursor();
+    this.mouseUp(e);
+}
+
+ROMTilemapView.prototype.setTiles = function() {
+
+    var col = this.selection.x;
+    var row = this.selection.y;
+    var cols = this.selection.w;
+    var rows = this.selection.h;
+
+    var l = (col << 3);
+    var r = l + (cols << 3);
+    var t = (row << 3);
+    var b = t + (rows << 3);
+    var rect = new Rect(l, r, t, b);
+
+    var x = col;
+    var y = row;
+    var w = cols;
+    var h = rows;
+
+    x = x % this.width;
+    y = y % this.height;
+    var clippedW = Math.min(w, this.width - x);
+    var clippedH = Math.min(h, this.height - y);
+
+    for (var row = 0; row < clippedH; row++) {
+        var ls = row * w;
+        var ld = x + (y + row) * this.width;
+        if (ld + clippedW > this.tilemap.length) break;
+        for (var col = 0; col < clippedW; col++) {
+            if (this.selection.tilemap[ls + col] === 0xFFFFFFFF) continue;
+            this.tilemap[ld + col] = this.selection.tilemap[ls + col];
+        }
+    }
+
+    this.drawTilemap();
+}
+
+ROMTilemapView.prototype.selectTiles = function() {
+
+    var col = this.selection.x;
+    var row = this.selection.y;
+    var cols = Math.abs(col - this.clickPoint.x) + 1;
+    var rows = Math.abs(row - this.clickPoint.y) + 1;
+    col = Math.min(col, this.clickPoint.x);
+    row = Math.min(row, this.clickPoint.y);
+
+    // limit the selection rectangle to the size of the layer
+    var clippedCol = col % this.width;
+    var clippedRow = row % this.height;
+    cols = Math.min(cols, this.width - clippedCol);
+    rows = Math.min(rows, this.height - clippedRow);
+
+    // create the tile selection
+    this.selection.x = col;
+    this.selection.y = row;
+    this.selection.w = cols;
+    this.selection.h = rows;
+    this.selection.tilemap = new Uint32Array(cols * rows);
+
+    for (var y = 0; y < rows; y++) {
+        var begin = col + (row + y) * this.width;
+        var end = begin + cols;
+        var line = this.tilemap.subarray(begin, end);
+        this.selection.tilemap.set(line, y * cols);
+    }
+
+    if (this.selection.tilemap.length === 1) {
+        // select tile in graphics and palette views
+        var tile = this.selection.tilemap[0];
+        var p = (tile & 0x00FF0000) >> 16;
+        this.paletteView.p = Math.round(p / this.paletteView.colorsPerPalette);
+        this.paletteView.redraw();
+
+        this.graphicsView.selectTile(tile);
+    } else {
+        // clear the graphics view selection
+        this.graphicsView.selection = {
+            x: 0, y: 0, w: 0, h: 0,
+            tilemap: new Uint32Array(0)
+        };
+        this.graphicsView.redraw();
+    }
+}
+
+ROMTilemapView.prototype.selectPalette = function(p) {
+    p <<= 16;
+    for (var t = 0; t < this.selection.tilemap.length; t++) {
+        this.selection.tilemap[t] &= 0xFF00FFFF;
+        this.selection.tilemap[t] |= p;
+    }
+}
+
+ROMTilemapView.prototype.toggleSelectionVFlip = function() {
+
+    var w = this.selection.w;
+    var h = this.selection.h;
+
+    var tilemap = new Uint32Array(this.selection.tilemap);
+
+    for (var y = 0; y < h; y++) {
+        for (var x = 0; x < w; x++) {
+            this.selection.tilemap[x + y * w] = tilemap[x + (h - y - 1) * w] ^ 0x20000000;
+        }
+    }
+}
+
+ROMTilemapView.prototype.toggleSelectionHFlip = function() {
+
+    var w = this.selection.w;
+    var h = this.selection.h;
+
+    var tilemap = new Uint32Array(this.selection.tilemap);
+
+    for (var y = 0; y < h; y++) {
+        for (var x = 0; x < w; x++) {
+            this.selection.tilemap[x + y * w] = tilemap[(w - x - 1) + y * w] ^ 0x10000000;
+        }
+    }
+}
+
+ROMTilemapView.prototype.loadTilemap = function() {
+
+    // return if nothing selected
+    if (!this.object) return;
+
+    this.observer.stopObservingAll();
+    this.observer.startObserving(this.object, this.loadTilemap);
+
+    // update tile layout parameters
+    this.width = this.object.width || 32;
+    this.height = this.object.height || 32;
+    this.backColor = this.object.backColor;
+
+    // update graphics and palette
+    this.graphicsView.loadDefinition(this.object.graphics);
+    this.paletteView.loadDefinition(this.object.palette);
+    this.paletteView.updateToolbox();
+    this.graphicsView.updateToolbox();
+
+    this.graphicsView.updateTilemap();
+    this.graphicsView.redraw();
+    this.paletteView.redraw();
+
+    // copy the tilemap
+    this.tilemap = new Uint32Array(this.height * this.width);
+    if (this.object.data) {
+        this.tilemap.set(this.object.data.subarray(0, this.tilemap.length));
+    }
+
+    // load data from definition
+    this.loadTileOffset(this.object.tileOffset);
+    this.loadColorOffset(this.object.colorOffset);
+    this.loadFlip(this.object.vFlip, true);
+    this.loadFlip(this.object.hFlip, false);
+
+    this.drawTilemap();
+}
+
+ROMTilemapView.prototype.setTilemap = function() {
+
+    // return if nothing selected
+    if (!this.object) return;
+
+    // make a copy of the current tiles
+    var newData = this.tilemap.slice(0, this.object.data.length);
+
+    this.rom.beginAction();
+    this.observer.sleep();
+
+    // copy the tilemap and extract tile offset, color offset, v/h-flip
+    this.setTileOffset(this.object.tileOffset, newData);
+    this.setColorOffset(this.object.colorOffset, newData);
+    this.setFlip(this.object.vFlip, true, newData);
+    this.setFlip(this.object.hFlip, false, newData);
+
+    // set tilemap object data
+    this.object.setData(newData);
+
+    this.observer.wake();
+    this.rom.endAction();
+}
+
+ROMTilemapView.prototype.redraw = function() {
+    this.drawTilemap();
+    this.drawCursor();
+}
+
+ROMTilemapView.prototype.drawTilemap = function() {
+
+    var ppu = new GFX.PPU();
+
+    // create the palette
+    var palette = new Uint32Array(this.paletteView.palette);
+    if (this.backColor) {
+        // use first palette color as back color
+        palette[0] = this.paletteView.palette[0];
+        ppu.back = true;
+    } else {
+        // transparent background
+        // palette[0] = 0xFF000000;
+        ppu.back = false;
+    }
+
+    // set up the ppu
+    ppu.pal = palette;
+    ppu.width = this.width * 8;
+    ppu.height = this.height * 8;
+
+    // layer 1
+    ppu.layers[0].format = null;
+    ppu.layers[0].cols = this.width;
+    ppu.layers[0].rows = this.height;
+    ppu.layers[0].z[0] = GFX.Z.top;
+    ppu.layers[0].z[1] = GFX.Z.top;
+    ppu.layers[0].z[2] = GFX.Z.top;
+    ppu.layers[0].z[3] = GFX.Z.top;
+    ppu.layers[0].gfx = this.graphicsView.graphics;
+    ppu.layers[0].tiles = this.tilemap;
+    ppu.layers[0].main = true;
+
+    // draw layout image
+    this.layoutCanvas.width = ppu.width;
+    this.layoutCanvas.height = ppu.height;
+    var context = this.layoutCanvas.getContext('2d');
+    imageData = context.createImageData(ppu.width, ppu.height);
+    ppu.renderPPU(imageData.data, 0, 0, ppu.width, ppu.height);
+    context.putImageData(imageData, 0, 0);
+
+    // scale image to zoom setting
+    this.canvas.width = ppu.width * this.zoom;
+    this.canvas.height = ppu.height * this.zoom;
+    context = this.canvas.getContext('2d');
+    context.imageSmoothingEnabled = false;
+    context.webkitImageSmoothingEnabled = false;
+    context.drawImage(this.layoutCanvas,
+        0, 0, this.layoutCanvas.width, this.layoutCanvas.height,
+        0, 0, this.canvas.width, this.canvas.height);
+}
+
+ROMTilemapView.prototype.drawCursor = function() {
+    this.cursorCanvas.style.display = "none";
+    if (!this.showCursor) return;
+
+    var col = this.selection.x;
+    var row = this.selection.y;
+
+    // get the cursor geometry and color
+    var x = (col << 3) * this.zoom;
+    var y = (row << 3) * this.zoom;
+    var w = (this.selection.w << 3) * this.zoom;
+    var h = (this.selection.h << 3) * this.zoom;
+
+    // draw the cursor
+    w = Math.min(this.width * 8 * this.zoom - x, w);
+    h = Math.min(this.height * 8 * this.zoom - y, h);
+    if (w <= 0 || h <= 0) return;
+
+    // set up the cursor canvas
+    this.cursorCanvas.width = w;
+    this.cursorCanvas.height = h;
+    this.cursorCanvas.style.left = x.toString() + "px";
+    this.cursorCanvas.style.top = y.toString() + "px";
+    this.cursorCanvas.style.display = "block";
+    var ctx = this.cursorCanvas.getContext('2d');
+
+    // convert the selection to screen coordinates
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "black";
+    x = 0.5; y = 0.5; w--; h--;
+    ctx.strokeRect(x, y, w, h);
+    x++; y++; w -= 2; h -= 2;
+    ctx.strokeStyle = "hsl(210, 100%, 50%)";
+    ctx.strokeRect(x, y, w, h);
+    x++; y++; w -= 2; h -= 2;
+    ctx.strokeStyle = "white";
+    ctx.strokeRect(x, y, w, h);
+    x++; y++; w -= 2; h -= 2;
+    ctx.strokeStyle = "black";
+    ctx.strokeRect(x, y, w, h);
+}
+
+ROMTilemapView.prototype.loadTileOffset = function(definition) {
+    if (!definition) return;
+
+    // recursively load array definitions
+    if (isArray(definition)) {
+        for (var i = 0; i < definition.length; i++) this.loadTileOffset(definition[i]);
+        return;
+    }
+
+    var r = this.parseDefinition(definition);
+
+    if (r.object) this.observer.startObserving(r.object, this.loadTilemap);
+
+    if (isNumber(r.value)) {
+        for (var t = r.offset; t < this.tilemap.length; t++) {
+            var tile = this.tilemap[t] & 0x0000FFFF;
+            tile += r.value * r.multiplier;
+            this.tilemap[t] &= 0xFFFF0000;
+            this.tilemap[t] |= (tile & 0x0000FFFF);
+        }
+
+    } else if (r.data) {
+        for (var t = r.offset; t < this.tilemap.length; t++) {
+            var tile = this.tilemap[t] & 0x0000FFFF;
+            tile += r.data[t] * r.multiplier;
+            this.tilemap[t] &= 0xFFFF0000;
+            this.tilemap[t] |= (tile & 0x0000FFFF);
+        }
+    } else if (r.object instanceof  ROMArray) {
+        for (var t = r.offset; t < this.tilemap.length; t++) {
+            var tile = this.tilemap[t] & 0x0000FFFF;
+            var arrayElement = r.object.item(t);
+            if (!arrayElement) continue;
+            var value = arrayElement[r.key].value;
+            tile += value;
+            this.tilemap[t] &= 0xFFFF0000;
+            this.tilemap[t] |= (tile & 0x0000FFFF);
+        }
+    }
+}
+
+ROMTilemapView.prototype.setTileOffset = function(definition, tilemap) {
+    if (!definition) return;
+
+    // recursively load array definitions
+    if (isArray(definition)) {
+        for (var i = 0; i < definition.length; i++) this.setTileOffset(tilemap, definition[i]);
+        return;
+    }
+
+    var r = this.parseDefinition(definition);
+
+    // subtract out the tile offset
+    if (isNumber(r.value)) {
+        for (var t = r.offset; t < tilemap.length; t++) {
+            var tile = tilemap[t];
+            tile &= 0xFFFF;
+            tile -= r.value * r.multiplier;
+            if (tile < 0) tile = 0;
+            tilemap[t] &= 0xFFFF0000;
+            tilemap[t] |= tile;
+        }
+
+    } else if (r.data) {
+        for (var t = r.offset; t < tilemap.length; t++) {
+            var tile = tilemap[t];
+            tile &= 0xFFFF;
+            tile -= r.data[t] * r.multiplier;
+            if (tile < 0) tile = 0;
+            tilemap[t] &= 0xFFFF0000;
+            tilemap[t] |= tile;
+        }
+    } else if (r.object instanceof  ROMArray) {
+        for (var t = r.offset; t < tilemap.length; t++) {
+            var arrayElement = r.object.item(t);
+            if (!arrayElement) continue;
+            var value = arrayElement[r.key].value;
+            var tile = tilemap[t];
+            tile &= 0xFFFF;
+            tile -= value;
+            if (tile < 0) tile = 0;
+            tilemap[t] &= 0xFFFF0000;
+            tilemap[t] |= tile;
+        }
+    }
+}
+
+ROMTilemapView.prototype.loadColorOffset = function(definition) {
+    if (!definition) return;
+
+    // recursively load array definitions
+    if (isArray(definition)) {
+        for (var i = 0; i < definition.length; i++) this.loadColorOffset(definition[i]);
+        return;
+    }
+
+    var r = this.parseDefinition(definition);
+
+    if (r.object) this.observer.startObserving(r.object, this.loadTilemap);
+
+    if (isNumber(r.value)) {
+        for (var t = r.offset; t < this.tilemap.length; t++) {
+            var tile = this.tilemap[t];
+            var p = tile & 0x00FF0000;
+            p += (r.value * r.multiplier) << 16;
+            tile &= 0xFF00FFFF;
+            tile |= p & 0x00FF0000;
+            this.tilemap[t] = tile;
+        }
+
+    } else if (r.data) {
+        for (var t = r.offset; t < this.tilemap.length; t++) {
+            var tile = this.tilemap[t];
+            var p = tile & 0x00FF0000;
+            var d = r.perTile ? (tile & 0x0000FFFF) : t;
+            p += (r.data[d] * r.multiplier) << 16;
+            tile &= 0xFF00FFFF;
+            tile |= p & 0x00FF0000;
+            this.tilemap[t] = tile;
+        }
+    } else if (r.object instanceof ROMArray) {
+        for (var t = r.offset; t < this.tilemap.length; t++) {
+            var tile = this.tilemap[t];
+            var p = tile & 0x00FF0000;
+            var d = r.perTile ? (tile & 0x0000FFFF) : t;
+            var arrayElement = r.object.item(d);
+            if (!arrayElement) continue;
+            var value = arrayElement[r.key].value;
+            p += value << 16;
+            tile &= 0xFF00FFFF;
+            tile |= p & 0x00FF0000;
+            this.tilemap[t] = tile;
+        }
+    }
+}
+
+ROMTilemapView.prototype.setColorOffset = function(definition, tilemap) {
+    if (!definition) return;
+
+    // recursively load array definitions
+    if (isArray(definition)) {
+        for (var i = 0; i < definition.length; i++) this.loadColorOffset(definition[i]);
+        return;
+    }
+
+    var r = this.parseDefinition(definition);
+
+    if (isNumber(r.value)) {
+        for (var t = r.offset; t < tilemap.length; t++) {
+            var tile = tilemap[t];
+            tile &= 0x00FF0000;
+            tile -= (r.value * r.multiplier) << 16;
+            if (tile < 0) tile = 0;
+            tilemap[t] &= 0xFF00FFFF;
+            tilemap[t] |= tile;
+        }
+
+    } else if (r.data) {
+        var data = r.data.slice();
+        for (var t = r.offset; t < tilemap.length; t++) {
+            var tile = tilemap[t];
+            var p = tile & 0x00FF0000;
+            if (r.perTile) {
+                var d = tile & 0x0000FFFF;
+                p -= (r.data[d] * r.multiplier) << 16;
+                if (p < 0) p = 0;
+                tilemap[t] &= 0xFF00FFFF;
+                tilemap[t] |= p;
+            } else {
+                data[t] = (p >> 16) / r.multiplier;
+                p = 0;
+                tilemap[t] &= 0xFF00FFFF;
+            }
+            tilemap[t] |= p;
+        }
+        r.object.setData(data);
+
+    } else if (r.object instanceof  ROMArray) {
+        for (var t = r.offset; t < tilemap.length; t++) {
+            var tile = tilemap[t];
+            var d = r.perTile ? (tile & 0x0000FFFF) : t;
+            var arrayElement = r.object.item(d);
+            if (!arrayElement) continue;
+            var value = arrayElement[r.key].value;
+            tile &= 0x00FF0000;
+            tile -= value << 16;
+            if (tile < 0) tile = 0;
+            tilemap[t] &= 0xFF00FFFF;
+            tilemap[t] |= tile;
+        }
+    }
+}
+
+ROMTilemapView.prototype.loadFlip = function(definition, v) {
+    if (!definition) return;
+
+    // recursively load array definitions
+    if (isArray(definition)) {
+        for (var i = 0; i < definition.length; i++) this.loadFlip(definition[i], v);
+        return;
+    }
+
+    var r = this.parseDefinition(definition);
+
+    if (r.object) this.observer.startObserving(r.object, this.loadTilemap);
+
+    var mask = v ? 0x20000000 : 0x10000000;
+    if (isNumber(r.value)) {
+        for (var t = r.offset; t < this.tilemap.length; t++) {
+            r.value ? (this.tilemap[t] |= mask) : (this.tilemap[t] &= ~mask);
+        }
+
+    } else if (r.data) {
+        for (var t = r.offset; t < this.tilemap.length; t++) {
+            r.data[t] ? (this.tilemap[t] |= mask) : (this.tilemap[t] &= ~mask);
+        }
+    }
+}
+
+ROMTilemapView.prototype.setFlip = function(definition, v, tilemap) {
+    if (!definition) return;
+
+    // recursively load array definitions
+    if (isArray(definition)) {
+        for (var i = 0; i < definition.length; i++) this.loadColorOffset(definition[i]);
+        return;
+    }
+
+    var r = this.parseDefinition(definition);
+
+    var mask = v ? 0x20000000 : 0x10000000;
+
+    if (r.data) {
+        var data = r.data.slice();
+        for (var t = r.offset; t < tilemap.length; t++) {
+            data[t] = (tilemap[t] & mask) ? 1 : 0;
+            tilemap[t] &= ~mask;
+        }
+        r.object.setData(data);
+    }
+
+    // // recursively load array definitions
+    // if (isArray(definition)) {
+    //     for (var i = 0; i < definition.length; i++) this.loadFlip(definition[i], vh);
+    //     return;
+    // }
+    //
+    // var r = this.parseDefinition(definition);
+    //
+    // if (r.data) {
+    //     var newData = r.object.data.slice(r.range.begin, r.range.end);
+    //     for (var t = r.offset; t < tilemap.length; t++) {
+    //         var tile = tilemap[t];
+    //         newData[t] = tile[vh] ? 1 : 0;
+    //     }
+    //     r.object.setData(newData, r.range.begin, r.range.end);
+    // }
+}
+
+ROMTilemapView.prototype.observeDefinitionObject = function(definition, callback) {
+    if (!definition) return;
+
+    // recursively load array definitions
+    if (isArray(definition)) {
+        for (var i = 0; i < definition.length; i++) this.observeDefinitionObject(definition[i], callback);
+        return;
+    }
+
+    var r = this.parseDefinition(definition);
+    if (r.object && r.object.addObserver) this.observer.startObserving(r.object, callback);
+}
+
+ROMTilemapView.prototype.parseDefinition = function(definition) {
+
+    var r = {};
+    if (!definition) return r;
+
+    // parse constant value
+    var num = Number(definition);
+    if (isNumber(num)) {
+        r.offset = 0;
+        r.multiplier = 1;
+        r.value = num;
+        return r;
+    }
+
+    // parse object
+    var object;
+    if (isString(definition)) {
+        r.object = this.rom.parsePath(definition, this.rom, this.object.i);
+    } else if (isString(definition.path)) {
+        r.object = this.rom.parsePath(definition.path, this.rom, this.object.i);
+    }
+
+    // parse offset
+    r.offset = Number(definition.offset) || 0;
+
+    // parse multiplier
+    r.multiplier = Number(definition.multiplier) || 1;
+
+    // values are per graphics tile or per layout tile
+    r.perTile = definition.perTile;
+
+    if (r.object instanceof ROMProperty) {
+        // parse object value
+        r.value = r.object.value;
+
+    } else if (r.object instanceof ROMArray) {
+        // parse array
+        r.key = definition.key;
+
+    } else if (r.object && r.object.data) {
+        // parse object data
+        r.data = r.object.data;
+
+        // parse data range
+        if (definition.range) {
+            r.range = ROMRange.parse(definition.range);
+            r.data = r.data.subarray(r.range.begin, r.range.end);
+        } else {
+            r.range = new ROMRange(0, r.data.length);
+        }
+    }
+
+    return r;
+}
+
+function ROMGraphicsExporter() {}
+
+ROMGraphicsExporter.prototype.export = function(options) {
+    if (!options) return;
+    this.graphics = new Uint8Array(options.graphics || 0);
+    this.palette = new Uint32Array(options.palette || 0);
+    this.tilemap = new Uint32Array(options.tilemap || 0);
+    this.width = options.width || 16;
+    this.height = options.height || Math.ceil(this.tilemap.length / this.width);
+    if (!options.backColor) this.palette[0] = 0;
+
     // open a dialog box
     var content = openModal("Export Graphics");
 
-    var div = document.createElement('div');
-    content.appendChild(div);
+    // dropdown list of image formats
+    var formatDiv = document.createElement('div');
+    formatDiv.classList.add("property-div");
+    content.appendChild(formatDiv);
 
-    var p = document.createElement('p');
-    p.innerHTML = "Select an image format:";
-    div.appendChild(p);
+    var formatListDiv = document.createElement('div');
+    formatListDiv.classList.add("property-control-div");
 
-    var list = document.createElement('select');
-    list.id = "export-list";
-    div.appendChild(list);
+    var formatList = document.createElement('select');
+    formatList.id = "export-format-list";
+    formatListDiv.appendChild(formatList);
 
-    var keys = Object.keys(ROMGraphicsView.exportFormat);
+    var formatLabel = document.createElement('label');
+    formatLabel.innerHTML = "Image Format:";
+    formatLabel.classList.add("property-label");
+    formatLabel.htmlFor = "import-format-list";
+
+    formatDiv.appendChild(formatLabel);
+    formatDiv.appendChild(formatListDiv);
+
+    var option = document.createElement('option');
+    option.id = "export-indexed";
+    option.innerHTML = "PNG (indexed)";
+    option.value = "indexed";
+    formatList.appendChild(option);
+
+    var option = document.createElement('option');
+    option.id = "export-png";
+    option.innerHTML = "PNG (RGB)";
+    option.value = "png";
+    formatList.appendChild(option);
+
+    var option = document.createElement('option');
+    option.id = "export-jpeg";
+    option.innerHTML = "JPEG (lossless)";
+    option.value = "jpeg";
+    formatList.appendChild(option);
+
+    var keys = Object.keys(GFX.graphicsFormat);
     for (var i = 0; i < keys.length; i++) {
         var key = keys[i];
-        var imageFormat = ROMGraphicsView.exportFormat[key];
+        var imageFormat = GFX.graphicsFormat[key];
 
         // skip formats that don't have enough color depth
-        if (this.colorDepth > imageFormat.colorDepth) continue;
+        if (this.colorsPerPalette > imageFormat.colorsPerPalette) continue;
 
         var option = document.createElement('option');
-        option.id = "export-" + imageFormat.id;
-        option.innerHTML = imageFormat.description;
-        if (this.format === imageFormat.id) option.innerHTML += " (Default)";
-        option.value = imageFormat.id;
-        if (!this.format && imageFormat.default) list.value = imageFormat.id;
-        list.appendChild(option);
+        option.id = "export-" + imageFormat.key;
+        option.innerHTML = imageFormat.name;
+        // if (this.format.startsWith(imageFormat.key)) option.innerHTML += " (Native)";
+        option.value = imageFormat.key;
+        formatList.appendChild(option);
     }
 
-    if (this.format) list.value = this.format;
+    formatList.value = "indexed";
 
-    var editor = this;
+    var exporter = this;
     var okayButton = document.createElement('button');
     okayButton.innerHTML = "Okay";
     okayButton.onclick = function() {
         closeModal();
-        var imageFormat = ROMGraphicsView.exportFormat[list.value];
-        editor.exportGraphics(imageFormat);
+        exporter.exportGraphics(formatList.value);
     };
     content.appendChild(okayButton);
 
@@ -2115,45 +4236,53 @@ ROMGraphicsView.prototype.showExportDialog = function() {
     content.appendChild(cancelButton);
 }
 
-ROMGraphicsView.prototype.exportGraphics = function(format) {
+ROMGraphicsExporter.prototype.exportGraphics = function(formatKey) {
 
     var url;
-    var width = this.width * 8;
-    var height = Math.ceil(this.gfx.data.length / this.width / 64) * 8;
+    var extension = "bin";
 
-    if (format.id === "indexed") {
+    var ppu = new GFX.PPU();
+    ppu.pal = this.palette;
+    ppu.height = this.height * 8;
+    ppu.width = this.width * 8;
+    ppu.back = true;
+    ppu.layers[0].cols = this.width;
+    ppu.layers[0].rows = this.height;
+    ppu.layers[0].z[0] = GFX.Z.top;
+    ppu.layers[0].gfx = this.graphics;
+    ppu.layers[0].tiles = this.tilemap;
+    ppu.layers[0].main = true;
+
+    if (formatKey === "indexed") {
         // indexed png
-        var image = GFX.createPNG(this.gfx.data, this.pal, width);
+        var image = ppu.createPNG(0, 0, ppu.width, ppu.height);
         var blob = new Blob([image.buffer]);
-        var url = window.URL.createObjectURL(blob);
+        url = window.URL.createObjectURL(blob);
+        extension = "png";
 
-    } else if (format.id === "png") {
-        // non-indexed png
+    } else if (formatKey === "png" || formatKey === "jpeg") {
+        // non-indexed png or lossless jpeg
         var canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
+        canvas.width = ppu.width;
+        canvas.height = ppu.height;
         var context = canvas.getContext('2d');
-        var imageData = context.createImageData(width, height);
-        GFX.render(imageData.data, this.gfx.data, this.pal, width, this.pal[0]);
+        var imageData = context.createImageData(ppu.width, ppu.height);
+        ppu.renderPPU(imageData.data, 0, 0, ppu.width, ppu.height);
         context.putImageData(imageData, 0, 0);
-        var url = canvas.toDataURL("image/png");
-
-    } else if (format.id === "jpeg") {
-        // jpeg (lossless)
-        var canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        var context = canvas.getContext('2d');
-        var imageData = context.createImageData(width, height);
-        GFX.render(imageData.data, this.gfx.data, this.pal, width, this.pal[0]);
-        context.putImageData(imageData, 0, 0);
-        var url = canvas.toDataURL("image/jpeg", 1.0);
+        if (formatKey === "png") {
+            url = canvas.toDataURL("image/png");
+            extension = "png";
+        } else if (formatKey === "jpeg") {
+            url = canvas.toDataURL("image/jpeg", 1.0);
+            extension = "jpeg";
+        }
 
     } else {
-        // raw graphics
-        var data = ROMAssembly.encode(this.gfx.data, format.id);
+        // raw graphics (ignores tilemap)
+        var graphicsFormat = GFX.graphicsFormat[formatKey];
+        var data = graphicsFormat.encode(this.graphics);
         var blob = new Blob([data[0].buffer]);
-        var url = window.URL.createObjectURL(blob);
+        url = window.URL.createObjectURL(blob);
     }
 
     if (!url) return;
@@ -2165,7 +4294,7 @@ ROMGraphicsView.prototype.exportGraphics = function(format) {
     document.body.appendChild(a);
 
     a.href = url;
-    a.download = 'image.' + format.extension;
+    a.download = 'image.' + extension;
     a.click();
 
     // release the reference to the file by revoking the Object URL
@@ -2173,246 +4302,275 @@ ROMGraphicsView.prototype.exportGraphics = function(format) {
 
 }
 
-ROMGraphicsView.prototype.showImportDialog = function(format) {
+function ROMGraphicsImporter(rom, graphicsView, callback) {
+    this.rom = rom;
+    this.data = null;
+    this.oldPalette = graphicsView.paletteView.palette;
+    this.oldGraphics = graphicsView.graphics;
+    this.includePalette = false;
+    this.includeGraphics = false;
+    this.ignoreBlankTiles = false;
+
+    this.graphicsLeft = new ROMGraphicsView(rom);
+    this.graphicsLeft.importMode = true;
+    this.graphicsLeft.zoom = 1.0;
+    this.graphicsLeft.format = graphicsView.format;
+    this.graphicsLeft.backColor = graphicsView.backColor;
+    this.graphicsLeft.width = graphicsView.width || 16;
+    this.graphicsLeft.height = graphicsView.height || 16;
+    this.graphicsLeft.graphics = new Uint8Array(this.graphicsLeft.width * this.graphicsLeft.height * 64);
+    this.graphicsLeft.tilemap = null;
+    this.graphicsLeft.spriteSheet = null;
+    this.graphicsLeft.canvasDiv.classList.add("background-gradient");
+    this.graphicsLeft.selection = {
+        x: 0, y: 0,
+        w: this.graphicsLeft.width,
+        h: this.graphicsLeft.height,
+        tilemap: new Uint32Array(this.graphicsLeft.width * this.graphicsLeft.height)
+    };
+    this.graphicsLeft.canvas.onmousedown = function(e) {
+        importer.graphicsLeft.mouseDown(e);
+        importer.validateSelection();
+        importer.updateImportPreview();
+    };
+    this.graphicsLeft.canvas.onmousemove = function(e) {
+        importer.graphicsLeft.mouseMove(e);
+        importer.validateSelection();
+        importer.updateImportPreview();
+    };
+
+    this.paletteLeft = this.graphicsLeft.paletteView;
+    this.paletteLeft.palette = new Uint32Array(this.oldPalette.length);
+    this.paletteLeft.palette.fill(0xFF000000);
+    this.paletteLeft.showCursor = false;
+    this.paletteLeft.canvas.onmousedown = function(e) { importer.paletteLeftMouseDown(e) };
+
+    this.graphicsRight = new ROMGraphicsView(rom);
+    this.graphicsLeft.importMode = true;
+    this.graphicsRight.zoom = 1.0;
+    this.graphicsRight.graphics = this.oldGraphics;
+    this.graphicsRight.format = graphicsView.format;
+    this.graphicsRight.backColor = graphicsView.backColor;
+    this.graphicsRight.width = graphicsView.width || 16;
+    this.graphicsRight.height = graphicsView.height || 16;
+    this.graphicsRight.tilemap = graphicsView.tilemap;
+    this.graphicsRight.spriteSheet = graphicsView.spriteSheet;
+    this.graphicsRight.canvasDiv.classList.add("background-gradient");
+    this.graphicsRight.selection = {
+        x: 0, y: 0,
+        w: this.graphicsRight.width,
+        h: this.graphicsRight.height,
+        tilemap: new Uint32Array(this.graphicsRight.width * this.graphicsRight.height)
+    };
+    this.graphicsRight.canvas.onmousedown = function(e) {
+        importer.graphicsRight.mouseDown(e);
+        importer.validateSelection();
+        importer.updateImportPreview();
+    };
+    this.graphicsRight.canvas.onmousemove = null;
+
+    this.paletteRight = this.graphicsRight.paletteView;
+    this.paletteRight.palette = this.oldPalette;
+    this.paletteRight.p = graphicsView.paletteView.p;
+    this.paletteRight.canvas.onmousedown = function(e) { importer.paletteRightMouseDown(e) };
+
+    this.callback = callback;
 
     // open a dialog box
-    var content = openModal("Import Graphics");
-
-    var graphicsView = this;
-    var importData = null;
-    var importFormat = this.format;
-    var importGraphics = null;
-    var importPalette = this.pal;
-    var importCustomPalette = false;
-    var importDepth = this.colorDepth;
-    var importBackColor = this.backColor;
-
-    function updateImportPreview() {
-        var okayButton = document.getElementById("import-okay");
-        okayButton.disabled = true;
-        if (!importData) return;
-        okayButton.disabled = false;
-
-        var paletteCheck = document.getElementById("import-palette-check");
-        paletteCheck.disabled = true;
-
-        if (ROM.dataFormat[importFormat]) {
-            // paletteCheck.checked = false;
-            importGraphics = ROM.dataFormat[importFormat].decode(importData)[0];
-            importPalette = graphicsView.pal;
-            drawImportPreview();
-
-        } else if (importFormat === "png" || importFormat === "jpeg") {
-            paletteCheck.disabled = false;
-            if (!importCustomPalette) importPalette = graphicsView.pal;
-            var blob = new Blob([importData], { type: 'image/' + importFormat });
-            var url = URL.createObjectURL(blob);
-            var img = new Image();
-            img.decode = "sync"; // load synchronously
-            img.src = url;
-            img.onload = function() {
-                quantizeImage(img);
-                URL.revokeObjectURL(blob);
-            }
-
-        } else if (importFormat === "indexed") {
-            paletteCheck.disabled = false;
-            if (!importCustomPalette) importPalette = graphicsView.pal;
-            var indexed = pzntg.getIndexed(importData);
-            if (indexed.graphics) importGraphics = indexed.graphics;
-            if (indexed.palette && importCustomPalette) importPalette = new Uint32Array(indexed.palette.buffer);
-
-            // interlace to convert to 8x8 tiles
-            importGraphics = ROM.dataFormat.interlace.decode(importGraphics, 8, 8, graphicsView.width)[0]
-            drawImportPreview();
-
-        } else {
-            importGraphics = importData;
-            importPalette = graphicsView.pal;
-            drawImportPreview();
-        }
-    }
-
-    function drawImportPreview() {
-        var importCanvas = document.getElementById("import-canvas");
-        var width = graphicsView.width * 8;
-        var height = Math.ceil(importGraphics.length / 64 / graphicsView.width) * 8;
-        importCanvas.width = width;
-        importCanvas.height = height;
-        var context = importCanvas.getContext('2d');
-        var imageData = context.createImageData(width, height);
-        GFX.render(imageData.data, importGraphics, importPalette, width, graphicsView.pal[0]);
-        context.putImageData(imageData, 0, 0);
-    }
-
-    function quantizeImage(img) {
-
-        var colorDepth = importBackColor ? importDepth : (importDepth - 1);
-
-        var quantPalette = [];
-        if (!importCustomPalette) {
-            // use the current palette
-            for (var p = 0; p < importPalette.length; p++) {
-
-                // skip transparent color
-                if (p === 0 && !importBackColor) continue;
-
-                var r = importPalette[p] & 0xFF;
-                var g = (importPalette[p] & 0xFF00) >> 8;
-                var b = (importPalette[p] & 0xFF0000) >> 16;
-                quantPalette.push([r,g,b]);
-            }
-        }
-
-        var options = {
-            colors: colorDepth,      // desired palette size
-            method: 2,               // histogram method, 2: min-population threshold within subregions; 1: global top-population
-            boxSize: [8,8],          // subregion dims (if method = 2)
-            boxPxls: 2,              // min-population threshold (if method = 2)
-            initColors: 4096,        // # of top-occurring colors  to start with (if method = 1)
-            minHueCols: 0,           // # of colors per hue group to evaluate regardless of counts, to retain low-count hues
-            dithKern: null,          // dithering kernel name, see available kernels in docs below
-            dithDelta: 0,            // dithering threshhold (0-1) e.g: 0.05 will not dither colors with <= 5% difference
-            dithSerp: false,         // enable serpentine pattern dithering
-            palette: quantPalette,   // a predefined palette to start with in r,g,b tuple format: [[r,g,b],[r,g,b]...]
-            reIndex: false,          // affects predefined palettes only. if true, allows compacting of sparsed palette once target palette size is reached. also enables palette sorting.
-            useCache: true,          // enables caching for perf usually, but can reduce perf in some cases, like pre-def palettes
-            cacheFreq: 10,           // min color occurance count needed to qualify for caching
-            colorDist: "euclidean",  // method used to determine color distance, can also be "manhattan"
-        }
-
-        // quantize the image
-        var q = new RgbQuant(options);
-        q.sample(img);
-
-        // get the palette (false to get an array instead of tuples)
-        if (importCustomPalette) {
-            var quantPalette32 = new Uint32Array(q.palette(false).buffer);
-            importPalette = new Uint32Array(importDepth);
-            if (importBackColor) {
-                importPalette.set(quantPalette32, 0);
-            } else {
-                importPalette.set(quantPalette32, 1);
-            }
-        }
-
-        // get the indexed color data
-        importGraphicsARGB = new Uint8Array(q.reduce(img, 1));
-        importGraphics = new Uint8Array(q.reduce(img, 2));
-
-        // if there is a transparent color, increment every color index
-        if (!importBackColor) {
-            for (var i = 0; i < importGraphics.length; i++) {
-                if (importGraphicsARGB[i * 4 + 3]) {
-                    importGraphics[i]++;
-                }
-            }
-        }
-
-        // interlace to convert to 8x8 tiles
-        importGraphics = ROM.dataFormat.interlace.decode(importGraphics, 8, 8, graphicsView.width)[0]
-        drawImportPreview();
-    }
+    this.content = openModal("Import Graphics");
+    var importer = this;
 
     // file select button
     var input = document.createElement('input');
     input.type = "file";
-    content.appendChild(input);
+    this.content.appendChild(input);
     input.onchange = function() {
         // upload user image file
         if (!this.files || !this.files[0]) return;
         var file = this.files[0];
-        this.value = null;
         var filereader = new FileReader();
         filereader.readAsArrayBuffer(file);
+        importer.includeGraphics = true;
+        importer.includePalette = true;
         filereader.onload = function() {
-            importData = new Uint8Array(filereader.result);
-            updateImportPreview();
+            importer.data = new Uint8Array(filereader.result);
+            importer.updateImportPreview();
         }
     }
 
     // dropdown list of image formats
-    var div = document.createElement('div');
-    content.appendChild(div);
+    var formatDiv = document.createElement('div');
+    formatDiv.classList.add("property-div");
+    this.content.appendChild(formatDiv);
 
-    var p = document.createElement('p');
-    p.innerHTML = "Select an image format:";
-    div.appendChild(p);
+    var formatListDiv = document.createElement('div');
+    formatListDiv.classList.add("property-control-div");
 
-    var list = document.createElement('select');
-    list.onchange = function() {
-        importFormat = this.value;
-        updateImportPreview();
+    var formatList = document.createElement('select');
+    // formatList.classList.add("property-control");
+    formatList.id = "import-format-list";
+    formatList.onchange = function() {
+        importer.updateImportPreview();
     }
-    div.appendChild(list);
+    formatListDiv.appendChild(formatList);
 
-    var keys = Object.keys(ROMGraphicsView.exportFormat);
+    var formatLabel = document.createElement('label');
+    formatLabel.innerHTML = "Image Format:";
+    formatLabel.classList.add("property-label");
+    formatLabel.htmlFor = "import-format-list";
+
+    formatDiv.appendChild(formatLabel);
+    formatDiv.appendChild(formatListDiv);
+
+    // add options for png and jpeg
+    option = document.createElement('option');
+    option.id = "import-indexed";
+    option.innerHTML = "PNG (indexed)";
+    option.value = "indexed";
+    formatList.appendChild(option);
+    formatList.value = "indexed"; // default format
+
+    option = document.createElement('option');
+    option.id = "import-png";
+    option.innerHTML = "PNG (RGB)";
+    option.value = "png";
+    formatList.appendChild(option);
+
+    option = document.createElement('option');
+    option.id = "import-jpeg";
+    option.innerHTML = "JPEG";
+    option.value = "jpeg";
+    formatList.appendChild(option);
+
+    // add options for native formats
+    var keys = Object.keys(GFX.graphicsFormat);
     for (var i = 0; i < keys.length; i++) {
         var key = keys[i];
-        var imageFormat = ROMGraphicsView.exportFormat[key];
+        var imageFormat = GFX.graphicsFormat[key];
 
         // skip formats that don't have enough color depth
-        if (this.colorDepth > imageFormat.colorDepth) continue;
+        if (imageFormat.colorsPerPalette > this.graphicsRight.format.colorsPerPalette) continue;
 
-        var option = document.createElement('option');
-        option.innerHTML = imageFormat.description;
-        if (this.format === imageFormat.id) option.innerHTML += " (Default)";
-        option.value = imageFormat.id;
-        if (!this.format && imageFormat.default) list.value = imageFormat.id;
-        list.appendChild(option);
+        option = document.createElement('option');
+        option.id = "import-" + imageFormat.key;
+        option.innerHTML = imageFormat.name;
+        if (this.graphicsRight.format.key === imageFormat.key) option.innerHTML += " (Native)";
+        option.value = imageFormat.key;
+        formatList.appendChild(option);
     }
-    if (this.format) list.value = this.format;
 
-    // import canvas
-    var importCanvas = document.createElement('canvas');
-    importCanvas.id = "import-canvas";
-    content.appendChild(importCanvas);
+    // ignore blank tiles check box
+    var ignoreCheckDiv = document.createElement('div');
+    this.content.appendChild(ignoreCheckDiv);
 
-    // import palette check box
-    var paletteCheckDiv = document.createElement('div');
-    content.appendChild(paletteCheckDiv);
+    var ignoreCheck = document.createElement('input');
+    ignoreCheckDiv.appendChild(ignoreCheck);
+    ignoreCheck.id = "import-ignore-check";
+    ignoreCheck.type = 'checkbox';
+    ignoreCheck.checked = false;
+    ignoreCheck.onchange = function() {
+        importer.ignoreBlankTiles = this.checked;
+        importer.updateImportPreview();
+    }
 
-    var paletteCheck = document.createElement('input');
-    paletteCheckDiv.appendChild(paletteCheck);
-    paletteCheck.id = "import-palette-check";
-    paletteCheck.type = 'checkbox';
-    paletteCheck.disabled = true;
-    paletteCheck.checked = importCustomPalette;
-    paletteCheck.onchange = function() {
-        importCustomPalette = this.checked;
-        updateImportPreview();
+    var ignoreCheckLabel = document.createElement('label');
+    ignoreCheckDiv.appendChild(ignoreCheckLabel);
+    ignoreCheckLabel.innerHTML = "Ignore Blank Tiles";
+    ignoreCheckLabel.htmlFor = "import-ignore-check";
+
+    // number of palette colors
+    var quantizeDiv = document.createElement('div');
+    quantizeDiv.id = "import-quantize-div";
+    quantizeDiv.style.display = "none";
+    this.content.appendChild(quantizeDiv);
+
+    var quantizeCheck = document.createElement('input');
+    quantizeDiv.appendChild(quantizeCheck);
+    quantizeCheck.id = "import-quantize-check";
+    quantizeCheck.type = 'checkbox';
+    quantizeCheck.checked = true;
+    quantizeCheck.onchange = function() {
+        importer.updateImportPreview();
+    }
+
+    var quantizeLabel = document.createElement('label');
+    quantizeDiv.appendChild(quantizeLabel);
+    quantizeLabel.innerHTML = "Quantize Image ";
+    quantizeLabel.htmlFor = "import-quantize-check";
+
+    var quantizeValue = document.createElement('input');
+    quantizeDiv.appendChild(quantizeValue);
+    quantizeValue.id = "import-quantize-value";
+    quantizeValue.type = 'number';
+    quantizeValue.min = 1;
+    quantizeValue.max = 256;
+    quantizeValue.value = this.graphicsRight.format.colorsPerPalette;
+    quantizeValue.onchange = function() {
+        importer.updateImportPreview();
+    }
+
+    var quantizeLabel2 = document.createElement('label');
+    quantizeDiv.appendChild(quantizeLabel2);
+    quantizeLabel2.innerHTML = "Colors";
+
+    // import preview
+    this.graphicsPreview = document.createElement('div');
+    this.graphicsPreview.classList.add("import-preview");
+    this.content.appendChild(this.graphicsPreview);
+
+    this.graphicsPreviewLeft = document.createElement('div');
+    this.graphicsPreviewLeft.style.overflowY = "scroll";
+    this.graphicsPreviewLeft.style.flexGrow = 1;
+    this.graphicsPreviewLeft.appendChild(this.graphicsLeft.canvasDiv);
+
+    this.graphicsPreviewRight = document.createElement('div');
+    this.graphicsPreviewRight.style.overflowY = "scroll";
+    this.graphicsPreviewRight.style.flexGrow = 1;
+    this.graphicsPreviewRight.appendChild(this.graphicsRight.canvasDiv);
+
+    this.graphicsButtonDiv = document.createElement('div');
+    this.graphicsButtonDiv.style.flexGrow = 0;
+    this.graphicsButtonDiv.setAttribute("aria-label", "Toggle Graphics Import");
+    this.graphicsButtonDiv.setAttribute("data-balloon-pos", "down");
+
+    this.graphicsButton = document.createElement('button');
+    this.graphicsButton.classList.add("icon-btn", "fas", "fa-arrow-right", "disabled");
+    this.graphicsButton.disabled = true;
+    this.graphicsButton.onclick = function() {
+        importer.includeGraphics = !importer.includeGraphics;
+        importer.updateImportPreview();
     };
+    this.graphicsButtonDiv.appendChild(this.graphicsButton);
 
-    var paletteCheckLabel = document.createElement('label');
-    paletteCheckDiv.appendChild(paletteCheckLabel);
-    paletteCheckLabel.innerHTML = "Also Import Palette";
-    paletteCheckLabel.htmlFor = "import-palette-check";
+    this.graphicsPreview.appendChild(this.graphicsPreviewLeft);
+    this.graphicsPreview.appendChild(this.graphicsButtonDiv);
+    this.graphicsPreview.appendChild(this.graphicsPreviewRight);
 
-    // trim blank tiles check box
-    var trimCheckDiv = document.createElement('div');
-    content.appendChild(trimCheckDiv);
+    this.palettePreview = document.createElement('div');
+    this.palettePreview.classList.add("import-preview");
+    this.content.appendChild(this.palettePreview);
 
-    var trimCheck = document.createElement('input');
-    trimCheckDiv.appendChild(trimCheck);
-    trimCheck.id = "import-trim-check";
-    trimCheck.type = 'checkbox';
-    trimCheck.checked = true;
+    this.paletteButtonDiv = document.createElement('div');
+    this.paletteButtonDiv.style.flexGrow = 0;
+    this.paletteButtonDiv.setAttribute("aria-label", "Toggle Palette Import");
+    this.paletteButtonDiv.setAttribute("data-balloon-pos", "down");
 
-    var trimCheckLabel = document.createElement('label');
-    trimCheckDiv.appendChild(trimCheckLabel);
-    trimCheckLabel.innerHTML = "Trim Trailing Blank Tiles";
-    trimCheckLabel.htmlFor = "import-trim-check";
+    this.paletteButton = document.createElement('button');
+    this.paletteButton.classList.add("icon-btn", "fas", "fa-arrow-right", "disabled");
+    this.paletteButton.disabled = true;
+    this.paletteButton.onclick = function() {
+        importer.includePalette = !importer.includePalette;
+        importer.updateImportPreview();
+    };
+    this.paletteButtonDiv.appendChild(this.paletteButton);
 
-    function trimBlankTiles(data) {
-        var t = Math.floor(data.length / 64);
-        var blankTile = new Uint8Array(64);
-        while (t > 0) {
-            var tile = data.subarray((t - 1) * 64, t * 64);
-            if (!compareTypedArrays(blankTile, tile)) break;
-            t--;
-        }
-        return data.subarray(0, t * 64);
-    }
+    this.palettePreview.appendChild(this.paletteLeft.canvas);
+    this.palettePreview.appendChild(this.paletteButtonDiv);
+    this.palettePreview.appendChild(this.paletteRight.canvas);
+
+    // draw the preview
+    this.resize();
+    this.drawImportPreview();
 
     // okay button
     var okayButton = document.createElement('button');
@@ -2422,308 +4580,469 @@ ROMGraphicsView.prototype.showImportDialog = function(format) {
     okayButton.onclick = function() {
         closeModal();
 
-        // trim blank tiles
-        if (trimCheck.checked) importGraphics = trimBlankTiles(importGraphics);
+        var graphics = importer.includeGraphics ? importer.graphicsRight.graphics : null;
+        var palette = importer.includePalette ? importer.paletteRight.palette : null;
 
-        // trim the graphics to fit
-        if (importGraphics.length > graphicsView.gfx.data.length) {
-            importGraphics = importGraphics.subarray(0, graphicsView.gfx.data.length);
-        }
-
-        graphicsView.rom.beginAction();
-        graphicsView.gfx.setData(importGraphics);
-        if (importCustomPalette) {
-            graphicsView.paletteView.importPalette(importPalette);
-        }
-        graphicsView.rom.endAction();
+        if (graphics || palette) importer.callback(graphics, palette);
     };
-    content.appendChild(okayButton);
+    this.content.appendChild(okayButton);
 
     // cancel button
     var cancelButton = document.createElement('button');
     cancelButton.id = "import-cancel";
     cancelButton.innerHTML = "Cancel";
-    cancelButton.onclick = function() { closeModal(); };
-    content.appendChild(cancelButton);
+    cancelButton.onclick = function() {
+        importer.graphicsRight.graphics = null;
+        importer.paletteRight.palette = null;
+        closeModal();
+    };
+    this.content.appendChild(cancelButton);
+
+    if (ROMGraphicsImporter.resizeSensor) {
+        ROMGraphicsImporter.resizeSensor.detach(this.content);
+        ROMGraphicsImporter.resizeSensor = null;
+    }
+    ROMGraphicsImporter.resizeSensor = new ResizeSensor(this.content, function() {
+        importer.resize();
+        importer.drawImportPreview();
+    });
 }
 
-// ROMPaletteView
-function ROMPaletteView(rom, graphicsView) {
+ROMGraphicsImporter.resizeSensor = null;
 
-    this.rom = rom;
-    this.graphicsView = graphicsView; // associated graphics view
-
-    this.canvas = document.createElement('canvas');
-    this.canvas.id = "palette";
-    this.canvas.width = 256;
-    this.canvas.height = 32;
-
-    this.gfx = null; // graphics object
-    this.paletteArray = []; // available palette
-    this.pal = null; // selected palette
-    this.p = 0; // palette offset
-    this.colorDepth = 16; // colors per palette
-
-    this.observer = new ROMObserver(rom, this);
-
-    var paletteView = this;
-    this.canvas.onmousedown = function(e) { paletteView.mouseDown(e) };
-    // this.canvas.onmouseup = function(e) { paletteView.mouseUp(e) };
-    // this.canvas.onmousemove = function(e) { paletteView.mouseMove(e) };
-    // this.canvas.onmouseout = function(e) { paletteView.mouseOut(e) };
-    // this.canvas.oncontextmenu = function() { return false; };
+ROMGraphicsImporter.prototype.paletteRightMouseDown = function(e) {
+    var row = Math.floor(e.offsetY / this.paletteRight.colorHeight);
+    this.paletteRight.p = Math.floor(row / this.paletteRight.rowsPerPalette);
+    this.updateImportPreview();
 }
 
-ROMPaletteView.prototype.show = function() {
-    this.updateControls();
-    document.getElementById("toolbox-buttons").classList.add('hidden');
+ROMGraphicsImporter.prototype.paletteLeftMouseDown = function(e) {
 }
 
-ROMPaletteView.prototype.updateControls = function() {
-    this.div = document.getElementById('toolbox-div');
-    this.div.innerHTML = "";
-    this.div.classList.remove('hidden');
-    this.div.style.height = "auto";
+ROMGraphicsImporter.prototype.resize = function() {
 
-    var headingDiv = document.createElement('div');
-    headingDiv.classList.add("property-heading");
-    this.div.appendChild(headingDiv);
+    // update element sizes
+    this.graphicsPreview.style.width = this.content.offsetWidth + "px";
+    this.palettePreview.style.width = this.content.offsetWidth + "px";
+    var width = (this.content.offsetWidth - 40) / 2;
 
-    var heading = document.createElement('p');
-    heading.innerHTML = "Palette";
-    headingDiv.appendChild(heading);
+    this.graphicsLeft.zoom = Math.min(width / this.graphicsLeft.width / 8, 4.0);
+    this.graphicsPreviewLeft.style.width = width + "px";
+    this.graphicsPreviewLeft.style.height = Math.min(this.graphicsLeft.height * 8 * this.graphicsLeft.zoom, width) + "px";
 
-    // create a dropdown for the possible palettes
-    var paletteSelectDiv = document.createElement('div');
-    paletteSelectDiv.classList.add("property-div");
-    this.div.appendChild(paletteSelectDiv);
+    this.graphicsRight.zoom = Math.min(width / this.graphicsRight.width / 8, 4.0);
+    this.graphicsPreviewRight.style.width = width + "px";
+    this.graphicsPreviewRight.style.height = Math.min(this.graphicsRight.height * 8 * this.graphicsRight.zoom, width) + "px";
 
-    var paletteSelectControl = document.createElement('select');
-    paletteSelectControl.classList.add("property-control");
-    paletteSelectControl.id = "palette-select-control";
-    paletteSelectDiv.appendChild(paletteSelectControl);
+    this.paletteLeft.resize(width);
+    this.paletteRight.resize(width);
+}
 
-    var paletteSelected = false;
-    for (var i = 0; i < this.paletteArray.length; i++) {
-        var palette = this.paletteArray[i];
-        var option = document.createElement('option');
+ROMGraphicsImporter.prototype.validateSelection = function() {
 
-        if (palette.data) {
-            option.value = i;
-            if (isNumber(palette.i)) {
+    // make sure the left selection fits
+    var leftSelection = this.graphicsLeft.selection;
+    if (leftSelection.x >= this.graphicsLeft.width) {
+        leftSelection.x = this.graphicsLeft.width - 1;
+        leftSelection.w = 1;
+    } else if (leftSelection.x + leftSelection.w > this.graphicsLeft.width) {
+        leftSelection.w = this.graphicsLeft.width - leftSelection.x;
+    }
 
-                var parentArray = palette.parent;
-                if (parentArray instanceof ROMArray && parentArray.stringTable) {
-                    var stringTable = this.rom.stringTable[parentArray.stringTable];
-                    var string = stringTable.string[palette.i];
-                    if (string) {
-                        option.innerHTML = palette.i + ": " + string.fString(40);
-                    } else {
-                        option.innerHTML = palette.i + ": " + palette.name + " " + palette.i;
-                    }
-                } else {
-                    option.innerHTML = palette.i + ": " + palette.name + " " + palette.i;
-                }
-            } else {
-                option.innerHTML = palette.name;
+    if (leftSelection.y >= this.graphicsLeft.height) {
+        leftSelection.y = this.graphicsLeft.height - 1;
+        leftSelection.h = 1;
+    } else if (leftSelection.y + leftSelection.h > this.graphicsLeft.height) {
+        leftSelection.h = this.graphicsLeft.height - leftSelection.y;
+    }
+    leftSelection.tilemap = new Uint32Array(leftSelection.h * leftSelection.w);
+
+    // make sure the right selection fits
+    var rightSelection = this.graphicsRight.selection;
+    rightSelection.w = leftSelection.w;
+    if (rightSelection.x >= this.graphicsRight.width) {
+        rightSelection.x = this.graphicsRight.width - 1;
+        rightSelection.w = 1;
+    } else if (rightSelection.x + rightSelection.w > this.graphicsRight.width) {
+        rightSelection.w = this.graphicsRight.width - rightSelection.x;
+    }
+
+    rightSelection.h = leftSelection.h;
+    if (rightSelection.y >= this.graphicsRight.height) {
+        rightSelection.y = this.graphicsRight.height - 1;
+        rightSelection.h = 1;
+    } else if (rightSelection.y + rightSelection.h > this.graphicsRight.height) {
+        rightSelection.h = this.graphicsRight.height - rightSelection.y;
+    }
+    rightSelection.tilemap = new Uint32Array(rightSelection.h * rightSelection.w);
+}
+
+ROMGraphicsImporter.prototype.updateImportPreview = function() {
+    var okayButton = document.getElementById("import-okay");
+    okayButton.disabled = true;
+    this.graphicsButton.disabled = true;
+    this.paletteButton.disabled = true;
+    if (!this.data) {
+        this.drawImportPreview();
+        return;
+    }
+    okayButton.disabled = false;
+    this.graphicsButton.disabled = false;
+
+    var quantizeDiv = document.getElementById('import-quantize-div');
+    quantizeDiv.style.display = "none";
+
+    var list = document.getElementById("import-format-list");
+    var formatKey = list.value;
+
+    if (formatKey === "png" || formatKey === "jpeg") {
+        quantizeDiv.style.display = "block";
+        this.paletteButton.disabled = false;
+        var importer = this;
+        var blob = new Blob([this.data], { type: 'image/' + formatKey });
+        var url = URL.createObjectURL(blob);
+        var img = new Image();
+        img.decode = "sync"; // load synchronously
+        img.src = url;
+        img.onload = function() {
+            URL.revokeObjectURL(blob);
+            importer.quantizeImage(img);
+            importer.resize();
+            importer.validateSelection();
+            importer.copySpriteSheet();
+            importer.copyPalette();
+            importer.drawImportPreview();
+        }
+        img.onerror = function() {
+            importer.paletteLeft.palette = new Uint32Array(importer.oldPalette.length);
+            importer.paletteLeft.palette.fill(0xFF000000)
+            importer.graphicsLeft.width = importer.graphicsRight.width;
+            importer.graphicsLeft.height = importer.graphicsRight.height;
+            importer.graphicsLeft.graphics = new Uint8Array(importer.graphicsLeft.width * importer.graphicsLeft.height * 64);
+
+            importer.resize();
+            importer.drawImportPreview();
+        }
+
+    } else if (formatKey === "indexed") {
+        this.paletteButton.disabled = false;
+        var indexed = pzntg.getIndexed(this.data);
+
+        if (indexed.palette) {
+            // get new palette
+            this.paletteLeft.palette = new Uint32Array(indexed.palette.buffer);
+
+            // set alpha channel to max for all colors
+            for (var c = 0; c < this.paletteLeft.palette.length; c++) {
+                this.paletteLeft.palette[c] |= 0xFF000000;
             }
         } else {
-            option.value = palette.key;
-            option.innerHTML = palette.description;
+            this.paletteLeft.palette = new Uint32Array(this.oldPalette.length);
+            this.paletteLeft.palette.fill(0xFF000000)
         }
 
-        paletteSelectControl.appendChild(option);
-        if (this.pal === palette) {
-            paletteSelectControl.value = option.value;
-            paletteSelected = true;
-        }
-    }
-    if (!paletteSelected) {
-        this.pal = this.paletteArray[0];
-        this.p = 0;
-    }
+        // get new graphics
+        if (indexed.graphics) {
+            var graphics = indexed.graphics;
+            this.graphicsLeft.graphics = indexed.graphics;
 
-    var paletteView = this;
-    paletteSelectControl.onchange = function() {
-        var i = Number(this.value);
-        if (isNumber(i)) {
-            paletteView.pal = paletteView.paletteArray[i];
-        } else if (isString(this.value)) {
-            paletteView.pal = ROMPaletteView.DefaultPalette[this.value];
-        }
-        paletteView.p = 0;
-        paletteView.drawPalette();
-        paletteView.graphicsView.drawGraphics();
-    }
+            // interlace to convert to 8x8 tiles
+            this.graphicsLeft.width = indexed.width >> 3;
+            this.graphicsLeft.height = indexed.height >> 3;
 
-    // show the palette canvas
-    this.drawPalette();
-    this.div.appendChild(this.canvas);
-}
+            this.graphicsLeft.graphics = ROM.dataFormat.interlace.decode(graphics, 8, 8, indexed.width >> 3)[0];
 
-ROMPaletteView.DefaultPalette = {
-    grayscale: {
-        key: "grayscale",
-        description: "Grayscale"
-    },
-    inverseGrayscale: {
-        key: "inverseGrayscale",
-        description: "Inverse Grayscale"
-    },
-    vga: {
-        key: "vga",
-        description: "VGA"
-    }
-}
-
-ROMPaletteView.prototype.mouseDown = function(e) {
-    this.p = Math.floor(e.offsetY / 24);
-    this.graphicsView.drawGraphics();
-    this.drawPalette();
-}
-
-ROMPaletteView.prototype.selectGraphics = function(graphics) {
-
-    this.gfx = graphics;
-
-    // get the color depth
-    var format = this.gfx.format;
-    if (isArray(format)) format = format[0];
-    this.colorDepth = GFX.colorDepth(format);
-
-    // create an array of possible palettes
-    this.paletteArray = [];
-    this.observer.stopObservingAll();
-    if (this.gfx) {
-        if (isArray(this.gfx.palette)) {
-            // js array of palette paths
-            for (var i = 0; i < this.gfx.palette.length; i++) {
-                this.parsePalettePath(this.gfx.palette[i]);
-            }
-        } else if (isString(this.gfx.palette)) {
-            this.parsePalettePath(this.gfx.palette);
-        }
-    }
-
-    this.paletteArray.push(ROMPaletteView.DefaultPalette.grayscale);
-    this.paletteArray.push(ROMPaletteView.DefaultPalette.inverseGrayscale);
-    this.paletteArray.push(ROMPaletteView.DefaultPalette.vga);
-}
-
-ROMPaletteView.prototype.parsePalettePath = function(path) {
-    var paletteObject = this.rom.parsePath(path, this.rom, this.gfx.i);
-    if (paletteObject instanceof ROMArray) {
-        // romarray of palettes
-        for (var i = 0; i < paletteObject.arrayLength; i++) {
-            this.paletteArray.push(paletteObject.item(i));
-            this.observer.startObserving(paletteObject.item(i), this.drawPalette);
-        }
-    } else if (paletteObject && paletteObject.data) {
-        // single palette assembly
-        this.paletteArray.push(paletteObject);
-        this.observer.startObserving(paletteObject, this.drawPalette);
-    }
-}
-
-ROMPaletteView.prototype.selectPalette = function(palette) {
-    this.pal = palette;
-    this.drawPalette();
-}
-
-ROMPaletteView.prototype.getbackColor = function() {
-    if (this.pal.data) {
-        // use the first color from a rom palette
-        return this.pal.data[0];
-    } else {
-        // use the first color from a built-in palette
-        var palette = this.getPaletteData();
-        return palette[0];
-    }
-}
-
-ROMPaletteView.prototype.getPaletteData = function(offset, depth) {
-    offset = offset || 0;
-    var palette;
-    if (this.pal.data) {
-        // rom palette
-        palette = this.pal.data.slice(offset);
-
-    } else if (this.pal.key === "grayscale" || this.pal.key === "inverseGrayscale") {
-        // grayscale palette
-        var inverse = this.pal.key === "inverseGrayscale";
-        if (this.gfx.backColor) {
-            // no transparent color
-            palette = GFX.makeGrayPalette(this.colorDepth, inverse);
+            this.resize();
+            this.validateSelection();
+            this.copySpriteSheet();
+            this.copyPalette();
+            this.drawImportPreview();
         } else {
-            // if there is a transparent color, start at index 1
-            palette = new Uint32Array(this.colorDepth);
-            palette.set(GFX.makeGrayPalette(this.colorDepth - 1, inverse), 1)
+            this.graphicsLeft.width = this.graphicsRight.width;
+            this.graphicsLeft.height = this.graphicsRight.height;
+            this.graphicsLeft.graphics = new Uint8Array(this.graphicsLeft.width * this.graphicsLeft.height * 64);
+
+            this.resize();
+            this.validateSelection();
+            this.drawImportPreview();
         }
 
-    } else if (this.pal.key === "vga") {
-        // vga palette
-        palette = GFX.vgaPalette.slice(offset);
+    } else if (GFX.graphicsFormat[formatKey]) {
+        this.paletteButton.disabled = true;
+        this.includePalette = false;
+
+        // decode native format graphics
+        this.graphicsLeft.graphics = GFX.graphicsFormat[formatKey].decode(this.data)[0];
+        this.graphicsLeft.width = this.graphicsRight.width;
+        this.paletteLeft.palette = this.oldPalette;
+
+        this.resize();
+        this.validateSelection();
+        this.copyGraphics();
+        this.copyPalette();
+        this.drawImportPreview();
 
     } else {
-        // blank palette
-        palette = new Uint32Array(this.colorDepth);
+        this.paletteButton.disabled = true;
+        this.includePalette = false;
+        this.graphicsLeft.graphics = this.data;
+        this.graphicsLeft.width = this.graphicsRight.width;
+        this.paletteLeft.palette = this.oldPalette;
+
+        this.resize();
+        this.validateSelection();
+        this.copyGraphics();
+        this.copyPalette();
+        this.drawImportPreview();
     }
-
-    if (isNumber(depth)) palette = palette.subarray(0, depth);
-
-    return palette;
 }
 
-ROMPaletteView.prototype.drawPalette = function() {
-    var paletteData = this.getPaletteData(0);
-    var rows = Math.ceil(paletteData.length / this.colorDepth);
-    rows = Math.min(rows, 16); // max of 16 palettes
+ROMGraphicsImporter.prototype.drawImportPreview = function() {
 
-    var colorWidth = 256 / this.colorDepth;
-    var colorHeight = 24;
-    this.canvas.height = rows * colorHeight;
-    var context = this.canvas.getContext('2d');
-    context.fillStyle = 'black';
-    context.fillRect(0, 0, 256, this.canvas.height);
+    // update graphics and palette buttons
+    if (this.includeGraphics) {
+        this.graphicsButton.classList.add("selected");
+    } else {
+        this.graphicsButton.classList.remove("selected");
+    }
 
-    var c = 0;
-    for (var y = 0; y < rows; y++) {
-        for (var x = 0; x < this.colorDepth; x++) {
-            var color = paletteData[c++];
-            if (!isNumber(color)) color = 0;
-            var r = (color & 0xFF);
-            var g = (color & 0xFF00) >> 8;
-            var b = (color & 0xFF0000) >> 16;
-            context.fillStyle = "rgb(" + r + "," + g + "," + b + ")";
+    if (this.includePalette) {
+        this.paletteButton.classList.add("selected");
+    } else {
+        this.paletteButton.classList.remove("selected");
+    }
 
-            context.fillRect(x * colorWidth, y * colorHeight, colorWidth, colorHeight);
+    // redraw palettes
+    this.paletteLeft.redraw();
+    this.paletteRight.redraw();
+
+    // update left tilemap to account for changed size
+    this.graphicsLeft.updateTilemap();
+    this.graphicsRight.updateTilemap();
+
+    // redraw graphics previews
+    this.graphicsLeft.redraw();
+    this.graphicsRight.redraw();
+}
+
+ROMGraphicsImporter.prototype.copyGraphics = function() {
+
+    // start with the old graphics
+    this.graphicsRight.graphics = this.oldGraphics.slice();
+
+    if (!this.includeGraphics) return;
+
+    // blank tile for comparison
+    var blankTile = new Uint8Array(64);
+
+    // set the graphics on the right
+    var colorDepth = this.graphicsRight.format.colorsPerPalette;
+    for (var y = 0; y < this.graphicsLeft.selection.h; y++) {
+        if (this.graphicsRight.selection.y + y >= this.graphicsRight.height) break;
+        for (var x = 0; x < this.graphicsLeft.selection.w; x++) {
+            if (this.graphicsRight.selection.x + x >= this.graphicsRight.width) break;
+
+            // get the tile
+            var begin = this.graphicsLeft.selection.x + x;
+            begin += (this.graphicsLeft.selection.y + y) * this.graphicsLeft.width;
+            begin *= 64;
+            var end = begin + 64;
+            var tile = this.graphicsLeft.graphics.subarray(begin, end);
+
+            // modulo colors by the color depth
+            for (var i = 0; i < tile.length; i++) {
+                tile[i] %= colorDepth;
+            }
+
+            // skip blank tiles
+            if (this.ignoreBlankTiles && compareTypedArrays(tile, blankTile)) continue;
+
+            var offset = this.graphicsRight.selection.x + x;
+            offset += (this.graphicsRight.selection.y + y) * this.graphicsRight.width;
+            offset *= 64;
+            if (offset >= this.graphicsRight.graphics.length) break;
+            this.graphicsRight.graphics.set(tile, offset);
+        }
+    }
+}
+
+ROMGraphicsImporter.prototype.copySpriteSheet = function() {
+
+    // copy graphics if there is no sprite sheet
+    var spriteSheet = this.graphicsRight.spriteSheet;
+    if (!spriteSheet) {
+        this.copyGraphics();
+        return;
+    }
+
+    // start with the old graphics
+    this.graphicsRight.graphics = this.oldGraphics.slice();
+
+    if (!this.includeGraphics) return;
+
+    // blank tile for comparison
+    var blankTile = new Uint8Array(64);
+
+    // find the first instance of each tile
+    var tileGraphics = [];
+    for (var y = 0; y < this.graphicsLeft.selection.h; y++) {
+        if (this.graphicsRight.selection.y + y >= this.graphicsRight.height) break;
+        for (var x = 0; x < this.graphicsLeft.selection.w; x++) {
+            if (this.graphicsRight.selection.x + x >= this.graphicsRight.width) break;
+
+            var s = x + this.graphicsRight.selection.x;
+            s += (y + this.graphicsRight.selection.y) * spriteSheet.width;
+            var t = spriteSheet.tilemap[s];
+
+            // skip unused tiles
+            if (t === -1) continue;
+            var hFlip = t & 0x10000000;
+            var vFlip = t & 0x20000000;
+            t &= 0xFFFF;
+
+            // skip tiles multiple instances of the same tile
+            if (tileGraphics[t]) continue;
+
+            // get the tile
+            var xLeft = this.graphicsLeft.selection.x + x;
+            if (xLeft >= this.graphicsLeft.width) continue;
+            var yLeft = this.graphicsLeft.selection.y + y;
+            if (yLeft >= this.graphicsLeft.height) continue;
+
+            var begin = (xLeft + yLeft * this.graphicsLeft.width) * 64;
+            var end = begin + 64;
+            var tile = this.graphicsLeft.graphics.slice(begin, end);
+
+            // modulo colors by the color depth
+            for (var i = 0; i < 64; i++) {
+                tile[i] %= this.graphicsRight.format.colorsPerPalette;
+            }
+
+            // skip blank tiles
+            if (this.ignoreBlankTiles && compareTypedArrays(tile, blankTile)) continue;
+
+            if (hFlip) {
+                // todo: flip tile
+            }
+
+            if (vFlip) {
+                // todo: flip tile
+            }
+
+            // save the tile
+            tileGraphics[t] = tile;
         }
     }
 
-    // draw the cursor
-    var w = 256;
-    var h = colorHeight;
-    var x = 0;
-    var y = this.p * colorHeight;
+    // copy tiles to right graphics
+    var maxTiles = this.graphicsRight.graphics.length >> 6;
+    for (var t = 0; t < tileGraphics.length; t++) {
+        // skip tiles that were not found
+        if (!tileGraphics[t]) continue;
 
-    // convert the selection to screen coordinates
-    context.lineWidth = 1;
-    context.strokeStyle = "black";
-    x += 0.5; y += 0.5; w--; h--;
-    context.strokeRect(x, y, w, h);
-    x++; y++; w -= 2; h -= 2;
-    context.strokeStyle = "hsl(210, 100%, 50%)";
-    context.strokeRect(x, y, w, h);
-    x++; y++; w -= 2; h -= 2;
-    context.strokeStyle = "white";
-    context.strokeRect(x, y, w, h);
-    x++; y++; w -= 2; h -= 2;
-    context.strokeStyle = "black";
-    context.strokeRect(x, y, w, h);
+        // skip tiles that don't fit
+        if (t >= maxTiles) continue;
+
+        // copy the tile
+        this.graphicsRight.graphics.set(tileGraphics[t], t * 64);
+    }
 }
 
-ROMPaletteView.prototype.importPalette = function(palette) {
-    if (!this.pal.setData) return;
-    if (palette.length > this.pal.data.length) palette = palette.subarray(0, this.pal.data.length)
-    this.pal.setData(palette, this.p * this.colorDepth);
+ROMGraphicsImporter.prototype.copyPalette = function() {
+
+    // start with the old palette
+    this.paletteRight.palette = this.oldPalette.slice();
+
+    if (!this.includePalette) return;
+
+    // get the palette from the left
+    var palette = this.paletteLeft.palette;
+
+    var offset = this.paletteRight.p * this.paletteRight.colorsPerPalette;
+
+    // trim to fit if needed
+    if (palette.length + offset > this.oldPalette.length) {
+        palette = palette.subarray(0, this.oldPalette.length - offset);
+    }
+
+    // set the palette on the right
+    this.paletteRight.palette.set(palette, offset);
+}
+
+ROMGraphicsImporter.prototype.quantizeImage = function(img) {
+
+    var quantizeCheck = document.getElementById('import-quantize-check');
+
+    var quantPalette = [];
+    var colorDepth;
+    if (quantizeCheck.checked) {
+        var quantizeValue = document.getElementById('import-quantize-value');
+        colorDepth = Number(quantizeValue.value);
+    } else {
+        // start with the old palette
+        colorDepth = this.paletteRight.colorsPerPalette;
+        var offset = this.paletteRight.p * colorDepth;
+        for (var p = 0; p < colorDepth; p++) {
+
+            // skip transparent color
+            if (p === 0 && !this.graphicsRight.backColor) continue;
+
+            var r = this.oldPalette[p + offset] & 0xFF;
+            var g = (this.oldPalette[p + offset] & 0xFF00) >> 8;
+            var b = (this.oldPalette[p + offset] & 0xFF0000) >> 16;
+            quantPalette.push([r,g,b]);
+        }
+    }
+
+    if (!this.graphicsRight.backColor) colorDepth--;
+
+    var options = {
+        colors: colorDepth,      // desired palette size
+        method: 2,               // histogram method, 2: min-population threshold within subregions; 1: global top-population
+        boxSize: [8,8],          // subregion dims (if method = 2)
+        boxPxls: 2,              // min-population threshold (if method = 2)
+        initColors: 4096,        // # of top-occurring colors  to start with (if method = 1)
+        minHueCols: 0,           // # of colors per hue group to evaluate regardless of counts, to retain low-count hues
+        dithKern: null,          // dithering kernel name, see available kernels in docs below
+        dithDelta: 0,            // dithering threshhold (0-1) e.g: 0.05 will not dither colors with <= 5% difference
+        dithSerp: false,         // enable serpentine pattern dithering
+        palette: quantPalette,   // a predefined palette to start with in r,g,b tuple format: [[r,g,b],[r,g,b]...]
+        reIndex: false,          // affects predefined palettes only. if true, allows compacting of sparsed palette once target palette size is reached. also enables palette sorting.
+        useCache: true,          // enables caching for perf usually, but can reduce perf in some cases, like pre-def palettes
+        cacheFreq: 10,           // min color occurance count needed to qualify for caching
+        colorDist: "euclidean",  // method used to determine color distance, can also be "manhattan"
+    }
+
+    // quantize the image
+    var q = new RgbQuant(options);
+    q.sample(img);
+
+    // get the palette (false to get an array instead of tuples)
+    var quantPalette32 = new Uint32Array(q.palette(false).buffer);
+    if (this.graphicsRight.backColor) {
+        this.paletteLeft.palette = new Uint32Array(quantPalette32.length);
+        this.paletteLeft.palette.set(quantPalette32, 0);
+    } else {
+        this.paletteLeft.palette = new Uint32Array(quantPalette32.length + 1);
+        this.paletteLeft.palette.set(quantPalette32, 1);
+    }
+
+    // get the indexed color data
+    var graphicsARGB = new Uint8Array(q.reduce(img, 1));
+    var graphics = new Uint8Array(q.reduce(img, 2));
+
+    // if there is a transparent color, increment every color index
+    if (!this.graphicsRight.backColor) {
+        for (var i = 0; i < graphics.length; i++) {
+            if (graphicsARGB[i * 4 + 3]) {
+                graphics[i]++;
+            }
+        }
+    }
+
+    this.graphicsLeft.width = img.width >> 3;
+    this.graphicsLeft.height = img.height >> 3;
+
+    // interlace to convert to 8x8 tiles
+    this.graphicsLeft.graphics = ROM.dataFormat.interlace.decode(graphics, 8, 8, this.graphicsLeft.width)[0];
 }

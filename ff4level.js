@@ -23,7 +23,7 @@ function FF4LevelProgression(rom) {
     this.showStat = [true, false, false, false, false, false, false, false];
     this.showRange = false;
     this.showLegend = true;
-    
+
     this.c = 0;
     this.selectedPoint = null;
     this.characterStats = null;
@@ -35,10 +35,13 @@ function FF4LevelProgression(rom) {
     this.div.onresize = function() { levelProg.resize() };
     this.div.onmousedown = function(e) { levelProg.mouseDown(e) };
     this.div.onmouseup = function(e) { levelProg.mouseUp(e) };
+    this.div.onmouseleave = function(e) { levelProg.mouseLeave(e) };
     this.div.onmousemove = function(e) { levelProg.mouseMove(e) };
-    
+
     this.initLevelProg();
     this.resetObserver();
+
+    this.resizeSensor = null;
 }
 
 FF4LevelProgression.prototype = Object.create(ROMEditor.prototype);
@@ -53,7 +56,7 @@ FF4LevelProgression.prototype.resize = function() {
     if (!this.div.parentElement) return;
     this.canvas.width = this.div.parentElement.clientWidth;
     this.canvas.height = this.div.parentElement.clientHeight - 4;
-    
+
     var l = 50;
     var r = this.canvas.width - 20;
     var t = 20;
@@ -68,11 +71,17 @@ FF4LevelProgression.prototype.mouseDown = function(e) {
 }
 
 FF4LevelProgression.prototype.mouseUp = function(e) {
-    
+
+}
+
+FF4LevelProgression.prototype.mouseLeave = function(e) {
+    this.selectedPoint = null;
+    this.drawChart();
+    this.tooltip.removeAttribute("data-balloon-visible");
 }
 
 FF4LevelProgression.prototype.mouseMove = function(e) {
-    
+
     this.selectedPoint = null;
     var point = this.canvasToPoint(e.offsetX, e.offsetY);
     if (!point) {
@@ -80,13 +89,13 @@ FF4LevelProgression.prototype.mouseMove = function(e) {
         this.tooltip.removeAttribute("data-balloon-visible");
         return;
     }
-    
+
     for (var p = 0; p < this.chartData.length; p++) {
         if (this.chartData[p].level !== point.x) continue;
         this.selectedPoint = this.chartData[p];
         break;
     }
-    
+
     if (!this.selectedPoint) return;
 
     this.drawChart();
@@ -95,17 +104,17 @@ FF4LevelProgression.prototype.mouseMove = function(e) {
     var level = this.selectedPoint.level.toString();
     var statLabel = "Level: " + level;
     var closestValue;
-    
+
     for (var s = 0; s < 8; s++) {
         if (!this.showStat[s]) continue;
-        
+
         var statProperties = this.statProperties(s);
-        
+
         var avgValue = this.selectedPoint[statProperties.key].avg;
         var minValue = this.selectedPoint[statProperties.key].min;
         var maxValue = this.selectedPoint[statProperties.key].max;
 
-        if (avgValue > 10000) {
+        if (avgValue >= 10000) {
             statLabel += "\n" + statProperties.name + ": " + Math.round(avgValue).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         } else {
             statLabel += "\n" + statProperties.name + ": " + Math.round(avgValue);
@@ -135,7 +144,7 @@ FF4LevelProgression.prototype.mouseMove = function(e) {
     } else if (closestValue < 10 && level > 90) {
         this.tooltip.style.left = (point.x + 17) + "px";
         this.tooltip.style.top = (point.y - this.tooltip.clientHeight - 15) + "px";
-        this.tooltip.setAttribute("data-balloon-pos", "up-right");            
+        this.tooltip.setAttribute("data-balloon-pos", "up-right");
     } else if (level > 90) {
         this.tooltip.style.left = (point.x - 15) + "px";
         this.tooltip.style.top = (point.y - this.tooltip.clientHeight) + "px";
@@ -149,7 +158,7 @@ FF4LevelProgression.prototype.mouseMove = function(e) {
 
 FF4LevelProgression.prototype.show = function() {
 
-    document.getElementById('toolbox-buttons').classList.add("hidden");
+    document.getElementById('toolbox-layer-div').classList.add("hidden");
     document.getElementById('toolbox-div').classList.add("hidden");
 
     this.resetControls();
@@ -163,13 +172,25 @@ FF4LevelProgression.prototype.show = function() {
             levelProg.drawChart();
         }
     }
-    
+
     for (var s = 0; s < 8; s++) {
         var statName = this.statProperties(s).name;
         this.addTwoState("show" + statName, statFunction(s), statName, this.showStat[s]);
     }
     this.addTwoState("showRange", function(checked) { levelProg.showRange = checked; levelProg.drawChart(); }, "Min/Max", this.showRange);
     this.addTwoState("showLegend", function(checked) { levelProg.showLegend = checked; levelProg.drawChart(); }, "Legend", this.showLegend);
+    if (!this.resizeSensor) this.resizeSensor = new ResizeSensor(document.getElementById("edit-top"), function() {
+        levelProg.resize();
+        levelProg.drawChart();
+    });
+}
+
+FF4LevelProgression.prototype.hide = function() {
+    this.observer.stopObservingAll();
+    if (this.resizeSensor) {
+        this.resizeSensor.detach(document.getElementById("edit-top"));
+        this.resizeSensor = null;
+    }
 }
 
 FF4LevelProgression.prototype.statProperties = function(s) {
@@ -300,29 +321,29 @@ FF4LevelProgression.highLevelStatsDefiniton = {
 
 FF4LevelProgression.prototype.initLevelProg = function() {
     if (this.rom.isGBA) return;
-    
+
     var levelProgData = this.rom.characterLevelProgression;
     var levelProgPointers = this.rom.characterLevelPointer;
     var characterStatsData = this.rom.characterStats;
-    
+
     for (var c = 0; c < characterStatsData.arrayLength; c++) {
         var characterStats = characterStatsData.item(c);
         var level = characterStats.level.value;
         var id = characterStats.properties.value;
         var levelStats = levelProgData.item(c);
         if (!levelStats) continue;
-        
+
         var pointer = levelProgPointers.item(id);
         var begin = pointer.value;
         begin += (level - 1) * 5;
         begin -= this.rom.unmapAddress(levelProgData.range.begin) & 0xFFFF;
-        
+
         // set the range for the level stats and disassemble
         levelStats.range.begin = begin;
         levelStats.range.end = begin + (70 - level) * 5 + 8;
         levelStats.arrayLength = 70 - level
         levelStats.disassemble(levelProgData.data);
-        
+
         // create the high level random stats
         var lastLevelStats = levelStats.item(69 - level);
         lastLevelStats.addAssembly(FF4LevelProgression.highLevelStatsDefiniton);
@@ -376,7 +397,7 @@ FF4LevelProgression.prototype.resetObserver = function() {
 FF4LevelProgression.prototype.changeStartingLevel = function(c) {
     var characterStats = this.rom.characterStats.item(c);
     var levelStats = this.rom.characterLevelProgression.item(c);
-    
+
     var level = characterStats.level.value;
     this.observer.stopObservingAll();
 
@@ -384,14 +405,14 @@ FF4LevelProgression.prototype.changeStartingLevel = function(c) {
         var newLevel = levelStats.blankAssembly();
         levelStats.array.splice(0, 0, newLevel);
     }
-    
+
     while (level > (70 - levelStats.arrayLength)) {
         levelStats.array.splice(0, 1);
     }
     levelStats.markAsDirty();
     levelStats.updateArray();
     levelStats.notifyObservers();
-    
+
     this.updatePointerTable();
     this.loadCharacter(c);
 }
@@ -410,14 +431,14 @@ FF4LevelProgression.prototype.changeStartingLevelGBA = function(c) {
         var newLevel = levelStats.blankAssembly();
         levelStats.array.splice(0, 0, newLevel);
     }
-    
+
     while (level > (100 - levelStats.arrayLength)) {
         levelStats.array.splice(0, 1);
     }
     levelStats.markAsDirty();
     levelStats.updateArray();
     levelStats.notifyObservers();
-    
+
     startingLevel.level.setValue(level);
     var firstLevelStats = levelStats.item(0);
     firstLevelStats.hp.setValue(0);
@@ -433,14 +454,14 @@ FF4LevelProgression.prototype.changeStartingLevelGBA = function(c) {
 
     this.loadCharacter(c);
 }
-    
+
 FF4LevelProgression.prototype.updatePointerTable = function() {
-    
+
     if (this.rom.isGBA) return;
-    
+
     var characterStatsData = this.rom.characterStats;
     var levelProgData = this.rom.characterLevelProgression;
-    
+
     // calculate pointers to each character's level progression data
     var pointers = [];
     var currentPointer = this.rom.unmapAddress(levelProgData.range.begin);
@@ -450,13 +471,13 @@ FF4LevelProgression.prototype.updatePointerTable = function() {
         pointers.push(currentPointer - (69 - levelProg.arrayLength) * 5);
         currentPointer += levelProg.assembledLength;
     }
-    
+
     // determine which characters get saved to temporary slots
     var levelProgPointers = this.rom.characterLevelPointer;
     var charSlot = [0, 0, 0, 0, 0];
     var slot, l;
     for (var c = 0; c < this.rom.characterPartyRemove.arrayLength; c++) {
-        
+
         var charAdd = this.rom.characterPartyAdd.item(c);
         if (!charAdd) break;
         if (charAdd.restore.value) {
@@ -467,13 +488,13 @@ FF4LevelProgression.prototype.updatePointerTable = function() {
             // new character
             l = charAdd.character.value;
         }
-        
+
         var pointer = levelProgPointers.item(c);
         if (pointer) {
             pointer.value = pointers[l];
             pointer.markAsDirty();
         }
-        
+
         var charRemove = this.rom.characterPartyRemove.item(c);
         if (!charRemove) break;
         slot = charRemove.slot.value;
@@ -484,9 +505,9 @@ FF4LevelProgression.prototype.updatePointerTable = function() {
 }
 
 FF4LevelProgression.prototype.loadCharacter = function(c) {
-    
+
     this.tooltip.removeAttribute("data-balloon-visible");
-    
+
     this.observer.stopObservingAll();
     this.resetObserver();
 
@@ -496,16 +517,16 @@ FF4LevelProgression.prototype.loadCharacter = function(c) {
     this.levelProgData = this.rom.characterLevelProgression.item(c);
     if (!this.levelProgData) return;
     propertyList.select(this.characterStats);
-    
+
     this.observer.startObserving(this.characterStats, this.updateStats);
     this.observer.startObserving(this.levelProgData, this.updateStats);
     this.selectedPoint = null;
-    
+
     this.updateStats();
 }
 
 FF4LevelProgression.prototype.getStats = function(level) {
-    
+
     if (this.rom.isGBA) level++;
     var startingLevel = this.characterStats.level.value;
     level = Math.min(level - startingLevel - 1, this.levelProgData.arrayLength - 1);
@@ -513,12 +534,12 @@ FF4LevelProgression.prototype.getStats = function(level) {
 }
 
 FF4LevelProgression.prototype.updateStats = function() {
-    
+
     if (this.rom.isGBA) {
         this.updateStatsGBA();
         return;
     }
-    
+
     // todo: clean this up, it's a mess
     var level = this.characterStats.level.value;
     var exp = this.characterStats.expLastLevel.value;
@@ -531,7 +552,7 @@ FF4LevelProgression.prototype.updateStats = function() {
     var vitality = {avg: this.characterStats.vitality.value};
     var wisdom = {avg: this.characterStats.wisdom.value};
     var will = {avg: this.characterStats.will.value};
-    
+
     this.chartData = [{
         level: level,
         exp: {avg: exp},
@@ -547,13 +568,13 @@ FF4LevelProgression.prototype.updateStats = function() {
 
     for (level++; level <= 70; level++) {
         var levelStats = this.getStats(level);
-        
+
         exp = Math.min(exp + levelStats.exp.value, 9999999);
         minHP = Math.min(minHP + levelStats.hp.value, 9999);
         maxHP = Math.min(maxHP + Math.floor(levelStats.hp.value * 9 / 8), 9999);
         minMP = Math.min(minMP + levelStats.mp.value, 9999);
         maxMP = Math.min(maxMP + Math.floor(levelStats.mp.value * 9 / 8), 999);
-        
+
         var statMod = levelStats.statMod.value;
         if (statMod === 7) statMod = -1;
         if (levelStats.stats.value & 0x10) strength.avg = Math.min(strength.avg + statMod, 99);
@@ -575,18 +596,18 @@ FF4LevelProgression.prototype.updateStats = function() {
             object: levelStats
         });
     }
-    
+
     var expMod = levelStats.exp.value;
     var hpMod = levelStats.hp.value;
     var mpMod = levelStats.mp.value;
-    
+
     // get min, max, and average random stat bonuses for high levels
     var strengthMod = {min: 0, max: 0, avg: 0};
     var agilityMod = {min: 0, max: 0, avg: 0};
     var vitalityMod = {min: 0, max: 0, avg: 0};
     var wisdomMod = {min: 0, max: 0, avg: 0};
     var willMod = {min: 0, max: 0, avg: 0};
-    
+
     for (var s = 0; s < 8; s++) {
         var randomStats = levelStats.highLevelStats.item(s);
         var statMod = randomStats.statMod.value;
@@ -628,9 +649,9 @@ FF4LevelProgression.prototype.updateStats = function() {
     wisdom.max = wisdom.avg;
     will.min = will.avg;
     will.max = will.avg;
-    
+
     for (; level <= 99; level++) {
-        
+
         exp = Math.min(exp + expMod, 9999999);
         minHP = Math.min(minHP + hpMod, 9999);
         maxHP = Math.min(maxHP + Math.floor(hpMod * 9 / 8), 9999);
@@ -652,7 +673,7 @@ FF4LevelProgression.prototype.updateStats = function() {
         will.min = Math.max(0, Math.min(will.min + willMod.min, 99));
         will.max = Math.max(0, Math.min(will.max + willMod.max, 99));
         will.avg = Math.max(0, Math.min(will.avg + willMod.avg, 99));
-        
+
         this.chartData.push({
             level: level,
             exp: {avg: exp},
@@ -666,13 +687,13 @@ FF4LevelProgression.prototype.updateStats = function() {
             object: levelStats
         });
     }
-    
+
     this.resize();
     this.drawChart();
 }
 
 FF4LevelProgression.prototype.updateStatsGBA = function() {
-    
+
     // todo: clean this up, it's a mess
     var level = this.characterStats.level.value;
     var levelStats = this.getStats(level);
@@ -686,7 +707,7 @@ FF4LevelProgression.prototype.updateStatsGBA = function() {
     var stamina = {avg: this.characterStats.stamina.value};
     var intellect = {avg: this.characterStats.intellect.value};
     var spirit = {avg: this.characterStats.spirit.value};
-    
+
     this.chartData = [{
         level: level,
         exp: {avg: exp},
@@ -702,7 +723,7 @@ FF4LevelProgression.prototype.updateStatsGBA = function() {
 
     for (level++; level <= 70; level++) {
         levelStats = this.getStats(level);
-        
+
         exp = levelStats.exp.value;
         minHP = Math.min(minHP + levelStats.hp.value, 9999);
         maxHP = Math.min(maxHP + levelStats.hpMax.value, 9999);
@@ -727,14 +748,14 @@ FF4LevelProgression.prototype.updateStatsGBA = function() {
             object: levelStats
         });
     }
-    
+
     // get min, max, and average random stat bonuses for high levels
     var strengthMod = {min: 0, max: 0, avg: 0};
     var agilityMod = {min: 0, max: 0, avg: 0};
     var staminaMod = {min: 0, max: 0, avg: 0};
     var intellectMod = {min: 0, max: 0, avg: 0};
     var spiritMod = {min: 0, max: 0, avg: 0};
-    
+
     for (var s = 0; s < 8; s++) {
         levelStats = this.getStats(71 + s);
         strengthMod.min = Math.min(strengthMod.min, levelStats.strength.value);
@@ -764,11 +785,11 @@ FF4LevelProgression.prototype.updateStatsGBA = function() {
     intellect.max = intellect.avg;
     spirit.min = spirit.avg;
     spirit.max = spirit.avg;
-    
+
     for (; level <= 99; level++) {
-        
+
         levelStats = this.getStats(level);
-        
+
         exp = levelStats.exp.value;
         minHP = Math.min(minHP + levelStats.hp.value, 9999);
         maxHP = Math.min(maxHP + levelStats.hpMax.value, 9999);
@@ -790,7 +811,7 @@ FF4LevelProgression.prototype.updateStatsGBA = function() {
         spirit.min = Math.max(0, Math.min(spirit.min + spiritMod.min, 99));
         spirit.max = Math.max(0, Math.min(spirit.max + spiritMod.max, 99));
         spirit.avg = Math.max(0, Math.min(spirit.avg + spiritMod.avg, 99));
-        
+
         this.chartData.push({
             level: level,
             exp: {avg: exp},
@@ -804,18 +825,18 @@ FF4LevelProgression.prototype.updateStatsGBA = function() {
             object: levelStats
         });
     }
-    
+
     this.resize();
     this.drawChart();
 }
 
 FF4LevelProgression.prototype.drawChart = function() {
-    
+
     this.resize();
-    
+
     var ctx = this.canvas.getContext('2d');
     ctx.textBaseline = 'middle';
-    
+
     // draw the chart area
     ctx.fillStyle = "white";
     ctx.fillRect(this.chartRect.l, this.chartRect.t, this.chartRect.w, this.chartRect.h);
@@ -830,10 +851,10 @@ FF4LevelProgression.prototype.drawChart = function() {
     ctx.lineTo(this.chartRect.r + 0.5, this.chartRect.t - 0.5);
     ctx.closePath();
     ctx.stroke();
-    
+
     // draw gridlines and labels
     ctx.textAlign = 'center';
-    ctx.font = 'small sans-serif';
+    ctx.font = '12px sans-serif';
     ctx.lineWidth = 0.5;
     for (var x = 0; x <= 100; x += 10) {
         // vertical gridlines
@@ -849,12 +870,12 @@ FF4LevelProgression.prototype.drawChart = function() {
         ctx.stroke();
     }
     var labelPoint = this.pointToCanvas(50, 0);
-    ctx.font = 'medium sans-serif';
+    ctx.font = '14px sans-serif';
     ctx.fillStyle = "black";
     ctx.fillText("Level", labelPoint.x, labelPoint.y + 45);
-    
+
     ctx.textAlign = 'right';
-    ctx.font = 'small sans-serif';
+    ctx.font = '12px sans-serif';
     for (var y = 0; y <= 100; y += 10) {
         // horizontal gridlines
         var startPoint = this.pointToCanvas(0, y);
@@ -868,14 +889,14 @@ FF4LevelProgression.prototype.drawChart = function() {
         ctx.lineTo(endPoint.x, endPoint.y + 0.5);
         ctx.stroke();
     }
-    
+
     // draw stats
     for (var s = 0; s < 8; s++) {
         if (!this.showStat[s]) continue;
         this.drawStat(s, ctx);
         if (this.showRange) this.drawStatRange(s, ctx);
     }
-    
+
     // draw legend
     if (this.showLegend) {
         this.drawLegend(ctx);
@@ -890,7 +911,7 @@ FF4LevelProgression.prototype.drawStatRange = function(stat, ctx) {
     ctx.fillStyle = statProperties.fillColor;
     ctx.beginPath();
     ctx.moveTo(startPoint.x, startPoint.y)
-    
+
     for (var p = 1; p < this.chartData.length; p++) {
         var dataValue = this.chartData[p];
         var point = this.pointToCanvas(dataValue.level, dataValue[statProperties.key].min / statProperties.multiplier);
@@ -915,14 +936,14 @@ FF4LevelProgression.prototype.drawStat = function(stat, ctx) {
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.moveTo(startPoint.x, startPoint.y)
-    
+
     for (var p = 1; p < this.chartData.length; p++) {
         var dataValue = this.chartData[p];
         var point = this.pointToCanvas(dataValue.level, dataValue[statProperties.key].avg / statProperties.multiplier);
         ctx.lineTo(point.x, point.y);
     }
     ctx.stroke();
-    
+
     // draw the selected point
     if (this.selectedPoint) {
         point = this.pointToCanvas(this.selectedPoint.level, this.selectedPoint[statProperties.key].avg / statProperties.multiplier);
@@ -934,12 +955,12 @@ FF4LevelProgression.prototype.drawStat = function(stat, ctx) {
 }
 
 FF4LevelProgression.prototype.drawLegend = function(ctx) {
-    
+
     // find the widest stat
     var maxWidth = 0;
     var height = 10;
     var lineHeight = 15;
-    ctx.font = 'small sans-serif';
+    ctx.font = '12px sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
     for (var s = 0; s < 8; s++) {
@@ -951,14 +972,14 @@ FF4LevelProgression.prototype.drawLegend = function(ctx) {
         height += lineHeight;
     }
     if (maxWidth === 0) return;
-    
+
     var l = this.chartRect.l + 10;
     var t = this.chartRect.t + 10;
     var r = l + 20 + maxWidth;
     var b = t + height;
-    
+
     var legendRect = new Rect(l, r, t, b);
-        
+
     // draw the legend box
     ctx.fillStyle = "white";
     ctx.fillRect(legendRect.l, legendRect.t, legendRect.w, legendRect.h);
@@ -972,19 +993,19 @@ FF4LevelProgression.prototype.drawLegend = function(ctx) {
     ctx.lineTo(legendRect.r + 0.5, legendRect.t - 0.5);
     ctx.closePath();
     ctx.stroke();
-    
+
     // draw stat names and color blobs
     var x = l + 10;
     var y = t + 5;
     for (var s = 0; s < 8; s++) {
         if (!this.showStat[s]) continue;
-        
+
         var statProperties = this.statProperties(s);
         ctx.fillStyle = statProperties.color;
         ctx.fillRect(x, y + 2, 9, 9);
         ctx.strokeStyle = "black";
         ctx.strokeRect(x - 0.5, y + 1.5, 10, 10);
-        
+
         ctx.fillStyle = "black";
         var name = statProperties.axis || statProperties.name;
         ctx.fillText(name, x + 15, y);

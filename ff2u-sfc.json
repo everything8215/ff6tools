@@ -17,14 +17,14 @@
                     "name": "Map Titles",
                     "path": "mapTitle"
                 }, {
-                    "name": "Map Animation Graphics",
-                    "path": "mapAnimationGraphics"
-                }, {
                     "name": "Map Sprite Graphics",
                     "path": "mapSpriteGraphics"
                 }, {
-                    "name": "World Map Graphics",
-                    "path": "worldGraphics"
+                    "name": "World Map Tilesets",
+                    "path": "worldTilesets"
+                }, {
+                    "name": "Map Animation Graphics",
+                    "path": "mapAnimationGraphics"
                 }, {
                     "path": "mapGraphics0"
                 }, {
@@ -95,8 +95,8 @@
                     "name": "Battle Dialog",
                     "path": "battleDialog"
                 }, {
-                    "name": "Battle Background Graphics",
-                    "path": "battleBackgroundGraphics"
+                    "name": "Battle Backgrounds",
+                    "path": "battleBackgroundProperties"
                 }
             ]
         }, {
@@ -390,11 +390,9 @@
         "battleBackgroundGraphics": {
             "type": "array",
             "name": "Battle Background Graphics",
-            "range": "0x1CA800-0x1CD900",
+            "range": "0x1CA800-0x1CD8F0",
             "stringTable": "battleBackgroundProperties",
-            "array": {
-                "length": 17
-            },
+            "arrayLength": 17,
             "assembly": {
                 "type": "graphics",
                 "format": "snes3bpp",
@@ -411,24 +409,58 @@
             "type": "array",
             "name": "Battle Background Layout (Lower)",
             "range": "0x16F880-0x16FA40",
-            "array": {
-                "length": 7
-            },
+            "arrayLength": 7,
             "assembly": {
+                "type": "tilemap",
                 "length": 64,
-                "format": "ff4-battlebg"
+                "format": ["snes3bppTile", "ff4-battlebg"],
+                "graphics": "battleBackgroundGraphics[%i]",
+                "palette": "battleBackgroundPalette[%i]",
+                "width": 32,
+                "height": 2,
+                "backColor": true
+            },
+            "stringTable": {
+                "string": {
+                    "0": "Field",
+                    "1": "Mountains",
+                    "2": "Airship",
+                    "3": "Generic",
+                    "4": "Cave",
+                    "5": "Unused",
+                    "6": "Final Boss"
+                }
             }
         },
         "battleBackgroundLayoutUpper": {
             "type": "array",
             "name": "Battle Background Layout (Upper)",
             "range": "0x16ED80-0x16F880",
-            "array": {
-                "length": 11
-            },
+            "arrayLength": 11,
             "assembly": {
+                "type": "tilemap",
                 "length": 256,
-                "format": "ff4-battlebg"
+                "format": ["snes3bppTile", "ff4-battlebg"],
+                "graphics": "battleBackgroundGraphics[%i]",
+                "palette": "battleBackgroundPalette[%i]",
+                "width": 32,
+                "height": 8,
+                "backColor": true
+            },
+            "stringTable": {
+                "string": {
+                    "0": "Field (Upper)",
+                    "1": "Forest",
+                    "2": "Mountains",
+                    "3": "Castle",
+                    "4": "Cave",
+                    "5": "Moon Exterior",
+                    "6": "Airship",
+                    "7": "Generic",
+                    "8": "Field (Middle)",
+                    "9": "Final Boss (Upper)",
+                    "10": "Final Boss (Middle)"
+                }
             }
         },
         "battleBackgroundPalette": {
@@ -475,22 +507,25 @@
             "type": "array",
             "name": "Battle Background Properties",
             "range": "0x0DFCCB-0x0DFD0F",
-            "array": {
-                "length": 17
-            },
+            "arrayLength": 17,
             "assembly": {
                 "type": "data",
                 "length": 4,
+                "editor": "FF4BattleBackgroundEditor",
                 "assembly": {
                     "top": {
                         "type": "property",
                         "name": "Top Layout",
-                        "begin": 0
+                        "begin": 0,
+                        "link": "battleBackgroundLayoutUpper[%i]",
+                        "stringTable": "battleBackgroundLayoutUpper"
                     },
                     "middle": {
                         "type": "property",
                         "name": "Middle Layout",
                         "begin": 1,
+                        "link": "battleBackgroundLayoutUpper[%i]",
+                        "stringTable": "battleBackgroundLayoutUpper",
                         "min": 1,
                         "special": {
                             "0": "Use Bottom"
@@ -499,7 +534,9 @@
                     "bottom": {
                         "type": "property",
                         "name": "Bottom Layout",
-                        "begin": 2
+                        "begin": 2,
+                        "link": "battleBackgroundLayoutLower[%i]",
+                        "stringTable": "battleBackgroundLayoutLower"
                     },
                     "offset": {
                         "type": "property",
@@ -1179,19 +1216,62 @@
         "characterGraphics": {
             "type": "array",
             "name": "Character Graphics",
-            "range": "0x1A8000-0x1AF000",
-            "array": {
-                "length": 14
-            },
+            "range": "0x1A8000-0x1AFC40",
+            "arrayLength": 17,
             "assembly": {
                 "type": "graphics",
-                "length": "0x0800",
                 "format": "snes4bpp",
-                "palette": "characterPalette[%i]"
+                "palette": "characterPalette",
+                "width": 14,
+                "height": 6,
+                "spriteSheet": [
+                    {
+                        "name": "Default",
+                        "width": 14,
+                        "height": 6,
+                        "tilemap": [
+                             0, 1,  6, 7,  0, 1, 14,15,  0, 1,  0, 1,  0,26,
+                             2, 3,  8, 9,  2, 3, 16,17, 20, 3, 22,23,  2,27,
+                             4, 5, 10,11, 12,13, 18,19, 21,13, 24,25, 28,29,
+
+                            30,31, 36,37, -1,-1,-1, 57,58, 57,58,  48,49,50,
+                            32,33, 38,39, 42,43,44, 59,60, 63,60,  51,52,53,
+                            34,35, 40,41, 45,46,47, 61,62, 61,62,  -1,55,56
+                        ]
+                    }, {
+                        "name": "Golbez/Anna",
+                        "width": 14,
+                        "height": 3,
+                        "tilemap": [
+                             0, 1,  0, 1,  8, 9,  8, 9, 15,16, -1,-1,-1,-1,
+                             2, 3,  2, 3, 10,11, 14,11, 17,18, 21,22,23,-1,
+                             4, 5,  6, 7, 12,13, 12,13, 19,20, 24,25,26,-1
+                        ]
+                    }
+                ]
             },
+            "itemRanges": [
+                "0x1A8000-0x1A8800",
+                "0x1A8800-0x1A9000",
+                "0x1A9000-0x1A9800",
+                "0x1A9800-0x1AA000",
+                "0x1AA000-0x1AA800",
+                "0x1AA800-0x1AB000",
+                "0x1AB000-0x1AB800",
+                "0x1AB800-0x1AC000",
+                "0x1AC000-0x1AC800",
+                "0x1AC800-0x1AD000",
+                "0x1AD000-0x1AD800",
+                "0x1AD800-0x1AE000",
+                "0x1AE000-0x1AE800",
+                "0x1AE800-0x1AF000",
+                "0x1AF000-0x1AF600",
+                "0x1AF600-0x1AF960",
+                "0x1AF960-0x1AFC40"
+            ],
             "stringTable": {
                 "name": "Character Graphics",
-                "length": 16,
+                "length": 17,
                 "default": "Character Graphics %i",
                 "string": {
                     "0": "Cecil (Dark Knight)",
@@ -1209,7 +1289,8 @@
                     "12": "Edge",
                     "13": "FuSoYa",
                     "14": "Pig",
-                    "15": "Golbez"
+                    "15": "Golbez",
+                    "16": "Anna"
                 }
             }
         },
@@ -1438,6 +1519,29 @@
             "assembly": {
                 "length": "0x20",
                 "format": "bgr555"
+            },
+            "stringTable": {
+                "name": "Character Palette",
+                "length": 17,
+                "default": "Character Palette %i",
+                "string": {
+                    "0": "Cecil (Dark Knight)",
+                    "1": "Kain",
+                    "2": "Rydia (Girl)",
+                    "3": "Tellah",
+                    "4": "Edward",
+                    "5": "Rosa",
+                    "6": "Yang",
+                    "7": "Palom",
+                    "8": "Porom",
+                    "9": "Cecil (Paladin)",
+                    "10": "Cid",
+                    "11": "Rydia (Adult)",
+                    "12": "Edge",
+                    "13": "FuSoYa",
+                    "14": "Golbez",
+                    "15": "Anna"
+                }
             }
         },
         "characterPartyAdd": {
@@ -2624,6 +2728,56 @@
             },
             "stringTable": "mapProperties"
         },
+        "mapGraphics": {
+            "type": "array",
+            "name": "Map Graphics",
+            "range": "0x15DC00-0x208000",
+            "arrayLength": 16,
+            "assembly": {
+                "type": "graphics",
+                "format": "snes3bpp",
+                "palette": "mapPalettes",
+                "width": 16
+            },
+            "itemRanges": [
+                "0x15DC00-0x168000",
+                "0x1EDFA8-0x1EFC20",
+                "0x1E8020-0x1E9568",
+                "0x1DED40-0x1E8000",
+                "0x1E9568-0x1EACC0",
+                "0x1EACC0-0x1EB8C0",
+                "0x1EB8C0-0x1ECFE8",
+                "0x1ECFE8-0x1EDFA8",
+                "0x1F9500-0x1FB9C0",
+                "0x1F8000-0x1F9500",
+                "0x1F9500-0x1FB9C0",
+                "0x1F9500-0x1FB9C0",
+                "0x1EDFA8-0x1EFC20",
+                "0x1FD208-0x1FE888",
+                "0x1FE888-0x208000",
+                "0x15DC00-0x168000"
+            ],
+            "stringTable": {
+                "string": {
+                    "0": "Airship",
+                    "1": "Lunar Core",
+                    "2": "Sealed Cave/Cave Magnes",
+                    "3": "Castle Exterior",
+                    "4": "Town Exterior",
+                    "5": "Town Interior",
+                    "6": "Castle Interior",
+                    "7": "Crystal Room",
+                    "8": "Big Whale",
+                    "9": "Underground Cave",
+                    "10": "Tower of Zot/Bab-il",
+                    "11": "Giant of Bab-il",
+                    "12": "Moon Cave",
+                    "13": "Mountains",
+                    "14": "Overworld Cave",
+                    "15": "Ship"
+                }
+            }
+        },
         "mapGraphics0": {
             "type": "graphics",
             "name": "Map Graphics (Ship/Airship)",
@@ -2662,7 +2816,7 @@
         "mapGraphics5": {
             "type": "graphics",
             "name": "Map Graphics (Town Interior)",
-            "range": "0x1EACC0-0x1ECFE8",
+            "range": "0x1EACC0-0x1EB8C0",
             "format": "snes3bpp",
             "palette": "mapPalettes"
         },
@@ -3416,11 +3570,249 @@
             }
         },
         "mapSpriteGraphics": {
-            "type": "graphics",
+            "type": "array",
             "name": "Map Sprite Graphics",
             "range": "0x1B8000-0x1C8000",
-            "format": "snes3bpp",
-            "palette": ["mapSpritePalettes", "npcPalettes"]
+            "arrayLength": 50,
+            "assembly": {
+                "type": "graphics",
+                "format": "snes3bpp",
+                "palette": ["mapSpritePalettes", "npcPalettes"],
+                "spriteSheet": {
+                    "width": 16,
+                    "height": 2,
+                    "tilemap": [
+                        0, 1,  4, 5,  8, 9, 12,13, 16,17, 20,21, 24,25, 28,29,
+                        2, 3,  6, 7, 10,11, 14,15, 18,19, 22,23, 26,27, 30,31
+                    ]
+                }
+            },
+            "itemRanges": [
+                "0x1B8000-0x1B8300",
+                "0x1B8300-0x1B8600",
+                "0x1B8600-0x1B8900",
+                "0x1B8900-0x1B8C00",
+                "0x1B8C00-0x1B8F00",
+                "0x1B8F00-0x1B9200",
+                "0x1B9200-0x1B9500",
+                "0x1B9500-0x1B9800",
+                "0x1B9800-0x1B9B00",
+                "0x1B9B00-0x1B9E00",
+                "0x1B9E00-0x1BA100",
+                "0x1BA100-0x1BA400",
+                "0x1BA400-0x1BA700",
+                "0x1BA700-0x1BAA00",
+                "0x1BAA00-0x1BAD00",
+                "0x1BAD00-0x1BB000",
+                "0x1BB000-0x1BB300",
+
+                "0x1BB300-0x1BB480",
+                "0x1BB480-0x1BB600",
+                "0x1BB600-0x1BB780",
+                "0x1BB780-0x1BB900",
+                "0x1BB900-0x1BBA80",
+                "0x1BBA80-0x1BBC00",
+                "0x1BBC00-0x1BBD80",
+                "0x1BBD80-0x1BBF00",
+                "0x1BBF00-0x1BC080",
+                "0x1BC080-0x1BC200",
+                "0x1BC200-0x1BC380",
+                "0x1BC380-0x1BC500",
+                "0x1BC500-0x1BC680",
+                "0x1BC680-0x1BC800",
+                "0x1BC800-0x1BC980",
+                "0x1BC980-0x1BCB00",
+                "0x1BCB00-0x1BCC80",
+                "0x1BCC80-0x1BCE00",
+                "0x1BCE00-0x1BCF80",
+                "0x1BCF80-0x1BD100",
+                "0x1BD100-0x1BD280",
+                "0x1BD280-0x1BD400",
+                "0x1BD400-0x1BD580",
+                "0x1BD580-0x1BD700",
+                "0x1BD700-0x1BD880",
+                "0x1BD880-0x1BDA00",
+                "0x1BDA00-0x1BDB80",
+                "0x1BDB80-0x1BDD00",
+                "0x1BDD00-0x1BDE80",
+                "0x1BDE80-0x1BE000",
+                "0x1BE000-0x1BE180",
+
+                "0x1BE180-0x1BE240",
+                "0x1BE240-0x1BE300",
+                "0x1BE300-0x1BE3C0",
+                "0x1BE3C0-0x1BE480",
+                "0x1BE480-0x1BE540",
+                "0x1BE540-0x1BE600",
+                "0x1BE600-0x1BE6C0",
+                "0x1BE6C0-0x1BE780",
+                "0x1BE780-0x1BE840",
+                "0x1BE840-0x1BE900",
+                "0x1BE900-0x1BE9C0",
+                "0x1BE9C0-0x1BEA80",
+                "0x1BEA80-0x1BEB40",
+                "0x1BEB40-0x1BEC00",
+                "0x1BEC00-0x1BECC0",
+                "0x1BECC0-0x1BED80",
+                "0x1BED80-0x1BEE40",
+                "0x1BEE40-0x1BEF00",
+                "0x1BEF00-0x1BEFC0",
+                "0x1BEFC0-0x1BF080",
+                "0x1BF080-0x1BF140",
+                "0x1BF140-0x1BF200",
+
+                "0x1BF200-0x1BF260",
+                "0x1BF260-0x1BF2C0",
+                "0x1BF2C0-0x1BF320",
+                "0x1BF320-0x1BF380",
+                "0x1BF380-0x1BF3E0",
+                "0x1BF3E0-0x1BF440",
+                "0x1BF440-0x1BF4A0",
+                "0x1BF4A0-0x1BF500",
+                "0x1BF500-0x1BF560",
+                "0x1BF560-0x1BF5C0",
+                "0x1BF5C0-0x1BF620",
+                "0x1BF620-0x1BF680",
+                "0x1BF680-0x1BF6E0",
+                "0x1BF6E0-0x1BF740",
+                "0x1BF740-0x1BF7A0",
+                "0x1BF7A0-0x1BF800",
+                "0x1BF800-0x1BF860",
+                "0x1BF860-0x1BF8C0",
+                "0x1BF8C0-0x1BF920",
+                "0x1BF920-0x1BF980",
+                "0x1BF980-0x1BF9E0",
+                "0x1BF9E0-0x1BFA40",
+                "0x1BFA40-0x1BFAA0",
+                "0x1BFAA0-0x1BFB00",
+                "0x1BFB00-0x1BFB60",
+                "0x1BFB60-0x1BFBC0",
+                "0x1BFBC0-0x1BFC20",
+                "0x1BFC20-0x1BFC80",
+                "0x1BFC80-0x1BFCE0",
+                "0x1BFCE0-0x1BFD40",
+                "0x1BFD40-0x1BFDA0",
+                "0x1BFDA0-0x1BFE00",
+                "0x1BFE00-0x1BFE60",
+                "0x1BFE60-0x1BFEC0",
+                "0x1BFEC0-0x1BFF20",
+                "0x1BFF20-0x1BFF80",
+                "0x1BFF80-0x1BFFE0"
+            ],
+            "stringTable": {
+                "name": "Map Sprite Graphics",
+                "default": "Map Sprite Graphics %i",
+                "length": 107,
+                "string": {
+                    "0x00": "Cecil (DkKnight)",
+                    "0x01": "Kain",
+                    "0x02": "Rydia (Girl)",
+                    "0x03": "Tellah",
+                    "0x04": "Edward",
+                    "0x05": "Rosa",
+                    "0x06": "Yang",
+                    "0x07": "Palom",
+                    "0x08": "Porom",
+                    "0x09": "Cecil (Paladin)",
+                    "0x0A": "Cid",
+                    "0x0B": "Rydia (Adult)",
+                    "0x0C": "Edge",
+                    "0x0D": "FuSoYa",
+                    "0x0E": "Tiny",
+                    "0x0F": "Frog",
+                    "0x10": "Pig",
+                    "0x11": "Man",
+                    "0x12": "Woman",
+                    "0x13": "Dancer",
+                    "0x14": "Old Man",
+                    "0x15": "Old Woman",
+                    "0x16": "Boy",
+                    "0x17": "Girl",
+                    "0x18": "Soldier",
+                    "0x19": "Merchant",
+                    "0x1A": "Scholar",
+                    "0x1B": "Black Mage",
+                    "0x1C": "White Mage",
+                    "0x1D": "Engineer",
+                    "0x1E": "Chocobo",
+                    "0x1F": "Monk",
+                    "0x20": "Officer",
+                    "0x21": "Bomb",
+                    "0x22": "Monster",
+                    "0x23": "Namingway",
+                    "0x24": "Golbez",
+                    "0x25": "King",
+                    "0x26": "Elder",
+                    "0x27": "Cleric",
+                    "0x28": "Dwarf",
+                    "0x29": "Calbrena",
+                    "0x2A": "King Giott",
+                    "0x2B": "Dr. Lugae",
+                    "0x2C": "Dwarf Girl (Luca)",
+                    "0x2D": "Golbez' Hand",
+                    "0x2E": "Cecil + Rosa",
+                    "0x2F": "Crystal",
+                    "0x30": "Heart",
+                    "0x31": "Flame",
+                    "0x32": "Zzz",
+                    "0x33": "Woman Waving",
+                    "0x34": "Woman Blinking",
+                    "0x35": "Edward w/ Harp",
+                    "0x36": "Water Splash",
+                    "0x37": "Murasame/Masamune",
+                    "0x38": "Dancer w/ Dress",
+                    "0x39": "Sword",
+                    "0x3A": "Rosa (Tied Up)",
+                    "0x3B": "Rubicant",
+                    "0x3C": "Sparkle",
+                    "0x3D": "Elder (Praying)",
+                    "0x3E": "Black Mage (Praying)",
+                    "0x3F": "Zemus (Dead)",
+                    "0x40": "White Mage (Praying)",
+                    "0x41": "Sylph",
+                    "0x42": "Zeromus",
+                    "0x43": "Kain w/o Helmet",
+                    "0x44": "Lightning Bolt",
+                    "0x45": "Smoke",
+                    "0x46": "Big Chocobo 1",
+                    "0x47": "Big Chocobo 2",
+                    "0x48": "Big Chocobo 3",
+                    "0x49": "Big Chocobo 4",
+                    "0x4A": "Big Namingway 1",
+                    "0x4B": "Big Namingway 2",
+                    "0x4C": "Big Namingway 3",
+                    "0x4D": "Big Namingway 4",
+                    "0x4E": "Valvalis",
+                    "0x4F": "Dancer's Foot",
+                    "0x50": "Asura",
+                    "0x51": "Zemus",
+                    "0x52": "Tentacles",
+                    "0x53": "Magus Sisters",
+                    "0x54": "Dark Elf",
+                    "0x55": "Bahamut",
+                    "0x56": "Kainazzo",
+                    "0x57": "Dress",
+                    "0x58": "Ice",
+                    "0x59": "White Lance",
+                    "0x5A": "Rydia's Mother",
+                    "0x5B": "Big Ball",
+                    "0x5C": "Tower of Bab-il Ground",
+                    "0x5D": "Door",
+                    "0x5E": "Dead Soldier",
+                    "0x5F": "Antlion 1",
+                    "0x60": "Antlion 2",
+                    "0x61": "Anna",
+                    "0x62": "Golbez (Dead)",
+                    "0x63": "Crystal Sword",
+                    "0x64": "Anna (Dead)",
+                    "0x65": "Nothing",
+                    "0x66": "Ice",
+                    "0x67": "Big Flame 1",
+                    "0x68": "Big Flame 2",
+                    "0x69": "Stone Palom",
+                    "0x6A": "Stone Porom"
+                }
+            }
         },
         "mapSpritePalettes": {
             "type": "array",
@@ -3495,8 +3887,40 @@
                 "length": 16
             },
             "assembly": {
-                "type": "assembly",
-                "length": 1024
+                "type": "tilemap",
+                "length": 1024,
+                "format": [
+                    "snes4bppTile",
+                    "interlace(4,16,2)",
+                    "interlace(2,4,128)"
+                ],
+                "width": 32,
+                "height": 16,
+                "backColor": true,
+                "graphics": {
+                    "path": [
+                        "mapGraphics0",
+                        "mapGraphics1",
+                        "mapGraphics2",
+                        "mapGraphics3",
+                        "mapGraphics4",
+                        "mapGraphics5",
+                        "mapGraphics6",
+                        "mapGraphics7",
+                        "mapGraphics8",
+                        "mapGraphics9",
+                        "mapGraphics10",
+                        "mapGraphics11",
+                        "mapGraphics12",
+                        "mapGraphics13",
+                        "mapGraphics14",
+                        "mapGraphics15"
+                    ]
+                },
+                "palette": {
+                    "path": "mapPalettes",
+                    "offset": 8
+                }
             }
         },
         "mapTitle": {
@@ -5693,120 +6117,7 @@
                         "type": "property",
                         "name": "Graphics",
                         "length": 1,
-                        "stringTable": {
-                            "name": "NPC Graphics",
-                            "default": "Graphics %i",
-                            "length": 107,
-                            "string": {
-                                "0x00": "Cecil (DkKnight)",
-                                "0x01": "Kain",
-                                "0x02": "Rydia (Girl)",
-                                "0x03": "Tellah",
-                                "0x04": "Edward",
-                                "0x05": "Rosa",
-                                "0x06": "Yang",
-                                "0x07": "Palom",
-                                "0x08": "Porom",
-                                "0x09": "Cecil (Paladin)",
-                                "0x0A": "Cid",
-                                "0x0B": "Rydia (Adult)",
-                                "0x0C": "Edge",
-                                "0x0D": "FuSoYa",
-                                "0x0E": "Tiny",
-                                "0x0F": "Frog",
-                                "0x10": "Pig",
-                                "0x11": "Man",
-                                "0x12": "Woman",
-                                "0x13": "Dancer",
-                                "0x14": "Old Man",
-                                "0x15": "Old Woman",
-                                "0x16": "Boy",
-                                "0x17": "Girl",
-                                "0x18": "Soldier",
-                                "0x19": "Merchant",
-                                "0x1A": "Scholar",
-                                "0x1B": "Black Mage",
-                                "0x1C": "White Mage",
-                                "0x1D": "Engineer",
-                                "0x1E": "Chocobo",
-                                "0x1F": "Monk",
-                                "0x20": "Officer",
-                                "0x21": "Bomb",
-                                "0x22": "Monster",
-                                "0x23": "Namingway",
-                                "0x24": "Golbez",
-                                "0x25": "King",
-                                "0x26": "Elder",
-                                "0x27": "Cleric",
-                                "0x28": "Dwarf",
-                                "0x29": "Calbrena",
-                                "0x2A": "King Giott",
-                                "0x2B": "Dr. Lugae",
-                                "0x2C": "Dwarf Girl (Luca)",
-                                "0x2D": "Golbez' Hand",
-                                "0x2E": "Cecil + Rosa",
-                                "0x2F": "Crystal",
-                                "0x30": "Heart",
-                                "0x31": "Flame",
-                                "0x32": "Zzz",
-                                "0x33": "Woman Waving",
-                                "0x34": "Woman Blinking",
-                                "0x35": "Edward w/ Harp",
-                                "0x36": "Water Splash",
-                                "0x37": "Murasame/Masamune",
-                                "0x38": "Dancer w/ Dress",
-                                "0x39": "Sword",
-                                "0x3A": "Rosa (Tied Up)",
-                                "0x3B": "Rubicant",
-                                "0x3C": "Sparkle",
-                                "0x3D": "Elder (Praying)",
-                                "0x3E": "Black Mage (Praying)",
-                                "0x3F": "Zemus (Dead)",
-                                "0x40": "White Mage (Praying)",
-                                "0x41": "Sylph",
-                                "0x42": "Zeromus",
-                                "0x43": "Kain w/o Helmet",
-                                "0x44": "Lightning Bolt",
-                                "0x45": "Smoke",
-                                "0x46": "Big Chocobo 1",
-                                "0x47": "Big Chocobo 2",
-                                "0x48": "Big Chocobo 3",
-                                "0x49": "Big Chocobo 4",
-                                "0x4A": "Big Namingway 1",
-                                "0x4B": "Big Namingway 2",
-                                "0x4C": "Big Namingway 3",
-                                "0x4D": "Big Namingway 4",
-                                "0x4E": "Valvalis",
-                                "0x4F": "Dancer's Foot",
-                                "0x50": "Asura",
-                                "0x51": "Zemus",
-                                "0x52": "Tentacles",
-                                "0x53": "Magus Sisters",
-                                "0x54": "Dark Elf",
-                                "0x55": "Bahamut",
-                                "0x56": "Kainazzo",
-                                "0x57": "Dress",
-                                "0x58": "Ice",
-                                "0x59": "White Lance",
-                                "0x5A": "Rydia's Mother",
-                                "0x5B": "Big Ball",
-                                "0x5C": "Tower of Bab-il Ground",
-                                "0x5D": "Door",
-                                "0x5E": "Dead Soldier",
-                                "0x5F": "Antlion 1",
-                                "0x60": "Antlion 2",
-                                "0x61": "Anna",
-                                "0x62": "Golbez (Dead)",
-                                "0x63": "Crystal Sword",
-                                "0x64": "Anna (Dead)",
-                                "0x65": "Nothing",
-                                "0x66": "Ice",
-                                "0x67": "Big Flame 1",
-                                "0x68": "Big Flame 2",
-                                "0x69": "Stone Palom",
-                                "0x6A": "Stone Porom"
-                            }
-                        }
+                        "stringTable": "mapSpriteGraphics"
                     }
                 }
             }
@@ -6026,7 +6337,8 @@
                 "type": "graphics",
                 "length": "0x0180",
                 "format": "snes3bpp",
-                "palette": "portraitPalette"
+                "palette": "portraitPalette",
+                "width": 4
             },
             "stringTable": {
                 "string": {
@@ -7004,7 +7316,18 @@
                 "length": 3
             },
             "assembly": {
-                "length": "0x0200"
+                "type": "tilemap",
+                "length": "0x0200",
+                "format": ["generic4bppTile", "interlace(2,16,2)", "interlace(1,4,128)"],
+                "width": 32,
+                "height": 16,
+                "backColor": true,
+                "graphics": "worldGraphics[%i]",
+                "palette": "worldPalettes[%i]",
+                "colorOffset": {
+                    "path": "worldPaletteAssignments[%i]",
+                    "perTile": true
+                }
             }
         },
         "worldTriggers": {
@@ -9163,6 +9486,7 @@
         "0x13A293-0x13A300",
         "0x16C355-0x16C480",
         "0x16E042-0x16E180",
-        "0x16EB54-0x16EB80"
+        "0x16EB54-0x16EB80",
+        "0x1CD8F0-0x1CD900"
     ]
 }

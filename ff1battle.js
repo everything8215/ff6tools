@@ -23,7 +23,7 @@ function FF1Battle(rom) {
     this.div.appendChild(this.canvas);
 
     this.battleRect = new Rect(0, 192, 0, 144);
-    this.zoom = 2.0;
+    this.zoom = 1.0;
 
     this.selectedMonster = null;
     this.showMonsters = true;
@@ -32,6 +32,7 @@ function FF1Battle(rom) {
 
     var self = this;
     this.canvas.onmousedown = function(e) { self.mouseDown(e) };
+    this.resizeSensor = null;
 
     this.updateBattleStrings();
 }
@@ -118,7 +119,7 @@ FF1Battle.prototype.selectObject = function(object) {
 FF1Battle.prototype.show = function() {
     var battle = this;
 
-    document.getElementById('toolbox-buttons').classList.add("hidden");
+    document.getElementById('toolbox-layer-div').classList.add("hidden");
     document.getElementById('toolbox-div').classList.add("hidden");
 
     this.resetControls();
@@ -141,6 +142,16 @@ FF1Battle.prototype.show = function() {
     var onChangeMinMax = function(minMax) { battle.minMax = minMax; battle.drawBattle(); }
     var minMaxSelected = function(minMax) { return battle.minMax === minMax; }
     this.addList("showBattleMinMax", "Min/Max", ["Minimum", "Maximum", "Average"], onChangeMinMax, minMaxSelected);
+
+    this.resizeSensor = new ResizeSensor(document.getElementById("edit-top"), function() { battle.drawBattle(); });
+}
+
+FF1Battle.prototype.hide = function() {
+    this.observer.stopObservingAll();
+    if (this.resizeSensor) {
+        this.resizeSensor.detach(document.getElementById("edit-top"));
+        this.resizeSensor = null;
+    }
 }
 
 FF1Battle.prototype.loadBattle = function(b) {
@@ -327,7 +338,8 @@ FF1Battle.prototype.drawBattle = function() {
 
     for (var slot = 1; slot <= 4; slot++) this.drawCharacter(slot);
 
-    this.zoom = this.div.clientWidth / this.battleRect.w;
+    this.zoom = Math.min(this.div.clientWidth / this.battleRect.w, this.div.clientHeight / this.battleRect.h);
+    this.zoom = Math.min(Math.max(this.zoom, 1.0), 4.0);
 
     var scaledRect = this.battleRect.scale(this.zoom);
     this.canvas.width = scaledRect.w;
@@ -359,10 +371,10 @@ FF1Battle.prototype.drawMonster = function(slot) {
     var w = m.rect.w >> 3;
     var h = m.rect.h >> 3;
 
-    var tiles = new Uint16Array(w * h);
+    var tiles = new Uint32Array(w * h);
     if (m.size < 3) {
         // normal monster
-        var p = (m.palette + 1) << 10;
+        var p = (m.palette + 1) << 18;
         for (var i = 0; i < tiles.length; i++) tiles[i] = (i + m.offset) | p;
     } else if (m.size === 3) {
         // fiend
@@ -371,7 +383,7 @@ FF1Battle.prototype.drawMonster = function(slot) {
         for (var i = 0; i < tiles.length; i++) {
             var x = ((i % 8) >> 1) + 2;
             var y = (Math.floor(i / 8) >> 1) + 2;
-            var p = map.palette.data[x + y * 8] << 10;
+            var p = map.palette.data[x + y * 8] << 18;
             tiles[i] = map.tiles.data[i] | p;
         }
 
@@ -381,7 +393,7 @@ FF1Battle.prototype.drawMonster = function(slot) {
         for (var i = 0; i < tiles.length; i++) {
             var x = ((i % 14) >> 1) + 1;
             var y = (Math.floor(i / 14) >> 1) + 1;
-            var p = map.palette.data[x + y * 8] << 10;
+            var p = map.palette.data[x + y * 8] << 18;
             tiles[i] = map.tiles.data[i] | p;
         }
     }
@@ -393,7 +405,6 @@ FF1Battle.prototype.drawMonster = function(slot) {
     ppu.height = m.rect.h;
 
     // layer 1
-    ppu.layers[0].format = GFX.TileFormat.snes2bppTile;
     ppu.layers[0].cols = w;
     ppu.layers[0].rows = h;
     ppu.layers[0].z[0] = GFX.Z.top;
@@ -438,10 +449,10 @@ FF1Battle.prototype.drawCharacter = function(slot) {
 
     var g, p;
     switch (slot) {
-        case 1: g = 0; p = 1; break;
-        case 2: g = 1; p = 0; break;
-        case 3: g = 3; p = 1; break;
-        case 4: g = 5; p = 0; break;
+        case 1: g = 0; p = 1; break; // fighter
+        case 2: g = 2; p = 0; break; // monk
+        case 3: g = 4; p = 1; break; // white mage
+        case 4: g = 5; p = 0; break; // black mage
     }
 
     var gfx = this.rom.battleCharacterGraphics.item(g);
@@ -507,7 +518,7 @@ FF1Battle.prototype.drawBackground = function() {
     // load the palette
     var pal = new Uint32Array(16);
     pal.set(this.rom.battleBackgroundPalette.item(bg).data);
-    var borderPalette = GFX.decodeNESPalette(FF1Battle.borderPalette);
+    var borderPalette = GFX.paletteFormat.nesPalette.decode(FF1Battle.borderPalette);
     pal.set(borderPalette[0], 12);
 
     // set up the ppu
@@ -518,13 +529,12 @@ FF1Battle.prototype.drawBackground = function() {
     this.ppu.back = true;
 
     // layer 1
-    this.ppu.layers[1].format = GFX.TileFormat.snes2bppTile;
     this.ppu.layers[1].cols = w;
     this.ppu.layers[1].rows = h;
     this.ppu.layers[1].z[0] = GFX.Z.snes2L;
     this.ppu.layers[1].z[1] = GFX.Z.snes2H;
     this.ppu.layers[1].gfx = gfx;
-    this.ppu.layers[1].tiles = FF1Battle.backgroundLayout;
+    this.ppu.layers[1].tiles = GFX.tileFormat.snes2bppTile.decode(FF1Battle.backgroundLayout)[0];
     this.ppu.layers[1].main = true;
 
     var context = this.battleCanvas.getContext('2d');

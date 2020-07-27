@@ -20,8 +20,8 @@ general
  * improve fragmented assemblies
  * organize source/definition files in github folder
  * add delegates for objects to intercept assembly methods
- * import/export palettes
- * store palettes as Uint8Array instead of Uint32Array
+ * nes mode for tilemap view (16x16 attr table)
+ * add some way to show valid text escape sequences and odd unicode characters
 
 gui
 ---
@@ -31,7 +31,6 @@ gui
  * add directional passability masks for ff6
  * legend for tile mask colors
  * allow multiple selection, cut/copy/paste in script list
- * make tileset zoom in when sidebar is expanded
  * progress bar
  * show rom title in top bar
  * script list/trigger double click functionality
@@ -39,6 +38,8 @@ gui
  * find a better way to auto-populate battle names
  * array insert/remove
  * arrayPath/objectPath in navigator
+ * make menu close any time you click outside of it
+ * graphics export selection only
 
 game specific
 -------------
@@ -52,13 +53,17 @@ game specific
  * ff4 advance japanese version
  * ff4-sfc monster/summon graphics (fragmented)
  * ff5-sfc monster graphics (set format automatically)
- * import ff6 spritesheets
+ * ff5 RPGe dialog strings can't straddle two banks
+ * ff1 fiend/chaos tilemaps
+ * ff5 tilesets
+ * ff5 battle background animation
+ * fix ff4-sfc map graphics and cave battle bg issues
+ * ff6 battle magitek mode (for vram)
 
 wish list
 ---------
  * battle animation editor
- * cinematic editor
- * tile layout editor
+ * cinematic sprite editor
  * music editor
  * ff1 and ff2 nes/wsc/gba/psp
  * ff3 nes

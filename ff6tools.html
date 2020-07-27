@@ -12,6 +12,7 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/1.0.10/pako.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/css-element-queries/1.2.3/ResizeSensor.min.js"></script>
         <script type="text/javascript" src="pzntg.js"></script>
         <script type="text/javascript" src="rgbquant.js"></script>
         <script type="text/javascript" src="gfx.js"></script>
@@ -50,20 +51,6 @@
                 };
                 xhr.open("get", "def.json");
                 xhr.send();
-
-                /////////////////////////////////////////
-//                var localROM = new XMLHttpRequest();
-//                localROM.onload = function() {
-//                    if (localROM.status != 200) return;
-//                    var arrayBuffer = localROM.response;
-//                    data = new Uint8Array(arrayBuffer);
-//
-//                    loadBuiltInDefinition();
-//                };
-//                localROM.open("get", "roms\\ff1u.nes");
-//                localROM.responseType = "arraybuffer";
-//                localROM.send();
-                /////////////////////////////////////////
 
                 modal = document.getElementById('modal');
 
@@ -115,6 +102,21 @@
                     }
                 });
 
+                document.addEventListener('keydown', function(e) {
+                    if (e.which === 90 && (e.metaKey || e.ctrlKey)) {
+                        e.preventDefault();
+                        e.shiftKey ? redo() : undo();
+                    } else if (e.which === 89 && (e.metaKey || e.ctrlKey)) {
+                        e.preventDefault();
+                        redo();
+                    } else if (e.which === 79 && (e.metaKey || e.ctrlKey)) {
+                        e.preventDefault();
+                        document.getElementById('rom-file').click();
+                    } else if (e.which === 83 && (e.metaKey || e.ctrlKey)) {
+                        e.preventDefault();
+                        saveROM();
+                    }
+                });
             }
 
             window.onbeforeunload = function() {
@@ -211,11 +213,16 @@
                     for (var i = 0; i < keys.length; i++) {
                         var key = keys[i];
                         var def = definitions[key];
-                        if (!def.crc32 || !def.crc32.length) continue;
-                        for (var c = 0; c < def.crc32.length; c++) {
-                            if (Number(def.crc32[c]) === crc32) url = key;
+                        if (!def.crc32) continue;
+                        if (isArray(def.crc32)) {
+                            for (var c = 0; c < def.crc32.length; c++) {
+                                if (Number(def.crc32[c]) === crc32) url = key;
+                            }
+                            if (url) break;
+                        } else if (Number(def.crc32) === crc32) {
+                            url = key;
+                            break;
                         }
-                        if (url) break;
                     }
                 }
 
@@ -264,7 +271,6 @@
                 // create the rom object
                 rom = ROMObject.create(null, definition);
                 rom.disassemble(data);
-
 
                 console.log("CRC32: " + hexString(ROM.crc32(data), 8));
                 if (rom.isSFC) console.log("SNES Checksum: " + hexString(ROM.checksum(data), 4));
@@ -339,6 +345,7 @@
 //                    bigString += scriptString + "\n";
 //                }
 //                console.log(bigString);
+                // removePortraits();
             }
 
             function saveROM(forceSave) {
@@ -508,8 +515,8 @@
             }
 
             function removePortraits() {
-                for (var d = 0; d < rom.text2.arrayLength; d++) {
-                    var dialog = rom.text2.item(d);
+                for (var d = 0; d < rom.text.arrayLength; d++) {
+                    var dialog = rom.text.item(d);
                     dialog.setText(dialog.text.replace(/\\portrait[0-9][0-9]/g, ""));
                 }
             }
@@ -557,7 +564,7 @@
                 </div>
 
                 <div id="edit">
-                    <div id="edit-top">
+                    <div id="edit-top" class="background-gradient">
                         <div id="edit-controls" class="hidden">
                         </div>
 
@@ -581,14 +588,14 @@
 
                 <div id="toolbox">
 
-                    <div id="toolbox-buttons">
+                    <div id="toolbox-layer-div" class="toolbox-button-div">
                         <button class="toolbox-button selected" value="0">Layer 1</button>
                         <button class="toolbox-button" value="1">Layer 2</button>
                         <button class="toolbox-button" value="2">Layer 3</button>
                         <button class="toolbox-button" value="3">Triggers</button>
                     </div>
 
-                    <div id="toolbox-div" class="relative no-select hidden"></div>
+                    <div id="toolbox-div" class="no-select hidden"></div>
 
                     <div id="properties"></div>
                 </div>

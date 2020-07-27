@@ -9,6 +9,7 @@ https://www.ff6hacking.com/forums/thread-3321.html
 ## Currently supported ROMs
 
 - Final Fantasy (U)
+- Final Fantasy (J)
 - Final Fantasy II (U)
 - Final Fantasy IV (J)
 - Final Fantasy IV Advance (U)
@@ -35,6 +36,7 @@ FF6Tools uses the following libraries:
 - jszip (https://github.com/Stuk/jszip)
 - FileSaver.js (https://github.com/eligrey/FileSaver.js/)
 - pako (https://github.com/nodeca/pako)
+- ResizeSensor (css-element-queries) (https://github.com/marcj/css-element-queries)
 - pzntg (https://github.com/hectorm/pzntg)
 - RgbQuant.js (https://github.com/leeoniya/RgbQuant.js/)
 - balloon.css (https://github.com/kazzkiq/balloon.css)

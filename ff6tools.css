@@ -34,6 +34,12 @@ body {
     align-content: center;
 }
 
+.icon-btn.selected {
+    background-color: hsl(210, 100%, 60%);
+    color: hsl(0, 0%, 95%);
+    transition: 0.2s;
+}
+
 .icon-btn:hover {
     background-color: hsl(210, 100%, 50%);
     color: white;
@@ -41,8 +47,14 @@ body {
 }
 
 .icon-btn:active {
-    background-color: hsl(210, 100%, 40%);
+    background-color: hsl(210, 100%, 70%);
     color: hsl(0, 0%, 95%);
+    transition: 0.2s;
+}
+
+.icon-btn:disabled {
+    background-color: hsl(0, 0%, 40%);
+    color: hsl(0, 0%, 80%);
     transition: 0.2s;
 }
 
@@ -107,7 +119,7 @@ body {
 
 .nav-category {
     padding: 0px;
-    font-size: small;
+    font-size: 14px;
     background-color: hsl(0, 0%, 95%);
     border-bottom: 1px solid hsl(0, 0%, 80%);
     color: black;
@@ -119,7 +131,7 @@ body {
 
 .nav-category > p {
     margin: 0px;
-    padding: 0.5em 1em;
+    padding: 6px 12px;
 }
 
 .nav-category.shown > p {
@@ -135,7 +147,7 @@ body {
 }
 
 .nav-category > p:after {
-    font-size: small;
+    font-size: 14px;
     margin: 0px;
     padding: 0px;
     float: right;
@@ -158,7 +170,7 @@ body {
 
 .nav-array {
     padding: 0px;
-    font-size: small;
+    font-size: 12px;
     background-color: white;
     color: black;
     font-weight: normal;
@@ -202,7 +214,7 @@ body {
 
 .nav-array > p:before {
     display: inline-block;
-    font-size: small;
+    font-size: 12px;
     margin: 0px;
     width: 1em;
     content: "\25B8";
@@ -220,7 +232,7 @@ body {
     padding-bottom: 1px;
     padding-left: 1em;
     padding-right: 0px;
-    font-size: small;
+    font-size: 12px;
     background-color: white;
     color: black;
     font-weight: normal;
@@ -284,6 +296,9 @@ body {
     flex-direction: column;
     align-items: stretch;
     align-content: stretch;
+}
+
+.background-gradient {
     background-color: #333;
     background-image:
     linear-gradient(45deg, rgba(0,0,0,.1) 25%, transparent 25%, transparent 75%, rgba(0,0,0,.1) 75%, rgba(0,0,0,.1)),
@@ -319,18 +334,19 @@ body {
 }
 
 #edit-controls {
-    padding: 4px 0px;
+    padding: 0px;
     display: flex;
     flex-direction: row;
     align-items: center;
-    flex: 0 0 20px;
-    height: 20px;
+    flex: 0 0 auto;
+    height: auto;
     background: linear-gradient(#fff,#ddd);
     border-bottom: 1px solid #ccc;
     -moz-user-select: none;
     -webkit-user-select: none;
     -ms-user-select: none;
     user-select: none;
+    flex-wrap: wrap;
 }
 
 #edit-controls.hidden {
@@ -398,7 +414,7 @@ body {
 }
 
 #script-list li {
-    font-size: small;
+    font-size: 12px;
     list-style: none;
     cursor: default;
     overflow-x: hidden;
@@ -451,10 +467,10 @@ body {
     display: inline-block;
     height: auto;
     padding: 2px 10px;
-    margin: 0px 3px;
+    margin: 4px 3px;
     border-radius: 5px;
     width: auto;
-    font-size: small;
+    font-size: 12px;
     color: black;
     transition: 0.2s;
     flex-shrink: 0;
@@ -467,13 +483,13 @@ body {
 }
 
 .two-state:hover {
-    background: hsl(210, 100%, 70%);
+    background: hsl(210, 100%, 40%);
     color: white;
     transition: 0.2s;
 }
 
 .two-state:active {
-    background: hsl(210, 100%, 40%);
+    background: hsl(210, 100%, 60%);
     color: hsl(0, 0%, 95%);
     transition: 0.2s;
 }
@@ -487,18 +503,24 @@ body {
 }
 
 #zoom {
-/*    margin-left: auto;*/
+    order: 98;
+    margin: 4px 3px;
 }
 
 #zoom-value {
+    order: 97;
+    margin: 2px 0px;
+    padding: 4px 3px;
     margin-left: auto;
-    font-size: small;
+    font-size: 12px;
 }
 
 #coordinates {
-    margin: auto 8px;
-    width: 60px;
-    font-size: small;
+    order: 99;
+    margin: 2px 0px;
+    padding: 4px 3px;
+    width: 72px;
+    font-size: 12px;
     text-align: center;
 }
 
@@ -519,47 +541,6 @@ body {
     display: none;
 }
 
-#toolbox-buttons button {
-    background-color: inherit;
-    flex: 1;
-    border: none;
-    outline: none;
-    padding: 6px 2px;
-    margin: 0px 0px;
-    font-size: small;
-    transition: 0.2s;
-}
-
-#toolbox-buttons button.selected {
-    background-color: hsl(210, 100%, 50%);
-    color: white;
-    transition: 0.2s;
-}
-
-#toolbox-buttons button:hover {
-    background: hsl(210, 100%, 70%);
-    color: white;
-    transition: 0.2s;
-}
-
-#toolbox-buttons button:active {
-    background-color: hsl(210, 100%, 40%);
-    color: hsl(0, 0%, 95%);
-    transition: 0.2s;
-}
-
-#toolbox-buttons button:disabled {
-    background-color: inherit;
-    color: gray;
-    transition: 0.2s;
-}
-
-.relative {
-    position: relative;
-/*    height: 256px;*/
-    width: 256px;
-}
-
 .gutter.gutter-horizontal {
     cursor: ew-resize;
 }
@@ -569,22 +550,19 @@ body {
 }
 
 #toolbox-div {
-    font-size: 75%;
+    font-size: 12px;
+    position: relative;
+    width: 100%;
 }
 
 #toolbox-div.hidden {
     display: none;
 }
 
-#tileset {
-    z-index: 1;
-    position: absolute;
-}
-
-#toolbox-buttons {
+.toolbox-button-div {
 /*    text-align: center;*/
-    width: 256px;
-/*    width: 100%;*/
+    /* width: 256px; */
+    width: 100%;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -593,7 +571,51 @@ body {
     background: linear-gradient(#fff,#ddd);
 }
 
-#toolbox-buttons.hidden {
+.toolbox-button-div.hidden {
+    display: none;
+}
+
+.toolbox-button-div button {
+    background-color: inherit;
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 6px 2px;
+    margin: 0px 0px;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+.toolbox-button-div button.selected {
+    background-color: hsl(210, 100%, 50%);
+    color: white;
+    transition: 0.2s;
+}
+
+.toolbox-button-div button:hover {
+    background: hsl(210, 100%, 70%);
+    color: white;
+    transition: 0.2s;
+}
+
+.toolbox-button-div button:active {
+    background-color: hsl(210, 100%, 40%);
+    color: hsl(0, 0%, 95%);
+    transition: 0.2s;
+}
+
+.toolbox-button-div button:disabled {
+    background-color: inherit;
+    color: gray;
+    transition: 0.2s;
+}
+
+#tileset {
+    z-index: 1;
+    position: absolute;
+}
+
+#tileset.hidden {
     display: none;
 }
 
@@ -602,6 +624,8 @@ body {
     z-index: 2;
     position: absolute;
     display: block;
+    top: 0px;
+    left: 0px;
 }
 
 #tileset-cursor.hidden {
@@ -616,7 +640,7 @@ body {
 }
 
 #properties {
-    font-size: 75%;
+    font-size: 12px;
     flex: 2;
     overflow-y: auto;
     overflow-x: visible;
@@ -637,12 +661,14 @@ body {
     padding: 0px;
     margin: 4px 0px;
     font-weight: bold;
+    font-size: 12px;
 }
 
 .property-heading select {
     padding: 0px;
     margin-top: 4px;
     width: 100%;
+    font-size: 12px;
 }
 
 .property-category {
@@ -666,6 +692,10 @@ body {
     align-items: baseline;
 }
 
+.property-div > button {
+    font-size: 12px;
+}
+
 .property-label {
     text-align: right;
     flex-shrink: 0;
@@ -685,16 +715,17 @@ body {
     width: 100%;
     margin: 0px 0px;
     padding: 0px 0px;
+    font-size: 12px;
 }
 
 .property-text {
     font-family: monospace;
-    font-size: medium;
+    font-size: 12px;
 }
 
 .property-textarea {
     font-family: monospace;
-    font-size: medium;
+    font-size: 12px;
     overflow-y: visible;
     vertical-align: middle;
     resize: vertical;
@@ -707,6 +738,10 @@ body {
 .property-check {
     margin: 0px;
     padding: 0px;
+    font-size: 12px;
+    position: relative;
+    top: -1px;
+    vertical-align: bottom;
 }
 
 .property-check-label {
@@ -746,7 +781,7 @@ body {
     background-color: hsl(0, 0%, 95%);
     color: black;
     width: auto;
-    font-size: small;
+    font-size: 12px;
     list-style: none;
     white-space: nowrap;
     padding: 2px 20px;
@@ -799,22 +834,23 @@ body {
     top: 0px;
     width: 100%;
     height: 100%;
-    overflow: auto;
+    overflow-y: scroll;
     background-color: rgba(0,0,0,0.4);
 }
 
 #modal-window {
     background-color: hsl(0, 0%, 95%);
-    margin: auto;
-    margin-top: 15%;
+    position: absolute;
+    top: 10%;
     padding: 10px 20px;
     border-radius: 5px;
-    width: 40%;
+    width: 60%;
+    height: auto;
 }
 
 #modal-title {
     margin: 6px 0px;
-    font-size: large;
+    font-size: 18px;
     font-weight: bold;
     text-align: center;
 }
@@ -822,7 +858,7 @@ body {
 #modal-content {
     padding: 0px;
     margin: 0px;
-    font-size: small;
+    font-size: 12px;
 }
 
 #modal-content > button {
@@ -877,7 +913,7 @@ body {
 }
 
 .expand-div label {
-    font-size: small;
+    font-size: 12px;
 }
 
 #chart-edit {
@@ -885,6 +921,14 @@ body {
 }
 
 #tile-div {
-    font-size: 75%;
+    font-size: 12px;
     margin: 0px;
+}
+
+.import-preview {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    margin: 10px 0px;
 }

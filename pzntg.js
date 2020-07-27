@@ -183,7 +183,10 @@ pzntg.create = function(options) {
 pzntg.getIndexed = function(pngData) {
 	var out = {
 		palette: null,
-		graphics: null
+		graphics: null,
+		colorCount: 0,
+		width: 0,
+		height: 0
 	}
 
 	var offset = 0;
@@ -194,8 +197,7 @@ pzntg.getIndexed = function(pngData) {
 
 	var chunks = {};
 	var colorCount = 0;
-	var width = 0;
-	var height = 0;
+	var bitDepth = 8;
 
 	// parse chunks
 	while (offset < pngData.length) {
@@ -217,15 +219,16 @@ pzntg.getIndexed = function(pngData) {
 
 	// header
 	if (chunks.IHDR) {
-		width = pzntg.uint8ArrayToInt32(chunks.IHDR.data.subarray(0, 4));
-		height = pzntg.uint8ArrayToInt32(chunks.IHDR.data.subarray(4, 8));
+		out.width = pzntg.uint8ArrayToInt32(chunks.IHDR.data.subarray(0, 4));
+		out.height = pzntg.uint8ArrayToInt32(chunks.IHDR.data.subarray(4, 8));
+		bitDepth = chunks.IHDR.data[8];
 	}
 
 	// color palette
 	if (chunks.PLTE) {
-		colorCount = Math.floor(chunks.PLTE.len / 3);
-		out.palette = new Uint8Array(colorCount * 4);
-		for (var i = 0; i < colorCount; i++) {
+		out.colorCount = Math.floor(chunks.PLTE.len / 3);
+		out.palette = new Uint8Array(out.colorCount * 4);
+		for (var i = 0; i < out.colorCount; i++) {
 			out.palette[i * 4 + 0] = chunks.PLTE.data[i * 3 + 0];
 			out.palette[i * 4 + 1] = chunks.PLTE.data[i * 3 + 1];
 			out.palette[i * 4 + 2] = chunks.PLTE.data[i * 3 + 2];
@@ -235,7 +238,7 @@ pzntg.getIndexed = function(pngData) {
 
 	// color alpha values
 	if (chunks.tRNS && out.palette) {
-		for (var i = 0; i < colorCount; i++) {
+		for (var i = 0; i < out.colorCount; i++) {
 			if (i > chunks.tRNS.data.length) break;
 			out.palette[i * 4 + 3] = chunks.tRNS.data[i];
 		}
@@ -243,16 +246,22 @@ pzntg.getIndexed = function(pngData) {
 
 	// indexed color data
 	if (chunks.IDAT) {
-		out.graphics = new Uint8Array(width * height);
+		out.graphics = new Uint8Array(out.width * out.height);
 		var inflatedData = pako.inflate(chunks.IDAT.data);
 
-		// throw out the first byte of each scanline (filter byte)
-		var prev = new Uint8Array(width);
-		for (var row = 0; row < height; row++) {
-			var s = (width + 1) * row;
-			var scanline = inflatedData.subarray(s, s + width + 1);
-			scanline = pzntg.unfilterScanline(scanline, prev)
-			out.graphics.set(scanline.subarray(1), width * row);
+		// convert to 8bpp
+
+		// use an empty array for the previous scanline
+		var scanlineLength = 1 + Math.ceil(out.width / 8 * bitDepth);
+		var prev = new Uint8Array(scanlineLength);
+		for (var row = 0; row < out.height; row++) {
+			var begin = row * scanlineLength;
+			var end = begin + scanlineLength;
+			if (end > inflatedData.length) break;
+			var scanline = inflatedData.subarray(begin, end);
+			scanline = pzntg.expandScanline(scanline, bitDepth);
+			scanline = pzntg.unfilterScanline(scanline, prev);
+			out.graphics.set(scanline.subarray(1), out.width * row);
 			prev = scanline;
 		}
 	}
@@ -315,4 +324,47 @@ pzntg.unfilterScanline = function(scanline, prev) {
 		}
 	}
 	return scanline;
+}
+
+pzntg.expandScanline = function(scanline, bitDepth) {
+	switch (bitDepth) {
+		case 8: return scanline;
+		case 4:
+			var expandedLength = (scanline.length - 1) * 2 + 1;
+			var newScanline = new Uint8Array(expandedLength);
+			newScanline[0] = scanline[0];
+			for (var i = 1; i < scanline.length; i++) {
+				newScanline[i * 2 - 1] = scanline[i] >> 4;
+				newScanline[i * 2] = scanline[i] & 0x0F;
+			}
+			return newScanline;
+		case 2:
+			var expandedLength = (scanline.length - 1) * 4 + 1;
+			var newScanline = new Uint8Array(expandedLength);
+			newScanline[0] = scanline[0];
+			for (var i = 1; i < scanline.length; i++) {
+				var b = scanline[i];
+				newScanline[i * 4] = b & 3; b >>= 2;
+				newScanline[i * 4 - 1] = b & 3; b >>= 2;
+				newScanline[i * 4 - 2] = b & 3; b >>= 2;
+				newScanline[i * 4 - 3] = b & 3;
+			}
+			return newScanline;
+		case 1:
+			var expandedLength = (scanline.length - 1) * 8 + 1;
+			var newScanline = new Uint8Array(expandedLength);
+			newScanline[0] = scanline[0];
+			for (var i = 1; i < scanline.length; i++) {
+				var b = scanline[i];
+				newScanline[i * 8] = b & 1; b >>= 1;
+				newScanline[i * 8 - 1] = b & 1; b >>= 1;
+				newScanline[i * 8 - 2] = b & 1; b >>= 1;
+				newScanline[i * 8 - 3] = b & 1; b >>= 1;
+				newScanline[i * 8 - 4] = b & 1; b >>= 1;
+				newScanline[i * 8 - 5] = b & 1; b >>= 1;
+				newScanline[i * 8 - 6] = b & 1; b >>= 1;
+				newScanline[i * 8 - 7] = b & 1;
+			}
+			return newScanline;
+	}
 }

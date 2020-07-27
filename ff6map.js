@@ -7,26 +7,26 @@ function FF6Map(rom) {
     ROMEditor.call(this, rom);
     this.name = "FF6Map";
     this.tileset = new FF6MapTileset(rom, this);
-    
+
     this.div = document.createElement('div');
     this.div.id = 'map-edit';
-    
+
     this.scrollDiv = document.createElement('div');
     this.scrollDiv.classList.add('no-select');
     this.div.appendChild(this.scrollDiv);
-    
+
     this.canvas = document.createElement('canvas');
     this.canvas.id = "map";
     this.canvas.width = 256;
     this.canvas.height = 256;
     this.scrollDiv.appendChild(this.canvas);
-    
+
     this.cursorCanvas = document.createElement('canvas');
     this.cursorCanvas.id = "map-cursor";
     this.cursorCanvas.width = 16;
     this.cursorCanvas.height = 16;
     this.scrollDiv.appendChild(this.cursorCanvas);
-    
+
     this.mapCanvas = document.createElement('canvas');
     this.mapCanvas.width = 256;
     this.mapCanvas.height = 256;
@@ -35,7 +35,7 @@ function FF6Map(rom) {
     this.mapRect = new Rect(0, 0, 256, 256);
     this.npcCanvas = document.createElement('canvas');
     this.menu = document.getElementById("menu");
-    
+
     this.mapProperties = null;
     this.isWorld = false;
     this.m = null; // map index
@@ -59,9 +59,10 @@ function FF6Map(rom) {
     this.triggers = [];
     this.showCursor = false;
     this.selectedTrigger = null;
-    this.observer = new ROMObserver(rom, this, {sub: true, link: true, array: true});
+    this.mapObserver = new ROMObserver(rom, this, {sub: true, link: true, array: true});
+    this.triggerObserver = new ROMObserver(rom, this, {sub: true, link: false, array: false});
     this.ppu = new GFX.PPU();
-    
+
     this.screenCanvas = document.createElement('canvas');
     this.screenCanvas.id = "map-screen";
     this.screenCanvas.width = 256;
@@ -76,13 +77,15 @@ function FF6Map(rom) {
     // add event listeners
     var map = this;
     this.scrollDiv.parentElement.onscroll = function() { map.scroll() };
-//    window.addEventListener("resize", map.scroll, false);
     this.scrollDiv.onmousedown = function(e) { map.mouseDown(e) };
     this.scrollDiv.onmouseup = function(e) { map.mouseUp(e) };
     this.scrollDiv.onmousemove = function(e) { map.mouseMove(e) };
     this.scrollDiv.onmouseenter = function(e) { map.mouseEnter(e) };
     this.scrollDiv.onmouseleave = function(e) { map.mouseLeave(e) };
     this.scrollDiv.oncontextmenu = function(e) { map.openMenu(e); return false; };
+    this.resizeSensor = null;
+
+    this.updateTilesets();
 
     // check if GBA triggers have already been fixed
     if (this.rom.isGBA && (rom.eventTriggersAdvance instanceof ROMArray || rom.npcPropertiesAdvance instanceof ROMArray)) {
@@ -117,13 +120,15 @@ FF6Map.prototype.constructor = FF6Map;
 
 FF6Map.prototype.beginAction = function(callback) {
     this.rom.beginAction();
-    this.rom.doAction(new ROMAction(this.observer, this.observer.wake, this.observer.sleep));
+    this.rom.doAction(new ROMAction(this.mapObserver, this.mapObserver.wake, this.mapObserver.sleep));
+    this.rom.doAction(new ROMAction(this.triggerObserver, this.triggerObserver.wake, this.triggerObserver.sleep));
     if (callback) this.rom.doAction(new ROMAction(this, callback, null));
 }
 
 FF6Map.prototype.endAction = function(callback) {
     if (callback) this.rom.doAction(new ROMAction(this, null, callback));
-    this.rom.doAction(new ROMAction(this.observer, this.observer.sleep, this.observer.wake));
+    this.rom.doAction(new ROMAction(this.mapObserver, this.mapObserver.sleep, this.mapObserver.wake));
+    this.rom.doAction(new ROMAction(this.triggerObserver, this.triggerObserver.sleep, this.triggerObserver.wake));
     this.rom.endAction();
 }
 
@@ -131,10 +136,10 @@ FF6Map.prototype.fixGBATriggers = function(triggers, triggersGBA) {
 
     // return if trigger arrays are invalid
     if (!triggers || !triggersGBA) return;
-    
+
     // return if GBA triggers are already fixed
     if (triggersGBA.type === ROMObject.Type.assembly) return;
-    
+
     // create new trigger arrays for the GBA maps
     var mapCount = this.rom.mapProperties.arrayLength;
     while (triggers.arrayLength < mapCount) {
@@ -157,7 +162,7 @@ FF6Map.prototype.fixGBATriggers = function(triggers, triggersGBA) {
             var key = keys[k];
             newTrigger[key].setValue(oldTrigger[key].value);
         }
-        
+
         // add the trigger to the map's trigger array
         mapTriggers.insertAssembly(newTrigger);
     }
@@ -174,8 +179,67 @@ FF6Map.prototype.fixGBATriggers = function(triggers, triggersGBA) {
     placeholder.markAsDirty();
 }
 
+FF6Map.prototype.updateTilesets = function() {
+
+    for (var t = 0; t < this.rom.mapTilesets.arrayLength; t++) {
+        var tileset = this.rom.mapTilesets.item(t);
+        tileset.palette = [];
+        tileset.graphics = [];
+    }
+
+    for (var m = 3; m < this.rom.mapProperties.arrayLength; m++) {
+        var mapProperties = this.rom.mapProperties.item(m);
+        var t1 = mapProperties.tileset1.value;
+        var t2 = mapProperties.tileset2.value;
+        var g1 = mapProperties.gfx1.value;
+        var g2 = mapProperties.gfx2.value;
+        var g3 = mapProperties.gfx3.value;
+        var g4 = mapProperties.gfx4.value;
+        var p = mapProperties.palette.value;
+
+        // skip dummy maps
+        if (g1 + g2 + g3 + g4 === 0) continue;
+
+        var graphicsDefinition = [
+            {
+                path: "mapGraphics[" + g1 + "]",
+                offset: 0x0000
+            }, {
+                path: "mapGraphics[" + g2 + "]",
+                offset: 0x4000
+            }, {
+                path: "mapGraphics[" + g3 + "]",
+                offset: 0x6000
+            }
+        ];
+
+        if (g3 !== g4) graphicsDefinition.push({
+            path: "mapGraphics[" + g4 + "]",
+            offset: 0x8000
+        });
+
+        var paletteDefinition = "mapPalettes[" + p + "]";
+
+        var tileset1 = this.rom.mapTilesets.item(t1);
+        var tileset2 = this.rom.mapTilesets.item(t2);
+
+        if (!tileset1.graphics.length) {
+            tileset1.graphics.push(graphicsDefinition);
+        }
+        if (!tileset2.graphics.length) {
+            tileset2.graphics.push(graphicsDefinition);
+        }
+        if (!tileset1.palette.includes(paletteDefinition)) {
+            tileset1.palette.push(paletteDefinition);
+        }
+        if (!tileset2.palette.includes(paletteDefinition)) {
+            tileset2.palette.push(paletteDefinition);
+        }
+    }
+}
+
 FF6Map.prototype.changeZoom = function() {
-    
+
     // save the old scroll location
     var l = this.div.scrollLeft;
     var t = this.div.scrollTop;
@@ -184,12 +248,12 @@ FF6Map.prototype.changeZoom = function() {
     var oldRect = new Rect(l, l + w, t, t + h);
     var x = Math.round(oldRect.centerX / this.zoom);
     var y = Math.round(oldRect.centerY / this.zoom);
-    
+
     // update zoom
     this.zoom = Math.pow(2, Number(document.getElementById("zoom").value));
     var zoomValue = document.getElementById("zoom-value");
     zoomValue.innerHTML = (this.zoom * 100).toString() + "%";
-    
+
     // update the scroll div size
     var parentWidth = this.ppu.width * this.zoom;
     var parentHeight = this.ppu.height * this.zoom;
@@ -211,7 +275,7 @@ FF6Map.prototype.changeZoom = function() {
 }
 
 FF6Map.prototype.scroll = function() {
-    
+
     this.closeMenu();
 
     // get the visible dimensions
@@ -225,7 +289,7 @@ FF6Map.prototype.scroll = function() {
     this.mapRect.l = Math.max(0, Math.min(x - margin, this.mapRect.r - w));
     this.mapRect.b = Math.min(y + h + margin, this.ppu.height * this.zoom);
     this.mapRect.t = Math.max(0, Math.min(y - margin, this.mapRect.b - h));
-        
+
     this.canvas.style.left = this.mapRect.l.toString() + "px";
     this.canvas.style.top = this.mapRect.t.toString() + "px";
     this.canvas.width = this.mapRect.w;
@@ -235,14 +299,14 @@ FF6Map.prototype.scroll = function() {
 }
 
 FF6Map.prototype.mouseDown = function(e) {
-    
+
     this.closeMenu();
     this.clickPoint = {
         x: ((e.offsetX / this.zoom + this.ppu.layers[this.l].x) % this.ppu.width) >> 4,
         y: ((e.offsetY / this.zoom + this.ppu.layers[this.l].y) % this.ppu.height) >> 4,
         button: e.button
     };
-    
+
     // update the selection position
     this.selection[1] = this.clickPoint.x;
     this.selection[2] = this.clickPoint.y;
@@ -273,7 +337,7 @@ FF6Map.prototype.mouseDown = function(e) {
             this.selectedTrigger = null;
             if (this.m < 3) {
                 // select world map battle
-                this.selectWorldBattle(this.clickPoint.x, this.clickPoint.y) 
+                this.selectWorldBattle(this.clickPoint.x, this.clickPoint.y);
             } else {
                 // select map properties
                 propertyList.select(this.mapProperties);
@@ -290,13 +354,13 @@ FF6Map.prototype.mouseDown = function(e) {
         this.setTiles();
         this.isDragging = true;
     }
-    
+
     this.drawScreen();
     this.drawCursor();
 }
 
 FF6Map.prototype.mouseMove = function(e) {
-    
+
     // return if the menu is open
     if (this.menu.classList.contains("active")) return;
 
@@ -306,21 +370,21 @@ FF6Map.prototype.mouseMove = function(e) {
     // update the displayed coordinates
     var coordinates = document.getElementById("coordinates");
     coordinates.innerHTML = "(" + col + ", " + row + ")";
-    
+
     // return if the cursor position didn't change
     if (this.selection[1] === col && this.selection[2] === row) return;
 
     // update the selection position
     this.selection[1] = col;
     this.selection[2] = row;
-    
+
     if (!this.isDragging) {
         // update the cursor
         this.drawScreen();
         this.drawCursor();
         return;
     }
-    
+
     if (this.l === 3 && this.selectedTrigger) {
 
         if (this.selectedTrigger.x.value !== col || this.selectedTrigger.y.value !== row) {
@@ -341,12 +405,12 @@ FF6Map.prototype.mouseMove = function(e) {
 }
 
 FF6Map.prototype.mouseUp = function(e) {
-    
+
     if (this.l === 3 && this.selectedTrigger && this.isDragging) {
         // save the new trigger position
         var col = this.selectedTrigger.x.value;
         var row = this.selectedTrigger.y.value;
-        
+
         if (col != this.clickPoint.x || row !== this.clickPoint.y) {
             // move the trigger back to its old position
             this.selectedTrigger.x.value = this.triggerPoint.x;
@@ -363,12 +427,12 @@ FF6Map.prototype.mouseUp = function(e) {
         this.rom.pushAction(new ROMAction(this, null, this.drawMap, "Redraw Map"));
         this.endAction();
     }
-    
+
     this.isDragging = false;
 }
 
 FF6Map.prototype.mouseEnter = function(e) {
-    
+
     // show the cursor
     this.showCursor = true;
     this.drawScreen();
@@ -378,18 +442,18 @@ FF6Map.prototype.mouseEnter = function(e) {
 }
 
 FF6Map.prototype.mouseLeave = function(e) {
-    
+
     // hide the cursor
     this.showCursor = (this.l === 3);
     this.drawScreen();
     this.drawCursor();
-    
+
     this.mouseUp(e);
 }
 
 FF6Map.prototype.updateMenu = function() {
     this.menu.innerHTML = "";
-    
+
     var self = this;
     function appendMenuItem(label, onclick) {
         var li = document.createElement('li');
@@ -402,7 +466,7 @@ FF6Map.prototype.updateMenu = function() {
         }
         self.menu.appendChild(li);
     }
-    
+
     appendMenuItem("Insert Entrance Trigger (Single-Tile)", function() {self.insertTrigger('entranceTriggersSingle')});
     appendMenuItem("Insert Entrance Trigger (Multi-Tile)", this.m < 3 ? null : function() {self.insertTrigger('entranceTriggersMulti')});
     appendMenuItem("Insert Event Trigger", function() {self.insertTrigger('eventTriggers')});
@@ -414,7 +478,7 @@ FF6Map.prototype.updateMenu = function() {
 FF6Map.prototype.openMenu = function(e) {
     if (this.l !== 3) return; // no menu unless editing triggers
     this.updateMenu();
-    
+
     this.clickPoint = {
         x: ((e.offsetX / this.zoom + this.ppu.layers[this.l].x) % this.ppu.width) >> 4,
         y: ((e.offsetY / this.zoom + this.ppu.layers[this.l].y) % this.ppu.height) >> 4,
@@ -429,7 +493,7 @@ FF6Map.prototype.openMenu = function(e) {
 FF6Map.prototype.closeMenu = function() {
     this.menu.classList.remove("menu-active");
 }
- 
+
 FF6Map.prototype.setTiles = function() {
     // return if not dragging
     if (!this.clickPoint) return;
@@ -438,7 +502,7 @@ FF6Map.prototype.setTiles = function() {
     var row = this.selection[2];
     var cols = this.selection[3];
     var rows = this.selection[4];
-    
+
     var l = ((col << 4) - this.ppu.layers[this.l].x) & (this.ppu.width - 1);
     var r = l + (cols << 4);
     var t = ((row << 4) - this.ppu.layers[this.l].y) & (this.ppu.height - 1);
@@ -458,7 +522,7 @@ FF6Map.prototype.setTiles = function() {
 FF6Map.prototype.selectTiles = function() {
     // return if not dragging
     if (!this.clickPoint) return;
-    
+
     var col = this.selection[1];
     var row = this.selection[2];
     var cols = Math.abs(col - this.clickPoint.x) + 1;
@@ -468,7 +532,7 @@ FF6Map.prototype.selectTiles = function() {
 
     this.selection = this.selectedLayer.getLayout(col, row, cols, rows);
     this.selection[2] |= this.l << 6;
-    
+
     if (rows !== 1 || cols !== 1) {
         this.tileset.selection = null;
     } else {
@@ -492,9 +556,9 @@ FF6Map.prototype.tilePropertiesAtTile = function(t) {
 }
 
 FF6Map.prototype.selectTileProperties = function(t) {
-    
+
     if (!this.isWorld && this.selectedLayer && this.selectedLayer.type !== FF6MapLayer.Type.layer1) return;
-    
+
     // select tile properties
     var tileProperties = this.tilePropertiesAtTile(t);
     if (tileProperties) propertyList.select(tileProperties);
@@ -504,13 +568,13 @@ FF6Map.prototype.selectLayer = function(l) {
     // set the selected layer
     l = Number(l);
     if (isNumber(l)) this.l = l;
-    
+
     if (this.m > 2) {
         this.selectedLayer = this.layer[this.l]
     } else {
         this.selectedLayer = this.layer[0]
     }
-    
+
     this.showCursor = (this.l === 3);
     this.drawScreen();
     this.drawCursor();
@@ -518,10 +582,10 @@ FF6Map.prototype.selectLayer = function(l) {
 
 FF6Map.prototype.selectWorldBattle = function(x, y) {
     if (this.m > 1) return;
-    
+
     x >>= 5;
     y >>= 5;
-    
+
     var sector = x | (y << 3) | (this.m << 6);
     var battleGroup = this.rom.worldBattleGroup.item(sector);
     propertyList.select(battleGroup);
@@ -563,7 +627,7 @@ FF6Map.WorldTileMasks = {
 }
 
 FF6Map.prototype.drawMask = function() {
-    
+
 //    if (this.isWorld) return; // world map not implemented yet
     if (this.tileMask === FF6Map.TileMasks.none) return;
     if (this.tileMask === FF6Map.TileMasks.overlay) return;
@@ -575,13 +639,14 @@ FF6Map.prototype.drawMask = function() {
     var yEnd = (this.mapRect.b / this.zoom) >> 4;
     var xOffset = (this.mapRect.l / this.zoom) % 16;
     var yOffset = (this.mapRect.t / this.zoom) % 16;
-    
+
     var ctx = this.canvas.getContext('2d');
+    ctx.globalCompositeOperation = 'source-over';
 
     // draw the mask at each tile
     for (var y = yStart; y <= yEnd; y++) {
         for (var x = xStart; x <= xEnd; x++) {
-            
+
             var tile = this.layer[0].layout.data[x % this.layer[0].w + (y % this.layer[0].h) * this.layer[0].w];
             var color = this.maskColorAtTile(tile);
             if (!color) continue;
@@ -590,7 +655,7 @@ FF6Map.prototype.drawMask = function() {
             var left = (((x - xStart) << 4) - xOffset) * this.zoom;
             var top = (((y - yStart) << 4) - yOffset) * this.zoom;
             var size = 16 * this.zoom;
-            
+
             ctx.fillRect(left, top, size, size);
         }
     }
@@ -742,7 +807,7 @@ FF6Map.prototype.drawScreen = function() {
     ctx.fillRect(0, 0, this.screenCanvas.width, this.screenCanvas.height);
     ctx.globalCompositeOperation = 'destination-out'
     ctx.fillStyle = 'rgba(0, 0, 0, 1.0)';
-    
+
     if (this.m < 3 && this.rom.isGBA) {
         screenRect.l += 16 * this.zoom;
         screenRect.r -= 16 * this.zoom;
@@ -767,14 +832,14 @@ FF6Map.prototype.drawScreen = function() {
         ctx.fill();
     } else {
         ctx.fillRect(screenRect.l, screenRect.t, screenRect.w, screenRect.h);
-    }    
+    }
 }
 
 FF6Map.prototype.drawCursor = function() {
-    
+
     this.cursorCanvas.style.display = "none";
     if (!this.showCursor) return;
-    
+
     var col = this.selection[1];
     var row = this.selection[2];
 
@@ -820,7 +885,7 @@ FF6Map.prototype.drawCursor = function() {
                 c = "rgba(128, 128, 128, 1.0)"; break;
         }
     }
-    
+
     // draw the cursor
     w = Math.min(this.ppu.width * this.zoom - x, w);
     h = Math.min(this.ppu.height * this.zoom - y, h);
@@ -833,7 +898,7 @@ FF6Map.prototype.drawCursor = function() {
     this.cursorCanvas.style.top = y.toString() + "px";
     this.cursorCanvas.style.display = "block";
     var ctx = this.cursorCanvas.getContext('2d');
-    
+
     // convert the selection to screen coordinates
     ctx.lineWidth = 1;
     ctx.strokeStyle = "black";
@@ -856,19 +921,20 @@ FF6Map.prototype.selectObject = function(object) {
 //    this.show();
     this.tileset.show();
     this.loadMap(object.i);
+    // notify on resize
 }
 
 FF6Map.prototype.resetControls = function() {
-    
+
     ROMEditor.prototype.resetControls.call(this);
-    
+
     var map = this;
 
     this.addTwoState("showLayer1", function() { map.changeLayer("showLayer1"); }, "Layer 1", this.showLayer1);
     this.addTwoState("showLayer2", function() { map.changeLayer("showLayer2"); }, "Layer 2", this.showLayer2);
     this.addTwoState("showLayer3", function() { map.changeLayer("showLayer3"); }, "Layer 3", this.showLayer3);
     this.addTwoState("showTriggers", function() { map.changeLayer("showTriggers"); }, "Triggers", this.showTriggers);
-    
+
     var maskArray = this.isWorld ? FF6Map.WorldTileMasks : FF6Map.TileMasks
     var maskKeys = Object.keys(maskArray);
     var maskNames = [];
@@ -884,76 +950,104 @@ FF6Map.prototype.resetControls = function() {
 
     this.addTwoState("showScreen", function() { map.changeLayer("showScreen"); }, "Screen", this.showScreen);
     this.addZoom(this.zoom, function() { map.changeZoom(); });
+
+    if (!this.resizeSensor) this.resizeSensor = new ResizeSensor(document.getElementById("edit-top"), function() { map.scroll(); });
 }
 
 FF6Map.prototype.hide = function() {
-    this.observer.stopObservingAll();
+    this.mapObserver.stopObservingAll();
+    this.triggerObserver.stopObservingAll();
+    if (this.resizeSensor) {
+        this.resizeSensor.detach(document.getElementById("edit-top"));
+        this.resizeSensor = null;
+    }
+    this.tileset.hide();
 }
 
 FF6Map.prototype.loadMap = function(m) {
-    
+
     var layerButtons = document.getElementsByClassName("toolbox-button");
     layerButtons[1].disabled = false;
     layerButtons[2].disabled = false;
 
     // set the map index
-    m = Number(m);
-    if (isNumber(m) && this.m !== m) {
-//        this.tileMask = FF6Map.TileMasks.none;
-        this.m = m;
-        this.observer.stopObservingAll();
-        if (this.m < 3) {
-            this.loadWorldMap(this.m);
-            return;
-        }
-        this.mapProperties = this.rom.mapProperties.item(this.m);
-        this.observer.startObserving(this.mapProperties, this.loadMap);
-        var tp = this.mapProperties.tileProperties.value;
-        this.observer.startObserving(this.rom.mapTileProperties.item(tp), this.loadMap);
-        
-        // set the default battle background
-        var battleEditor = propertyList.getEditor("FF6Battle");
-        if (battleEditor) battleEditor.bg = this.mapProperties.battleBackground.value;
+    if (!isNumber(m)) m = this.m;
+
+    if (m < 3) {
+        this.loadWorldMap(m);
+        return;
     }
+
+    this.m = m;
+    this.mapProperties = this.rom.mapProperties.item(this.m);
+    this.mapObserver.stopObservingAll();
+    this.mapObserver.startObserving(this.mapProperties, this.loadMap);
+    var tp = this.mapProperties.tileProperties.value;
+    this.mapObserver.startObserving(this.rom.mapTileProperties.item(tp), this.loadMap);
+
+    // set the default battle background
+    var battleEditor = propertyList.getEditor("FF6Battle");
+    if (battleEditor) battleEditor.bg = this.mapProperties.battleBackground.value;
 
     // get map properties
     this.isWorld = false;
     var map = this.mapProperties;
     if (!map) return;
     this.resetControls();
-    
+
     // load graphics
     var gfx = new Uint8Array(0x10000);
-    gfx.set(this.rom.mapGraphics.item(map.gfx1.value).data, 0x0000);
-    gfx.set(this.rom.mapGraphics.item(map.gfx2.value).data, 0x4000);
-    gfx.set(this.rom.mapGraphics.item(map.gfx3.value).data, 0x6000);
-    if (map.gfx3 != map.gfx4) {
-        gfx.set(this.rom.mapGraphics.item(map.gfx4.value).data, 0x8000);
+    var g1 = map.gfx1.value;
+    var g2 = map.gfx2.value;
+    var g3 = map.gfx3.value;
+    var g4 = map.gfx4.value;
+
+    var graphics1 = this.rom.mapGraphics.item(g1);
+    this.mapObserver.startObserving(graphics1, this.loadMap);
+    gfx.set(graphics1.data, 0x0000);
+
+    var graphics2 = this.rom.mapGraphics.item(g2);
+    this.mapObserver.startObserving(graphics2, this.loadMap);
+    gfx.set(graphics2.data, 0x4000);
+
+    var graphics3 = this.rom.mapGraphics.item(g3);
+    this.mapObserver.startObserving(graphics3, this.loadMap);
+    gfx.set(graphics3.data, 0x6000);
+
+    if (g3 !== g4) {
+        var graphics4 = this.rom.mapGraphics.item(g4);
+        this.mapObserver.startObserving(graphics4, this.loadMap);
+        gfx.set(graphics4.data, 0x8000);
     }
 
     // load animation graphics
-    var animGfx = this.rom.mapAnimationGraphics.data;
+    var animGfx = this.rom.mapAnimationGraphics;
+    this.mapObserver.startObserving(animGfx, this.loadMap);
     var anim = this.rom.mapAnimationProperties.item(map.animation.value);
     for (i = 0; i < anim.arrayLength; i++) {
         var f = anim.item(i).frame1.value * 2;
-        gfx.set(animGfx.subarray(f, f + 0x100), 0xA000 + i * 0x0100);
+        gfx.set(animGfx.data.subarray(f, f + 0x100), 0xA000 + i * 0x0100);
     }
 
     // load layer 3 graphics
     var graphicsLayer3 = this.rom.mapGraphicsLayer3.item(map.gfxLayer3.value);
+    this.mapObserver.startObserving(graphicsLayer3.graphics, this.loadMap);
     gfx.set(graphicsLayer3.graphics.data, 0xC000);
 
     // load layer 3 animation graphics
     if (map.animationLayer3.value != 0) {
-        animGfx = this.rom.mapAnimationGraphicsLayer3.item(map.animationLayer3.value - 1).data;
+        animGfx = this.rom.mapAnimationGraphicsLayer3.item(map.animationLayer3.value - 1);
+        this.mapObserver.startObserving(animGfx, this.loadMap);
         var anim = this.rom.mapAnimationPropertiesLayer3.item(map.animationLayer3.value - 1);
         var size = anim.size.value * (this.rom.isGBA ? 2 : 4);
         var f = anim.frame1.value * (this.rom.isGBA ? 2 : 4);
-        gfx.set(animGfx.subarray(f, f + size), 0xC000);
+        gfx.set(animGfx.data.subarray(f, f + size), 0xC000);
     }
 
     // load palette
-    var pal = new Uint32Array(this.rom.mapPalettes.item(map.palette.value).data);
+    var paletteObject = this.rom.mapPalettes.item(map.palette.value);
+    this.mapObserver.startObserving(paletteObject, this.loadMap);
+    var pal = new Uint32Array(paletteObject.data);
     pal[0] = 0xFF000000; // set background color to black
 
     var layout, tileset;
@@ -984,7 +1078,7 @@ FF6Map.prototype.loadMap = function(m) {
     var overlayGraphics = new Uint8Array(0x10000);
     overlayGraphics.set(this.rom.mapOverlayGraphics.data, 64);
     this.layer[3].loadLayout({layout: this.layer[0].layout, tileset: overlayProperties.data, overlayTiles: this.rom.mapOverlayLayout.data, w: width1, h: height1});
-    
+
     // get color math properties
     var colorMath = this.rom.mapColorMath.item(map.colorMath.value);
 
@@ -998,8 +1092,7 @@ FF6Map.prototype.loadMap = function(m) {
     this.ppu.half = colorMath.half.value;
 
     // layer 1
-    var format = this.rom.isSFC ? GFX.TileFormat.snes4bppTile : GFX.TileFormat.gba4bppTile;
-    this.ppu.layers[0].format = format;
+    this.ppu.layers[0].format = null;
     this.ppu.layers[0].cols = this.layer[0].w * 2;
     this.ppu.layers[0].rows = this.layer[0].h * 2;
     this.ppu.layers[0].z[0] = GFX.Z.snes1L;
@@ -1011,7 +1104,7 @@ FF6Map.prototype.loadMap = function(m) {
     this.ppu.layers[0].math = (colorMath.mathLayers.value & 0x01);
 
     // layer 2
-    this.ppu.layers[1].format = format;
+    this.ppu.layers[1].format = null;
     this.ppu.layers[1].cols = this.layer[1].w * 2;
     this.ppu.layers[1].rows = this.layer[1].h * 2;
     this.ppu.layers[1].x = map.hOffset2.value * 16;
@@ -1048,7 +1141,6 @@ FF6Map.prototype.loadMap = function(m) {
     this.overlayPPU.height = this.ppu.width;
 
     // overlay layer
-    this.overlayPPU.layers[0].format = GFX.TileFormat.snes2bppTile;
     this.overlayPPU.layers[0].cols = this.ppu.layers[0].cols;
     this.overlayPPU.layers[0].rows = this.ppu.layers[0].rows;
     this.overlayPPU.layers[0].z[0] = GFX.Z.top;
@@ -1068,12 +1160,16 @@ FF6Map.prototype.loadMap = function(m) {
     this.selectedTrigger = null;
     this.loadTriggers();
     this.scroll();
-    
-    this.tileset.loadMap(m);
+
+    this.tileset.loadMap();
 }
 
 FF6Map.prototype.loadWorldMap = function(m) {
-    
+
+    this.isWorld = true;
+    if (!isNumber(m)) m = this.m;
+    this.m = m;
+
     if (this.selectedLayer && (this.selectedLayer.type === "layer2" || this.selectedLayer.type === "layer3")) {
         this.selectLayer(0);
     }
@@ -1081,41 +1177,43 @@ FF6Map.prototype.loadWorldMap = function(m) {
     layerButtons[1].disabled = true;
     layerButtons[2].disabled = true;
 
+    this.mapObserver.stopObservingAll();
     this.mapProperties = null;
-    this.isWorld = true;
     propertyList.select(null);
     this.resetControls();
 
     // load graphics and layout
     var layout = this.rom["worldLayout" + (m + 1)];
-    var pal = this.rom["worldPalette" + (m + 1)].data;
+    var paletteObject = this.rom["worldPalette" + (m + 1)];
     var graphicsData = this.rom["worldGraphics" + (m + 1)];
     var tileset = graphicsData.tileset.data;
     var gfx = graphicsData.graphics.data;
     var paletteAssignment = (this.rom.isSFC) ? graphicsData.paletteAssignment.data : null;
     var size = (m === 2) ? 128 : 256;
-    
+
+    this.mapObserver.startObserving(layout, this.loadMap)
+    this.mapObserver.startObserving(paletteObject, this.loadMap)
+    this.mapObserver.startObserving(graphicsData.graphics, this.loadMap)
+
     // start observing tile properties
-    if (this.m !== 2) this.observer.startObserving(this.rom.worldTileProperties.item(this.m), this.drawMap);
-    
+    if (this.m !== 2) this.mapObserver.startObserving(this.rom.worldTileProperties.item(this.m), this.drawMap);
+
     // fix serpent trench map layout (ff6 advance)
     if (this.rom.isGBA && m === 2 && layout.data.length !== (size * size)) {
         layout.data = layout.data.subarray(0, (size * size));
     }
-    
+
     this.layer[0].type = FF6MapLayer.Type.world;
     this.layer[0].loadLayout({layout: layout, tileset: tileset, w: size, h: size, paletteAssignment: paletteAssignment});
-    
+
     // set up the ppu
     this.ppu = new GFX.PPU();
-    this.ppu.pal = pal;
+    this.ppu.pal = paletteObject.data;
     this.ppu.width = size * 16;
     this.ppu.height = size * 16;
     this.ppu.back = true;
 
     // layer 1
-    var format = this.rom.isSFC ? GFX.TileFormat.snes4bppTile : GFX.TileFormat.gba4bppTile;
-    this.ppu.layers[0].format = format;
     this.ppu.layers[0].cols = size * 2;
     this.ppu.layers[0].rows = size * 2;
     this.ppu.layers[0].z[0] = GFX.Z.snes1L;
@@ -1128,13 +1226,13 @@ FF6Map.prototype.loadWorldMap = function(m) {
     this.scrollDiv.style.height = (this.ppu.height * this.zoom).toString() + "px";
     this.mapCanvas.width = this.ppu.width;
     this.mapCanvas.height = this.ppu.height;
-    
+
     this.invalidateMap();
     this.selectedTrigger = null;
     this.loadTriggers();
     this.scroll();
 
-    this.tileset.loadMap(m);
+    this.tileset.loadMap();
 }
 
 FF6Map.prototype.invalidateMap = function(rect) {
@@ -1157,7 +1255,7 @@ FF6Map.prototype.invalidateMap = function(rect) {
 }
 
 FF6Map.prototype.drawMap = function() {
-        
+
     // update the map canvas
     var mapContext = this.mapCanvas.getContext('2d');
     var overlayContext = this.overlayCanvas.getContext('2d');
@@ -1167,7 +1265,7 @@ FF6Map.prototype.drawMap = function() {
     for (var s = 0; s < this.mapSectors.length; s++) {
         // continue if this sector is already drawn
         if (this.mapSectors[s]) continue;
-        
+
         // continue if this sector is not visible
         var col = s % (this.ppu.width >> 8);
         var row = (s / (this.ppu.width >> 8)) | 0;
@@ -1177,7 +1275,7 @@ FF6Map.prototype.drawMap = function() {
         var b = t + 256;
         var sectorRect = new Rect(l, r, t, b);
         if (this.mapRect.intersect(sectorRect.scale(this.zoom)).isEmpty()) continue;
-        
+
         // draw the sector (256 x 256 pixels)
         imageData = mapContext.createImageData(256, 256);
         this.ppu.renderPPU(imageData.data, sectorRect.l, sectorRect.t, 256, 256);
@@ -1188,14 +1286,14 @@ FF6Map.prototype.drawMap = function() {
             this.overlayPPU.renderPPU(imageData.data, sectorRect.l, sectorRect.t, 256, 256);
             overlayContext.putImageData(imageData, sectorRect.l, sectorRect.t);
         }
-        
+
         // validate the sector
         this.mapSectors[s] = true;
     }
-    
+
     // redraw dirty portions of the map
     if (this.dirtyRect) {
-    
+
         var rect = this.dirtyRect;
         this.dirtyRect = null;
 
@@ -1203,7 +1301,7 @@ FF6Map.prototype.drawMap = function() {
         imageData = mapContext.createImageData(rect.w, rect.h);
         this.ppu.renderPPU(imageData.data, rect.l, rect.t, rect.w, rect.h);
         mapContext.putImageData(imageData, rect.l, rect.t);
-        
+
         if (!this.isWorld) {
             imageData = overlayContext.createImageData(rect.w, rect.h);
             this.overlayPPU.renderPPU(imageData.data, rect.l, rect.t, rect.w, rect.h);
@@ -1214,11 +1312,13 @@ FF6Map.prototype.drawMap = function() {
     var ctx = this.canvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
     ctx.webkitImageSmoothingEnabled = false;
+    ctx.globalCompositeOperation = 'copy';
     var scaledRect = this.mapRect.scale(1 / this.zoom);
     ctx.drawImage(this.mapCanvas, scaledRect.l, scaledRect.t, scaledRect.w, scaledRect.h, 0, 0, this.mapRect.w, this.mapRect.h);
-    
+
     this.drawMask();
     if (this.tileMask === FF6Map.TileMasks.overlay) {
+        ctx.globalCompositeOperation = 'source-over';
         ctx.drawImage(this.overlayCanvas, scaledRect.l, scaledRect.t, scaledRect.w, scaledRect.h, 0, 0, this.mapRect.w, this.mapRect.h);
     }
     this.drawTriggers();
@@ -1235,59 +1335,63 @@ FF6Map.prototype.loadTriggers = function() {
 
     var i;
     this.triggers = [];
-    
+    this.triggerObserver.stopObservingAll();
+
     // event triggers
     var triggers = this.rom.eventTriggers.item(this.m);
     if (triggers) {
-        this.observer.startObserving(triggers, this.reloadTriggers);
         for (i = 0; i < triggers.arrayLength; i++) {
-            this.triggers.push(triggers.item(i));
+            var trigger = triggers.item(i);
+            this.triggerObserver.startObserving(trigger, this.reloadTriggers);
+            this.triggers.push(trigger);
         }
     }
-    
+
     triggers = this.rom.eventTriggersAdvance;
     if (this.rom.isGBA && triggers instanceof ROMArray) {
         for (i = 0; i < triggers.arrayLength; i++) {
             var trigger = triggers.item(i);
             if (trigger.map.value !== this.m) continue;
-            this.observer.startObserving(trigger, this.reloadTriggers);
+            this.triggerObserver.startObserving(trigger, this.reloadTriggers);
             this.triggers.push(trigger);
         }
     }
-    
+
     // single-tile entrance triggers
     triggers = this.rom.entranceTriggersSingle.item(this.m);
     if (triggers) {
-        this.observer.startObserving(triggers, this.reloadTriggers);
         for (i = 0; i < triggers.arrayLength; i++) {
-            this.triggers.push(triggers.item(i));
+            var trigger = triggers.item(i);
+            this.triggerObserver.startObserving(trigger, this.reloadTriggers);
+            this.triggers.push(trigger);
         }
     }
-    
+
     // return if a world map
     if (this.m < 3) return;
-    
+
     // multi-tile entrance triggers
     triggers = this.rom.entranceTriggersMulti.item(this.m);
     if (triggers) {
-        this.observer.startObserving(triggers, this.reloadTriggers);
         for (i = 0; i < triggers.arrayLength; i++) {
-            this.triggers.push(triggers.item(i));
+            var trigger = triggers.item(i);
+            this.triggerObserver.startObserving(trigger, this.reloadTriggers);
+            this.triggers.push(trigger);
         }
     }
-    
+
     triggers = this.rom.treasureProperties.item(this.m);
     if (triggers) {
-        this.observer.startObserving(triggers, this.reloadTriggers);
         for (i = 0; i < triggers.arrayLength; i++) {
-            this.triggers.push(triggers.item(i));
+            var trigger = triggers.item(i);
+            this.triggerObserver.startObserving(trigger, this.reloadTriggers);
+            this.triggers.push(trigger);
         }
     }
-    
+
     // npcs
     triggers = this.rom.npcProperties.item(this.m);
     if (triggers) {
-        this.observer.startObserving(triggers, this.reloadTriggers);
         for (i = 0; i < triggers.arrayLength; i++) {
 
             var npc = triggers.item(i);
@@ -1312,20 +1416,21 @@ FF6Map.prototype.loadTriggers = function() {
                 npc.name = "NPC Properties";
             }
 
+            this.triggerObserver.startObserving(npc, this.reloadTriggers);
             this.triggers.push(triggers.item(i));
         }
     }
-    
+
     triggers = this.rom.npcPropertiesAdvance;
     if (this.rom.isGBA && triggers instanceof ROMArray) {
         for (i = 0; i < triggers.arrayLength; i++) {
             var trigger = triggers.item(i);
             if (trigger.map.value !== this.m) continue;
-            this.observer.startObserving(trigger, this.reloadTriggers);
+            this.triggerObserver.startObserving(trigger, this.reloadTriggers);
             this.triggers.push(trigger);
         }
     }
-    
+
     // map start-up event
     if (this.rom.isGBA) {
         var mapProperties = this.rom.mapProperties.item(this.m);
@@ -1341,8 +1446,8 @@ FF6Map.prototype.loadTriggers = function() {
 }
 
 FF6Map.prototype.insertTrigger = function(type) {
-    
-    this.closeMenu();    
+
+    this.closeMenu();
     var triggers = this.rom[type].item(this.m);
     var trigger = triggers.blankAssembly();
 
@@ -1357,41 +1462,42 @@ FF6Map.prototype.insertTrigger = function(type) {
 }
 
 FF6Map.prototype.deleteTrigger = function() {
-    
+
     this.closeMenu();
     var trigger = this.selectedTrigger;
     if (!trigger) return;
     var triggers = trigger.parent;
     var index = triggers.array.indexOf(trigger);
     if (index === -1) return;
-    
+
     this.beginAction(this.reloadTriggers);
     triggers.removeAssembly(index);
     this.endAction(this.reloadTriggers);
-    
+
     this.selectedTrigger = null;
     propertyList.select(null);
 }
 
 FF6Map.prototype.drawTriggers = function() {
-    
+
     var zoom = this.zoom;
     var xClient = this.mapRect.l;
     var yClient = this.mapRect.t;
     var ctx = this.canvas.getContext('2d');
-    
+    ctx.globalCompositeOperation = 'source-over';
+
     // function for drawing trigger rectangles with rounded corners
     function drawTriggerRect(x, y, fill) {
-        
+
         var r = zoom * 2;
         var s = zoom * 16 - 4 + 1;
         x = x * zoom * 16 + 2 - 0.5 - xClient;
         y = y * zoom * 16 + 2 - 0.5 - yClient;
-        
+
         ctx.lineWidth = 1;
         ctx.strokeStyle = "white";
         ctx.fillStyle = fill;
-        
+
         ctx.beginPath();
         ctx.moveTo(x, y + r);
         ctx.arcTo(x, y, x + r, y, r);
@@ -1405,7 +1511,7 @@ FF6Map.prototype.drawTriggers = function() {
         ctx.fill();
         ctx.stroke();
     }
-    
+
     if (!this.showTriggers) return;
     for (var i = 0; i < this.triggers.length; i++) {
         var trigger = this.triggers[i];
@@ -1438,7 +1544,7 @@ FF6Map.prototype.drawTriggers = function() {
         }
         drawTriggerRect(trigger.x.value, trigger.y.value, c);
     }
-    
+
     // draw npcs (sort by y-coordinate and sprite priority)
     var npcs = this.triggers.filter(function(trigger) {
         return (trigger.key.startsWith("npcProperties"));
@@ -1456,7 +1562,7 @@ FF6Map.prototype.drawTriggers = function() {
 }
 
 FF6Map.prototype.triggerAt = function(x, y) {
-    
+
     var triggers = this.triggersAt(x, y);
     if (triggers.length === 0) return null;
     return triggers[0];
@@ -1466,14 +1572,14 @@ FF6Map.prototype.triggersAt = function (x, y) {
     var left, right, top, bottom, length, vertical;
     var zoom = this.zoom;
     var triggers = [];
-    
+
     for (var i = 0; i < this.triggers.length; i++) {
         var trigger = this.triggers[i];
         left = trigger.x.value * 16 * zoom;
         right = left + 16 * zoom;
         top = trigger.y.value * 16 * zoom;
         bottom = top + 16 * zoom;
-        
+
         if (trigger.vertical) {
             length = trigger.length.value;
             vertical = trigger.vertical.value;
@@ -1483,9 +1589,9 @@ FF6Map.prototype.triggersAt = function (x, y) {
                 right = left + 16 * zoom * (length);
             }
         }
-        
+
         if (x >= left && x < right && y >= top && y < bottom)
-            triggers.push(trigger);        
+            triggers.push(trigger);
     }
     return triggers;
 }
@@ -1495,7 +1601,7 @@ FF6Map.prototype.rectForTrigger = function(trigger) {
     var r = l + 16 * this.zoom;
     var t = trigger.y.value * 16 * this.zoom;
     var b = t + 16 * this.zoom;
-    
+
     if (trigger.vertical) {
         var length = trigger.length.value;
         var vertical = trigger.vertical.value;
@@ -1510,7 +1616,7 @@ FF6Map.prototype.rectForTrigger = function(trigger) {
 }
 
 FF6Map.prototype.drawNPC = function(npc) {
-    
+
     var x = npc.x.value * 16;
     var y = npc.y.value * 16 - 16;
     var w = 16;
@@ -1531,7 +1637,7 @@ FF6Map.prototype.drawNPC = function(npc) {
         is32x32 = npc.is32x32.value;
         hFlip = npc.hFlip.value;
         var offset = 0;
-        
+
         offset = npc.offset.value * 2;
         if (npc.slave.value) {
             var m = npc.master.value;
@@ -1544,14 +1650,14 @@ FF6Map.prototype.drawNPC = function(npc) {
                 offset = npc.offset.value * 16;
             }
         }
-        
+
         if (npc.offsetDirection.value) {
             y += offset;
         } else {
             x += offset;
         }
         y += 8;
-        
+
         if (is32x32) {
             tileCount = 16;
             w = 32; h = 32;
@@ -1574,7 +1680,7 @@ FF6Map.prototype.drawNPC = function(npc) {
     } else if (animation === 3) {
         frameIndex = 0x28;
     }
-    
+
     // get the sprite tile layout
     var tileLayout = this.rom.mapSpriteLayouts.item(frameIndex & 0x3F);
 
@@ -1625,7 +1731,7 @@ FF6Map.prototype.drawNPC = function(npc) {
         var vw = 32;
         var vh = 32;
         var vp = 7; // vehicle palette
-        
+
         // get the vehicle tile layout
         var vehicleTiles = new Uint16Array(16);
         if (vehicle === 1) {
@@ -1722,7 +1828,7 @@ FF6Map.prototype.drawNPC = function(npc) {
             vx -= 8;
             y -= 8;
             vp = 11;
-            
+
             switch (direction) {
                 case 0:
                 case 2:
@@ -1743,7 +1849,7 @@ FF6Map.prototype.drawNPC = function(npc) {
                     break;
             }
         }
-        
+
         var vehicleRect = new Rect(vx, vx + vw, vy, vy + vh);
         vehicleRect = vehicleRect.scale(this.zoom);
         if (this.mapRect.intersect(vehicleRect).isEmpty()) return;
@@ -1762,7 +1868,6 @@ FF6Map.prototype.drawNPC = function(npc) {
         ppu.height = vh;
 
         // layer 1
-        ppu.layers[0].format = GFX.TileFormat.snesSpriteTile;
         ppu.layers[0].cols = vw >> 3;
         ppu.layers[0].rows = vh >> 3;
         ppu.layers[0].z[0] = GFX.Z.snesS0;
@@ -1770,7 +1875,7 @@ FF6Map.prototype.drawNPC = function(npc) {
         ppu.layers[0].z[2] = GFX.Z.snesS2;
         ppu.layers[0].z[3] = GFX.Z.snesS3;
         ppu.layers[0].gfx = gfx;
-        ppu.layers[0].tiles = vehicleTiles;
+        ppu.layers[0].tiles = GFX.tileFormat.snesSpriteTile.decode(vehicleTiles)[0];
         ppu.layers[0].main = true;
 
         // draw the vehicle
@@ -1784,14 +1889,15 @@ FF6Map.prototype.drawNPC = function(npc) {
         var ctx = this.canvas.getContext('2d');
         ctx.imageSmoothingEnabled = false;
         ctx.webkitImageSmoothingEnabled = false;
+        ctx.globalCompositeOperation = 'source-over';
         vehicleRect = vehicleRect.offset(-this.mapRect.l, -this.mapRect.t);
         ctx.drawImage(this.npcCanvas, 0, 0, vw, vh, vehicleRect.l, vehicleRect.t, vehicleRect.w, vehicleRect.h);
     }
-    
+
     function drawSprite() {
-        
+
         if (vehicle && !showRider && !specialNPC && !animation) return;
-        
+
         var npcRect = new Rect(x, x + w, y, y + h);
         npcRect = npcRect.scale(this.zoom);
         if (this.mapRect.intersect(npcRect).isEmpty()) return;
@@ -1803,7 +1909,6 @@ FF6Map.prototype.drawNPC = function(npc) {
         ppu.height = h;
 
         // layer 1
-        ppu.layers[0].format = GFX.TileFormat.snesSpriteTile;
         ppu.layers[0].cols = w >> 3;
         ppu.layers[0].rows = h >> 3;
         ppu.layers[0].z[0] = GFX.Z.snesS0;
@@ -1811,7 +1916,7 @@ FF6Map.prototype.drawNPC = function(npc) {
         ppu.layers[0].z[2] = GFX.Z.snesS2;
         ppu.layers[0].z[3] = GFX.Z.snesS3;
         ppu.layers[0].gfx = gfx;
-        ppu.layers[0].tiles = tileData;
+        ppu.layers[0].tiles = GFX.tileFormat.snesSpriteTile.decode(tileData)[0];
         ppu.layers[0].main = true;
 
         // draw the npc
@@ -1825,10 +1930,11 @@ FF6Map.prototype.drawNPC = function(npc) {
         var ctx = this.canvas.getContext('2d');
         ctx.imageSmoothingEnabled = false;
         ctx.webkitImageSmoothingEnabled = false;
+        ctx.globalCompositeOperation = 'source-over';
         npcRect = npcRect.offset(-this.mapRect.l, -this.mapRect.t);
         ctx.drawImage(this.npcCanvas, 0, 0, w, h, npcRect.l, npcRect.t, npcRect.w, npcRect.h);
     }
-    
+
     function drawTail() {
         if (vehicle !== 1) return;
         if (animation) return;
@@ -1837,7 +1943,7 @@ FF6Map.prototype.drawNPC = function(npc) {
         var ty = y + 12;
         var tw = 16;
         var th = 16;
-        
+
         // get the tail/head tile layout
         var tailTiles = new Uint16Array(4);
         switch (direction) {
@@ -1869,7 +1975,6 @@ FF6Map.prototype.drawNPC = function(npc) {
         ppu.height = th;
 
         // layer 1
-        ppu.layers[0].format = GFX.TileFormat.snesSpriteTile;
         ppu.layers[0].cols = 2;
         ppu.layers[0].rows = 2;
         ppu.layers[0].z[0] = GFX.Z.snesS0;
@@ -1877,7 +1982,7 @@ FF6Map.prototype.drawNPC = function(npc) {
         ppu.layers[0].z[2] = GFX.Z.snesS2;
         ppu.layers[0].z[3] = GFX.Z.snesS3;
         ppu.layers[0].gfx = gfx;
-        ppu.layers[0].tiles = tailTiles;
+        ppu.layers[0].tiles = GFX.tileFormat.snesSpriteTile.decode(tailTiles)[0];
         ppu.layers[0].main = true;
 
         // draw the vehicle
@@ -1891,6 +1996,7 @@ FF6Map.prototype.drawNPC = function(npc) {
         var ctx = this.canvas.getContext('2d');
         ctx.imageSmoothingEnabled = false;
         ctx.webkitImageSmoothingEnabled = false;
+        ctx.globalCompositeOperation = 'source-over';
         tailRect = tailRect.offset(-this.mapRect.l, -this.mapRect.t);
         ctx.drawImage(this.npcCanvas, 0, 0, tw, th, tailRect.l, tailRect.t, tailRect.w, tailRect.h);
     }
@@ -1905,26 +2011,27 @@ function FF6MapTileset(rom, map) {
 
     this.rom = rom;
     this.map = map;
-    
+
     this.canvas = document.createElement('canvas');
     this.canvas.id = "tileset";
-    this.canvas.width = 256;
-    this.canvas.height = 256;
-    
+
+    this.tilesetCanvas = document.createElement('canvas');
+    this.tilesetCanvas.width = 256;
+    this.tilesetCanvas.height = 256;
+
     this.cursorCanvas = document.createElement("canvas");
     this.cursorCanvas.id = "tileset-cursor";
-    this.cursorCanvas.width = 256;
-    this.cursorCanvas.height = 256;
 
     this.layer = [new FF6MapLayer(rom, FF6MapLayer.Type.layer1),
                   new FF6MapLayer(rom, FF6MapLayer.Type.layer2),
                   new FF6MapLayer(rom, FF6MapLayer.Type.layer3),
                   new FF6MapLayer(rom, FF6MapLayer.Type.overlay)];
 
+    this.zoom = 1.0;
     this.selection = new Uint8Array([0x73, 0, 0, 1, 1, 0]);
     this.clickedCol = null;
     this.clickedRow = null;
-    
+
     this.ppu = new GFX.PPU();
     this.overlayCanvas = document.createElement('canvas');
     this.overlayCanvas.width = 256;
@@ -1937,28 +2044,43 @@ function FF6MapTileset(rom, map) {
     this.canvas.onmousemove = function(e) { tileset.mouseMove(e) };
     this.canvas.onmouseout = function(e) { tileset.mouseOut(e) };
     this.canvas.oncontextmenu = function() { return false; };
+    this.resizeSensor = null;
+
     var tilesetButtons = document.getElementsByClassName("toolbox-button")
     for (var i = 0; i < tilesetButtons.length; i++) {
         var button = tilesetButtons[i];
         button.onclick = function() { tileset.selectLayer(this.value); };
-//        button.addEventListener("click", function() { tileset.selectLayer(this.value); });
     }
 }
 
 FF6MapTileset.prototype.show = function() {
+
+    // reset the toolbox div
     this.div = document.getElementById('toolbox-div');
     this.div.innerHTML = "";
     this.div.classList.remove('hidden');
     this.div.appendChild(this.canvas);
     this.div.appendChild(this.cursorCanvas);
 
+    // show the cursor and toolbox buttons
+    var self = this;
     this.cursorCanvas.classList.remove('hidden');
-    document.getElementById("toolbox-buttons").classList.remove('hidden');
+    document.getElementById("toolbox-layer-div").classList.remove('hidden');
+
+    // notify on resize
+    this.resizeSensor = new ResizeSensor(document.getElementById("toolbox"), function() { self.redraw(); });
+}
+
+FF6MapTileset.prototype.hide = function() {
+    if (this.resizeSensor) {
+        this.resizeSensor.detach(document.getElementById("toolbox"));
+        this.resizeSensor = null;
+    }
 }
 
 FF6MapTileset.prototype.mouseDown = function(e) {
-    var x = e.offsetX;
-    var y = e.offsetY;
+    var x = e.offsetX / this.zoom;
+    var y = e.offsetY / this.zoom;
     this.clickedCol = x >> 4;
     this.clickedRow = y >> 4;
     this.mouseMove(e);
@@ -1978,10 +2100,8 @@ FF6MapTileset.prototype.mouseMove = function(e) {
     // return unless dragging (except if trigger layer selected)
     if (!isNumber(this.clickedCol) || !isNumber(this.clickedRow) || this.map.l === 3) return;
 
-    var col = e.offsetX >> 4;
-    var row = e.offsetY >> 4;
-    var col = Math.min(e.offsetX >> 4, 15);
-    var row = Math.min(e.offsetY >> 4, 15);
+    var col = Math.min((e.offsetX / this.zoom) >> 4, 15);
+    var row = Math.min((e.offsetY / this.zoom) >> 4, 15);
     var cols = Math.abs(col - this.clickedCol) + 1;
     var rows = Math.abs(row - this.clickedRow) + 1;
     col = Math.min(col, this.clickedCol);
@@ -1995,138 +2115,19 @@ FF6MapTileset.prototype.mouseMove = function(e) {
             this.selection[5 + i + j * cols] = col + i + (row + j) * 16;
         }
     }
-    
+
     // redraw the cursor and notify the map
     this.drawCursor();
     this.map.selection = new Uint8Array(this.selection);
     if (cols === 1 && rows === 1) this.map.selectTileProperties(this.selection[5]);
 }
 
-FF6MapTileset.prototype.selectLayer = function(l) {
-    
-    // update layer buttons
-    var layerButtons = document.getElementsByClassName("toolbox-button");
-    for (var i = 0; i < layerButtons.length; i++) {
-        // deselect all layer buttons
-        layerButtons[i].classList.remove("selected")
-    }
-    // select the clicked layer
-    layerButtons[l].classList.add("selected")
-
-    // set the selected layer
-    this.map.selectLayer(l);
-
-    // turn on the selected layer
-    this.ppu.layers[0].main = false;
-    this.ppu.layers[1].main = false;
-    this.ppu.layers[2].main = false;
-    
-    if (this.map.l === 3) {
-        // hide the canvas is the trigger layer is selected
-//        this.canvas.classList.add("hidden");
-//        this.cursorCanvas.classList.add("hidden");
-        this.canvas.parentElement.style.height = "0px";
-        this.canvas.parentElement.classList.add("hidden");
-        return;
-    }
-    
-    // render the image on the canvas
-    this.canvas.height = 256;
-    this.canvas.width = 256;
-    this.cursorCanvas.height = 256;
-    this.cursorCanvas.width = 256;
-//    this.canvas.style.display = "block";
-//    this.cursorCanvas.style.display = "block";
-    this.canvas.parentElement.style.height = "256px";
-    this.canvas.parentElement.classList.remove("hidden");
-
-    var ctx = this.canvas.getContext('2d');
-    var imageData = ctx.createImageData(this.ppu.width, this.ppu.height);
-    this.ppu.layers[this.map.l].main = true;
-    this.ppu.renderPPU(imageData.data);
-    ctx.putImageData(imageData, 0, 0);
-    if (this.map.selectedLayer.type === FF6MapLayer.Type.layer1 && this.map.tileMask === FF6Map.TileMasks.overlay) {
-        var overlayCtx = this.overlayCanvas.getContext('2d');
-        imageData = overlayCtx.createImageData(this.overlayPPU.width, this.overlayPPU.height);
-        this.overlayPPU.renderPPU(imageData.data);
-        overlayCtx.putImageData(imageData, 0, 0);
-        ctx.drawImage(this.overlayCanvas, 0, 0);
-    }
-    this.drawMask();
-    this.drawCursor();
-}
-
-FF6MapTileset.prototype.drawCursor = function() {
-    
-    // clear the cursor canvas
-    var ctx = this.cursorCanvas.getContext('2d');
-    ctx.clearRect(0, 0, this.ppu.width, this.ppu.height);
-
-    // return if trigger layer is selected
-    if (this.map.l === 3) return;
-    if (!this.selection) return;
-    
-    // get the cursor geometry
-    var x = this.selection[1] << 4;
-    var y = this.selection[2] << 4;
-    var w = this.selection[3] << 4;
-    var h = this.selection[4] << 4;
-
-    // draw the cursor
-    if (w <= 0 || h <= 0) return;
-    
-    // convert the selection to screen coordinates
-    var colors = ["green", "blue", "red", "white"];
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = "black";
-    x += 0.5; y += 0.5; w--; h--;
-    ctx.strokeRect(x, y, w, h);
-    x++; y++; w -= 2; h -= 2;
-    ctx.strokeStyle = colors[this.map.l];
-    ctx.strokeRect(x, y, w, h);
-    x++; y++; w -= 2; h -= 2;
-    ctx.strokeStyle = "white";
-    ctx.strokeRect(x, y, w, h);
-    x++; y++; w -= 2; h -= 2;
-    ctx.strokeStyle = "black";
-    ctx.strokeRect(x, y, w, h);
-}
-
-FF6MapTileset.prototype.drawMask = function() {
-    
-    if (this.map.isWorld) return; // world map not implemented yet
-    if (this.map.l !== 0) return; // only for layer 1
-    if (this.map.tileMask === FF6Map.TileMasks.none) return;
-    if (this.map.tileMask === FF6Map.TileMasks.overlay) return;
-
-    var ctx = this.canvas.getContext('2d');
-
-    // draw the mask at each tile
-    for (var y = 0; y < 16; y++) {
-        for (var x = 0; x < 16; x++) {
-            
-            var tile = x + y * 16;
-            var color = this.map.maskColorAtTile(tile);
-            if (!color) continue;
-            ctx.fillStyle = color;
-
-            var left = x << 4;
-            var top = y << 4;
-            var size = 16;
-            
-            ctx.fillRect(left, top, size, size);
-        }
-    }
-}
-
-FF6MapTileset.prototype.loadMap = function(m) {
+FF6MapTileset.prototype.loadMap = function() {
 
     // create a sequential tile layout
     var layout = new Uint8Array(256);
-    for (var i = 0; i < 256; i++) {
-        layout[i] = i;
-    }
-    
+    for (var i = 0; i < 256; i++) layout[i] = i;
+
     // set up the ppu
     this.ppu = new GFX.PPU();
     this.ppu.pal = this.map.ppu.pal;
@@ -2134,13 +2135,25 @@ FF6MapTileset.prototype.loadMap = function(m) {
     this.ppu.width = 256;
     this.ppu.back = true;
 
-    if (this.map.m > 2) {
+    if (this.map.isWorld) {
+        this.layer[0].type = FF6MapLayer.Type.world;
+        this.layer[0].loadLayout({layout: layout, tileset: this.map.layer[0].tileset, w: 16, h: 16, paletteAssignment: this.map.layer[0].paletteAssignment});
+
+        // layer 1
+        this.ppu.layers[0].format = this.map.ppu.layers[0].format;
+        this.ppu.layers[0].rows = 32;
+        this.ppu.layers[0].cols = 32;
+        this.ppu.layers[0].z[0] = GFX.Z.snes1L;
+        this.ppu.layers[0].z[1] = GFX.Z.snes1H;
+        this.ppu.layers[0].gfx = this.map.ppu.layers[0].gfx;
+        this.ppu.layers[0].tiles = this.layer[0].tiles;
+    } else {
         this.layer[0].type = FF6MapLayer.Type.layer1;
         this.layer[0].loadLayout({layout: layout, tileset: this.map.layer[0].tileset, w: 16, h: 16});
         this.layer[1].loadLayout({layout: layout, tileset: this.map.layer[1].tileset, w: 16, h: 16});
         this.layer[2].loadLayout({layout: layout, tileset: this.map.layer[2].tileset, w: 16, h: 16, priority: true});
         this.layer[3].loadLayout({layout: layout, tileset: this.map.layer[3].tileset, w: 16, h: 16, overlayTiles: this.rom.mapOverlayLayout.data});
-        
+
         // layer 1
         this.ppu.layers[0].format = this.map.ppu.layers[0].format;
         this.ppu.layers[0].rows = 32;
@@ -2173,7 +2186,6 @@ FF6MapTileset.prototype.loadMap = function(m) {
         this.overlayPPU.pal = this.map.overlayPPU.pal;
         this.overlayPPU.height = 256;
         this.overlayPPU.width = 256;
-        this.overlayPPU.layers[0].format = GFX.TileFormat.snes2bppTile;
         this.overlayPPU.layers[0].rows = 32;
         this.overlayPPU.layers[0].cols = 32;
         this.overlayPPU.layers[0].z[0] = GFX.Z.top;
@@ -2181,22 +2193,151 @@ FF6MapTileset.prototype.loadMap = function(m) {
         this.overlayPPU.layers[0].gfx = this.map.overlayPPU.layers[0].gfx;
         this.overlayPPU.layers[0].tiles = this.layer[3].tiles;
         this.overlayPPU.layers[0].main = true;
-
-    } else {
-        this.layer[0].type = FF6MapLayer.Type.world;
-        this.layer[0].loadLayout({layout: layout, tileset: this.map.layer[0].tileset, w: 16, h: 16, paletteAssignment: this.map.layer[0].paletteAssignment});
-        
-        // layer 1
-        this.ppu.layers[0].format = this.map.ppu.layers[0].format;
-        this.ppu.layers[0].rows = 32;
-        this.ppu.layers[0].cols = 32;
-        this.ppu.layers[0].z[0] = GFX.Z.snes1L;
-        this.ppu.layers[0].z[1] = GFX.Z.snes1H;
-        this.ppu.layers[0].gfx = this.map.ppu.layers[0].gfx;
-        this.ppu.layers[0].tiles = this.layer[0].tiles;
     }
-    
+
     this.selectLayer(this.map.l);
+}
+
+FF6MapTileset.prototype.selectLayer = function(l) {
+
+    // update layer buttons
+    var layerButtons = document.getElementsByClassName("toolbox-button");
+    for (var i = 0; i < layerButtons.length; i++) {
+        // deselect all layer buttons
+        layerButtons[i].classList.remove("selected")
+    }
+    // select the clicked layer
+    layerButtons[l].classList.add("selected")
+
+    // set the selected layer
+    this.map.selectLayer(l);
+
+    this.redraw();
+}
+
+FF6MapTileset.prototype.redraw = function() {
+    this.drawTileset();
+    this.drawMask();
+    this.drawCursor();
+}
+
+FF6MapTileset.prototype.drawTileset = function() {
+    var toolbox = document.getElementById("toolbox");
+    var toolboxDiv = document.getElementById("toolbox-div");
+
+    if (this.map.l === 3) {
+        // hide the canvas is the trigger layer is selected
+        toolboxDiv.style.height = "0px";
+        toolboxDiv.classList.add("hidden");
+        return;
+    }
+
+    // reset element sizes
+    this.zoom = toolbox.clientWidth / this.ppu.width;
+    var w = this.ppu.width * this.zoom;
+    var h = this.ppu.height * this.zoom;
+    toolboxDiv.style.width = w + "px";
+    toolboxDiv.style.height = h + "px";
+    toolboxDiv.classList.remove("hidden");
+    this.canvas.width = w;
+    this.canvas.height = h;
+    this.cursorCanvas.width = w;
+    this.cursorCanvas.height = h;
+
+    // turn on only the selected layer
+    this.ppu.layers[0].main = false;
+    this.ppu.layers[1].main = false;
+    this.ppu.layers[2].main = false;
+    this.ppu.layers[this.map.l].main = true;
+
+    // draw tileset to offscreen canvas
+    var tilesetCtx = this.tilesetCanvas.getContext('2d');
+    tilesetCtx.globalCompositeOperation = 'copy';
+    var imageData = tilesetCtx.createImageData(this.ppu.width, this.ppu.height);
+    this.ppu.renderPPU(imageData.data);
+    tilesetCtx.putImageData(imageData, 0, 0);
+
+    // draw tileset image
+    var ctx = this.canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    ctx.webkitImageSmoothingEnabled = false;
+    ctx.globalCompositeOperation = "copy";
+    ctx.drawImage(this.tilesetCanvas, 0, 0, w, h);
+
+    // draw overlay
+    if (this.map.selectedLayer.type === FF6MapLayer.Type.layer1 &&
+        this.map.tileMask === FF6Map.TileMasks.overlay) {
+        var overlayCtx = this.overlayCanvas.getContext('2d');
+        imageData = overlayCtx.createImageData(this.overlayPPU.width, this.overlayPPU.height);
+        this.overlayPPU.renderPPU(imageData.data);
+        overlayCtx.putImageData(imageData, 0, 0);
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.drawImage(this.overlayCanvas, 0, 0, w, h);
+    }
+}
+
+FF6MapTileset.prototype.drawMask = function() {
+
+    if (this.map.isWorld) return; // world map not implemented yet
+    if (this.map.l !== 0) return; // only for layer 1
+    if (this.map.tileMask === FF6Map.TileMasks.none) return;
+    if (this.map.tileMask === FF6Map.TileMasks.overlay) return;
+
+    var ctx = this.canvas.getContext('2d');
+    ctx.globalCompositeOperation = 'source-over';
+
+    // draw the mask at each tile
+    for (var y = 0; y < 16; y++) {
+        for (var x = 0; x < 16; x++) {
+
+            var tile = x + y * 16;
+            var color = this.map.maskColorAtTile(tile);
+            if (!color) continue;
+            ctx.fillStyle = color;
+
+            var left = (x << 4) * this.zoom;
+            var top = (y << 4) * this.zoom;
+            var size = 16 * this.zoom;
+
+            ctx.fillRect(left, top, size, size);
+        }
+    }
+}
+
+FF6MapTileset.prototype.drawCursor = function() {
+
+    // clear the cursor canvas
+    var ctx = this.cursorCanvas.getContext('2d');
+    ctx.clearRect(0, 0, this.cursorCanvas.width, this.cursorCanvas.height);
+
+    // return if trigger layer is selected
+    if (this.map.l === 3) return;
+    if (!this.selection) return;
+
+    // get the cursor geometry
+    var x = Math.round((this.selection[1] << 4) * this.zoom);
+    var y = Math.round((this.selection[2] << 4) * this.zoom);
+    var w = Math.ceil((this.selection[3] << 4) * this.zoom);
+    var h = Math.ceil((this.selection[4] << 4) * this.zoom);
+
+    // draw the cursor
+    if (w <= 0 || h <= 0) return;
+
+    // convert the selection to screen coordinates
+    var colors = ["green", "blue", "red", "white"];
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "black";
+    x += 0.5; y += 0.5; w--; h--;
+    ctx.strokeRect(x, y, w, h);
+    x++; y++; w -= 2; h -= 2;
+    ctx.strokeStyle = colors[this.map.l];
+    ctx.strokeRect(x, y, w, h);
+    x++; y++; w -= 2; h -= 2;
+    ctx.strokeStyle = "white";
+    ctx.strokeRect(x, y, w, h);
+    x++; y++; w -= 2; h -= 2;
+    ctx.strokeStyle = "black";
+    ctx.strokeRect(x, y, w, h);
 }
 
 // FF6MapLayer
@@ -2205,7 +2346,7 @@ function FF6MapLayer(rom, type) {
     this.type = type;
     this.tileset = null;
     this.priority = false;
-    
+
 }
 
 FF6MapLayer.Type = {
@@ -2229,7 +2370,7 @@ FF6MapLayer.prototype.loadLayout = function(definition) {
     }
 
     // update tiles for the entire map
-    this.tiles = new Uint16Array(this.w * this.h * 4);
+    this.tiles = new Uint32Array(this.w * this.h * 4);
     this.decodeLayout();
 }
 
@@ -2242,12 +2383,12 @@ FF6MapLayer.prototype.setLayout = function(layout) {
     var y = layout[2];
     var w = layout[3];
     var h = layout[4];
-    
+
     x = x % this.w;
     y = y % this.h;
     var clippedW = Math.min(w, this.w - x);
     var clippedH = Math.min(h, this.h - y);
-    
+
     for (var row = 0; row < clippedH; row++) {
         var ls = 5 + row * w;
         var ld = x + (y + row) * this.w;
@@ -2258,7 +2399,7 @@ FF6MapLayer.prototype.setLayout = function(layout) {
 }
 
 FF6MapLayer.prototype.getLayout = function(col, row, cols, rows) {
-    
+
     // limit the selection rectangle to the size of the layer
     var clippedCol = col % this.w;
     var clippedRow = row % this.h;
@@ -2279,7 +2420,7 @@ FF6MapLayer.prototype.getLayout = function(col, row, cols, rows) {
 }
 
 FF6MapLayer.prototype.decodeLayout = function(x, y, w, h) {
-    
+
     x = x || 0;
     y = y || 0;
     x %= this.w;
@@ -2288,10 +2429,10 @@ FF6MapLayer.prototype.decodeLayout = function(x, y, w, h) {
     h = h || this.h;
     w = Math.min(w, this.w - x);
     h = Math.min(h, this.h - y);
-    
+
     // layout 0 is always blank
     if (this.layout.data && this.layout.i === 0) return;
-    
+
     switch (this.type) {
         case FF6MapLayer.Type.layer1:
         case FF6MapLayer.Type.layer2:
@@ -2312,7 +2453,7 @@ FF6MapLayer.prototype.decodeLayout = function(x, y, w, h) {
 }
 
 FF6MapLayer.prototype.decodeMapLayout = function(x, y, w, h) {
-    
+
     var layout = this.layout.data || this.layout;
     var l = x + y * this.w;
     var t = x * 2 + y * this.w * 4;
@@ -2320,14 +2461,21 @@ FF6MapLayer.prototype.decodeMapLayout = function(x, y, w, h) {
 
     for (row = 0; row < h; row++) {
         for (col = 0; col < w; col++) {
-            tile = layout[l + col];   
+            tile = layout[l + col];
+            tile = ((tile & 0xF0) << 2) | ((tile & 0x0F) << 1);
             i = t + col * 2;
             if (i > this.tiles.length) return;
-            this.tiles[i + 0] = this.tileset[tile + 0x0000] | (this.tileset[tile + 0x0400] << 8);
-            this.tiles[i + 1] = this.tileset[tile + 0x0100] | (this.tileset[tile + 0x0500] << 8);
+            this.tiles[i + 0] = this.tileset[tile];
+            this.tiles[i + 1] = this.tileset[tile + 1];
             i += this.w * 2;
-            this.tiles[i + 0] = this.tileset[tile + 0x0200] | (this.tileset[tile + 0x0600] << 8);
-            this.tiles[i + 1] = this.tileset[tile + 0x0300] | (this.tileset[tile + 0x0700] << 8);
+            tile += 32;
+            this.tiles[i + 0] = this.tileset[tile];
+            this.tiles[i + 1] = this.tileset[tile + 1];
+            // this.tiles[i + 0] = this.tileset[tile + 0x0000] | (this.tileset[tile + 0x0400] << 8);
+            // this.tiles[i + 1] = this.tileset[tile + 0x0100] | (this.tileset[tile + 0x0500] << 8);
+            // i += this.w * 2;
+            // this.tiles[i + 0] = this.tileset[tile + 0x0200] | (this.tileset[tile + 0x0600] << 8);
+            // this.tiles[i + 1] = this.tileset[tile + 0x0300] | (this.tileset[tile + 0x0700] << 8);
         }
         t += this.w * 4;
         l += this.w;
@@ -2335,7 +2483,7 @@ FF6MapLayer.prototype.decodeMapLayout = function(x, y, w, h) {
 }
 
 FF6MapLayer.prototype.decodeLayer3Layout = function(x, y, w, h) {
-    
+
     var layout = this.layout.data || this.layout;
     var l = x + y * this.w;
     var t = x * 2 + y * this.w * 4;
@@ -2343,7 +2491,7 @@ FF6MapLayer.prototype.decodeLayer3Layout = function(x, y, w, h) {
 
     for (row = 0; row < h; row++) {
         for (col = 0; col < w; col++) {
-            
+
             tile = layout[l + col];
             hiByte = tile & 0xC0;
             tile &= 0x3F;
@@ -2376,24 +2524,24 @@ FF6MapLayer.prototype.decodeLayer3Layout = function(x, y, w, h) {
 }
 
 FF6MapLayer.prototype.decodeOverlayLayout = function(x, y, w, h) {
-    
+
     var layout = this.layout.data || this.layout;
     var l = x + y * this.w;
     var t = x * 2 + y * this.w * 4;
     var row, col, tile, bg1Tile, hf, vf, i;
-    
+
     for (row = 0; row < h; row++) {
         for (col = 0; col < w; col++) {
-            
+
             bg1Tile = layout[l + col];
             tile = this.tileset[bg1Tile + 16];
             if (tile === 0xFF) continue;
-            var flip = (tile & 0xC0) << 8;
+            var flip = (tile & 0xC0) << 22;
             tile = this.tileset[((tile & 0x20) >> 2) | ((tile & 0x0E) >> 1)];
             if (tile === 0xFF) continue;
             tile <<= 2;
-            hf = (flip & 0x4000) ? 1 : 0;
-            vf = (flip & 0x8000) ? 2 : 0;
+            hf = (flip & 0x10000000) ? 1 : 0;
+            vf = (flip & 0x20000000) ? 2 : 0;
 
             i = t + col * 2;
             if (i > this.tiles.length) return;
@@ -2410,18 +2558,18 @@ FF6MapLayer.prototype.decodeOverlayLayout = function(x, y, w, h) {
 
 FF6MapLayer.prototype.decodeWorldLayout = function(x, y, w, h) {
 
-    var tileset = new Uint16Array(1024);
+    var tileset = new Uint32Array(1024);
     for (var i = 0; i < 1024; i++) {
         var t = this.tileset[i];
         if (this.paletteAssignment) {
-            var p = this.paletteAssignment[t >> 1];
-            if (t & 1) p >>= 4;
-            p &= 0x0F; p <<= 10;
-            t |= p;
+            var p = this.paletteAssignment[t];
+            // if (t & 1) p >>= 4;
+            // p &= 0x0F; p <<= 10;
+            t |= (p << 20);
         }
         tileset[i] = t;
     }
-    
+
     var layout = this.layout.data || this.layout;
     var l = x + y * this.w;
     var t = x * 2 + y * this.w * 4;
@@ -2429,15 +2577,17 @@ FF6MapLayer.prototype.decodeWorldLayout = function(x, y, w, h) {
 
     for (row = 0; row < h; row++) {
         for (col = 0; col < w; col++) {
-            tile = layout[l + col] * 4;
-            
+            tile = layout[l + col];
+            tile = ((tile & 0xF0) << 2) | ((tile & 0x0F) << 1);
+
             i = t + col * 2;
             if (i > this.tiles.length) return;
-            this.tiles[i + 0] = tileset[tile++];
-            this.tiles[i + 1] = tileset[tile++];
+            this.tiles[i + 0] = tileset[tile];
+            this.tiles[i + 1] = tileset[tile + 1];
             i += this.w * 2;
-            this.tiles[i + 0] = tileset[tile++];
-            this.tiles[i + 1] = tileset[tile];
+            tile += 32;
+            this.tiles[i + 0] = tileset[tile];
+            this.tiles[i + 1] = tileset[tile + 1];
         }
         t += this.w * 4;
         l += this.w;
