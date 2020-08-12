@@ -920,6 +920,55 @@ body {
     background-color: hsl(0, 0%, 95%);
 }
 
+.palette-div {
+    border-top: 1px solid #ccc;
+}
+
+.graphics-div {
+    height: auto;
+    width: auto;
+    position: relative;
+    overflow: visible;
+}
+
+.import-preview .graphics-div {
+    height: auto;
+    width: 100%;
+}
+
+#toolbox-div .graphics-div {
+    overflow: hidden;
+}
+
+#toolbox-div .graphics-div.toolbox-scroll {
+    overflow-y: auto;
+    height: 256px;
+}
+
+.graphics-controls {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 0px;
+    height: auto;
+    background: linear-gradient(#fff,#ddd);
+    border-bottom: 1px solid #ccc;
+}
+
+.graphics-cursor {
+    pointer-events: none;
+    z-index: 2;
+    position: absolute;
+    display: block;
+    top: 0px;
+    left: 0px;
+}
+
+.graphics-cursor.hidden {
+    display: no
+}
+
 #tile-div {
     font-size: 12px;
     margin: 0px;

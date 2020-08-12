@@ -330,7 +330,7 @@
                 "type": "tilemap",
                 "format": ["snes4bppTile", "ff5-battlebg"],
                 "width": 32,
-                "height": 21
+                "height": 20
             },
             "pointerTable": {
                 "range": "0xD4C86D-0xD4C8A5",

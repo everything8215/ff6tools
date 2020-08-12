@@ -728,12 +728,14 @@ var GFX = {
             hFlip: true,
             vFlip: true,
             encode: function(data) {
-                var dest = new Uint32Array(data.buffer, data.byteOffset, data.byteLength >> 2);
-                return [new Uint8Array(dest.buffer), data.byteLength];
+                return [data, data.byteLength];
+                // var dest = new Uint32Array(data.buffer, data.byteOffset, data.byteLength >> 2);
+                // return [new Uint8Array(dest.buffer), data.byteLength];
             },
             decode: function(data) {
-                var dest = new Uint32Array(data.buffer, data.byteOffset, data.byteLength >> 2);
-                return [dest, data.byteLength];
+                return [data, data.byteLength];
+                // var dest = new Uint32Array(data.buffer, data.byteOffset, data.byteLength >> 2);
+                // return [dest, data.byteLength];
             }
         },
         generic8bppTile: {

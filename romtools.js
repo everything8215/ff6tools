@@ -1763,6 +1763,7 @@ ROM.dataFormat = {
 
     // palette formats
     "rgb888": GFX.paletteFormat.rgb888,
+    "rgb444": GFX.paletteFormat.rgb444,
     "bgr555": GFX.paletteFormat.bgr555,
     "nesPalette": GFX.paletteFormat.nesPalette,
 
@@ -2418,7 +2419,6 @@ ROM.dataFormat = {
                 }
             }
 
-//            data = data.subarray(0, s);
             return [dest.slice(0, d), s];
         }
     },
@@ -2671,6 +2671,30 @@ ROM.dataFormat = {
             return [dest.slice(0, d), s];
         }
     },
+    "ff6-animation-tilemap": {
+        encode: function(data) {
+            var src = new Uint32Array(data.buffer);
+            var dest = new Uint16Array(src.length);
+            for (var i = 0; i < src.length; i++) {
+                var t = src[i] & 0x3FFF;
+                var h = src[i] & 0x10000000;
+                var v = src[i] & 0x20000000;
+                dest[i] = t | (h >> 14) | (v >> 14);
+            }
+            return [new Uint8Array(dest.buffer), data.length];
+        },
+        decode: function(data) {
+            var src = new Uint16Array(data.buffer, data.byteOffset, data.byteLength >> 1);
+            var dest = new Uint32Array(src.length);
+            for (var i = 0; i < src.length; i++) {
+                var t = src[i] & 0x3FFF;
+                var h = src[i] & 0x4000;
+                var v = src[i] & 0x8000;
+                dest[i] = t | (h << 14) | (v << 14);
+            }
+            return [dest, data.length];
+        }
+    },
     "gba-lzss": {
         encode: function(data) {
 
@@ -2807,7 +2831,6 @@ ROM.dataFormat = {
                 }
             }
 
-//            data = data.subarray(0, s);
             return [dest.slice(0, d), s];
         }
     }

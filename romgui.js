@@ -1899,941 +1899,6 @@ ROMEditor.prototype.closeList = function() {
     this.menu.classList.remove("menu-active");
 }
 
-// ROMGraphicsView
-function ROMGraphicsView(rom, tilemapView) {
-    ROMEditor.call(this, rom);
-    this.name = "ROMGraphicsView";
-    this.tilemapView = tilemapView;
-    this.paletteView = new ROMPaletteView(rom, this);
-    this.editorMode = false;
-    this.toolboxMode = false;
-    this.importMode = false;
-
-    this.zoom = 2.0;
-    this.width = 16; // width in tiles
-    this.height = 16; // height in tiles
-    this.backColor = false;
-    this.graphics = new Uint8Array(64);
-    this.tilemap = new Uint32Array();
-    this.spriteSheet = null;
-    this.ss = 0; // sprite sheet index
-    this.object = null;
-    this.definition = null;
-    this.format = GFX.graphicsFormat.linear8bpp;
-    this.page = 0;
-    this.hFlip = false;
-    this.vFlip = false;
-    this.z = 0;
-    this.canvas = document.createElement('canvas');
-    this.graphicsCanvas = document.createElement('canvas');
-
-    this.selection = {x: 0, y: 0, w: 0, h: 0, tilemap: new Uint32Array()};
-    this.cursorCanvas = document.createElement("canvas");
-    this.cursorCanvas.id = "tileset-cursor";
-
-    this.clickedCol = null;
-    this.clickedRow = null;
-
-    this.canvasDiv = document.createElement('div');
-    this.canvasDiv.appendChild(this.canvas);
-    this.canvasDiv.appendChild(this.cursorCanvas);
-    this.canvasDiv.style.position = "relative";
-
-    this.div = document.createElement('div');
-
-    this.observer = new ROMObserver(rom, this);
-
-    var self = this;
-    this.canvas.onmousedown = function(e) { self.mouseDown(e) };
-    this.canvas.onmouseup = function(e) { self.mouseUp(e) };
-    this.canvas.onmousemove = function(e) { self.mouseMove(e) };
-    this.canvas.onmouseout = function(e) { self.mouseOut(e) };
-    this.canvas.oncontextmenu = function() { return false; };
-}
-
-ROMGraphicsView.prototype = Object.create(ROMEditor.prototype);
-ROMGraphicsView.prototype.constructor = ROMGraphicsView;
-
-ROMGraphicsView.prototype.selectObject = function(object) {
-
-    this.editorMode = true;
-    this.div.innerHTML = "";
-    this.div.id = "map-edit";
-    this.div.tabIndex = 0;
-    this.div.style.outline = "none";
-    this.div.appendChild(this.canvasDiv);
-
-    // select an object with this view as the editor
-    if (!(object instanceof ROMGraphics)) return;
-
-    // start observing the graphics object
-    this.observer.stopObservingAll();
-
-    this.object = object;
-    this.graphics = object.data;
-    this.definition = null;
-    this.width = object.width || 16;
-    this.height = object.height || 16;
-    this.backColor = object.backColor;
-    this.selection = {x: 0, y: 0, w: 0, h: 0, tilemap: new Uint32Array};
-    this.spriteSheet = null;
-
-    // get the graphics format
-    var formatKey = this.object.format;
-
-    // for assemblies with multiple formats, the graphics format is the first one
-    if (isArray(formatKey)) formatKey = formatKey[0];
-
-    // ignore format parameters
-    if (formatKey.includes("(")) {
-        formatKey = formatKey.substring(0, formatKey.indexOf("("));
-    }
-    this.format = GFX.graphicsFormat[formatKey];
-
-    var self = this;
-    this.observer.startObserving(object, function() {
-        self.selectObject(object);
-        self.redraw();
-    });
-
-    this.show();
-    this.updateTilemap();
-
-    // load the palette
-    this.paletteView.loadDefinition(object.palette);
-    this.paletteView.updateToolbox();
-    this.paletteView.redraw();
-    this.redraw();
-}
-
-ROMGraphicsView.prototype.show = function() {
-
-    this.resetControls();
-    this.showControls();
-    this.closeList();
-
-    // update the toolbox div
-    var toolboxDiv = document.getElementById('toolbox-div');
-    toolboxDiv.innerHTML = "";
-    toolboxDiv.classList.remove('hidden');
-    toolboxDiv.style.height = "auto";
-    toolboxDiv.appendChild(this.paletteView.div);
-
-    document.getElementById("toolbox-layer-div").classList.add('hidden');
-
-    this.div.focus();
-}
-
-ROMGraphicsView.prototype.resetControls = function() {
-    ROMEditor.prototype.resetControls.call(this);
-
-    var self = this;
-
-    // add a control to select the sprite sheet
-    if (this.object && this.object.spriteSheet) {
-        var onChangeSpriteSheet = function(ss) {
-            self.ss = ss;
-            self.updateTilemap();
-            self.drawGraphics();
-        }
-        var spriteSheetSelected = function(ss) {
-            return (ss === self.ss);
-        }
-
-        // create a list of tilemap options
-        var spriteSheetList = [];
-        if (isArray(this.object.spriteSheet)) {
-            for (var ss = 0; ss < this.object.spriteSheet.length; ss++) {
-                spriteSheetList.push(this.object.spriteSheet[ss].name || ("Sprite Sheet " + ss));
-            }
-        } else {
-            spriteSheetList.push(this.object.spriteSheet.name || "Default");
-        }
-        // select the first available tilemap if the current selection is unavailable
-        if (this.ss >= spriteSheetList.length) this.ss = 0;
-
-        // no tilemap is always the last option
-        spriteSheetList.push("None");
-        this.addList("changeSpriteSheet", "Sprite Sheet", spriteSheetList, onChangeSpriteSheet, spriteSheetSelected);
-
-    } else {
-        this.ss = 0;
-    }
-
-    this.addZoom(this.zoom, function() { self.changeZoom(); }, 0, 4);
-}
-
-ROMGraphicsView.prototype.hide = function() {
-    this.observer.stopObservingAll();
-    if (this.resizeSensor) {
-        this.resizeSensor.detach(document.getElementById("toolbox"));
-        this.resizeSensor = null;
-    }
-
-    this.paletteView.hide();
-}
-
-ROMGraphicsView.prototype.mouseDown = function(e) {
-    this.closeList();
-    var x = e.offsetX / this.zoom;
-    var y = e.offsetY / this.zoom;
-    this.clickedCol = x >> 3;
-    this.clickedRow = y >> 3;
-    this.mouseMove(e);
-}
-
-ROMGraphicsView.prototype.mouseUp = function(e) {
-    this.clickedCol = null;
-    this.clickedRow = null;
-}
-
-ROMGraphicsView.prototype.mouseOut = function(e) {
-    this.mouseUp(e);
-}
-
-ROMGraphicsView.prototype.mouseMove = function(e) {
-
-    var col = (e.offsetX / this.zoom) >> 3;
-    var row = (e.offsetY / this.zoom) >> 3;
-    col = Math.min(col, this.width - 1);
-    row = Math.min(row, this.height - 1);
-
-    // update the displayed coordinates (editor mode only)
-    if (this.object) {
-        var coordinates = document.getElementById("coordinates");
-        coordinates.innerHTML = "(" + col + ", " + row + ")";
-    }
-
-    // return unless dragging (except if trigger layer selected)
-    if (!isNumber(this.clickedCol) || !isNumber(this.clickedRow)) return;
-
-    var cols = Math.abs(col - this.clickedCol) + 1;
-    var rows = Math.abs(row - this.clickedRow) + 1;
-    col = Math.min(col, this.clickedCol);
-    row = Math.min(row, this.clickedRow);
-
-    // create the tile selection
-    this.selection.x = col;
-    this.selection.y = row;
-    this.selection.w = cols;
-    this.selection.h = rows;
-    this.selection.tilemap = new Uint32Array(cols * rows);
-    for (var y = 0; y < rows; y++) {
-        var begin = col + (row + y) * this.width + this.page * this.height * this.width;
-        var end = begin + cols;
-        var line = this.tilemap.subarray(begin, end);
-        this.selection.tilemap.set(line, y * cols);
-        // for (var j = 0; j < rows; j++) {
-        //     var tile =
-        //     this.selection.tilemap.push(this.tilemap[col + i + (row + j) * this.width]);
-        // }
-    }
-
-    // redraw the cursor and notify the tilemap view
-    this.drawCursor();
-    if (this.tilemapView) {
-        this.tilemapView.selection = {
-            x: 0, y: 0, w: cols, h: rows,
-            tilemap: new Uint32Array(this.selection.tilemap)
-        };
-    }
-}
-
-ROMGraphicsView.prototype.selectTile = function(tile) {
-    // select a single tile from the tilemap view
-
-    var t = tile & 0xFFFF;
-    var v = tile & 0x20000000;
-    var h = tile & 0x10000000;
-    var z = tile & 0x0F000000;
-
-    var tilesPerPage = this.width * this.height;
-    this.page = Math.floor(t / tilesPerPage);
-    t %= tilesPerPage;
-
-    var x = t % this.width;
-    var y = Math.floor(t / this.width);
-
-    this.hFlip = h ? true : false;
-    this.vFlip = v ? true : false;
-
-    if (this.hFlip) x = this.width - x - 1;
-    if (this.vFlip) y = this.height - y - 1;
-
-    this.selection = {
-        x: x, y: y, w: 1, h: 1,
-        tilemap: new Uint32Array(1)
-    };
-    this.updateTilemap();
-    this.redraw();
-
-    var vButton = document.getElementById("graphics-v-flip");
-    if (vButton) {
-        vButton.checked = this.vFlip;
-        twoState(vButton);
-    }
-
-    var hButton = document.getElementById("graphics-h-flip");
-    if (hButton) {
-        hButton.checked = this.hFlip;
-        twoState(hButton);
-    }
-}
-
-ROMGraphicsView.prototype.updateToolbox = function() {
-
-    var self = this;
-    this.div.innerHTML = "";
-
-    function valueForDefinition(definition, index) {
-
-        if (!definition) return null;
-        var path = definition.path || definition;
-        if (!isString(path)) return null;
-
-        if (isNumber(index)) path += "[" + index + "]";
-
-        if (isString(definition)) return JSON.stringify({path: path});
-
-        var value = {};
-        Object.assign(value, definition);
-        value.path = path;
-        return JSON.stringify(value);
-    }
-
-    if (this.graphicsArray.length) {
-        // create a dropdown for array graphics
-        var graphicsSelectDiv = document.createElement('div');
-        graphicsSelectDiv.classList.add("property-div");
-        this.div.appendChild(graphicsSelectDiv);
-
-        var graphicsSelectControl = document.createElement('select');
-        graphicsSelectControl.classList.add("property-control");
-        graphicsSelectControl.id = "graphics-select-control";
-        graphicsSelectDiv.appendChild(graphicsSelectControl);
-
-        var option;
-        var index = 0;
-        if (this.tilemapView) {
-            index = this.tilemapView.object.i;
-        }
-        var selectedValue = null;
-        for (var i = 0; i < this.graphicsArray.length; i++) {
-            var graphicsDefinition = this.graphicsArray[i];
-            if (!graphicsDefinition) continue;
-            var graphicsPath = graphicsDefinition.path || graphicsDefinition;
-            if (!isString(graphicsPath)) continue;
-            graphicsPath = this.rom.parseIndex(graphicsPath, index);
-            var graphicsObject = this.rom.parsePath(graphicsPath);
-            if (!graphicsObject) continue;
-
-            if (graphicsObject instanceof ROMArray) {
-                for (var j = 0; j < graphicsObject.arrayLength; j++) {
-                    var value = valueForDefinition(graphicsDefinition, j);
-                    if (!value) continue;
-                    option = document.createElement('option');
-                    option.value = value;
-                    if (graphicsDefinition.name) {
-                        option.innerHTML = graphicsDefinition.name;
-                    } else if (graphicsObject.stringTable) {
-                        var stringTable = this.rom.stringTable[graphicsObject.stringTable];
-                        var string = stringTable.string[j];
-                        if (string) {
-                            option.innerHTML = j + ": " + string.fString(40);
-                        } else {
-                            option.innerHTML = j + ": " + graphicsObject.name + " " + j;
-                        }
-                    } else {
-                        option.innerHTML = j + ": " + graphicsObject.name + " " + j;
-                    }
-                    if (!selectedValue) selectedValue = option.value;
-                    if (option.value === this.selectedValue) selectedValue = option.value;
-                    graphicsSelectControl.appendChild(option);
-                }
-            } else if (graphicsObject instanceof ROMAssembly) {
-                var value = valueForDefinition(graphicsDefinition);
-                if (!value) continue;
-                option = document.createElement('option');
-                option.value = value;
-                if (graphicsDefinition.name) {
-                    option.innerHTML = graphicsDefinition.name;
-                } else if (isNumber(graphicsObject.i)) {
-                    if (graphicsObject.parent.stringTable) {
-                        var stringTable = this.rom.stringTable[graphicsObject.parent.stringTable];
-                        var string = stringTable.string[graphicsObject.i];
-                        if (string) {
-                            option.innerHTML = string.fString(40);
-                        } else {
-                            option.innerHTML = graphicsObject.name + " " + graphicsObject.i;
-                        }
-                    } else {
-                        option.innerHTML = graphicsObject.name + " " + graphicsObject.i;
-                    }
-                } else {
-                    option.innerHTML = graphicsObject.name;
-                }
-                if (!selectedValue) selectedValue = option.value;
-                if (option.value === this.selectedValue) selectedValue = option.value;
-                graphicsSelectControl.appendChild(option);
-            }
-        }
-        graphicsSelectControl.value = selectedValue;
-        this.loadGraphics(JSON.parse(selectedValue));
-        this.selectedValue = selectedValue;
-
-        var self = this;
-        graphicsSelectControl.onchange = function() {
-
-            self.loadGraphics(JSON.parse(this.value));
-            self.selectedValue = this.value;
-            self.redraw();
-            if (self.tilemapView) self.tilemapView.redraw();
-        }
-    }
-
-    // add page selection buttons
-    var tileCount = this.graphics.length >> 6;
-    var tilesPerPage = this.width * this.height;
-    var pageCount = Math.ceil(tileCount / tilesPerPage);
-    if (pageCount > 1) {
-        if (this.page >= pageCount) this.page = 0;
-
-        var pageDiv = document.createElement("div");
-        pageDiv.classList.add("toolbox-button-div");
-        this.div.appendChild(pageDiv);
-
-        for (var page = 0; page < pageCount; page++) {
-            var pageButton = document.createElement("button");
-            pageDiv.appendChild(pageButton);
-            pageButton.classList.add("graphics-page-button");
-            if (page === this.page) pageButton.classList.add("selected");
-            pageButton.value = page;
-            pageButton.innerHTML = "Page " + (page + 1);
-            pageButton.onclick = function() {
-                if (self.page === Number(this.value)) return;
-                self.page = Number(this.value);
-                self.showCursor = false;
-                self.updateTilemap();
-                self.redraw();
-            }
-        }
-    } else {
-        this.page = 0;
-    }
-
-    // show the graphics canvas
-    this.div.appendChild(this.canvasDiv);
-
-    // add controls for v/h flip, z-level
-    if (this.format.vFlip || this.format.hFlip) {
-
-        var flipDiv = document.createElement('div');
-        this.div.appendChild(flipDiv);
-    }
-
-    if (this.format.vFlip) {
-        var vLabel = document.createElement('label');
-        vLabel.classList.add("two-state");
-        vLabel.style.display = "inline-block";
-        if (this.vFlip) vLabel.classList.add("checked");
-        flipDiv.appendChild(vLabel);
-
-        var vInput = document.createElement('input');
-        vInput.type = 'checkbox';
-        vInput.checked = this.vFlip;
-        vInput.id = "graphics-v-flip";
-        vInput.onclick = function() {
-            twoState(this);
-            self.vFlip = this.checked;
-            self.tilemapView.toggleSelectionVFlip();
-            self.selection.y = self.height - self.selection.y - self.selection.h;
-            self.updateTilemap();
-            self.redraw();
-        };
-        vLabel.appendChild(vInput);
-
-        var vText = document.createElement('p');
-        vText.innerHTML = "V-Flip";
-        vLabel.appendChild(vText);
-    }
-
-    if (this.format.hFlip) {
-        var hLabel = document.createElement('label');
-        hLabel.classList.add("two-state");
-        hLabel.style.display = "inline-block";
-        if (this.hFlip) hLabel.classList.add("checked");
-        flipDiv.appendChild(hLabel);
-
-        var hInput = document.createElement('input');
-        hInput.type = 'checkbox';
-        hInput.checked = this.hFlip;
-        hInput.id = "graphics-h-flip";
-        hInput.onclick = function() {
-            twoState(this);
-            self.hFlip = this.checked;
-            self.tilemapView.toggleSelectionHFlip();
-            self.selection.x = self.width - self.selection.x - self.selection.w;
-            self.updateTilemap();
-            self.redraw();
-        };
-        hLabel.appendChild(hInput);
-
-        var hText = document.createElement('p');
-        hText.innerHTML = "H-Flip";
-        hLabel.appendChild(hText);
-    }
-
-    // add graphics import/export buttons
-    var importExportDiv = document.createElement('div');
-    importExportDiv.classList.add("property-div");
-    this.div.appendChild(importExportDiv);
-
-    var exportButton = document.createElement('button');
-    exportButton.innerHTML = "Export Graphics";
-    exportButton.onclick = function() {
-        var exporter = new ROMGraphicsExporter();
-        exporter.export({
-            tilemap: self.tilemap,
-            graphics: self.graphics,
-            palette: self.paletteView.palette,
-            width: self.width,
-            backColor: self.backColor
-        });
-    };
-    importExportDiv.appendChild(exportButton);
-
-    var importButton = document.createElement('button');
-    importButton.innerHTML = "Import Graphics";
-    importButton.onclick = function() {
-        function callback(graphics, palette) {
-            // set the new graphics/palette data
-            self.rom.beginAction();
-            if (graphics) self.importGraphics(graphics);
-            if (palette) self.paletteView.importPalette(palette);
-            self.rom.endAction();
-        }
-        var importer = new ROMGraphicsImporter(rom, self, callback);
-    };
-    importExportDiv.appendChild(importButton);
-}
-
-ROMGraphicsView.prototype.changeZoom = function() {
-    // this only applies in editor mode
-    if (!this.editorMode) return;
-
-    // update zoom
-    this.zoom = Math.pow(2, Number(document.getElementById("zoom").value));
-    var zoomValue = document.getElementById("zoom-value");
-    zoomValue.innerHTML = (this.zoom * 100).toString() + "%";
-
-    this.redraw();
-}
-
-ROMGraphicsView.prototype.loadDefinition = function(definition) {
-
-    this.toolboxMode = true;
-
-    // load graphics from a definition (via ROMTilemapView)
-    this.definition = definition;
-    this.format = this.tilemapView.format;
-    this.backColor = this.tilemapView.backColor;
-    this.graphicsArray = [];
-    this.canvasDiv.classList.add("background-gradient");
-
-    this.observer.stopObservingAll();
-
-    // clear the graphics
-    this.graphics = new Uint8Array();
-    this.width = null;
-    this.height = null;
-
-    // load graphics from the definition
-    this.loadGraphics(definition);
-    if (!this.width) this.width = 16;
-    if (!this.height) {
-        this.height = Math.ceil(this.graphics.length / 64 / this.width);
-        this.height = Math.min(this.height, 16); // maximum height is 16
-    }
-
-    // notify on resize
-    var self = this;
-    this.resizeSensor = new ResizeSensor(document.getElementById("toolbox"), function() {
-        var toolbox = document.getElementById("toolbox");
-        var toolboxDiv = document.getElementById("toolbox-div");
-        var width = toolbox.offsetWidth;
-        toolboxDiv.style.width = width + "px";
-        self.redraw(width);
-    });
-}
-
-ROMGraphicsView.prototype.loadGraphics = function(definition) {
-    if (!definition) return;
-
-    // multiple choice of graphics (outer array)
-    if (isArray(definition)) {
-        if (definition.length === 0) return;
-        if (definition.length > 1) {
-            for (var i = 0; i < definition.length; i++)  this.graphicsArray.push(definition[i])
-        }
-        // load the first array element as a placeholder
-        definition = definition[0];
-    }
-
-    // recursively load multiple graphics (inner array)
-    if (isArray(definition)) {
-        for (var i = 0; i < definition.length; i++) this.loadGraphics(definition[i]);
-        return;
-    }
-
-    // get path
-    var path = isString(definition) ? definition : definition.path;
-    if (!path) return;
-
-    // parse object
-    var index = 0;
-    if (this.tilemapView) {
-        index = this.tilemapView.object.i;
-    }
-    var object = this.rom.parsePath(path, this.rom, index);
-
-    // load ROMArray objects as multiple choice
-    if (object instanceof ROMArray) {
-        this.graphicsArray.push(definition);
-
-        // load the first array item as a placeholder
-        object = object.item(0);
-    }
-
-    // get object data
-    if (!object) return;
-    var data = object.data;
-    if (!object.data) return;
-
-    if (definition.width) this.width = definition.width;
-    if (definition.height) this.height = definition.height;
-
-    var self = this;
-    this.observer.startObserving(object, function() {
-        self.loadDefinition(self.definition);
-        var graphicsSelectControl = document.getElementById('graphics-select-control');
-        if (graphicsSelectControl) {
-            self.loadGraphics(JSON.parse(graphicsSelectControl.value));
-        }
-        self.updateTilemap();
-        self.redraw();
-        if (self.tilemapView) self.tilemapView.redraw();
-    });
-
-    // parse data range
-    var range;
-    if (definition.range) {
-        range = ROMRange.parse(definition.range);
-        data = data.subarray(range.begin, range.end);
-    } else {
-        range = new ROMRange(0, data.length);
-    }
-
-    // parse offset
-    var offset = Number(definition.offset) || 0;
-
-    if (this.graphics.length < (offset + data.length)) {
-        // increase the size of the graphics buffer
-        var newGraphics = new Uint8Array(offset + data.length);
-        newGraphics.set(this.graphics);
-        this.graphics = newGraphics;
-    }
-    this.graphics.set(data, offset);
-}
-
-ROMGraphicsView.prototype.importGraphics = function(graphics, offset) {
-    offset = offset || 0;
-    if ((graphics.length + offset) > this.graphics.length) {
-        // trim the palette to fit
-        graphics = graphics.subarray(0, this.graphics.length - offset);
-    }
-
-    this.graphics.set(graphics, offset);
-
-    this.observer.sleep();
-    if (isArray(this.definition)) {
-        if (this.definition.length === 1) this.saveGraphics(this.definition[0]);
-    } else {
-        this.saveGraphics(this.definition);
-    }
-
-    var graphicsSelectControl = document.getElementById('graphics-select-control');
-    if (graphicsSelectControl) {
-        this.saveGraphics(JSON.parse(graphicsSelectControl.value));
-    }
-    this.observer.wake();
-
-    // redraw the view
-    this.redraw();
-    if (this.tilemapView) this.tilemapView.redraw();
-}
-
-ROMGraphicsView.prototype.saveGraphics = function(definition) {
-
-    if (!definition) return;
-
-    // recursively save graphics
-    if (isArray(definition)) {
-        for (var i = 0; i < definition.length; i++) this.saveGraphics(definition[i]);
-        return;
-    }
-
-    // get path
-    var path = isString(definition) ? definition : definition.path;
-    if (!path) return;
-
-    // parse object
-    var index = 0;
-    if (this.tilemapView) {
-        index = this.tilemapView.object.i;
-    }
-    var object = this.rom.parsePath(path, this.rom, index);
-
-    // ignore ROMArray objects for now
-    if (object instanceof ROMArray) return;
-
-    // get object data
-    if (!object || !object.data) return;
-    var data = object.data;
-
-    // parse data range
-    var range;
-    if (definition.range) {
-        range = ROMRange.parse(definition.range);
-    } else {
-        range = new ROMRange(0, data.length);
-    }
-
-    // parse offset
-    var offset = Number(definition.offset) || 0;
-
-    var graphics = this.graphics.subarray(offset, offset + range.length);
-
-    // convert to and from the native format to validate the data
-    if (object.format) {
-        // get the palette format
-        var formatKey = object.format;
-
-        // for assemblies with multiple formats, the palette format is the first one
-        if (isArray(formatKey)) formatKey = formatKey[0];
-
-        // ignore format parameters
-        if (formatKey.includes("(")) {
-            formatKey = formatKey.substring(0, formatKey.indexOf("("));
-        }
-        var format = GFX.graphicsFormat[formatKey];
-
-        if (format) graphics = format.decode(format.encode(graphics)[0])[0];
-    }
-
-    if (range.begin + graphics.length > object.data.length) {
-        graphics = graphics.subarray(0, object.data.length - range.begin);
-    }
-    object.setData(graphics, range.begin);
-}
-
-ROMGraphicsView.prototype.updateTilemap = function() {
-
-    if (this.object && this.object.spriteSheet) {
-        var spriteSheetArray = this.object.spriteSheet;
-        if (!isArray(spriteSheetArray)) spriteSheetArray = [spriteSheetArray];
-        this.spriteSheet = spriteSheetArray[this.ss];
-    }
-
-    // never use a sprite sheet in toolbox mode
-    if (this.toolboxMode) {
-
-        this.spriteSheet = null;
-        var tileCount = this.graphics.length >> 6;
-        var tilesPerPage = this.height * this.width;
-        var pageCount = Math.ceil(tileCount / tilesPerPage);
-        if (pageCount > 1) {
-            // multiple pages
-            var pageButtons = document.getElementsByClassName("graphics-page-button");
-            if (this.page >= pageButtons.length) this.page = 0;
-            for (var p = 0; p < pageButtons.length; p++) {
-                if (p === this.page) {
-                    pageButtons[this.page].classList.add("selected");
-                } else {
-                    pageButtons[p].classList.remove("selected");
-                }
-            }
-        }
-
-        this.tilemap = new Uint32Array(tilesPerPage * pageCount);
-        this.tilemap.fill(0xFFFFFFFF);
-
-        var p = (this.paletteView.p * this.paletteView.colorsPerPalette) << 16;
-        for (var t = 0; t < tileCount; t++) this.tilemap[t] = t | p;
-
-    } else if (this.spriteSheet) {
-        // use a sprite sheet
-        this.width = this.spriteSheet.width || this.width;
-        this.height = this.spriteSheet.height || Math.ceil(this.graphics.length / 64 / this.width);
-        this.tilemap = new Uint32Array(this.height * this.width);
-        this.tilemap.fill(0xFFFFFFFF);
-        for (var t = 0; t < this.tilemap.length; t++) {
-            var tile = Number(this.spriteSheet.tilemap[t]);
-            if (isNumber(tile) && tile !== -1) this.tilemap[t] = tile;
-        }
-
-    } else {
-        // no sprite sheet
-        if (this.object) this.width = this.object.width || 16;
-        this.height = Math.ceil(this.graphics.length / 64 / this.width) || 1;
-        this.tilemap = new Uint32Array(this.height * this.width);
-        this.tilemap.fill(0xFFFF);
-        var p = (this.paletteView.p * this.paletteView.colorsPerPalette) << 16;
-        for (var t = 0; t < this.tilemap.length; t++) this.tilemap[t] = t | p;
-    }
-
-    if (this.vFlip) {
-        var vTilemap = new Uint32Array(this.tilemap.length);
-        var t = 0;
-        var pageOffset = 0;
-        while (t < tileCount) {
-            for (var y = 0; y < this.height; y++) {
-                for (var x = 0; x < this.width; x++) {
-                    var t1 = x + (this.height - y - 1) * this.width + pageOffset;
-                    vTilemap[t1] = this.tilemap[t++] ^ 0x20000000;
-                }
-            }
-            pageOffset += tilesPerPage;
-        }
-        this.tilemap = vTilemap;
-    }
-
-    if (this.hFlip) {
-        var hTilemap = new Uint32Array(this.tilemap.length);
-        var t = 0;
-        var pageOffset = 0;
-        while (t < tileCount) {
-            for (var y = 0; y < this.height; y++) {
-                for (var x = 0; x < this.width; x++) {
-                    var t1 = (this.width - x - 1) + y * this.width + pageOffset;
-                    hTilemap[t1] = this.tilemap[t++] ^ 0x10000000;
-                }
-            }
-            pageOffset += tilesPerPage;
-        }
-        this.tilemap = hTilemap;
-    }
-}
-
-ROMGraphicsView.prototype.redraw = function() {
-    this.drawGraphics();
-    this.drawCursor();
-}
-
-ROMGraphicsView.prototype.drawGraphics = function() {
-
-    var ppu = new GFX.PPU();
-    ppu.back = this.backColor;
-
-    // create the palette
-    var palette = new Uint32Array(this.paletteView.palette);
-    // if (this.backColor) {
-    //     // use first palette color as back color
-    //     palette[0] = this.paletteView.palette[0];
-    //     ppu.back = true;
-    // } else {
-    //     // use a transparent background
-    //     palette[0] = 0;
-    //     ppu.back = false;
-    // }
-
-    ppu.pal = palette;
-    ppu.width = this.width * 8;
-    ppu.height = this.height * 8;
-    if (ppu.height === 0) return;
-
-    // layer 1
-    ppu.layers[0].format = null;
-    ppu.layers[0].cols = this.width;
-    ppu.layers[0].rows = this.height;
-    ppu.layers[0].z[0] = GFX.Z.top;
-    ppu.layers[0].z[1] = GFX.Z.top;
-    ppu.layers[0].z[2] = GFX.Z.top;
-    ppu.layers[0].z[3] = GFX.Z.top;
-    ppu.layers[0].gfx = this.graphics;
-    ppu.layers[0].tiles = this.tilemap.subarray(this.page * this.width * this.height);
-    ppu.layers[0].main = true;
-
-    // draw layout image
-    this.graphicsCanvas.width = ppu.width;
-    this.graphicsCanvas.height = ppu.height;
-    var context = this.graphicsCanvas.getContext('2d');
-    imageData = context.createImageData(ppu.width, ppu.height);
-    ppu.renderPPU(imageData.data, 0, 0, ppu.width, ppu.height);
-    context.putImageData(imageData, 0, 0);
-
-    if (this.toolboxMode) {
-        // recalculate zoom
-        var toolbox = document.getElementById("toolbox");
-        var toolboxDiv = document.getElementById("toolbox-div");
-        this.zoom = toolbox.clientWidth / ppu.width;
-        toolboxDiv.style.width = ppu.width * this.zoom + "px";
-    }
-
-    // scale image to zoom setting
-    this.canvas.width = ppu.width * this.zoom;
-    this.canvas.height = ppu.height * this.zoom;
-    this.cursorCanvas.width = this.canvas.width;
-    this.cursorCanvas.height = this.canvas.height;
-    this.canvasDiv.style.width = this.canvas.width + "px";
-    // if (this.canvas.height > 256) {
-    //     this.canvasDiv.style.height = "256px";
-    //     this.canvasDiv.style.overflowY = "scroll";
-    // } else {
-        this.canvasDiv.style.height = this.canvas.height + "px";
-        // this.canvasDiv.style.overflowY = "hidden";
-    // }
-    context = this.canvas.getContext('2d');
-    context.imageSmoothingEnabled = false;
-    context.webkitImageSmoothingEnabled = false;
-    context.drawImage(this.graphicsCanvas,
-        0, 0, this.graphicsCanvas.width, this.graphicsCanvas.height,
-        0, 0, this.canvas.width, this.canvas.height);
-}
-
-ROMGraphicsView.prototype.drawCursor = function() {
-    // clear the cursor canvas
-    var ctx = this.cursorCanvas.getContext('2d');
-    ctx.clearRect(0, 0, this.cursorCanvas.width, this.cursorCanvas.height);
-
-    // return if trigger layer is selected
-    if (!this.selection.tilemap.length) return;
-
-    // get the cursor geometry
-    var x = Math.round((this.selection.x * 8) * this.zoom);
-    var y = Math.round((this.selection.y * 8) * this.zoom);
-    var w = Math.round((this.selection.w * 8) * this.zoom);
-    var h = Math.round((this.selection.h * 8) * this.zoom);
-
-    // draw the cursor
-    if (w <= 0 || h <= 0) return;
-
-    // convert the selection to screen coordinates
-    // var colors = ["green", "blue", "red", "white"];
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = "black";
-    x += 0.5; y += 0.5; w--; h--;
-    ctx.strokeRect(x, y, w, h);
-    x++; y++; w -= 2; h -= 2;
-    ctx.strokeStyle = "hsl(210, 100%, 50%)";
-    ctx.strokeRect(x, y, w, h);
-    x++; y++; w -= 2; h -= 2;
-    ctx.strokeStyle = "white";
-    ctx.strokeRect(x, y, w, h);
-    x++; y++; w -= 2; h -= 2;
-    ctx.strokeStyle = "black";
-    ctx.strokeRect(x, y, w, h);
-}
-
 // ROMPaletteView
 function ROMPaletteView(rom, graphicsView) {
 
@@ -2842,6 +1907,7 @@ function ROMPaletteView(rom, graphicsView) {
     this.tilemapView = null; // associated tilemap view
 
     this.div = document.createElement('div');
+    this.div.classList.add("palette-div");
 
     this.canvas = document.createElement('canvas');
     this.canvas.id = "palette";
@@ -2924,6 +1990,8 @@ ROMPaletteView.prototype.updateToolbox = function() {
             if (!paletteObject) continue;
 
             if (paletteObject instanceof ROMArray) {
+                var optionGroup = document.createElement('optgroup');
+                optionGroup.setAttribute("label", paletteDefinition.name || paletteObject.name || "Unnamed Palette");
                 for (var j = 0; j < paletteObject.arrayLength; j++) {
                     var value = valueForDefinition(paletteDefinition, j);
                     if (!value) continue;
@@ -2944,8 +2012,9 @@ ROMPaletteView.prototype.updateToolbox = function() {
                     }
                     if (!selectedValue) selectedValue = option.value;
                     if (option.value === this.selectedValue) selectedValue = option.value;
-                    paletteSelectControl.appendChild(option);
+                    optionGroup.appendChild(option);
                 }
+                paletteSelectControl.appendChild(optionGroup);
             } else if (paletteObject instanceof ROMAssembly) {
                 var value = valueForDefinition(paletteDefinition);
                 if (!value) continue;
@@ -3053,10 +2122,12 @@ ROMPaletteView.prototype.loadDefinition = function(definition) {
     });
 }
 
-ROMPaletteView.prototype.resize = function() {
+ROMPaletteView.prototype.resize = function(width) {
 
-    var toolbox = document.getElementById("toolbox");
-    var width = toolbox.offsetWidth;
+    if (!width) {
+        var toolbox = document.getElementById("toolbox");
+        var width = toolbox.clientWidth;
+    }
 
     // recalculate number of rows per palette
     if (this.graphicsView.format) {
@@ -3317,8 +2388,8 @@ ROMPaletteView.prototype.drawPalette = function() {
             ctx.fillStyle = "rgb(" + r + "," + g + "," + b + ")";
 
             var xStart = Math.round(x * this.colorWidth);
-            var xEnd = Math.round((x + 1) * this.colorWidth) - xStart;
-            ctx.fillRect(xStart, y * this.colorHeight, xEnd, this.colorHeight);
+            var xEnd = Math.round((x + 1) * this.colorWidth);
+            ctx.fillRect(xStart, y * this.colorHeight, xEnd - xStart, this.colorHeight);
         }
     }
 }
@@ -3335,6 +2406,1020 @@ ROMPaletteView.prototype.drawCursor = function() {
     if (y + h > this.canvas.height) h = this.canvas.height - y;
 
     var ctx = this.canvas.getContext('2d');
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "black";
+    x += 0.5; y += 0.5; w--; h--;
+    ctx.strokeRect(x, y, w, h);
+    x++; y++; w -= 2; h -= 2;
+    ctx.strokeStyle = "hsl(210, 100%, 50%)";
+    ctx.strokeRect(x, y, w, h);
+    x++; y++; w -= 2; h -= 2;
+    ctx.strokeStyle = "white";
+    ctx.strokeRect(x, y, w, h);
+    x++; y++; w -= 2; h -= 2;
+    ctx.strokeStyle = "black";
+    ctx.strokeRect(x, y, w, h);
+}
+
+// ROMGraphicsView
+function ROMGraphicsView(rom, tilemapView) {
+    ROMEditor.call(this, rom);
+    this.name = "ROMGraphicsView";
+    this.tilemapView = tilemapView;
+    this.paletteView = new ROMPaletteView(rom, this);
+    this.editorMode = false;
+    this.toolboxMode = false;
+    this.previewMode = false;
+
+    this.zoom = 2.0;
+    this.width = 16; // width in tiles
+    this.height = 16; // height in tiles
+    this.backColor = false;
+    this.graphics = new Uint8Array(64);
+    this.tilemap = new Uint32Array();
+    this.spriteSheet = null;
+    this.ss = 0; // sprite sheet index
+    this.object = null;
+    this.definition = null;
+    this.format = GFX.graphicsFormat.linear8bpp;
+    this.page = 0;
+    this.hFlip = false;
+    this.vFlip = false;
+    this.z = 0;
+    this.canvas = document.createElement('canvas');
+    this.graphicsCanvas = document.createElement('canvas');
+
+    this.selection = {x: 0, y: 0, w: 0, h: 0, tilemap: new Uint32Array()};
+    this.cursorCanvas = document.createElement("canvas");
+    this.cursorCanvas.id = "tileset-cursor";
+
+    this.clickedCol = null;
+    this.clickedRow = null;
+
+    this.canvasDiv = document.createElement('div');
+    this.canvasDiv.classList.add("graphics-div");
+    this.canvasDiv.classList.add("background-gradient");
+    this.canvasDiv.appendChild(this.canvas);
+    this.canvasDiv.appendChild(this.cursorCanvas);
+    // this.canvasDiv.style.position = "relative";
+
+    this.div = document.createElement('div');
+
+    this.observer = new ROMObserver(rom, this);
+
+    var self = this;
+    this.canvas.onmousedown = function(e) { self.mouseDown(e) };
+    this.canvas.onmouseup = function(e) { self.mouseUp(e) };
+    this.canvas.onmousemove = function(e) { self.mouseMove(e) };
+    this.canvas.onmouseout = function(e) { self.mouseOut(e) };
+    this.canvas.oncontextmenu = function() { return false; };
+}
+
+ROMGraphicsView.prototype = Object.create(ROMEditor.prototype);
+ROMGraphicsView.prototype.constructor = ROMGraphicsView;
+
+ROMGraphicsView.prototype.selectObject = function(object) {
+
+    this.editorMode = true;
+    this.div.innerHTML = "";
+    this.div.id = "map-edit";
+    this.div.tabIndex = 0;
+    this.div.style.outline = "none";
+    this.div.appendChild(this.canvasDiv);
+
+    // select an object with this view as the editor
+    if (!(object instanceof ROMGraphics)) return;
+
+    // start observing the graphics object
+    this.observer.stopObservingAll();
+
+    this.object = object;
+    this.graphics = object.data;
+    this.definition = null;
+    this.width = object.width || 16;
+    this.height = object.height || 16;
+    this.backColor = object.backColor;
+    this.selection = {x: 0, y: 0, w: 0, h: 0, tilemap: new Uint32Array};
+    this.spriteSheet = null;
+
+    // get the graphics format
+    var formatKey = this.object.format;
+
+    // for assemblies with multiple formats, the graphics format is the first one
+    if (isArray(formatKey)) formatKey = formatKey[0];
+
+    // ignore format parameters
+    if (formatKey.includes("(")) {
+        formatKey = formatKey.substring(0, formatKey.indexOf("("));
+    }
+    this.format = GFX.graphicsFormat[formatKey];
+
+    var self = this;
+    this.observer.startObserving(object, function() {
+        self.selectObject(object);
+        self.redraw();
+    });
+
+    this.show();
+    this.updateTilemap();
+
+    // load the palette
+    this.paletteView.loadDefinition(object.palette);
+    this.paletteView.updateToolbox();
+    this.paletteView.redraw();
+    this.redraw();
+}
+
+ROMGraphicsView.prototype.show = function() {
+
+    this.resetControls();
+    this.showControls();
+    this.closeList();
+
+    // update the toolbox div
+    var toolboxDiv = document.getElementById('toolbox-div');
+    toolboxDiv.innerHTML = "";
+    toolboxDiv.classList.remove('hidden');
+    toolboxDiv.style.height = "auto";
+    toolboxDiv.appendChild(this.paletteView.div);
+
+    document.getElementById("toolbox-layer-div").classList.add('hidden');
+
+    this.div.focus();
+}
+
+ROMGraphicsView.prototype.resetControls = function() {
+    ROMEditor.prototype.resetControls.call(this);
+
+    var self = this;
+
+    // add a control to select the sprite sheet
+    if (this.object && this.object.spriteSheet) {
+        var onChangeSpriteSheet = function(ss) {
+            self.ss = ss;
+            self.updateTilemap();
+            self.drawGraphics();
+        }
+        var spriteSheetSelected = function(ss) {
+            return (ss === self.ss);
+        }
+
+        // create a list of tilemap options
+        var spriteSheetList = [];
+        if (isArray(this.object.spriteSheet)) {
+            for (var ss = 0; ss < this.object.spriteSheet.length; ss++) {
+                spriteSheetList.push(this.object.spriteSheet[ss].name || ("Sprite Sheet " + ss));
+            }
+        } else {
+            spriteSheetList.push(this.object.spriteSheet.name || "Default");
+        }
+        // select the first available tilemap if the current selection is unavailable
+        if (this.ss >= spriteSheetList.length) this.ss = 0;
+
+        // no tilemap is always the last option
+        spriteSheetList.push("None");
+        this.addList("changeSpriteSheet", "Sprite Sheet", spriteSheetList, onChangeSpriteSheet, spriteSheetSelected);
+
+    } else {
+        this.ss = 0;
+    }
+
+    this.addZoom(this.zoom, function() { self.changeZoom(); }, 0, 4);
+}
+
+ROMGraphicsView.prototype.hide = function() {
+    this.observer.stopObservingAll();
+    if (this.resizeSensor) {
+        this.resizeSensor.detach(document.getElementById("toolbox"));
+        this.resizeSensor = null;
+    }
+
+    this.paletteView.hide();
+}
+
+ROMGraphicsView.prototype.mouseDown = function(e) {
+    this.closeList();
+    var x = e.offsetX / this.zoom;
+    var y = e.offsetY / this.zoom;
+    this.clickedCol = x >> 3;
+    this.clickedRow = y >> 3;
+    this.mouseMove(e);
+}
+
+ROMGraphicsView.prototype.mouseUp = function(e) {
+    this.clickedCol = null;
+    this.clickedRow = null;
+}
+
+ROMGraphicsView.prototype.mouseOut = function(e) {
+    this.mouseUp(e);
+}
+
+ROMGraphicsView.prototype.mouseMove = function(e) {
+
+    var col = (e.offsetX / this.zoom) >> 3;
+    var row = (e.offsetY / this.zoom) >> 3;
+    col = Math.min(col, this.width - 1);
+    row = Math.min(row, this.height - 1);
+
+    // update the displayed coordinates (editor mode only)
+    if (this.object) {
+        var coordinates = document.getElementById("coordinates");
+        coordinates.innerHTML = "(" + col + ", " + row + ")";
+    }
+
+    // return unless dragging (except if trigger layer selected)
+    if (!isNumber(this.clickedCol) || !isNumber(this.clickedRow)) return;
+
+    var cols = Math.abs(col - this.clickedCol) + 1;
+    var rows = Math.abs(row - this.clickedRow) + 1;
+    col = Math.min(col, this.clickedCol);
+    row = Math.min(row, this.clickedRow);
+
+    // create the tile selection
+    this.selection.x = col;
+    this.selection.y = row;
+    this.selection.w = cols;
+    this.selection.h = rows;
+    this.selection.tilemap = new Uint32Array(cols * rows);
+    for (var y = 0; y < rows; y++) {
+        var begin = col + (row + y) * this.width; // + this.page * this.height * this.width;
+        var end = begin + cols;
+        var line = this.tilemap.subarray(begin, end);
+        this.selection.tilemap.set(line, y * cols);
+        // for (var j = 0; j < rows; j++) {
+        //     var tile =
+        //     this.selection.tilemap.push(this.tilemap[col + i + (row + j) * this.width]);
+        // }
+    }
+
+    // redraw the cursor and notify the tilemap view
+    this.drawCursor();
+    if (this.tilemapView) {
+        this.tilemapView.selection = {
+            x: 0, y: 0, w: cols, h: rows,
+            tilemap: new Uint32Array(this.selection.tilemap)
+        };
+    }
+}
+
+ROMGraphicsView.prototype.selectTile = function(tile) {
+    // select a single tile from the tilemap view
+
+    var t = tile & 0xFFFF;
+    var v = tile & 0x20000000;
+    var h = tile & 0x10000000;
+    var z = tile & 0x0F000000;
+
+    // var tilesPerPage = this.width * this.height;
+    // this.page = Math.floor(t / tilesPerPage);
+    // t %= tilesPerPage;
+
+    var x = t % this.width;
+    var y = Math.floor(t / this.width);
+
+    this.hFlip = h ? true : false;
+    this.vFlip = v ? true : false;
+
+    if (this.hFlip) x = this.width - x - 1;
+    if (this.vFlip) y = this.height - y - 1;
+
+    this.selection = {
+        x: x, y: y, w: 1, h: 1,
+        tilemap: new Uint32Array(1)
+    };
+    this.updateTilemap();
+    this.scrollToSelection();
+    this.redraw();
+
+    var vButton = document.getElementById("graphics-v-flip");
+    if (vButton) {
+        vButton.checked = this.vFlip;
+        twoState(vButton);
+    }
+
+    var hButton = document.getElementById("graphics-h-flip");
+    if (hButton) {
+        hButton.checked = this.hFlip;
+        twoState(hButton);
+    }
+}
+
+ROMGraphicsView.prototype.updateToolbox = function() {
+
+    var self = this;
+    this.div.innerHTML = "";
+
+    function valueForDefinition(definition, index) {
+
+        if (!definition) return null;
+        var path = definition.path || definition;
+        if (!isString(path)) return null;
+
+        if (isNumber(index)) path += "[" + index + "]";
+
+        if (isString(definition)) return JSON.stringify({path: path});
+
+        var value = {};
+        Object.assign(value, definition);
+        value.path = path;
+        return JSON.stringify(value);
+    }
+
+    if (this.graphicsArray.length) {
+        // create a dropdown for array graphics
+        var graphicsSelectDiv = document.createElement('div');
+        graphicsSelectDiv.classList.add("property-div");
+        this.div.appendChild(graphicsSelectDiv);
+
+        var graphicsSelectControl = document.createElement('select');
+        graphicsSelectControl.classList.add("property-control");
+        graphicsSelectControl.id = "graphics-select-control";
+        graphicsSelectDiv.appendChild(graphicsSelectControl);
+
+        var option;
+        var index = 0;
+        if (this.tilemapView) {
+            index = this.tilemapView.object.i;
+        }
+        var selectedValue = null;
+        for (var i = 0; i < this.graphicsArray.length; i++) {
+            var graphicsDefinition = this.graphicsArray[i];
+            if (!graphicsDefinition) continue;
+            var graphicsPath = graphicsDefinition.path || graphicsDefinition;
+            if (!isString(graphicsPath)) continue;
+            graphicsPath = this.rom.parseIndex(graphicsPath, index);
+            var graphicsObject = this.rom.parsePath(graphicsPath);
+            if (!graphicsObject) continue;
+
+            if (graphicsObject instanceof ROMArray) {
+                for (var j = 0; j < graphicsObject.arrayLength; j++) {
+                    var value = valueForDefinition(graphicsDefinition, j);
+                    if (!value) continue;
+                    option = document.createElement('option');
+                    option.value = value;
+                    if (graphicsDefinition.name) {
+                        option.innerHTML = graphicsDefinition.name;
+                    } else if (graphicsObject.stringTable) {
+                        var stringTable = this.rom.stringTable[graphicsObject.stringTable];
+                        var string = stringTable.string[j];
+                        if (string) {
+                            option.innerHTML = j + ": " + string.fString(40);
+                        } else {
+                            option.innerHTML = j + ": " + graphicsObject.name + " " + j;
+                        }
+                    } else {
+                        option.innerHTML = j + ": " + graphicsObject.name + " " + j;
+                    }
+                    if (!selectedValue) selectedValue = option.value;
+                    if (option.value === this.selectedValue) selectedValue = option.value;
+                    graphicsSelectControl.appendChild(option);
+                }
+            } else if (graphicsObject instanceof ROMAssembly) {
+                var value = valueForDefinition(graphicsDefinition);
+                if (!value) continue;
+                option = document.createElement('option');
+                option.value = value;
+                if (graphicsDefinition.name) {
+                    option.innerHTML = graphicsDefinition.name;
+                } else if (isNumber(graphicsObject.i)) {
+                    if (graphicsObject.parent.stringTable) {
+                        var stringTable = this.rom.stringTable[graphicsObject.parent.stringTable];
+                        var string = stringTable.string[graphicsObject.i];
+                        if (string) {
+                            option.innerHTML = string.fString(40);
+                        } else {
+                            option.innerHTML = graphicsObject.name + " " + graphicsObject.i;
+                        }
+                    } else {
+                        option.innerHTML = graphicsObject.name + " " + graphicsObject.i;
+                    }
+                } else {
+                    option.innerHTML = graphicsObject.name;
+                }
+                if (!selectedValue) selectedValue = option.value;
+                if (option.value === this.selectedValue) selectedValue = option.value;
+                graphicsSelectControl.appendChild(option);
+            }
+        }
+        graphicsSelectControl.value = selectedValue;
+        this.loadGraphics(JSON.parse(selectedValue));
+        this.selectedValue = selectedValue;
+
+        var self = this;
+        graphicsSelectControl.onchange = function() {
+
+            self.loadGraphics(JSON.parse(this.value));
+            self.selectedValue = this.value;
+            self.redraw();
+            if (self.tilemapView) self.tilemapView.redraw();
+        }
+    }
+
+    // // add page selection buttons
+    // var tileCount = this.graphics.length >> 6;
+    // var tilesPerPage = this.width * this.height;
+    // var pageCount = Math.ceil(tileCount / tilesPerPage);
+    // if (pageCount > 1) {
+    //     if (this.page >= pageCount) this.page = 0;
+    //
+    //     var pageDiv = document.createElement("div");
+    //     pageDiv.classList.add("toolbox-button-div");
+    //     this.div.appendChild(pageDiv);
+    //
+    //     for (var page = 0; page < pageCount; page++) {
+    //         var pageButton = document.createElement("button");
+    //         pageDiv.appendChild(pageButton);
+    //         pageButton.classList.add("graphics-page-button");
+    //         if (page === this.page) pageButton.classList.add("selected");
+    //         pageButton.value = page;
+    //         pageButton.innerHTML = "Page " + (page + 1);
+    //         pageButton.onclick = function() {
+    //             if (self.page === Number(this.value)) return;
+    //             self.page = Number(this.value);
+    //             self.showCursor = false;
+    //             self.updateTilemap();
+    //             self.redraw();
+    //         }
+    //     }
+    // } else {
+    //     this.page = 0;
+    // }
+
+    // add controls for v/h flip, z-level
+    if (this.format.vFlip || this.format.hFlip) {
+
+        var graphicsControlsDiv = document.createElement('div');
+        graphicsControlsDiv.classList.add("graphics-controls");
+        this.div.appendChild(graphicsControlsDiv);
+    }
+
+    if (this.format.vFlip) {
+        var vLabel = document.createElement('label');
+        vLabel.classList.add("two-state");
+        vLabel.style.display = "inline-block";
+        if (this.vFlip) vLabel.classList.add("checked");
+        graphicsControlsDiv.appendChild(vLabel);
+
+        var vInput = document.createElement('input');
+        vInput.type = 'checkbox';
+        vInput.checked = this.vFlip;
+        vInput.id = "graphics-v-flip";
+        vInput.onclick = function() {
+            twoState(this);
+            self.vFlip = this.checked;
+            self.tilemapView.toggleSelectionVFlip();
+            self.selection.y = self.height - self.selection.y - self.selection.h;
+            self.updateTilemap();
+            self.scrollToSelection();
+            self.redraw();
+        };
+        vLabel.appendChild(vInput);
+
+        var vText = document.createElement('p');
+        vText.innerHTML = "V-Flip";
+        vLabel.appendChild(vText);
+    }
+
+    if (this.format.hFlip) {
+        var hLabel = document.createElement('label');
+        hLabel.classList.add("two-state");
+        hLabel.style.display = "inline-block";
+        if (this.hFlip) hLabel.classList.add("checked");
+        graphicsControlsDiv.appendChild(hLabel);
+
+        var hInput = document.createElement('input');
+        hInput.type = 'checkbox';
+        hInput.checked = this.hFlip;
+        hInput.id = "graphics-h-flip";
+        hInput.onclick = function() {
+            twoState(this);
+            self.hFlip = this.checked;
+            self.tilemapView.toggleSelectionHFlip();
+            self.selection.x = self.width - self.selection.x - self.selection.w;
+            self.updateTilemap();
+            self.scrollToSelection();
+            self.redraw();
+        };
+        hLabel.appendChild(hInput);
+
+        var hText = document.createElement('p');
+        hText.innerHTML = "H-Flip";
+        hLabel.appendChild(hText);
+    }
+
+    // show the graphics canvas
+    this.div.appendChild(this.canvasDiv);
+
+    // add graphics import/export buttons
+    var importExportDiv = document.createElement('div');
+    importExportDiv.classList.add("property-div");
+    this.div.appendChild(importExportDiv);
+
+    var exportButton = document.createElement('button');
+    exportButton.innerHTML = "Export Graphics";
+    exportButton.onclick = function() {
+        var exporter = new ROMGraphicsExporter();
+        exporter.export({
+            tilemap: self.tilemap,
+            graphics: self.graphics,
+            palette: self.paletteView.palette,
+            width: self.width,
+            backColor: self.backColor
+        });
+    };
+    importExportDiv.appendChild(exportButton);
+
+    var importButton = document.createElement('button');
+    importButton.innerHTML = "Import Graphics";
+    importButton.onclick = function() {
+        function callback(graphics, palette) {
+            // set the new graphics/palette data
+            self.rom.beginAction();
+            if (graphics) self.importGraphics(graphics);
+            if (palette) self.paletteView.importPalette(palette);
+            self.rom.endAction();
+        }
+        var importer = new ROMGraphicsImporter(rom, self, callback);
+    };
+    importExportDiv.appendChild(importButton);
+}
+
+ROMGraphicsView.prototype.changeZoom = function() {
+    // this only applies in editor mode
+    if (!this.editorMode) return;
+
+    // update zoom
+    this.zoom = Math.pow(2, Number(document.getElementById("zoom").value));
+    var zoomValue = document.getElementById("zoom-value");
+    zoomValue.innerHTML = (this.zoom * 100).toString() + "%";
+
+    this.redraw();
+}
+
+ROMGraphicsView.prototype.loadDefinition = function(definition) {
+
+    this.toolboxMode = true;
+
+    // load graphics from a definition (via ROMTilemapView)
+    this.definition = definition;
+    this.format = this.tilemapView.format;
+    this.backColor = this.tilemapView.backColor;
+    this.graphicsArray = [];
+    // this.canvasDiv.classList.add("background-gradient");
+
+    this.observer.stopObservingAll();
+
+    // clear the graphics
+    this.graphics = new Uint8Array();
+    this.width = null;
+    this.height = null;
+
+    // load graphics from the definition
+    this.loadGraphics(definition);
+    if (!this.width) this.width = 16;
+    if (!this.height) {
+        this.height = Math.ceil(this.graphics.length / 64 / this.width);
+        // this.height = Math.min(this.height, 16); // maximum height is 16
+    }
+
+    // notify on resize
+    var self = this;
+    this.resizeSensor = new ResizeSensor(document.getElementById("toolbox"), function() {
+        var toolbox = document.getElementById("toolbox");
+        var toolboxDiv = document.getElementById("toolbox-div");
+        var width = toolbox.offsetWidth;
+        toolboxDiv.style.width = width + "px";
+        self.redraw(width);
+    });
+}
+
+ROMGraphicsView.prototype.loadGraphics = function(definition) {
+    if (!definition) return;
+
+    // multiple choice of graphics (outer array)
+    if (isArray(definition)) {
+        if (definition.length === 0) return;
+        if (definition.length > 1) {
+            for (var i = 0; i < definition.length; i++)  this.graphicsArray.push(definition[i])
+        }
+        // load the first array element as a placeholder
+        definition = definition[0];
+    }
+
+    // recursively load multiple graphics (inner array)
+    if (isArray(definition)) {
+        for (var i = 0; i < definition.length; i++) this.loadGraphics(definition[i]);
+        return;
+    }
+
+    // get path
+    var path = isString(definition) ? definition : definition.path;
+    if (!path) return;
+
+    // parse object
+    var index = 0;
+    if (this.tilemapView) {
+        index = this.tilemapView.object.i;
+    }
+    var object = this.rom.parsePath(path, this.rom, index);
+
+    // load ROMArray objects as multiple choice
+    if (object instanceof ROMArray) {
+        this.graphicsArray.push(definition);
+
+        // load the first array item as a placeholder
+        object = object.item(0);
+    }
+
+    // get object data
+    if (!object) return;
+    var data = object.data;
+    if (!object.data) return;
+
+    if (definition.width) this.width = definition.width;
+    if (definition.height) this.height = definition.height;
+
+    var self = this;
+    this.observer.startObserving(object, function() {
+        self.loadDefinition(self.definition);
+        var graphicsSelectControl = document.getElementById('graphics-select-control');
+        if (graphicsSelectControl) {
+            self.loadGraphics(JSON.parse(graphicsSelectControl.value));
+        }
+        self.updateTilemap();
+        self.redraw();
+        if (self.tilemapView) self.tilemapView.redraw();
+    });
+
+    // parse data range
+    var range;
+    if (definition.range) {
+        range = ROMRange.parse(definition.range);
+        data = data.subarray(range.begin, range.end);
+    } else {
+        range = new ROMRange(0, data.length);
+    }
+
+    // parse offset
+    var offset = Number(definition.offset) || 0;
+
+    if (this.graphics.length < (offset + data.length)) {
+        // increase the size of the graphics buffer
+        var newGraphics = new Uint8Array(offset + data.length);
+        newGraphics.set(this.graphics);
+        this.graphics = newGraphics;
+    }
+    this.graphics.set(data, offset);
+}
+
+ROMGraphicsView.prototype.importGraphics = function(graphics, offset) {
+    offset = offset || 0;
+    if ((graphics.length + offset) > this.graphics.length) {
+        // trim the palette to fit
+        graphics = graphics.subarray(0, this.graphics.length - offset);
+    }
+
+    this.graphics.set(graphics, offset);
+
+    this.observer.sleep();
+    if (isArray(this.definition)) {
+        if (this.definition.length === 1) this.saveGraphics(this.definition[0]);
+    } else {
+        this.saveGraphics(this.definition);
+    }
+
+    var graphicsSelectControl = document.getElementById('graphics-select-control');
+    if (graphicsSelectControl) {
+        this.saveGraphics(JSON.parse(graphicsSelectControl.value));
+    }
+    this.observer.wake();
+
+    // redraw the view
+    this.redraw();
+    if (this.tilemapView) this.tilemapView.redraw();
+}
+
+ROMGraphicsView.prototype.saveGraphics = function(definition) {
+
+    if (!definition) return;
+
+    // recursively save graphics
+    if (isArray(definition)) {
+        for (var i = 0; i < definition.length; i++) this.saveGraphics(definition[i]);
+        return;
+    }
+
+    // get path
+    var path = isString(definition) ? definition : definition.path;
+    if (!path) return;
+
+    // parse object
+    var index = 0;
+    if (this.tilemapView) {
+        index = this.tilemapView.object.i;
+    }
+    var object = this.rom.parsePath(path, this.rom, index);
+
+    // ignore ROMArray objects for now
+    if (object instanceof ROMArray) return;
+
+    // get object data
+    if (!object || !object.data) return;
+    var data = object.data;
+
+    // parse data range
+    var range;
+    if (definition.range) {
+        range = ROMRange.parse(definition.range);
+    } else {
+        range = new ROMRange(0, data.length);
+    }
+
+    // parse offset
+    var offset = Number(definition.offset) || 0;
+
+    var graphics = this.graphics.subarray(offset, offset + range.length);
+
+    // convert to and from the native format to validate the data
+    if (object.format) {
+        // get the palette format
+        var formatKey = object.format;
+
+        // for assemblies with multiple formats, the palette format is the first one
+        if (isArray(formatKey)) formatKey = formatKey[0];
+
+        // ignore format parameters
+        if (formatKey.includes("(")) {
+            formatKey = formatKey.substring(0, formatKey.indexOf("("));
+        }
+        var format = GFX.graphicsFormat[formatKey];
+
+        if (format) graphics = format.decode(format.encode(graphics)[0])[0];
+    }
+
+    if (range.begin + graphics.length > object.data.length) {
+        graphics = graphics.subarray(0, object.data.length - range.begin);
+    }
+    object.setData(graphics, range.begin);
+}
+
+ROMGraphicsView.prototype.updateTilemap = function() {
+
+    if (this.object && this.object.spriteSheet) {
+        var spriteSheetArray = this.object.spriteSheet;
+        if (!isArray(spriteSheetArray)) spriteSheetArray = [spriteSheetArray];
+        this.spriteSheet = spriteSheetArray[this.ss];
+    }
+
+    // never use a sprite sheet in toolbox mode
+    if (this.toolboxMode) {
+
+        this.spriteSheet = null;
+        var tileCount = this.graphics.length >> 6;
+        var tilesPerPage = this.height * this.width;
+        // var pageCount = Math.ceil(tileCount / tilesPerPage);
+        // if (pageCount > 1) {
+        //     // multiple pages
+        //     var pageButtons = document.getElementsByClassName("graphics-page-button");
+        //     if (this.page >= pageButtons.length) this.page = 0;
+        //     for (var p = 0; p < pageButtons.length; p++) {
+        //         if (p === this.page) {
+        //             pageButtons[this.page].classList.add("selected");
+        //         } else {
+        //             pageButtons[p].classList.remove("selected");
+        //         }
+        //     }
+        // }
+
+        // this.tilemap = new Uint32Array(tilesPerPage * pageCount);
+        this.tilemap = new Uint32Array(this.height * this.width);
+        this.tilemap.fill(0xFFFFFFFF);
+
+        var p = (this.paletteView.p * this.paletteView.colorsPerPalette) << 16;
+        for (var t = 0; t < tileCount; t++) this.tilemap[t] = t | p;
+
+    } else if (this.spriteSheet) {
+        // use a sprite sheet
+        this.width = this.spriteSheet.width || this.width;
+        this.height = this.spriteSheet.height || Math.ceil(this.graphics.length / 64 / this.width);
+        this.tilemap = new Uint32Array(this.height * this.width);
+        this.tilemap.fill(0xFFFFFFFF);
+        for (var t = 0; t < this.tilemap.length; t++) {
+            var tile = Number(this.spriteSheet.tilemap[t]);
+            if (isNumber(tile) && tile !== -1) this.tilemap[t] = tile;
+        }
+
+    } else {
+        // no sprite sheet
+        if (this.object) this.width = this.object.width || 16;
+        this.height = Math.ceil(this.graphics.length / 64 / this.width) || 1;
+        this.tilemap = new Uint32Array(this.height * this.width);
+        this.tilemap.fill(0xFFFF);
+        var p = (this.paletteView.p * this.paletteView.colorsPerPalette) << 16;
+        for (var t = 0; t < this.tilemap.length; t++) this.tilemap[t] = t | p;
+    }
+
+    if (this.vFlip) {
+        var vTilemap = new Uint32Array(this.tilemap.length);
+        var t = 0;
+        // var pageOffset = 0;
+        while (t < tileCount) {
+            for (var y = 0; y < this.height; y++) {
+                for (var x = 0; x < this.width; x++) {
+                    var t1 = x + (this.height - y - 1) * this.width; // + pageOffset;
+                    vTilemap[t1] = this.tilemap[t++] ^ 0x20000000;
+                }
+            }
+            // pageOffset += tilesPerPage;
+        }
+        this.tilemap = vTilemap;
+    }
+
+    if (this.hFlip) {
+        var hTilemap = new Uint32Array(this.tilemap.length);
+        var t = 0;
+        // var pageOffset = 0;
+        while (t < tileCount) {
+            for (var y = 0; y < this.height; y++) {
+                for (var x = 0; x < this.width; x++) {
+                    var t1 = (this.width - x - 1) + y * this.width; // + pageOffset;
+                    hTilemap[t1] = this.tilemap[t++] ^ 0x10000000;
+                }
+            }
+            // pageOffset += tilesPerPage;
+        }
+        this.tilemap = hTilemap;
+    }
+}
+
+ROMGraphicsView.prototype.scrollToSelection = function() {
+    var selectionHeight = this.selection.h * 8 * this.zoom;
+    var clientHeight = this.canvasDiv.clientHeight;
+
+    var selectionTop = this.selection.y * 8 * this.zoom;
+    var selectionBottom = selectionTop + selectionHeight;
+    var visibleTop = this.canvasDiv.scrollTop;
+    var visibleBottom = visibleTop + clientHeight;
+
+    // return if the selection is visible
+    if (selectionTop >= visibleTop && selectionBottom <= visibleBottom) return;
+
+    // scroll so that the selection is centered vertically in the div
+    var scrollCenter = selectionTop + selectionHeight * 0.5;
+    var scrollBottom = Math.min(scrollCenter + clientHeight * 0.5, this.canvas.height);
+    var scrollTop = Math.max(0, scrollBottom - clientHeight);
+    this.canvasDiv.scrollTop = scrollTop;
+}
+
+ROMGraphicsView.prototype.redraw = function() {
+    this.drawGraphics();
+    this.drawCursor();
+}
+
+ROMGraphicsView.prototype.drawGraphics = function() {
+
+    var ppu = new GFX.PPU();
+    ppu.back = this.backColor;
+
+    // create the palette
+    var palette = new Uint32Array(this.paletteView.palette);
+    // if (this.backColor) {
+    //     // use first palette color as back color
+    //     palette[0] = this.paletteView.palette[0];
+    //     ppu.back = true;
+    // } else {
+    //     // use a transparent background
+    //     palette[0] = 0;
+    //     ppu.back = false;
+    // }
+
+    ppu.pal = palette;
+    ppu.width = this.width * 8;
+    ppu.height = this.height * 8;
+    if (ppu.height === 0) return;
+
+    // layer 1
+    ppu.layers[0].format = null;
+    ppu.layers[0].cols = this.width;
+    ppu.layers[0].rows = this.height;
+    ppu.layers[0].z[0] = GFX.Z.top;
+    ppu.layers[0].z[1] = GFX.Z.top;
+    ppu.layers[0].z[2] = GFX.Z.top;
+    ppu.layers[0].z[3] = GFX.Z.top;
+    ppu.layers[0].gfx = this.graphics;
+    ppu.layers[0].tiles = this.tilemap;
+    // ppu.layers[0].tiles = this.tilemap.subarray(this.page * this.width * this.height);
+    ppu.layers[0].main = true;
+
+    // draw layout image
+    this.graphicsCanvas.width = ppu.width;
+    this.graphicsCanvas.height = ppu.height;
+    var context = this.graphicsCanvas.getContext('2d');
+    imageData = context.createImageData(ppu.width, ppu.height);
+    ppu.renderPPU(imageData.data, 0, 0, ppu.width, ppu.height);
+    context.putImageData(imageData, 0, 0);
+
+    if (this.toolboxMode) {
+        // recalculate zoom based on toolbox width
+        var toolbox = document.getElementById("toolbox");
+        var toolboxDiv = document.getElementById("toolbox-div");
+        toolboxDiv.style.width = toolbox.clientWidth + "px";
+
+        // show scroll bars before calculating zoom
+        this.canvasDiv.classList.add("toolbox-scroll");
+        this.zoom = this.canvasDiv.clientWidth / ppu.width;
+
+        // update canvas div size
+        this.canvasDiv.width = ppu.width * this.zoom;
+        this.canvasDiv.height = ppu.height * this.zoom;
+
+        if (this.canvasDiv.height > 256) {
+            // max height same is 256 pixels in toolbox mode
+            this.canvasDiv.height = 256;
+        } else {
+            // hide scroll bars is less than max height
+            this.canvasDiv.classList.remove("toolbox-scroll");
+        }
+
+        // recalculate zoom to account for scroll bars
+        this.zoom = this.canvasDiv.clientWidth / ppu.width;
+
+    // } else if (this.previewMode) {
+
+        // // show scroll bars before calculating zoom
+        // this.canvasDiv.classList.add("toolbox-scroll");
+        // this.zoom = this.canvasDiv.clientWidth / ppu.width;
+        //
+        // // update canvas div size
+        // this.canvasDiv.width = ppu.width * this.zoom;
+        // this.canvasDiv.height = ppu.height * this.zoom;
+        //
+        // if (this.canvasDiv.height > this.canvasDiv.width) {
+        //     // max height same is 256 pixels in toolbox mode
+        //     this.canvasDiv.height = this.canvasDiv.width;
+        // } else {
+        //     // hide scroll bars is less than max height
+        //     this.canvasDiv.classList.remove("toolbox-scroll");
+        // }
+        //
+        // // recalculate zoom to account for scroll bars
+        // this.zoom = this.canvasDiv.clientWidth / ppu.width;
+
+    } else {
+        this.canvasDiv.width = ppu.width * this.zoom;
+        this.canvasDiv.height = ppu.height * this.zoom;
+    }
+
+    // scale image to zoom setting
+    this.canvas.width = ppu.width * this.zoom;
+    this.canvas.height = ppu.height * this.zoom;
+    this.cursorCanvas.width = this.canvas.width;
+    this.cursorCanvas.height = this.canvas.height;
+    // this.canvasDiv.style.width = this.canvas.width + "px";
+    // if (this.toolboxMode && this.canvas.height > 256) {
+    //     // max height 256 pixels in toolbox mode
+    //     this.canvasDiv.classList.add("toolbox-scroll");
+    //     // this.canvasDiv.classList.remove("toolbox-scroll");
+    //     // this.canvasDiv.style.height = "256px";
+    //     // this.canvasDiv.style.overflowY = "scroll";
+    // } else {
+    //     // no max height in other modes
+    //     this.canvasDiv.classList.remove("toolbox-scroll");
+    //     // this.canvasDiv.style.height = this.canvas.height + "px";
+    //     // this.canvasDiv.style.overflowY = "visible";
+    // }
+    context = this.canvas.getContext('2d');
+    context.imageSmoothingEnabled = false;
+    context.webkitImageSmoothingEnabled = false;
+    context.drawImage(this.graphicsCanvas,
+        0, 0, this.graphicsCanvas.width, this.graphicsCanvas.height,
+        0, 0, this.canvas.width, this.canvas.height);
+}
+
+ROMGraphicsView.prototype.drawCursor = function() {
+    // clear the cursor canvas
+    var ctx = this.cursorCanvas.getContext('2d');
+    ctx.clearRect(0, 0, this.cursorCanvas.width, this.cursorCanvas.height);
+
+    // return if trigger layer is selected
+    if (!this.selection.tilemap.length) return;
+
+    // get the cursor geometry
+    var x = Math.round((this.selection.x * 8) * this.zoom);
+    var y = Math.round((this.selection.y * 8) * this.zoom);
+    var w = Math.round((this.selection.w * 8) * this.zoom);
+    var h = Math.round((this.selection.h * 8) * this.zoom);
+
+    w = Math.min(w, this.width * 8 * this.zoom - x);
+    h = Math.min(h, this.height * 8 * this.zoom - y);
+
+    // draw the cursor
+    if (x > this.width * 8 * this.zoom || y > this.height * 8 * this.zoom) return;
+    if (w <= 0 || h <= 0) return;
+
+    // convert the selection to screen coordinates
+    // var colors = ["green", "blue", "red", "white"];
     ctx.lineWidth = 1;
     ctx.strokeStyle = "black";
     x += 0.5; y += 0.5; w--; h--;
@@ -3385,8 +3470,10 @@ function ROMTilemapView(rom) {
     // this.gfx = null;
     // this.pal = null;
 
-    this.selection = {x: 0, y: 0, w: 1, h: 1, tilemap: new Uint32Array(1)};
+    this.selection = { x: 0, y: 0, w: 1, h: 1, tilemap: new Uint32Array(1) };
     this.clickPoint = null;
+    this.mousePoint = { x: 0, y: 0 };
+    this.isDragging = false;
     this.showCursor = false;
     this.showPalette = true;
     this.showGraphics = true;
@@ -3481,8 +3568,14 @@ ROMTilemapView.prototype.mouseDown = function(e) {
         y: (e.offsetY / this.zoom) >> 3,
         button: e.button
     };
+    this.mousePoint = {
+        x: this.clickPoint.x,
+        y: this.clickPoint.y
+    }
 
     if (this.clickPoint.button === 2) {
+        this.selection.x = this.clickPoint.x;
+        this.selection.y = this.clickPoint.y;
         this.selectTiles();
         this.isDragging = true;
     } else {
@@ -3496,14 +3589,21 @@ ROMTilemapView.prototype.mouseDown = function(e) {
 ROMTilemapView.prototype.mouseMove = function(e) {
 
     var col = (e.offsetX / this.zoom) >> 3;
+    col = Math.min(Math.max(0, col), this.width - 1);
     var row = (e.offsetY / this.zoom) >> 3;
+    row = Math.min(Math.max(0, row), this.height - 1);
 
     // update the displayed coordinates
     var coordinates = document.getElementById("coordinates");
     coordinates.innerHTML = "(" + col + ", " + row + ")";
 
     // return if the cursor position didn't change
-    if (this.selection.x === col && this.selection.y === row) return;
+    if (this.mousePoint.x === col && this.mousePoint.y === row) return;
+
+    this.mousePoint = {
+        x: col,
+        y: row
+    };
 
     // update the selection position
     this.selection.x = col;
@@ -3710,6 +3810,8 @@ ROMTilemapView.prototype.setTilemap = function() {
     var newData = this.tilemap.slice(0, this.object.data.length);
 
     this.rom.beginAction();
+    // this.rom.doAction(new ROMAction(this.observer, this.observer.wake, this.observer.sleep));
+    // this.rom.pushAction(new ROMAction(this, this.loadTilemap, null));
     this.observer.sleep();
 
     // copy the tilemap and extract tile offset, color offset, v/h-flip
@@ -3721,6 +3823,8 @@ ROMTilemapView.prototype.setTilemap = function() {
     // set tilemap object data
     this.object.setData(newData);
 
+    // this.rom.pushAction(new ROMAction(this, null, this.loadTilemap));
+    // this.rom.doAction(new ROMAction(this.observer, this.observer.sleep, this.observer.wake));
     this.observer.wake();
     this.rom.endAction();
 }
@@ -4312,7 +4416,7 @@ function ROMGraphicsImporter(rom, graphicsView, callback) {
     this.ignoreBlankTiles = false;
 
     this.graphicsLeft = new ROMGraphicsView(rom);
-    this.graphicsLeft.importMode = true;
+    this.graphicsLeft.previewMode = true;
     this.graphicsLeft.zoom = 1.0;
     this.graphicsLeft.format = graphicsView.format;
     this.graphicsLeft.backColor = graphicsView.backColor;
@@ -4321,11 +4425,11 @@ function ROMGraphicsImporter(rom, graphicsView, callback) {
     this.graphicsLeft.graphics = new Uint8Array(this.graphicsLeft.width * this.graphicsLeft.height * 64);
     this.graphicsLeft.tilemap = null;
     this.graphicsLeft.spriteSheet = null;
-    this.graphicsLeft.canvasDiv.classList.add("background-gradient");
+    // this.graphicsLeft.canvasDiv.classList.add("background-gradient");
     this.graphicsLeft.selection = {
         x: 0, y: 0,
-        w: this.graphicsLeft.width,
-        h: this.graphicsLeft.height,
+        w: graphicsView.selection.w,
+        h: graphicsView.selection.h,
         tilemap: new Uint32Array(this.graphicsLeft.width * this.graphicsLeft.height)
     };
     this.graphicsLeft.canvas.onmousedown = function(e) {
@@ -4346,7 +4450,7 @@ function ROMGraphicsImporter(rom, graphicsView, callback) {
     this.paletteLeft.canvas.onmousedown = function(e) { importer.paletteLeftMouseDown(e) };
 
     this.graphicsRight = new ROMGraphicsView(rom);
-    this.graphicsLeft.importMode = true;
+    this.graphicsLeft.previewMode = true;
     this.graphicsRight.zoom = 1.0;
     this.graphicsRight.graphics = this.oldGraphics;
     this.graphicsRight.format = graphicsView.format;
@@ -4355,11 +4459,12 @@ function ROMGraphicsImporter(rom, graphicsView, callback) {
     this.graphicsRight.height = graphicsView.height || 16;
     this.graphicsRight.tilemap = graphicsView.tilemap;
     this.graphicsRight.spriteSheet = graphicsView.spriteSheet;
-    this.graphicsRight.canvasDiv.classList.add("background-gradient");
+    // this.graphicsRight.canvasDiv.classList.add("background-gradient");
     this.graphicsRight.selection = {
-        x: 0, y: 0,
-        w: this.graphicsRight.width,
-        h: this.graphicsRight.height,
+        x: graphicsView.selection.x,
+        y: graphicsView.selection.y,
+        w: graphicsView.selection.w,
+        h: graphicsView.selection.h,
         tilemap: new Uint32Array(this.graphicsRight.width * this.graphicsRight.height)
     };
     this.graphicsRight.canvas.onmousedown = function(e) {
@@ -4622,17 +4727,49 @@ ROMGraphicsImporter.prototype.paletteLeftMouseDown = function(e) {
 ROMGraphicsImporter.prototype.resize = function() {
 
     // update element sizes
-    this.graphicsPreview.style.width = this.content.offsetWidth + "px";
-    this.palettePreview.style.width = this.content.offsetWidth + "px";
+    this.graphicsPreview.style.width = this.content.clientWidth + "px";
+    this.palettePreview.style.width = this.content.clientWidth + "px";
     var width = (this.content.offsetWidth - 40) / 2;
 
-    this.graphicsLeft.zoom = Math.min(width / this.graphicsLeft.width / 8, 4.0);
     this.graphicsPreviewLeft.style.width = width + "px";
-    this.graphicsPreviewLeft.style.height = Math.min(this.graphicsLeft.height * 8 * this.graphicsLeft.zoom, width) + "px";
 
-    this.graphicsRight.zoom = Math.min(width / this.graphicsRight.width / 8, 4.0);
+    // show scroll bars before calculating zoom
+    this.graphicsPreviewLeft.style.overflowX = "hidden";
+    this.graphicsPreviewLeft.style.overflowY = "scroll";
+    this.graphicsLeft.zoom = Math.min(this.graphicsPreviewLeft.clientWidth / this.graphicsLeft.width / 8, 4.0);
+    if (this.graphicsLeft.height * 8 * this.graphicsLeft.zoom <= width) {
+        // no scroll bar
+        this.graphicsPreviewLeft.style.height = this.graphicsLeft.height * 8 * this.graphicsLeft.zoom + "px";
+        this.graphicsPreviewLeft.style.overflowY = "hidden";
+
+    } else {
+        // scroll bar (height same as width)
+        this.graphicsPreviewLeft.style.height = width + "px";
+    }
+    // recalculate zoom
+    this.graphicsLeft.zoom = Math.min(this.graphicsPreviewLeft.clientWidth / this.graphicsLeft.width / 8, 4.0);
+    this.graphicsLeft.canvasDiv.style.height = this.graphicsLeft.height * 8 * this.graphicsLeft.zoom + "px";
+    this.graphicsLeft.canvasDiv.style.width = this.graphicsLeft.width * 8 * this.graphicsLeft.zoom + "px";
+
     this.graphicsPreviewRight.style.width = width + "px";
-    this.graphicsPreviewRight.style.height = Math.min(this.graphicsRight.height * 8 * this.graphicsRight.zoom, width) + "px";
+
+    // show scroll bars before calculating zoom
+    this.graphicsPreviewRight.style.overflowX = "hidden";
+    this.graphicsPreviewRight.style.overflowY = "scroll";
+    this.graphicsRight.zoom = Math.min(this.graphicsPreviewRight.clientWidth / this.graphicsRight.width / 8, 4.0);
+    if (this.graphicsRight.height * 8 * this.graphicsRight.zoom <= width) {
+        // no scroll bar
+        this.graphicsPreviewRight.style.height = this.graphicsRight.height * 8 * this.graphicsRight.zoom + "px";
+        this.graphicsPreviewRight.style.overflowY = "hidden";
+
+    } else {
+        // scroll bar (height same as width)
+        this.graphicsPreviewRight.style.height = width + "px";
+    }
+    // recalculate zoom
+    this.graphicsRight.zoom = Math.min(this.graphicsPreviewRight.clientWidth / this.graphicsRight.width / 8, 4.0);
+    this.graphicsRight.canvasDiv.style.height = this.graphicsRight.height * 8 * this.graphicsRight.zoom + "px";
+    this.graphicsRight.canvasDiv.style.width = this.graphicsRight.width * 8 * this.graphicsRight.zoom + "px";
 
     this.paletteLeft.resize(width);
     this.paletteRight.resize(width);

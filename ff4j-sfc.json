@@ -148,8 +148,11 @@
                     "name": "Spell Lists",
                     "path": "spellList"
                 }, {
-                    "name": "Attacks",
+                    "name": "Attack Properties",
                     "path": "attackProperties"
+                }, {
+                    "name": "Attack Graphics",
+                    "path": "attackTilemap"
                 }
             ]
         }, {
@@ -172,6 +175,15 @@
                 }, {
                     "name": "Menu Window",
                     "path": "windowGraphics"
+                }, {
+                    "name": "Splash Screen Title",
+                    "path": "splashTilemap"
+                }, {
+                    "name": "Splash Screen Crystal",
+                    "path": "splashCrystal"
+                }, {
+                    "name": "Prologue Graphics",
+                    "path": "prologueTilemap"
                 }
             ]
         }
@@ -251,6 +263,13 @@
                 }
             }
         },
+        "attackGraphics": {
+            "type": "graphics",
+            "name": "Attack Graphics",
+            "range": "0x0CB6C0-0x0CF278",
+            "format": "snes3bpp",
+            "palette": "attackPalette"
+        },
         "attackNames": {
             "type": "array",
             "name": "Attack Names",
@@ -272,6 +291,21 @@
                     "72-176": "<attackNames[%i-72]>",
                     "192-222": "<battleCommandNames[%i-192]>"
                 }
+            }
+        },
+        "attackPalette": {
+            "type": "array",
+            "name": "Attack Palette",
+            "range": "0x0ECB00-0x0ECF00",
+            "arrayLength": 64,
+            "assembly": {
+                "type": "assembly",
+                "length": 16,
+                "format": "bgr555"
+            },
+            "stringTable": {
+                "length": 64,
+                "default": "Attack Palette %i"
             }
         },
         "attackProperties": {
@@ -379,6 +413,16 @@
                 }
             },
             "stringTable": "attackNames"
+        },
+        "attackTilemap": {
+            "type": "tilemap",
+            "name": "Attack Tilemap",
+            "range": "0x0CF3C0-0x0CF9C0",
+            "format": ["defaultTile", "ff6-animation-tilemap"],
+            "graphics": "attackGraphics",
+            "palette": "attackPalette",
+            "width": 16,
+            "height": 48
         },
         "battleBackgroundGraphics": {
             "type": "array",
@@ -1506,7 +1550,7 @@
         },
         "characterPalette": {
             "type": "array",
-            "name": "Character Palette",
+            "name": "Battle Character Palette",
             "range": "0x1CFD00-0x1CFF00",
             "array": {
                 "length": 16
@@ -3810,7 +3854,7 @@
         },
         "mapSpritePalettes": {
             "type": "array",
-            "name": "Map Sprite Palette",
+            "name": "Map Character Palette",
             "range": "0x0D8000-0x0D8040",
             "array": {
                 "length": 4
@@ -6210,6 +6254,30 @@
             },
             "stringTable": "portraitGraphics"
         },
+        "prologueGraphics": {
+            "type": "graphics",
+            "name": "Prologue Graphics",
+            "range": "0x08EC80-0x08F880",
+            "format": "snes3bpp",
+            "palette": "prologuePalette"
+        },
+        "prologueTilemap": {
+            "type": "tilemap",
+            "name": "Prologue Tilemap",
+            "range": "0x08F880-0x08FF00",
+            "format": "snes4bppTile",
+            "graphics": "prologueGraphics",
+            "palette": "prologuePalette",
+            "width": 32,
+            "height": 26,
+            "backColor": true
+        },
+        "prologuePalette": {
+            "type": "assembly",
+            "name": "Prologue Palette",
+            "range": "0x08FF00-0x098000",
+            "format": "bgr555"
+        },
         "shopProperties": {
             "type": "array",
             "name": "Shop Properties",
@@ -6544,6 +6612,41 @@
                     }
                 }
             }
+        },
+        "splashGraphics": {
+            "type": "graphics",
+            "name": "Splash Screen Graphics",
+            "range": "0x08C000-0x08E800",
+            "format": "snes4bpp",
+            "palette": "splashPalette"
+        },
+        "splashCrystal": {
+            "type": "tilemap",
+            "name": "Splash Screen Crystal",
+            "range": "0x08EB00-0x08EBA0",
+            "format": "snes4bppTile",
+            "graphics": "splashGraphics",
+            "palette": "splashPalette",
+            "width": 4,
+            "height": 20,
+            "backColor": true
+        },
+        "splashTilemap": {
+            "type": "tilemap",
+            "name": "Splash Screen Tilemap",
+            "range": "0x08E800-0x08EB00",
+            "format": "snes4bppTile",
+            "graphics": "splashGraphics",
+            "palette": "splashPalette",
+            "width": 32,
+            "height": 12,
+            "backColor": true
+        },
+        "splashPalette": {
+            "type": "assembly",
+            "name": "Splash Screen Palette",
+            "range": "0x08EC00-0x08EC80",
+            "format": "bgr555"
         },
         "triggerScript": {
             "type": "array",
