@@ -373,6 +373,7 @@
                 var zip = new JSZip();
                 zip.file(rom.name + '.' + rom.system, rom.data);
                 zip.file(rom.name + '.json', definition);
+                zip.file('ROM Map.txt', rom.romMapText());
 
                 zip.generateAsync({ type:"blob" }).then(function(content) {
                     // see FileSaver.js
@@ -471,6 +472,10 @@
                 if (rom.canRedo()) rom.redo();
             }
 
+            function showSettings() {
+                if (rom) rom.showSettings();
+            }
+
             function showAbout() {
                 var content = openModal("About FF6Tools");
                 var p = document.createElement('p');
@@ -541,6 +546,9 @@
                     </button>
                     <button class="icon-btn float-left" onclick="redo()" aria-label="Redo" data-balloon-pos="down">
                         <i class="fas fa-redo"></i>
+                    </button>
+                    <button class="icon-btn float-left" onclick="showSettings()" aria-label="Settings" data-balloon-pos="down">
+                        <i class="fas fa-cog"></i>
                     </button>
                     <button class="icon-btn float-left" onclick="showAbout()" aria-label="About" data-balloon-pos="down">
                         <i class="fas fa-question"></i>

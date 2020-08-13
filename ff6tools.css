@@ -272,6 +272,10 @@ body {
     padding-right: 0.5em;
 }
 
+.nav-object-index.hex {
+    width: 3.5em;
+}
+
 #edit {
     margin: 0px;
     padding: 0px;

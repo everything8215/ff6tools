@@ -219,7 +219,7 @@ ROMNavigator.prototype.liForArrayItem = function(array, i) {
 
     var options = {};
 
-    options.name = array.name + " " + i.toString();
+    options.name = array.name + " " + rom.numToString(i);
     if (array.stringTable) {
         var stringTable = this.rom.stringTable[array.stringTable];
         if (stringTable && stringTable.string[i]) {
@@ -230,8 +230,9 @@ ROMNavigator.prototype.liForArrayItem = function(array, i) {
     var li = this.liForObject(object, options);
 
     var span = document.createElement('span');
-    span.innerHTML = i.toString();
+    span.innerHTML = rom.numToString(i);
     span.classList.add("nav-object-index");
+    if (this.rom.numberBase === 16) span.classList.add("hex");
     li.insertBefore(span, li.firstChild);
 //    var p = li.getElementsByTagName('p')[0];
 //    p.insertBefore(span, p.firstChild);
@@ -276,11 +277,12 @@ ROMNavigator.prototype.liForString = function(stringTable, i) {
 
     var li = document.createElement("li");
     var span = document.createElement('span');
-    span.innerHTML = i.toString();
+    span.innerHTML = rom.numToString(i);
     span.classList.add("nav-object-index");
+    if (rom.numberBase === 16) span.classList.add("hex");
     li.appendChild(span);
 
-    li.classList.add("nav-object")
+    li.classList.add("nav-object");
     li.onclick = function(e) {
         e.stopPropagation();
         propertyList.select(stringTable.string[i]);
@@ -402,7 +404,7 @@ ROMPropertyList.prototype.showProperties = function() {
             var stringTable = rom.stringTable[array.stringTable];
             for (var i = 0; i < array.arrayLength; i++) {
 
-                var optionString = i.toString() + ": ";
+                var optionString = rom.numToString(i) + ": ";
                 if (stringTable && stringTable.string[i]) {
                     optionString += stringTable.string[i].fString(40);
                 } else {
@@ -420,7 +422,7 @@ ROMPropertyList.prototype.showProperties = function() {
         // object name
         var heading = document.createElement('p');
         headingDiv.appendChild(heading);
-        heading.innerHTML = object.name.replace("%i", object.i);
+        heading.innerHTML = object.name.replace("%i", rom.numToString(object.i));
     }
 
     // show object label (string table or script label)
@@ -957,7 +959,7 @@ ROMPropertyList.prototype.listControlHTML = function(object, options) {
         var index = indexList[i];
         var optionString = "";
         if (!stringTable.hideIndex) {
-            optionString += index.toString() + ": ";
+            optionString += rom.numToString(index) + ": ";
         }
         if (object.special[index]) {
             optionString += object.special[index];
@@ -1016,7 +1018,7 @@ ROMPropertyList.prototype.numberControlHTML = function(object, options) {
     input.disabled = object.disabled || options.disabled;
     input.type = "number";
     input.classList.add("property-control");
-    input.value = object.value.toString();
+    input.value = object.value; // hex is not supported by normal controls
     input.step = object.multiplier;
     input.min = (object.min + object.offset) * object.multiplier;
     input.max = (object.max + object.offset) * object.multiplier;
@@ -1151,7 +1153,7 @@ ROMPropertyList.prototype.pointerControlHTML = function(object, options) {
         var objectPath = targetObject.path + "[" + i + "]";
         if (object.target === arrayItem) value = objectPath;
 
-        var optionString = (stringTable && stringTable.hideIndex) ? "" : i.toString() + ": ";
+        var optionString = (stringTable && stringTable.hideIndex) ? "" : rom.numToString(i) + ": ";
         if (stringTable && stringTable.string[i]) {
             optionString += stringTable.string[i].fString(40);
         } else {

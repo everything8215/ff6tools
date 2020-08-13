@@ -14,6 +14,9 @@
                     "name": "Maps",
                     "path": "mapProperties"
                 }, {
+                    "name": "Map Tilesets",
+                    "path": "mapTilesets"
+                }, {
                     "name": "Map Titles",
                     "path": "mapTitle"
                 }, {
@@ -26,8 +29,8 @@
                     "name": "Map Graphics (Layer 3)",
                     "path": "mapGraphicsLayer3"
                 }, {
-                    "name": "World Map Graphics",
-                    "path": "worldGraphics"
+                    "name": "World Map Tilesets",
+                    "path": "worldTilesets"
                 }
             ]
         }, {
@@ -2197,7 +2200,8 @@
                     "tileset": {
                         "type": "property",
                         "name": "Tileset",
-                        "begin": 8
+                        "begin": 8,
+                        "stringTable": "mapTilesets"
                     },
                     "gfx1": {
                         "type": "property",
@@ -3124,16 +3128,62 @@
         "mapTilesets": {
             "type": "array",
             "name": "Map Tilesets",
-            "range": "0xCF0038-0xCFCA90",
+            "range": "0xCF0038-0xCFC540",
             "array": {
                 "length": 28
             },
             "assembly": {
-                "format": "ff5-lzss"
+                "type": "tilemap",
+                "format": [
+                    "snes4bppTile",
+                    "interlace(4,16,2)",
+                    "interlace(2,4,256)",
+                    "ff5-lzss"
+                ],
+                "width": 32,
+                "height": 32,
+                "graphics": [],
+                "palette": {
+                    "path": []
+                }
             },
             "pointerTable": {
                 "range": "0xCF0000-0xCF0038",
                 "offset": "0xCF0000"
+            },
+            "stringTable": {
+                "length": 28,
+                "default": "Map Tileset %i",
+                "string": {
+                    "0": "Castle Exterior 1",
+                    "1": "Castle Interior",
+                    "2": "Town Exterior 1",
+                    "3": "Town Exterior 2",
+                    "4": "Ruined Town",
+                    "5": "Town Exterior 3",
+                    "6": "Town Interior",
+                    "7": "Cave 1",
+                    "8": "Cave 2",
+                    "9": "Mountains 1",
+                    "10": "Shrine",
+                    "11": "Tower",
+                    "12": "Forest 1",
+                    "13": "Forest 2",
+                    "14": "Forest 3",
+                    "15": "Ship Graveyard",
+                    "16": "Ship Exterior",
+                    "17": "Ship Interior",
+                    "18": "Fire-Powered Ship",
+                    "19": "Desert/Pyramid",
+                    "20": "Ronka Ruins",
+                    "21": "Library",
+                    "22": "Castle Exdeath",
+                    "23": "Castle Exterior 2",
+                    "24": "Mountains 2",
+                    "25": "Flying Fortress",
+                    "26": "The Void",
+                    "27": "Space"
+                }
             }
         },
         "mapTitle": {
@@ -5173,15 +5223,120 @@
                 "offset": "0xC70000"
             }
         },
+        "worldTileProperties": {
+            "type": "array",
+            "name": "World Map Tile Properties",
+            "range": "0xCFEA00-0xCFF0C0",
+            "array": {
+                "length": 3
+            },
+            "assembly": {
+                "type": "array",
+                "array": {
+                    "length": 192
+                },
+                "length": 576,
+                "assembly": {
+                    "type": "data",
+                    "length": 3,
+                    "assembly": {
+                        "flags": {
+                            "type": "property",
+                            "name": "Flags",
+                            "mask": "0xF0FFFF",
+                            "flag": true,
+                            "stringTable": {
+                                "string": {
+                                    "0": "Passable on Foot",
+                                    "1": "Passable on Chocobo",
+                                    "2": "Passable on Black Chocobo",
+                                    "3": "Passable on Hiryuu",
+                                    "4": "Passable in Submarine",
+                                    "5": "Passable in Ship",
+                                    "6": "Passable in Airship",
+                                    "7": "Submarine Can Surface",
+                                    "8": "Passable Through Right",
+                                    "9": "Passable Through Left",
+                                    "10": "Passable Through Bottom",
+                                    "11": "Passable Through Top",
+                                    "12": "Can't Get Off Chocobo",
+                                    "13": "Black Chocobo Can't Land",
+                                    "14": "Hiryuu Can't Land",
+                                    "15": "Airship Can't Land",
+                                    "20": "2.4",
+                                    "21": "Bottom of Sprite Transparent",
+                                    "22": "Bottom of Sprite Underwater",
+                                    "23": "2.7"
+                                }
+                            }
+                        },
+                        "background1": {
+                            "type": "property",
+                            "name": "Background",
+                            "begin": "2",
+                            "mask": "0x0F",
+                            "invalid": "this.parent.parent.i !== 0",
+                            "stringTable": {
+                                "string": {
+                                    "0": "<stringTable.battleBackgroundProperties[0]>",
+                                    "1": "<stringTable.battleBackgroundProperties[1]>",
+                                    "2": "<stringTable.battleBackgroundProperties[2]>",
+                                    "3": "<stringTable.battleBackgroundProperties[21]>",
+                                    "4": "<stringTable.battleBackgroundProperties[4]>",
+                                    "5": "<stringTable.battleBackgroundProperties[5]>",
+                                    "6": "<stringTable.battleBackgroundProperties[3]>",
+                                    "7": "<stringTable.battleBackgroundProperties[7]>",
+                                    "8": "<stringTable.battleBackgroundProperties[8]>"
+                                }
+                            }
+                        },
+                        "background2": {
+                            "type": "property",
+                            "name": "Background",
+                            "begin": "2",
+                            "mask": "0x0F",
+                            "invalid": "this.parent.parent.i !== 1",
+                            "stringTable": {
+                                "string": {
+                                    "0": "<stringTable.battleBackgroundProperties[33]>",
+                                    "1": "<stringTable.battleBackgroundProperties[1]>",
+                                    "2": "<stringTable.battleBackgroundProperties[2]>",
+                                    "3": "<stringTable.battleBackgroundProperties[21]>",
+                                    "4": "<stringTable.battleBackgroundProperties[4]>",
+                                    "5": "<stringTable.battleBackgroundProperties[5]>",
+                                    "6": "<stringTable.battleBackgroundProperties[3]>",
+                                    "7": "<stringTable.battleBackgroundProperties[7]>",
+                                    "8": "<stringTable.battleBackgroundProperties[8]>"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "worldTilesets": {
             "type": "array",
-            "name": "World Tilesets",
+            "name": "World Tileset",
             "range": "0xCFF0C0-0xCFF9C0",
             "array": {
                 "length": 3
             },
             "assembly": {
-                "length": "0x0300"
+                "type": "tilemap",
+                "length": "0x0300",
+                "format": [
+                    "generic4bppTile",
+                    "interlace(2,16,2)",
+                    "interlace(1,4,192)"
+                ],
+                "width": 32,
+                "height": 24,
+                "graphics": "worldGraphics[%i]",
+                "palette": "worldPalettes[%i]",
+                "colorOffset": {
+                    "path": "worldPaletteAssignments[%i]",
+                    "perTile": true
+                }
             }
         }
     },

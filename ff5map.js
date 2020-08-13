@@ -78,6 +78,8 @@ function FF5Map(rom) {
     this.resizeSensor = null;
 
     this.observer = new ROMObserver(rom, this, {sub: true, link: true, array: true});
+
+    this.updateTilesets();
 }
 
 FF5Map.prototype = Object.create(ROMEditor.prototype);
@@ -93,6 +95,51 @@ FF5Map.prototype.endAction = function(callback) {
     if (callback) this.rom.doAction(new ROMAction(this, null, callback));
     this.rom.doAction(new ROMAction(this.observer, this.observer.sleep, this.observer.wake));
     this.rom.endAction()
+}
+
+FF5Map.prototype.updateTilesets = function() {
+
+    for (var t = 0; t < this.rom.mapTilesets.arrayLength; t++) {
+        var tileset = this.rom.mapTilesets.item(t);
+        tileset.palette = [];
+        tileset.graphics = [];
+    }
+
+    for (var m = 3; m < this.rom.mapProperties.arrayLength; m++) {
+        var mapProperties = this.rom.mapProperties.item(m);
+        var t = mapProperties.tileset.value;
+        var g1 = mapProperties.gfx1.value;
+        var g2 = mapProperties.gfx2.value;
+        var g3 = mapProperties.gfx3.value;
+        var p = mapProperties.palette.value;
+
+        // skip dummy maps
+        if (g1 + g2 + g3 === 0) continue;
+
+        var graphicsDefinition = [
+            {
+                path: "mapGraphics[" + g1 + "]",
+                offset: 0x0000
+            }, {
+                path: "mapGraphics[" + g2 + "]",
+                offset: 0x4000
+            }, {
+                path: "mapGraphics[" + g3 + "]",
+                offset: 0x8000
+            }
+        ];
+
+        var paletteDefinition = "mapPalettes[" + p + "]";
+
+        var tileset = this.rom.mapTilesets.item(t);
+
+        if (!tileset.graphics.length) {
+            tileset.graphics.push(graphicsDefinition);
+        }
+        if (!tileset.palette.includes(paletteDefinition)) {
+            tileset.palette.push(paletteDefinition);
+        }
+    }
 }
 
 FF5Map.prototype.changeZoom = function() {
@@ -618,18 +665,12 @@ FF5Map.prototype.loadMap = function(m) {
     var gfx1 = this.rom.mapGraphics.item(map.gfx1.value).data;
     var gfx2 = this.rom.mapGraphics.item(map.gfx2.value).data;
     var gfx3 = this.rom.mapGraphics.item(map.gfx3.value).data;
-    // if (this.rom.isGBA) {
-    //     gfx1 = gfx1.subarray(16);
-    //     gfx2 = gfx2.subarray(16);
-    //     gfx3 = gfx3.subarray(16);
-    // }
     gfx.set(gfx1, 0x0000);
     gfx.set(gfx2, 0x4000);
     gfx.set(gfx3, 0x8000);
 
     // load layer 3 graphics
     var graphicsLayer3 = this.rom.mapGraphicsLayer3.item(map.gfxLayer3.value).data;
-    // if (this.rom.isGBA) graphicsLayer3 = graphicsLayer3.subarray(16);
     gfx.set(graphicsLayer3, 0xC000);
 
     if (map.animation.value) {
@@ -650,7 +691,7 @@ FF5Map.prototype.loadMap = function(m) {
         } else {
             for (i = 0; i < 8; i++) {
                 var t = anim["tile" + (i + 1).toString()].value * 0x20;
-                gfx.set(GFX.graphicsFormat.snes4bpp.decode(animGfx.data.subarray(t, t + 0x80))[0], 0xB800 + i * 0x0100);
+                gfx.set(GFX.graphicsFormat.linear4bpp.decode(animGfx.data.subarray(t, t + 0x80))[0], 0xB800 + i * 0x0100);
             }
         }
 
@@ -675,28 +716,34 @@ FF5Map.prototype.loadMap = function(m) {
 
     // load palette
     var pal = this.rom.mapPalettes.item(map.palette.value).data;
-    // if (this.rom.isGBA) pal = pal.subarray(4);
     pal[0] = 0xFF000000; // set background color to black
 
     var layout, tileset;
     var tileset = this.rom.mapTilesets.item(map.tileset.value).data;
-    // if (this.rom.isGBA) tileset = tileset.subarray(12);
 
-    var tilePriority;
-    if (this.rom.isGBA) {
-        tilePriority = this.rom.mapTilePriority.item(map.tileset.value);
+    // layer 3 palettes are only 4 colors each
+    var tileset3 = tileset.slice();
+    for (var i = 0; i < tileset3.length; i++) {
+        var p = tileset3[i] & 0x00FF0000;
+        p >>= 2;
+        tileset3[i] &= 0xFF00FFFF;
+        tileset3[i] |= p & 0x00FF0000;
     }
+
+    // tile priority is stored separately for GBA version
+    var tilePriority = null;
+    if (this.rom.isGBA) tilePriority = this.rom.mapTilePriority.item(map.tileset.value);
 
     // load and de-interlace tile layouts
     if (map.layout1.value) {
         layout = this.rom.mapLayouts.item(map.layout1.value - 1);
         if (layout.lazyData && layout.lazyData.length === 1) {
             var fill = layout.lazyData[0];
-            layout = new Uint16Array(0x1000);
+            layout = new Uint32Array(0x1000);
             layout.fill(fill);
         }
     } else {
-        layout = new Uint8Array(0x1000);
+        layout = new Uint32Array(0x1000);
         layout.fill(1);
     }
     var w = 64; var h = 64;
@@ -706,11 +753,11 @@ FF5Map.prototype.loadMap = function(m) {
         layout = this.rom.mapLayouts.item(map.layout2.value - 1);
         if (layout.lazyData && layout.lazyData.length === 1) {
             var fill = layout.lazyData[0];
-            layout = new Uint16Array(0x1000);
+            layout = new Uint32Array(0x1000);
             layout.fill(fill);
         }
     } else {
-        layout = new Uint8Array(0x1000);
+        layout = new Uint32Array(0x1000);
         layout.fill(1);
     }
     w = map.tiledLayer2.value ? 32 : 64;
@@ -721,16 +768,16 @@ FF5Map.prototype.loadMap = function(m) {
         layout = this.rom.mapLayouts.item(map.layout3.value - 1);
         if (layout.lazyData && layout.lazyData.length === 1) {
             var fill = layout.lazyData[0];
-            layout = new Uint16Array(0x1000);
+            layout = new Uint32Array(0x1000);
             layout.fill(fill);
         }
     } else {
-        layout = new Uint8Array(0x1000);
+        layout = new Uint32Array(0x1000);
         layout.fill(1);
     }
     w = map.tiledLayer3.value ? 32 : 64;
     h = map.tiledLayer3.value ? 16 : 64;
-    this.layer[2].loadLayout({layout: layout, tileset: tileset, w: w, h: h, tilePriority: tilePriority});
+    this.layer[2].loadLayout({layout: layout, tileset: tileset3, w: w, h: h, tilePriority: tilePriority});
 
     // get color math properties
     var colorMath = this.rom.mapColorMath.item(map.colorMath.value);
@@ -745,7 +792,7 @@ FF5Map.prototype.loadMap = function(m) {
     this.ppu.half = colorMath.half.value;
 
     // layer 1
-    this.ppu.layers[0].format = this.rom.isSFC ? GFX.TileFormat.snes4bppTile : GFX.TileFormat.gba4bppTile;
+    // this.ppu.layers[0].format = this.rom.isSFC ? GFX.TileFormat.defaultTile : GFX.TileFormat.gba4bppTile;
     this.ppu.layers[0].cols = this.layer[0].w * 2;
     this.ppu.layers[0].rows = this.layer[0].h * 2;
     this.ppu.layers[0].z[0] = GFX.Z.snes1L;
@@ -757,7 +804,7 @@ FF5Map.prototype.loadMap = function(m) {
     this.ppu.layers[0].math = colorMath.layer1.value;
 
     // layer 2
-    this.ppu.layers[1].format = this.rom.isSFC ? GFX.TileFormat.snes4bppTile : GFX.TileFormat.gba4bppTile;
+    // this.ppu.layers[1].format = this.rom.isSFC ? GFX.TileFormat.defaultTile : GFX.TileFormat.gba4bppTile;
     this.ppu.layers[1].cols = this.layer[1].w * 2;
     this.ppu.layers[1].rows = this.layer[1].h * 2;
     this.ppu.layers[1].x = -map.hOffsetLayer2.value * 16;
@@ -771,7 +818,7 @@ FF5Map.prototype.loadMap = function(m) {
     this.ppu.layers[1].math = colorMath.layer2.value;
 
     // layer 3
-    this.ppu.layers[2].format = this.rom.isSFC ? GFX.TileFormat.snes2bppTile : GFX.TileFormat.gba2bppTile;
+    // this.ppu.layers[2].format = this.rom.isSFC ? GFX.TileFormat.defaultTile : GFX.TileFormat.gba2bppTile;
     this.ppu.layers[2].cols = this.layer[2].w * 2;
     this.ppu.layers[2].rows = this.layer[2].h * 2;
     this.ppu.layers[2].x = -map.hOffsetLayer3.value * 16;
@@ -849,7 +896,7 @@ FF5Map.prototype.loadWorldMap = function(m) {
     this.ppu.back = true;
 
     // layer 1
-    this.ppu.layers[0].format = GFX.TileFormat.snes4bppTile;
+    // this.ppu.layers[0].format = GFX.TileFormat.snes4bppTile;
     this.ppu.layers[0].cols = 256 * 2;
     this.ppu.layers[0].rows = 256 * 2;
     this.ppu.layers[0].z[0] = GFX.Z.snes1L;
@@ -1443,7 +1490,7 @@ FF5MapTileset.prototype.loadMap = function(m) {
         this.worldLayer.loadLayout({layout: layout, tileset: this.map.worldLayer.tileset, w: 16, h: 12, paletteAssignment: this.map.worldLayer.paletteAssignment})
 
         // layer 1
-        this.ppu.layers[0].format = this.rom.isSFC ? GFX.TileFormat.snes4bppTile : GFX.TileFormat.gba4bppTile;
+        // this.ppu.layers[0].format = this.rom.isSFC ? GFX.TileFormat.snes4bppTile : GFX.TileFormat.gba4bppTile;
         this.ppu.layers[0].rows = 24;
         this.ppu.layers[0].cols = 32;
         this.ppu.layers[0].z[0] = GFX.Z.snes1L;
@@ -1469,7 +1516,7 @@ FF5MapTileset.prototype.loadMap = function(m) {
         this.layer[2].loadLayout({layout: layout, tileset: this.map.layer[2].tileset, w: 16, h: 16, tilePriority: this.map.layer[2].tilePriority});
 
         // layer 1
-        this.ppu.layers[0].format = this.rom.isSFC ? GFX.TileFormat.snes4bppTile : GFX.TileFormat.gba4bppTile;
+        // this.ppu.layers[0].format = this.rom.isSFC ? GFX.TileFormat.defaultTile : GFX.TileFormat.gba4bppTile;
         this.ppu.layers[0].rows = 32;
         this.ppu.layers[0].cols = 32;
         this.ppu.layers[0].z[0] = GFX.Z.snes1L;
@@ -1478,7 +1525,7 @@ FF5MapTileset.prototype.loadMap = function(m) {
         this.ppu.layers[0].tiles = this.layer[0].tiles;
 
         // layer 2
-        this.ppu.layers[1].format = this.rom.isSFC ? GFX.TileFormat.snes4bppTile : GFX.TileFormat.gba4bppTile;
+        // this.ppu.layers[1].format = this.rom.isSFC ? GFX.TileFormat.defaultTile : GFX.TileFormat.gba4bppTile;
         this.ppu.layers[1].rows = 32;
         this.ppu.layers[1].cols = 32;
         this.ppu.layers[1].z[0] = GFX.Z.snes2L;
@@ -1487,7 +1534,7 @@ FF5MapTileset.prototype.loadMap = function(m) {
         this.ppu.layers[1].tiles = this.layer[1].tiles;
 
         // layer 3
-        this.ppu.layers[2].format = this.rom.isSFC ? GFX.TileFormat.snes2bppTile : GFX.TileFormat.gba2bppTile;
+        // this.ppu.layers[2].format = this.rom.isSFC ? GFX.TileFormat.snes2bppTile : GFX.TileFormat.gba2bppTile;
         this.ppu.layers[2].rows = 32;
         this.ppu.layers[2].cols = 32;
         this.ppu.layers[2].z[0] = GFX.Z.snes3L;
@@ -1625,7 +1672,7 @@ FF5MapLayer.prototype.loadLayout = function(definition) {
     this.tilePriority = definition.tilePriority; // gba only
 
     // update tiles for the entire map
-    this.tiles = new Uint16Array(this.w * this.h * 4);
+    this.tiles = new Uint32Array(this.w * this.h * 4);
     this.decodeLayout();
 }
 
@@ -1714,57 +1761,75 @@ FF5MapLayer.prototype.decodeMapLayout = function(x, y, w, h) {
     var t = x * 2 + y * this.w * 4;
     var row, col, tile, i, t1;
 
-    if (this.rom.isSFC) {
-        for (row = 0; row < h; row++) {
-            for (col = 0; col < w; col++) {
-                tile = layout[l + col] * 2;
-                i = t + col * 2;
-                if (i > this.tiles.length) return;
-                this.tiles[i + 0] = this.tileset[tile + 0x0000] | (this.tileset[tile + 0x0001] << 8);
-                this.tiles[i + 1] = this.tileset[tile + 0x0200] | (this.tileset[tile + 0x0201] << 8);
-                i += this.w * 2;
-                this.tiles[i + 0] = this.tileset[tile + 0x0400] | (this.tileset[tile + 0x0401] << 8);
-                this.tiles[i + 1] = this.tileset[tile + 0x0600] | (this.tileset[tile + 0x0601] << 8);
-            }
-            t += this.w * 4;
-            l += 64;
+    // apply tile priority bit (GBA only)
+    var tileset = this.tileset.slice();
+    if (this.tilePriority) {
+        for (var i = 0; i < tileset.length; i++) {
+            tileset[i] |= this.tilePriority.data[i] << 24;
         }
-    } else {
+    }
 
-        var tileset = new Uint8Array(this.tileset);
-        if (this.tilePriority) {
-            for (var i = 0; i < 1024; i++) {
-                tileset[i * 2 + 1] |= this.tilePriority.data[i] << 7;
-            }
-        }
-
+    // if (this.rom.isSFC) {
         for (row = 0; row < h; row++) {
             for (col = 0; col < w; col++) {
                 tile = layout[l + col];
-                t1 = (tile & 0x0F) * 4 + (tile & 0xF0) * 8;
+                tile = ((tile & 0xF0) << 2) | ((tile & 0x0F) << 1);
                 i = t + col * 2;
-                p = tile << 2;
                 if (i > this.tiles.length) return;
-                this.tiles[i + 0] = tileset[t1 + 0x0000] | (tileset[t1 + 0x0001] << 8);
-                this.tiles[i + 1] = tileset[t1 + 0x0002] | (tileset[t1 + 0x0003] << 8);
+                this.tiles[i + 0] = tileset[tile];
+                this.tiles[i + 1] = tileset[tile + 1];
                 i += this.w * 2;
-                this.tiles[i + 0] = tileset[t1 + 0x0040] | (tileset[t1 + 0x0041] << 8);
-                this.tiles[i + 1] = tileset[t1 + 0x0042] | (tileset[t1 + 0x0043] << 8);
+                tile += 32;
+                this.tiles[i + 0] = tileset[tile];
+                this.tiles[i + 1] = tileset[tile + 1];
+                // tile = layout[l + col] * 2;
+                // i = t + col * 2;
+                // if (i > this.tiles.length) return;
+                // this.tiles[i + 0] = this.tileset[tile + 0x0000] | (this.tileset[tile + 0x0001] << 8);
+                // this.tiles[i + 1] = this.tileset[tile + 0x0200] | (this.tileset[tile + 0x0201] << 8);
+                // i += this.w * 2;
+                // this.tiles[i + 0] = this.tileset[tile + 0x0400] | (this.tileset[tile + 0x0401] << 8);
+                // this.tiles[i + 1] = this.tileset[tile + 0x0600] | (this.tileset[tile + 0x0601] << 8);
             }
             t += this.w * 4;
             l += 64;
         }
-    }
+    // } else {
+    //
+    //     var tileset = new Uint8Array(this.tileset);
+    //     if (this.tilePriority) {
+    //         for (var i = 0; i < 1024; i++) {
+    //             tileset[i * 2 + 1] |= this.tilePriority.data[i] << 7;
+    //         }
+    //     }
+    //
+    //     for (row = 0; row < h; row++) {
+    //         for (col = 0; col < w; col++) {
+    //             tile = layout[l + col];
+    //             t1 = (tile & 0x0F) * 4 + (tile & 0xF0) * 8;
+    //             i = t + col * 2;
+    //             p = tile << 2;
+    //             if (i > this.tiles.length) return;
+    //             this.tiles[i + 0] = tileset[t1 + 0x0000] | (tileset[t1 + 0x0001] << 8);
+    //             this.tiles[i + 1] = tileset[t1 + 0x0002] | (tileset[t1 + 0x0003] << 8);
+    //             i += this.w * 2;
+    //             this.tiles[i + 0] = tileset[t1 + 0x0040] | (tileset[t1 + 0x0041] << 8);
+    //             this.tiles[i + 1] = tileset[t1 + 0x0042] | (tileset[t1 + 0x0043] << 8);
+    //         }
+    //         t += this.w * 4;
+    //         l += 64;
+    //     }
+    // }
 }
 
 FF5MapLayer.prototype.decodeWorldLayout = function(x, y, w, h) {
 
+    var tileset = this.tileset.slice();
     if (this.rom.isSFC) {
-        var tileset = new Uint16Array(768);
         for (var i = 0; i < 768; i++) {
-            var t = this.tileset[i];
-            var p = this.paletteAssignment.data[t] << 6;
-            tileset[i] = t | p;
+            var t = tileset[i] & 0xFF;
+            var p = this.paletteAssignment.data[t] << 16;
+            tileset[i] |= p;
         }
     }
 
@@ -1779,38 +1844,54 @@ FF5MapLayer.prototype.decodeWorldLayout = function(x, y, w, h) {
     var t = x * 2 + y * this.w * 4;
     var row, col, tile;
 
-    if (this.rom.isSFC) {
-        for (row = 0; row < h; row++) {
-            for (col = 0; col < w; col++) {
-                tile = layout[l + col];
-                if (tile > 0xBF) tile = 0;
-                i = t + col * 2;
-                if (i > this.tiles.length) return;
-                this.tiles[i + 0] = tileset[tile + 0x0000];
-                this.tiles[i + 1] = tileset[tile + 0x00C0];
-                i += this.w * 2;
-                this.tiles[i + 0] = tileset[tile + 0x0180];
-                this.tiles[i + 1] = tileset[tile + 0x0240];
-            }
-            t += this.w * 4;
-            l += this.w;
+    for (row = 0; row < h; row++) {
+        for (col = 0; col < w; col++) {
+            tile = layout[l + col];
+            tile = ((tile & 0xF0) << 2) | ((tile & 0x0F) << 1);
+            i = t + col * 2;
+            if (i > this.tiles.length) return;
+            this.tiles[i + 0] = tileset[tile];
+            this.tiles[i + 1] = tileset[tile + 1];
+            i += this.w * 2;
+            tile += 32;
+            this.tiles[i + 0] = tileset[tile];
+            this.tiles[i + 1] = tileset[tile + 1];
         }
-    } else {
-        for (row = 0; row < h; row++) {
-            for (col = 0; col < w; col++) {
-                tile = layout[l + col];
-                t1 = (tile & 0x0F) * 2 + (tile & 0xF0) * 4;
-                if (tile > 0xBF) tile = 0;
-                i = t + col * 2;
-                if (i > this.tiles.length) return;
-                this.tiles[i + 0] = this.tileset[t1 + 0x00];
-                this.tiles[i + 1] = this.tileset[t1 + 0x01];
-                i += this.w * 2;
-                this.tiles[i + 0] = this.tileset[t1 + 0x20];
-                this.tiles[i + 1] = this.tileset[t1 + 0x21];
-            }
-            t += this.w * 4;
-            l += this.w;
-        }
+        t += this.w * 4;
+        l += this.w;
     }
+    // if (this.rom.isSFC) {
+        // for (row = 0; row < h; row++) {
+        //     for (col = 0; col < w; col++) {
+        //         tile = layout[l + col];
+        //         if (tile > 0xBF) tile = 0;
+        //         i = t + col * 2;
+        //         if (i > this.tiles.length) return;
+        //         this.tiles[i + 0] = tileset[tile + 0x0000];
+        //         this.tiles[i + 1] = tileset[tile + 0x00C0];
+        //         i += this.w * 2;
+        //         this.tiles[i + 0] = tileset[tile + 0x0180];
+        //         this.tiles[i + 1] = tileset[tile + 0x0240];
+        //     }
+        //     t += this.w * 4;
+        //     l += this.w;
+        // }
+    // } else {
+    //     for (row = 0; row < h; row++) {
+    //         for (col = 0; col < w; col++) {
+    //             tile = layout[l + col];
+    //             t1 = (tile & 0x0F) * 2 + (tile & 0xF0) * 4;
+    //             if (tile > 0xBF) tile = 0;
+    //             i = t + col * 2;
+    //             if (i > this.tiles.length) return;
+    //             this.tiles[i + 0] = this.tileset[t1 + 0x00];
+    //             this.tiles[i + 1] = this.tileset[t1 + 0x01];
+    //             i += this.w * 2;
+    //             this.tiles[i + 0] = this.tileset[t1 + 0x20];
+    //             this.tiles[i + 1] = this.tileset[t1 + 0x21];
+    //         }
+    //         t += this.w * 4;
+    //         l += this.w;
+    //     }
+    // }
 }

@@ -16,14 +16,17 @@
                     "name": "Maps",
                     "path": "mapProperties"
                 }, {
+                    "name": "Map Tilesets",
+                    "path": "mapTilesets"
+                }, {
                     "name": "Map Titles",
                     "path": "stringTable.mapTitle"
                 }, {
                     "name": "Color Math",
                     "path": "mapColorMath"
                 }, {
-                    "name": "World Map Graphics",
-                    "path": "worldGraphics"
+                    "name": "World Map Tilesets",
+                    "path": "worldTilesets"
                 }
             ]
         }, {
@@ -1320,7 +1323,8 @@
                     "tileset": {
                         "type": "property",
                         "name": "Tileset",
-                        "begin": 8
+                        "begin": 8,
+                        "stringTable": "mapTilesets"
                     },
                     "gfx1": {
                         "type": "property",
@@ -2216,10 +2220,54 @@
                 "length": 28
             },
             "assembly": {
-                "format": "tose-layout"
+                "type": "tilemap",
+                "format": [
+                    "gba4bppTile",
+                    "tose-layout"
+                ],
+                "width": 32,
+                "height": 32,
+                "graphics": [],
+                "palette": {
+                    "path": []
+                }
             },
             "pointerTable": {
                 "range": "0x08708E9C-0x08708F0C"
+            },
+            "stringTable": {
+                "length": 28,
+                "default": "Map Tileset %i",
+                "string": {
+                    "0": "Castle Exterior 1",
+                    "1": "Castle Interior",
+                    "2": "Town Exterior 1",
+                    "3": "Town Exterior 2",
+                    "4": "Ruined Town",
+                    "5": "Town Exterior 3",
+                    "6": "Town Interior",
+                    "7": "Cave 1",
+                    "8": "Cave 2",
+                    "9": "Mountains 1",
+                    "10": "Shrine",
+                    "11": "Tower",
+                    "12": "Forest 1",
+                    "13": "Forest 2",
+                    "14": "Forest 3",
+                    "15": "Ship Graveyard",
+                    "16": "Ship Exterior",
+                    "17": "Ship Interior",
+                    "18": "Fire-Powered Ship",
+                    "19": "Desert/Pyramid",
+                    "20": "Ronka Ruins",
+                    "21": "Library",
+                    "22": "Castle Exdeath",
+                    "23": "Castle Exterior 2",
+                    "24": "Mountains 2",
+                    "25": "Flying Fortress",
+                    "26": "The Void",
+                    "27": "Space"
+                }
             }
         },
         "mapTreasures": {
@@ -3433,7 +3481,19 @@
                 "length": 3
             },
             "assembly": {
-                "format": "tose-layout"
+                "type": "tilemap",
+                "length": "0x030C",
+                "format": [
+                    "generic8bppTile",
+                    "tose-layout"
+                ],
+                "width": 32,
+                "height": 24,
+                "graphics": "worldGraphics[%i]",
+                "palette": {
+                    "path": "worldPalettes[%i]",
+                    "range": "0-160"
+                }
             },
             "pointerTable": {
                 "range": "0x08708F34-0x08708F40"

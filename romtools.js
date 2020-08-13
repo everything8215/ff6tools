@@ -1187,6 +1187,8 @@ function ROM(rom, definition) {
     this.mode = definition.mode;
     this.pointerLength = Number(definition.pointerLength);
     if (!isNumber(this.pointerLength)) { this.pointerLength = 2; }
+    this.numberBase = definition.numberBase || 10;
+    this.noChecksumFix = definition.noChecksumFix || false;
 
     var i, key, keys;
 
@@ -1259,7 +1261,9 @@ Object.defineProperty(ROM.prototype, "definition", { get: function() {
     definition.crc32 = hexString(ROM.crc32(this.data), 8);
     definition.system = this.system;
     definition.mode = this.mode;
-    if (this.pointerLength != 2) { definition.pointerLength = this.pointerLength; }
+    if (this.pointerLength != 2) definition.pointerLength = this.pointerLength;
+    if (this.numberBase !== 10) definition.numberBase = this.numberBase;
+    if (this.noChecksumFix) definition.noChecksumFix = true;
 
     var keys, key;
 
@@ -1502,7 +1506,7 @@ ROM.prototype.unmapRange = function(range) {
 }
 
 ROM.prototype.fixChecksum = function() {
-    if (!this.isSFC || !this.snesHeader) return;
+    if (!this.isSFC || this.noChecksumFix || !this.snesHeader) return;
 
     this.snesHeader.checksum.value = 0;
     this.snesHeader.checksumInverse.value = 0xFFFF;
@@ -2912,6 +2916,125 @@ ROM.prototype.endAction = function() {
     this.actionDepth = 0;
     if (this.action) this.undoStack.push(this.action);
     this.action = null;
+}
+
+ROM.prototype.numToString = function(num) {
+    if (this.numberBase === 10) {
+        return num.toString();
+    } else if (this.numberBase === 16) {
+        return hexString(num);
+    }
+    this.log("Invalid Number Base: " + this.numberBase);
+    return "Invalid Number Base: " + this.numberBase;
+}
+
+ROM.prototype.romMapText = function() {
+
+    // sort assemblies by range
+    var sorted = [];
+    var keys = Object.keys(this.assembly);
+    for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        var assembly = this.assembly[key];
+        sorted.push(assembly);
+    }
+
+    sorted = sorted.sort(function(a, b) {
+        return a.range.begin - b.range.begin;
+    });
+
+    var mapString = "";
+    var pad1 = 6;
+    var pad2 = 6;
+    if (!this.isGBA) {
+        mapString += " System Location      ROM Location                    Description\n";
+        mapString += "-----------------  -----------------  ------------------------------------------\n";
+    } else {
+        pad1 = 8;
+        mapString += "   System Location        ROM Location                 Description\n";
+        mapString += "---------------------  -----------------  --------------------------------------\n";
+    }
+    for (var i = 0; i < sorted.length; i++) {
+        var assembly = sorted[i];
+        var range = assembly.range;
+        if (!range || range.isEmpty) continue;
+        mapString += this.unmapRange(range).toString(pad1);
+        mapString += "  ";
+        mapString += range.toString(pad2);
+        mapString += "  ";
+        mapString += assembly.name;
+        mapString += "\n";
+    }
+    return mapString;
+}
+
+ROM.prototype.showSettings = function() {
+    var content = openModal("ROM Settings");
+
+    var rom = this;
+
+    var nameDiv = document.createElement('div');
+    nameDiv.classList.add("property-div");
+    content.appendChild(nameDiv);
+    var nameLabel = document.createElement('label');
+    nameLabel.innerHTML = "ROM Name: ";
+    nameLabel.htmlFor = "settings-name-control";
+    nameLabel.classList.add("property-label");
+    nameDiv.appendChild(nameLabel);
+    var nameControl = document.createElement('input');
+    nameControl.type = "text";
+    nameControl.id = "settings-name-control";
+    nameControl.classList.add("property-control");
+    nameControl.onchange = function() {
+        rom.name = this.value;
+    }
+    nameControl.value = rom.name;
+    nameDiv.appendChild(nameControl);
+
+    var hexDecDiv = document.createElement('div');
+    hexDecDiv.classList.add("property-div");
+    content.appendChild(hexDecDiv);
+    var hexDecLabel = document.createElement('label');
+    hexDecLabel.innerHTML = "Number Format: ";
+    hexDecLabel.htmlFor = "settings-hex-dec-control";
+    hexDecLabel.classList.add("property-label");
+    hexDecDiv.appendChild(hexDecLabel);
+    var hexDecControl = document.createElement('select');
+    hexDecDiv.appendChild(hexDecControl);
+    hexDecControl.id = "settings-hex-dec-control";
+    hexDecControl.classList.add("property-control");
+    var hexDecOption1 = document.createElement('option');
+    hexDecOption1.value = 10;
+    hexDecOption1.innerHTML = "Decimal (Base 10)";
+    hexDecControl.appendChild(hexDecOption1);
+    var hexDecOption2 = document.createElement('option');
+    hexDecOption2.value = 16;
+    hexDecOption2.innerHTML = "Hexadecimal (Base 16)";
+    hexDecControl.appendChild(hexDecOption2);
+    hexDecControl.value = rom.numberBase;
+    hexDecControl.onchange = function() {
+        rom.numberBase = Number(this.value);
+    }
+
+    if (rom.isSFC) {
+        var checksumDiv = document.createElement('div');
+        checksumDiv.classList.add("property-div");
+        content.appendChild(checksumDiv);
+        var checksumControl = document.createElement('input');
+        checksumControl.type = "checkbox";
+        checksumControl.id = "settings-checksum-control";
+        checksumControl.classList.add("property-label");
+        checksumControl.onchange = function() {
+            rom.noChecksumFix = this.checked;
+        }
+        checksumControl.checked = rom.noChecksumFix;
+        checksumDiv.appendChild(checksumControl);
+        var checksumLabel = document.createElement('label');
+        checksumLabel.innerHTML = "Don't fix checksum in SNES header";
+        checksumLabel.htmlFor = "settings-checksum-control";
+        checksumLabel.classList.add("property-check-label");
+        checksumDiv.appendChild(checksumLabel);
+    }
 }
 
 // ROMAction
