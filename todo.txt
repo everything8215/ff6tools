@@ -40,6 +40,7 @@ gui
  * arrayPath/objectPath in navigator
  * make menu close any time you click outside of it
  * graphics export selection only
+ * import/export tilemap (image, native/generic, Tiled)
 
 game specific
 -------------

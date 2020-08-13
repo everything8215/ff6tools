@@ -91,6 +91,9 @@
                 }, {
                     "name": "Shops",
                     "path": "shop"
+                }, {
+                    "name": "Weapon/Spell/Cursor Graphics",
+                    "path": "battleSpriteGraphics"
                 }
             ]
         }
@@ -236,7 +239,150 @@
                     "0": "Blue/Yellow Palette",
                     "1": "Red/Pink Palette",
                     "2": "Spell Palette",
-                    "3": "Cursor Palette"
+                    "3": "Cursor/Stone Palette"
+                }
+            }
+        },
+        "battleGroup": {
+            "type": "array",
+            "name": "Battle Group",
+            "range": "0x0B8000-0x0B8400",
+            "array": {
+                "length": 125
+            },
+            "assembly": {
+                "type": "data",
+                "length": 8,
+                "assembly": {
+                    "battle1": {
+                        "type": "property",
+                        "name": "Battle 1 (12/64)",
+                        "begin": 0,
+                        "mask": "0x7F",
+                        "link": "battleProperties[%i]",
+                        "stringTable": "battleProperties"
+                    },
+                    "battle1B": {
+                        "type": "property",
+                        "name": "Battle 1 B",
+                        "begin": 0,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "battle2": {
+                        "type": "property",
+                        "name": "Battle 2 (12/64)",
+                        "begin": 1,
+                        "mask": "0x7F",
+                        "link": "battleProperties[%i]",
+                        "stringTable": "battleProperties"
+                    },
+                    "battle2B": {
+                        "type": "property",
+                        "name": "Battle 2 B",
+                        "begin": 1,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "battle3": {
+                        "type": "property",
+                        "name": "Battle 3 (12/64)",
+                        "begin": 2,
+                        "mask": "0x7F",
+                        "link": "battleProperties[%i]",
+                        "stringTable": "battleProperties"
+                    },
+                    "battle3B": {
+                        "type": "property",
+                        "name": "Battle 3 B",
+                        "begin": 2,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "battle4": {
+                        "type": "property",
+                        "name": "Battle 4 (12/64)",
+                        "begin": 3,
+                        "mask": "0x7F",
+                        "link": "battleProperties[%i]",
+                        "stringTable": "battleProperties"
+                    },
+                    "battle4B": {
+                        "type": "property",
+                        "name": "Battle 4 B",
+                        "begin": 3,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "battle5": {
+                        "type": "property",
+                        "name": "Battle 5 (6/64)",
+                        "begin": 4,
+                        "mask": "0x7F",
+                        "link": "battleProperties[%i]",
+                        "stringTable": "battleProperties"
+                    },
+                    "battle5B": {
+                        "type": "property",
+                        "name": "Battle 5 B",
+                        "begin": 4,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "battle6": {
+                        "type": "property",
+                        "name": "Battle 6 (6/64)",
+                        "begin": 5,
+                        "mask": "0x7F",
+                        "link": "battleProperties[%i]",
+                        "stringTable": "battleProperties"
+                    },
+                    "battle6B": {
+                        "type": "property",
+                        "name": "Battle 6 B",
+                        "begin": 5,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "battle7": {
+                        "type": "property",
+                        "name": "Battle 7 (3/64)",
+                        "begin": 6,
+                        "mask": "0x7F",
+                        "link": "battleProperties[%i]",
+                        "stringTable": "battleProperties"
+                    },
+                    "battle7B": {
+                        "type": "property",
+                        "name": "Battle 7 B",
+                        "begin": 6,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "battle8": {
+                        "type": "property",
+                        "name": "Battle 8 (1/64)",
+                        "begin": 7,
+                        "mask": "0x7F",
+                        "link": "battleProperties[%i]",
+                        "stringTable": "battleProperties"
+                    },
+                    "battle8B": {
+                        "type": "property",
+                        "name": "Battle 8 B",
+                        "begin": 7,
+                        "mask": "0x80",
+                        "bool": true
+                    }
+                }
+            },
+            "stringTable": {
+                "string": {
+                    "0-64": "Overworld %i",
+                    "64": "River (South)",
+                    "65": "River (North)",
+                    "66": "Ocean",
+                    "67-125": "<stringTable.mapProperties[%i-64]>"
                 }
             }
         },
@@ -487,147 +633,29 @@
                 "default": "Battle %i"
             }
         },
-        "battleGroup": {
-            "type": "array",
-            "name": "Battle Group",
-            "range": "0x0B8000-0x0B8400",
-            "array": {
-                "length": 125
-            },
-            "assembly": {
-                "type": "data",
-                "length": 8,
-                "assembly": {
-                    "battle1": {
-                        "type": "property",
-                        "name": "Battle 1 (12/64)",
-                        "begin": 0,
-                        "mask": "0x7F",
-                        "link": "battleProperties[%i]",
-                        "stringTable": "battleProperties"
-                    },
-                    "battle1B": {
-                        "type": "property",
-                        "name": "Battle 1 B",
-                        "begin": 0,
-                        "mask": "0x80",
-                        "bool": true
-                    },
-                    "battle2": {
-                        "type": "property",
-                        "name": "Battle 2 (12/64)",
-                        "begin": 1,
-                        "mask": "0x7F",
-                        "link": "battleProperties[%i]",
-                        "stringTable": "battleProperties"
-                    },
-                    "battle2B": {
-                        "type": "property",
-                        "name": "Battle 2 B",
-                        "begin": 1,
-                        "mask": "0x80",
-                        "bool": true
-                    },
-                    "battle3": {
-                        "type": "property",
-                        "name": "Battle 3 (12/64)",
-                        "begin": 2,
-                        "mask": "0x7F",
-                        "link": "battleProperties[%i]",
-                        "stringTable": "battleProperties"
-                    },
-                    "battle3B": {
-                        "type": "property",
-                        "name": "Battle 3 B",
-                        "begin": 2,
-                        "mask": "0x80",
-                        "bool": true
-                    },
-                    "battle4": {
-                        "type": "property",
-                        "name": "Battle 4 (12/64)",
-                        "begin": 3,
-                        "mask": "0x7F",
-                        "link": "battleProperties[%i]",
-                        "stringTable": "battleProperties"
-                    },
-                    "battle4B": {
-                        "type": "property",
-                        "name": "Battle 4 B",
-                        "begin": 3,
-                        "mask": "0x80",
-                        "bool": true
-                    },
-                    "battle5": {
-                        "type": "property",
-                        "name": "Battle 5 (6/64)",
-                        "begin": 4,
-                        "mask": "0x7F",
-                        "link": "battleProperties[%i]",
-                        "stringTable": "battleProperties"
-                    },
-                    "battle5B": {
-                        "type": "property",
-                        "name": "Battle 5 B",
-                        "begin": 4,
-                        "mask": "0x80",
-                        "bool": true
-                    },
-                    "battle6": {
-                        "type": "property",
-                        "name": "Battle 6 (6/64)",
-                        "begin": 5,
-                        "mask": "0x7F",
-                        "link": "battleProperties[%i]",
-                        "stringTable": "battleProperties"
-                    },
-                    "battle6B": {
-                        "type": "property",
-                        "name": "Battle 6 B",
-                        "begin": 5,
-                        "mask": "0x80",
-                        "bool": true
-                    },
-                    "battle7": {
-                        "type": "property",
-                        "name": "Battle 7 (3/64)",
-                        "begin": 6,
-                        "mask": "0x7F",
-                        "link": "battleProperties[%i]",
-                        "stringTable": "battleProperties"
-                    },
-                    "battle7B": {
-                        "type": "property",
-                        "name": "Battle 7 B",
-                        "begin": 6,
-                        "mask": "0x80",
-                        "bool": true
-                    },
-                    "battle8": {
-                        "type": "property",
-                        "name": "Battle 8 (1/64)",
-                        "begin": 7,
-                        "mask": "0x7F",
-                        "link": "battleProperties[%i]",
-                        "stringTable": "battleProperties"
-                    },
-                    "battle8B": {
-                        "type": "property",
-                        "name": "Battle 8 B",
-                        "begin": 7,
-                        "mask": "0x80",
-                        "bool": true
-                    }
-                }
-            },
-            "stringTable": {
-                "string": {
-                    "0-64": "Overworld %i",
-                    "64": "River (South)",
-                    "65": "River (North)",
-                    "66": "Ocean",
-                    "67-125": "<stringTable.mapProperties[%i-64]>"
-                }
+        "battleSpriteGraphics": {
+            "type": "graphics",
+            "name": "Battle Sprite Graphics",
+            "range": "0x09A800-0x09B000",
+            "format": "nes2bpp",
+            "palette": "battleCharacterPalette",
+            "width": 2,
+            "spriteSheet": {
+                "width": 16,
+                "height": 8,
+                "tilemap": [
+                     0, 1,  4, 5,  8, 9, 12,13, 16,17, 20,21, 24,25, 28,29,
+                     2, 3,  6, 7, 10,11, 14,15, 18,19, 22,23, 26,27, 30,31,
+
+                    32,33, 36,37, 40,41, 44,45, 48,49, 52,53, 56,57, 60,61,
+                    34,35, 38,39, 42,43, 46,47, 50,51, 54,55, 58,59, 62,63,
+
+                    64,65, 68,69, 72,73, 76,77, 80,81, 84,85, 88,89, 92,93,
+                    66,67, 70,72, 74,75, 78,79, 82,83, 86,87, 90,91, 94,95,
+
+                    96,97, 100,101, 104,105, 108,109, 112,113, 116,117, 120,121, 124,125,
+                    98,99, 102,103, 106,107, 110,111, 114,115, 118,119, 122,123, 126,127
+                ]
             }
         },
         "classExperience": {
@@ -3193,12 +3221,14 @@
                     "graphics": {
                         "type": "property",
                         "name": "Graphics",
-                        "begin": 5
+                        "begin": 5,
+                        "stringTable": "weaponSpellGraphics"
                     },
                     "palette": {
                         "type": "property",
                         "name": "Palette",
-                        "begin": 6
+                        "begin": 6,
+                        "stringTable": "weaponSpellPalette"
                     }
                 }
             }
@@ -3351,12 +3381,14 @@
                     "graphics": {
                         "type": "property",
                         "name": "Graphics",
-                        "begin": 6
+                        "begin": 6,
+                        "stringTable": "weaponSpellGraphics"
                     },
                     "palette": {
                         "type": "property",
                         "name": "Palette",
-                        "begin": 7
+                        "begin": 7,
+                        "stringTable": "weaponSpellPalette"
                     },
                     "element": {
                         "type": "property",
@@ -3936,6 +3968,56 @@
             "name": "Weapon",
             "length": 40,
             "default": "<text[%i+0x1C]>"
+        },
+        "weaponSpellGraphics": {
+            "name": "Weapon/Spell Graphics",
+            "hideIndex": true,
+            "string": {
+                "0": "None",
+                "0x80": "Sword 1",
+                "0x84": "Sword 2",
+                "0x88": "Sword 3",
+                "0x8C": "Sword 4",
+                "0x90": "Sword 5",
+                "0x94": "Hammer",
+                "0x98": "Knife",
+                "0x9C": "Axe",
+                "0xA0": "Staff",
+                "0xA4": "Rod",
+                "0xA8": "Nunchuck",
+                "0xAC": "Fist (Black Belt/Master)",
+                "0xB0": "Vertical Beam",
+                "0xB8": "Four Sparkles",
+                "0xC0": "Cure Sparkles",
+                "0xC8": "Horizontal Beam",
+                "0xD0": "Fire Blast",
+                "0xD8": "Circle",
+                "0xE0": "Dust Sparkles",
+                "0xE8": "Cloud Blast",
+                "0xF0": "Cursor",
+                "0xF4": "Hit",
+                "0xF8": "Zap"
+            }
+        },
+        "weaponSpellPalette": {
+            "name": "Weapon/Spell Palette",
+            "hideIndex": true,
+            "string": {
+                "0": "None",
+                "32": "Gray",
+                "33": "Blue",
+                "34": "Indigo",
+                "35": "Purple",
+                "36": "Magenta",
+                "37": "Scarlet",
+                "38": "Red",
+                "39": "Brown",
+                "40": "Orange",
+                "41": "Yellow-Green",
+                "42": "Green",
+                "43": "Teal",
+                "44": "Cyan"
+            }
         }
     },
     "freeSpace": [

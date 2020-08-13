@@ -90,6 +90,9 @@
                     "name": "Character Names",
                     "path": "characterNames"
                 }, {
+                    "name": "Job Names",
+                    "path": "jobName"
+                }, {
                     "name": "Spell Names",
                     "path": "spellName"
                 }, {
@@ -105,8 +108,17 @@
                     "name": "Long Attack Names",
                     "path": "attackNameLong"
                 }, {
-                    "name": "Job Names",
-                    "path": "jobName"
+                    "name": "Spell Graphics 1",
+                    "path": "attackTilemap1"
+                }, {
+                    "name": "Spell Graphics 2",
+                    "path": "attackTilemap2"
+                }, {
+                    "name": "Spell Graphics 3",
+                    "path": "attackTilemap3"
+                }, {
+                    "name": "Animal Graphics",
+                    "path": "attackTilemap5"
                 }
             ]
         }, {
@@ -118,6 +130,12 @@
                 }, {
                     "name": "Item Descriptions",
                     "path": "itemDescription"
+                }, {
+                    "name": "Weapon Graphics",
+                    "path": "attackTilemap6"
+                }, {
+                    "name": "Weapon Hit Graphics",
+                    "path": "attackTilemap4"
                 }, {
                     "name": "Shop Properties",
                     "path": "shopProperties"
@@ -151,6 +169,48 @@
                 "length": 105,
                 "default": "<abilityName[%i]>"
             }
+        },
+        "attackGraphics1": {
+            "type": "graphics",
+            "name": "Attack Graphics 1",
+            "range": "0xD90000-0xD92EC8",
+            "format": "snes3bpp",
+            "palette": "attackPalette"
+        },
+        "attackGraphics2": {
+            "type": "graphics",
+            "name": "Attack Graphics 2",
+            "range": "0xD92EC8-0xD95760",
+            "format": "snes3bpp",
+            "palette": "attackPalette"
+        },
+        "attackGraphics3": {
+            "type": "graphics",
+            "name": "Attack Graphics 3",
+            "range": "0xD95760-0xD97C50",
+            "format": "snes3bpp",
+            "palette": "attackPalette"
+        },
+        "attackGraphics4": {
+            "type": "graphics",
+            "name": "Attack Graphics 4",
+            "range": "0xD1D800-0xD1F000",
+            "format": "snes3bpp",
+            "palette": "attackPalette"
+        },
+        "attackGraphics5": {
+            "type": "graphics",
+            "name": "Attack Graphics 5",
+            "range": "0xD1ABA0-0xD1BE00",
+            "format": "snes4bpp",
+            "palette": "attackPalette"
+        },
+        "attackGraphics6": {
+            "type": "graphics",
+            "name": "Attack Graphics 6",
+            "range": "0xD1C000-0xD1D800",
+            "format": "snes3bpp",
+            "palette": "attackPalette3bpp"
         },
         "attackName": {
             "type": "array",
@@ -191,6 +251,81 @@
                 "length": 168,
                 "default": "<attackNameLong[%i]>"
             }
+        },
+        "attackPalette": {
+            "type": "array",
+            "name": "Attack Palette",
+            "range": "0xD1A3A0-0xD1ABA0",
+            "arrayLength": 128,
+            "assembly": {
+                "type": "assembly",
+                "length": 16,
+                "format": "bgr555"
+            },
+            "stringTable": {
+                "length": 128,
+                "default": "Attack Palette %i"
+            }
+        },
+        "attackTilemap1": {
+            "type": "tilemap",
+            "name": "Attack Tilemap 1",
+            "range": "0xD17FA0-0xD187A0",
+            "format": ["defaultTile", "ff6-animation-tilemap", "byteSwapped(2)"],
+            "graphics": "attackGraphics1",
+            "palette": "attackPalette",
+            "width": 16,
+            "height": 64
+        },
+        "attackTilemap2": {
+            "type": "tilemap",
+            "name": "Attack Tilemap 2",
+            "range": "0xD187A0-0xD18FA0",
+            "format": ["defaultTile", "ff6-animation-tilemap", "byteSwapped(2)"],
+            "graphics": "attackGraphics2",
+            "palette": "attackPalette",
+            "width": 16,
+            "height": 64
+        },
+        "attackTilemap3": {
+            "type": "tilemap",
+            "name": "Attack Tilemap 3",
+            "range": "0xD18FA0-0xD197A0",
+            "format": ["defaultTile", "ff6-animation-tilemap", "byteSwapped(2)"],
+            "graphics": "attackGraphics3",
+            "palette": "attackPalette",
+            "width": 16,
+            "height": 64
+        },
+        "attackTilemap4": {
+            "type": "tilemap",
+            "name": "Attack Tilemap 4",
+            "range": "0xD19BA0-0xD1A3A0",
+            "format": ["defaultTile", "ff6-animation-tilemap", "byteSwapped(2)"],
+            "graphics": "attackGraphics4",
+            "palette": "attackPalette",
+            "width": 16,
+            "height": 64
+        },
+        "attackTilemap5": {
+            "type": "tilemap",
+            "name": "Attack Tilemap 5",
+            "range": "0xD1BE00-0xD1C000",
+            "format": ["defaultTile", "ff6-animation-tilemap", "byteSwapped(2)"],
+            "graphics": "attackGraphics5",
+            "palette": "attackPalette",
+            "width": 16,
+            "height": 16
+        },
+        "attackTilemap6": {
+            "type": "tilemap",
+            "name": "Attack Tilemap 6",
+            "range": "0xD197A0-0xD19BA0",
+            "format": ["defaultTile", "ff6-animation-tilemap", "byteSwapped(2)"],
+            "graphics": "attackGraphics6",
+            "palette": "attackPalette",
+            "width": 16,
+            "height": 32
         },
         "battleBackgroundGraphics": {
             "type": "array",

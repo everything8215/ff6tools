@@ -702,11 +702,10 @@ function ROMTilemap(rom, definition, parent) {
     ROMAssembly.call(this, rom, definition, parent);
 
     this.tiles = []; // tile layout
-    this.tileFormat = definition.tileFormat; // tile format
     this.graphics = definition.graphics; // graphics definition
-    this.tileOffset = definition.tileOffset; // tile offset
+    this.tileOffset = definition.tileOffset; // tile offset definition
     this.palette = definition.palette; // palette definition
-    this.colorOffset = definition.colorOffset; // color offset
+    this.colorOffset = definition.colorOffset; // color offset definition
     this.zLevel = definition.zLevel; // z-level definition
     this.vFlip = definition.vFlip; // vertical flip definition
     this.hFlip = definition.hFlip; // horizontal flip definition
@@ -721,7 +720,6 @@ ROMTilemap.prototype.constructor = ROMTilemap;
 Object.defineProperty(ROMTilemap.prototype, "definition", { get: function() {
     var definition = Object.getOwnPropertyDescriptor(ROMAssembly.prototype, "definition").get.call(this);
 
-    if (this.tileFormat) definition.tileFormat = this.tileFormat;
     if (this.graphics) definition.graphics = this.graphics;
     if (this.tileOffset) definition.tileOffset = this.tileOffset;
     if (this.palette) definition.palette = this.palette;
@@ -1622,11 +1620,29 @@ ROM.dataFormat = {
         decode: function(data) { return [data, data.length]; }
     },
     "byteSwapped": {
-        encode: function(data) {
-            return [data.slice().reverse(), data.length];
+        encode: function(data, width) {
+            if (!width) return [data.slice().reverse(), data.length];
+            var src = data;
+            var s = 0;
+            var dest = new Uint8Array(data.length);
+            var d = 0;
+            for (var i = 0; i < src.length; i++) {
+                d = s + width - 1;
+                for (var b = 0; b < width; b++) dest[d--] = src[s++];
+            }
+            return [dest, data.length];
         },
-        decode: function(data) {
-            return [data.slice().reverse(), data.length];
+        decode: function(data, width) {
+            if (!width) return [data.slice().reverse(), data.length];
+            var src = data;
+            var s = 0;
+            var dest = new Uint8Array(data.length);
+            var d = 0;
+            for (var i = 0; i < src.length; i++) {
+                d = s + width - 1;
+                for (var b = 0; b < width; b++) dest[d--] = src[s++];
+            }
+            return [dest, data.length];
         }
     },
     "multiplier": {
