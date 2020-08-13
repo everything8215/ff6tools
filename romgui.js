@@ -422,7 +422,9 @@ ROMPropertyList.prototype.showProperties = function() {
         // object name
         var heading = document.createElement('p');
         headingDiv.appendChild(heading);
-        heading.innerHTML = object.name.replace("%i", rom.numToString(object.i));
+        if (isNumber(object.i)) {
+            heading.innerHTML = object.name.replace("%i", rom.numToString(object.i));
+        }
     }
 
     // show object label (string table or script label)
@@ -666,11 +668,11 @@ ROMPropertyList.prototype.tilemapHTML = function(object, options) {
     var tilemapDiv = document.createElement('div');
     tilemapDiv.classList.add("property-div");
 
-    // var editor = this.getEditor("ROMTilemapView");
-    // var exportButton = document.createElement('button');
-    // exportButton.innerHTML = "Export Graphics";
-    // exportButton.onclick = function() { editor.showExportDialog(); };
-    // graphicsDiv.appendChild(exportButton);
+    var editor = this.getEditor("ROMTilemapView");
+    var exportButton = document.createElement('button');
+    exportButton.innerHTML = "Export Tilemap";
+    exportButton.onclick = function() { editor.exportTilemap(); };
+    tilemapDiv.appendChild(exportButton);
 
     // var importButton = document.createElement('button');
     // importButton.innerHTML = "Import Graphics";
@@ -3869,7 +3871,7 @@ ROMTilemapView.prototype.drawTilemap = function() {
     ppu.layers[0].tiles = this.tilemap;
     ppu.layers[0].main = true;
 
-    // draw layout image
+    // draw tilemap image
     this.layoutCanvas.width = ppu.width;
     this.layoutCanvas.height = ppu.height;
     var context = this.layoutCanvas.getContext('2d');
@@ -4255,6 +4257,55 @@ ROMTilemapView.prototype.parseDefinition = function(definition) {
     }
 
     return r;
+}
+
+ROMTilemapView.prototype.exportTilemap = function() {
+    // create an indexed png file from the tilemap
+    ppu = new GFX.PPU();
+
+    // create the palette
+    var palette = new Uint32Array(this.paletteView.palette);
+    if (this.backColor) {
+        // use first palette color as back color
+        palette[0] = this.paletteView.palette[0];
+        ppu.back = true;
+    } else {
+        // transparent background
+        // palette[0] = 0xFF000000;
+        ppu.back = false;
+    }
+
+    // set up the ppu
+    ppu.pal = palette;
+    ppu.width = this.width * 8;
+    ppu.height = this.height * 8;
+
+    // layer 1
+    ppu.layers[0].format = null;
+    ppu.layers[0].cols = this.width;
+    ppu.layers[0].rows = this.height;
+    ppu.layers[0].z[0] = GFX.Z.top;
+    ppu.layers[0].z[1] = GFX.Z.top;
+    ppu.layers[0].z[2] = GFX.Z.top;
+    ppu.layers[0].z[3] = GFX.Z.top;
+    ppu.layers[0].gfx = this.graphicsView.graphics;
+    ppu.layers[0].tiles = this.tilemap;
+    ppu.layers[0].main = true;
+
+    var image = ppu.createPNG(0, 0, this.width * 8, this.height * 8);
+    var blob = new Blob([image.buffer]);
+    url = window.URL.createObjectURL(blob);
+
+    var a = document.createElement("a");
+    a.style = "display: none";
+    document.body.appendChild(a);
+
+    a.href = url;
+    a.download = 'image.png';
+    a.click();
+
+    // release the reference to the file by revoking the Object URL
+    window.URL.revokeObjectURL(url);
 }
 
 function ROMGraphicsExporter() {}
