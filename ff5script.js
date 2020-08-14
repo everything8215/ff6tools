@@ -5,19 +5,19 @@
 
 var FF5Script = {
     name: "FF5Script",
-    
+
     initScript: function(script) { },
-    
+
     didDisassemble: function(command, data) {
         switch (command.key) {
-                
+
             case "mapBackground":
                 var w = command.w.value;
                 var h = command.h.value;
                 command.range.end += w * h;
                 ROMData.prototype.disassemble.call(command, data);
                 break;
-                
+
             case "switch":
                 if (command.encoding === "event") {
                     var opcode = command.opcode.value;
@@ -85,7 +85,7 @@ var FF5Script = {
                     obj = "Party";
                 }
                 return obj + ": " + this.string(command, "action", command.stringTable);
-                
+
             case "bool1":
             case "bool2":
                 var width = (command.key === "bool1" ? 2 : 4);
@@ -108,11 +108,11 @@ var FF5Script = {
                 var dialog = command.rom.stringTable.dialog.string[d];
                 var dialogText = command.name + ":<br/>";
                 return dialogText + (dialog ? dialog.htmlString() : "Invalid Dialog Message");
-                
+
             case "event":
             case "jump":
                 return command.name + ": " + this.string(command, "event", "eventScript");
-                
+
             case "inn":
                 return "Inn: " + this.string(command, "price", "scriptEncoding.event.inn.price");
 
@@ -120,13 +120,13 @@ var FF5Script = {
                 var gp = command.gp.value;
                 var giveTake = (command.giveTake.value === 0xAF) ? "Give": "Take";
                 return giveTake + " " + gp + " GP";
-                
+
             case "inventoryItem":
                 var giveTake = (command.giveTake.value === 0xAA) ? "Give": "Take";
                 return giveTake + " Item: " + this.string(command, "item", "itemNames");
 
             case "inventoryJob":
-                return "Give Job: " + this.string(command, "job", "jobName");
+                return "Give Job: " + this.string(command, "job", "jobNameReversed");
 
             case "map":
                 return command.name + ": " + this.string(command, "map", "mapProperties");
@@ -149,19 +149,19 @@ var FF5Script = {
                     var d = command.dialog.value;
                     return "Show NPC Dialog " + d;
                 }
-                
+
                 var i = command.i;
                 while (command.parent.command[i].encoding === "npcDialog") {
                     i--;
                     if (!command.parent.command[i]) break;
                 }
                 i = command.i - i;
-                
+
                 var d = command.dialog.value;
                 var dialog = command.rom.stringTable.dialog.string[d];
                 var dialogText = "NPC Dialog " + i + ":<br/>";
                 return dialogText + (dialog ? dialog.htmlString() : "Invalid Dialog Message");
-                
+
             case "parallel":
                 return "Execute the Next  " + command.bytes.value + " Byte(s) in Parallel";
 
@@ -182,7 +182,7 @@ var FF5Script = {
                 } else if (command.encoding === "event") {
                     return this.string(command, "switch", command.switch.stringTable) + " = " + this.string(command, "onOff", command.onOff.stringTable);
                 }
-                
+
             case "wait":
                 return "Wait " + this.string(command, "duration", command.duration.stringTable);
 

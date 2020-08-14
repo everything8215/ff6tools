@@ -5359,6 +5359,11 @@
             "length": 260,
             "link": "text[%i+0x0CEF]"
         },
+        "jobName": {
+            "name": "Job Name",
+            "length": 26,
+            "link": "text[%i+0x0E0D]"
+        },
         "mapTitle": {
             "name": "Map Title",
             "length": 197,

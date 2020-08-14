@@ -1838,7 +1838,7 @@
                 "encoding": "fixedLength"
             },
             "stringTable": {
-                "length": 24,
+                "length": 22,
                 "default": "<jobName[%i]>"
             }
         },
@@ -6008,14 +6008,7 @@
                             "type": "property",
                             "name": "Job",
                             "begin": 1,
-                            "stringTable": {
-                                "string": {
-                                    "0-8": "<jobName[7-%i]>",
-                                    "8-16": "<jobName[23-%i]>",
-                                    "18": "Freelancer",
-                                    "19-24": "<jobName[39-%i]>"
-                                }
-                            }
+                            "stringTable": "jobNameReversed"
                         }
                     }
                 },
@@ -7339,6 +7332,15 @@
                 "507": "Enable Mini-Map",
                 "509": "Enable Tent/Save",
                 "511": "Disable Random Battles"
+            }
+        },
+        "jobNameReversed": {
+            "name": "Job Name (Reverse Order)",
+            "string": {
+                "0-8": "<jobName[7-%i]>",
+                "8-16": "<jobName[23-%i]>",
+                "18": "Freelancer",
+                "19-24": "<jobName[39-%i]>"
             }
         },
         "npcSwitch": {
