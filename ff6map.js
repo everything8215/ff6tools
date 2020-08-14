@@ -628,7 +628,6 @@ FF6Map.WorldTileMasks = {
 
 FF6Map.prototype.drawMask = function() {
 
-//    if (this.isWorld) return; // world map not implemented yet
     if (this.tileMask === FF6Map.TileMasks.none) return;
     if (this.tileMask === FF6Map.TileMasks.overlay) return;
 
@@ -982,8 +981,13 @@ FF6Map.prototype.loadMap = function(m) {
     this.mapProperties = this.rom.mapProperties.item(this.m);
     this.mapObserver.stopObservingAll();
     this.mapObserver.startObserving(this.mapProperties, this.loadMap);
+
+    // observe tile properties (redraw map and tileset, don't reload)
     var tp = this.mapProperties.tileProperties.value;
-    this.mapObserver.startObserving(this.rom.mapTileProperties.item(tp), this.loadMap);
+    this.mapObserver.startObserving(this.rom.mapTileProperties.item(tp), function() {
+        this.drawMap();
+        this.tileset.redraw();
+    });
 
     // set the default battle background
     var battleEditor = propertyList.getEditor("FF6Battle");
@@ -1191,12 +1195,17 @@ FF6Map.prototype.loadWorldMap = function(m) {
     var paletteAssignment = (this.rom.isSFC) ? graphicsData.paletteAssignment.data : null;
     var size = (m === 2) ? 128 : 256;
 
-    this.mapObserver.startObserving(layout, this.loadMap)
-    this.mapObserver.startObserving(paletteObject, this.loadMap)
-    this.mapObserver.startObserving(graphicsData.graphics, this.loadMap)
+    // reload map if graphics or palette changes
+    this.mapObserver.startObserving(layout, this.loadMap);
+    this.mapObserver.startObserving(paletteObject, this.loadMap);
+    this.mapObserver.startObserving(graphicsData.graphics, this.loadMap);
 
-    // start observing tile properties
-    if (this.m !== 2) this.mapObserver.startObserving(this.rom.worldTileProperties.item(this.m), this.drawMap);
+    // redraw map and tileset if tile properties change
+    var map = this;
+    if (this.m !== 2) this.mapObserver.startObserving(this.rom.worldTileProperties.item(this.m), function() {
+        map.drawMap();
+        map.tileset.redraw();
+    });
 
     // fix serpent trench map layout (ff6 advance)
     if (this.rom.isGBA && m === 2 && layout.data.length !== (size * size)) {
@@ -2278,7 +2287,7 @@ FF6MapTileset.prototype.drawTileset = function() {
 
 FF6MapTileset.prototype.drawMask = function() {
 
-    if (this.map.isWorld) return; // world map not implemented yet
+    // if (this.map.isWorld) return; // world map not implemented yet
     if (this.map.l !== 0) return; // only for layer 1
     if (this.map.tileMask === FF6Map.TileMasks.none) return;
     if (this.map.tileMask === FF6Map.TileMasks.overlay) return;

@@ -1769,63 +1769,29 @@ FF5MapLayer.prototype.decodeMapLayout = function(x, y, w, h) {
         }
     }
 
-    // if (this.rom.isSFC) {
-        for (row = 0; row < h; row++) {
-            for (col = 0; col < w; col++) {
-                tile = layout[l + col];
-                tile = ((tile & 0xF0) << 2) | ((tile & 0x0F) << 1);
-                i = t + col * 2;
-                if (i > this.tiles.length) return;
-                this.tiles[i + 0] = tileset[tile];
-                this.tiles[i + 1] = tileset[tile + 1];
-                i += this.w * 2;
-                tile += 32;
-                this.tiles[i + 0] = tileset[tile];
-                this.tiles[i + 1] = tileset[tile + 1];
-                // tile = layout[l + col] * 2;
-                // i = t + col * 2;
-                // if (i > this.tiles.length) return;
-                // this.tiles[i + 0] = this.tileset[tile + 0x0000] | (this.tileset[tile + 0x0001] << 8);
-                // this.tiles[i + 1] = this.tileset[tile + 0x0200] | (this.tileset[tile + 0x0201] << 8);
-                // i += this.w * 2;
-                // this.tiles[i + 0] = this.tileset[tile + 0x0400] | (this.tileset[tile + 0x0401] << 8);
-                // this.tiles[i + 1] = this.tileset[tile + 0x0600] | (this.tileset[tile + 0x0601] << 8);
-            }
-            t += this.w * 4;
-            l += 64;
+    for (row = 0; row < h; row++) {
+        for (col = 0; col < w; col++) {
+            tile = layout[l + col];
+            tile = ((tile & 0xF0) << 2) | ((tile & 0x0F) << 1);
+            i = t + col * 2;
+            if (i > this.tiles.length) return;
+            this.tiles[i + 0] = tileset[tile];
+            this.tiles[i + 1] = tileset[tile + 1];
+            i += this.w * 2;
+            tile += 32;
+            this.tiles[i + 0] = tileset[tile];
+            this.tiles[i + 1] = tileset[tile + 1];
         }
-    // } else {
-    //
-    //     var tileset = new Uint8Array(this.tileset);
-    //     if (this.tilePriority) {
-    //         for (var i = 0; i < 1024; i++) {
-    //             tileset[i * 2 + 1] |= this.tilePriority.data[i] << 7;
-    //         }
-    //     }
-    //
-    //     for (row = 0; row < h; row++) {
-    //         for (col = 0; col < w; col++) {
-    //             tile = layout[l + col];
-    //             t1 = (tile & 0x0F) * 4 + (tile & 0xF0) * 8;
-    //             i = t + col * 2;
-    //             p = tile << 2;
-    //             if (i > this.tiles.length) return;
-    //             this.tiles[i + 0] = tileset[t1 + 0x0000] | (tileset[t1 + 0x0001] << 8);
-    //             this.tiles[i + 1] = tileset[t1 + 0x0002] | (tileset[t1 + 0x0003] << 8);
-    //             i += this.w * 2;
-    //             this.tiles[i + 0] = tileset[t1 + 0x0040] | (tileset[t1 + 0x0041] << 8);
-    //             this.tiles[i + 1] = tileset[t1 + 0x0042] | (tileset[t1 + 0x0043] << 8);
-    //         }
-    //         t += this.w * 4;
-    //         l += 64;
-    //     }
-    // }
+        t += this.w * 4;
+        l += 64;
+    }
 }
 
 FF5MapLayer.prototype.decodeWorldLayout = function(x, y, w, h) {
 
+    // apply palette assignment (SFC only)
     var tileset = this.tileset.slice();
-    if (this.rom.isSFC) {
+    if (this.paletteAssignment) {
         for (var i = 0; i < 768; i++) {
             var t = tileset[i] & 0xFF;
             var p = this.paletteAssignment.data[t] << 16;
@@ -1833,6 +1799,7 @@ FF5MapLayer.prototype.decodeWorldLayout = function(x, y, w, h) {
         }
     }
 
+    // copy array of rows to a single array
     var layout = this.layout;
     if (layout[0] instanceof ROMAssembly) {
         layout = new Uint8Array(0x10000);
@@ -1840,10 +1807,10 @@ FF5MapLayer.prototype.decodeWorldLayout = function(x, y, w, h) {
             layout.set(this.layout[i].data, i * 256);
         }
     }
+
     var l = x + y * this.w;
     var t = x * 2 + y * this.w * 4;
     var row, col, tile;
-
     for (row = 0; row < h; row++) {
         for (col = 0; col < w; col++) {
             tile = layout[l + col];
@@ -1860,38 +1827,4 @@ FF5MapLayer.prototype.decodeWorldLayout = function(x, y, w, h) {
         t += this.w * 4;
         l += this.w;
     }
-    // if (this.rom.isSFC) {
-        // for (row = 0; row < h; row++) {
-        //     for (col = 0; col < w; col++) {
-        //         tile = layout[l + col];
-        //         if (tile > 0xBF) tile = 0;
-        //         i = t + col * 2;
-        //         if (i > this.tiles.length) return;
-        //         this.tiles[i + 0] = tileset[tile + 0x0000];
-        //         this.tiles[i + 1] = tileset[tile + 0x00C0];
-        //         i += this.w * 2;
-        //         this.tiles[i + 0] = tileset[tile + 0x0180];
-        //         this.tiles[i + 1] = tileset[tile + 0x0240];
-        //     }
-        //     t += this.w * 4;
-        //     l += this.w;
-        // }
-    // } else {
-    //     for (row = 0; row < h; row++) {
-    //         for (col = 0; col < w; col++) {
-    //             tile = layout[l + col];
-    //             t1 = (tile & 0x0F) * 2 + (tile & 0xF0) * 4;
-    //             if (tile > 0xBF) tile = 0;
-    //             i = t + col * 2;
-    //             if (i > this.tiles.length) return;
-    //             this.tiles[i + 0] = this.tileset[t1 + 0x00];
-    //             this.tiles[i + 1] = this.tileset[t1 + 0x01];
-    //             i += this.w * 2;
-    //             this.tiles[i + 0] = this.tileset[t1 + 0x20];
-    //             this.tiles[i + 1] = this.tileset[t1 + 0x21];
-    //         }
-    //         t += this.w * 4;
-    //         l += this.w;
-    //     }
-    // }
 }
