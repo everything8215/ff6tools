@@ -712,6 +712,10 @@ function ROMTilemap(rom, definition, parent) {
     this.width = definition.width; // width in 8x8 tiles
     this.height = definition.height; // height in 8x8 tiles
     this.backColor = (definition.backColor === true); // no transparent color
+
+    this.disableZLevel = definition.disableZLevel || false;
+    this.disableVFlip = definition.disableVFlip || false;
+    this.disableHFlip = definition.disableHFlip || false;
 }
 
 ROMTilemap.prototype = Object.create(ROMAssembly.prototype);
@@ -730,6 +734,10 @@ Object.defineProperty(ROMTilemap.prototype, "definition", { get: function() {
     if (this.width) definition.width = this.width;
     if (this.height) definition.height = this.height;
     if (this.backColor) definition.backColor = true;
+
+    if (this.disableZLevel) definition.disableZLevel = true;
+    if (this.disableVFlip) definition.disableVFlip = true;
+    if (this.disableHFlip) definition.disableHFlip = true;
 
     return definition;
 }});

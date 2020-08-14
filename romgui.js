@@ -424,6 +424,8 @@ ROMPropertyList.prototype.showProperties = function() {
         headingDiv.appendChild(heading);
         if (isNumber(object.i)) {
             heading.innerHTML = object.name.replace("%i", rom.numToString(object.i));
+        } else {
+            heading.innerHTML = object.name;
         }
     }
 
@@ -2465,7 +2467,6 @@ function ROMGraphicsView(rom, tilemapView) {
     this.canvasDiv.classList.add("background-gradient");
     this.canvasDiv.appendChild(this.canvas);
     this.canvasDiv.appendChild(this.cursorCanvas);
-    // this.canvasDiv.style.position = "relative";
 
     this.div = document.createElement('div');
 
@@ -2608,6 +2609,11 @@ ROMGraphicsView.prototype.mouseDown = function(e) {
     this.clickedCol = x >> 3;
     this.clickedRow = y >> 3;
     this.mouseMove(e);
+
+    // select the graphics object in editor mode
+    if (this.editorMode && this.object) {
+        propertyList.select(this.object);
+    }
 }
 
 ROMGraphicsView.prototype.mouseUp = function(e) {
@@ -2651,10 +2657,6 @@ ROMGraphicsView.prototype.mouseMove = function(e) {
         var end = begin + cols;
         var line = this.tilemap.subarray(begin, end);
         this.selection.tilemap.set(line, y * cols);
-        // for (var j = 0; j < rows; j++) {
-        //     var tile =
-        //     this.selection.tilemap.push(this.tilemap[col + i + (row + j) * this.width]);
-        // }
     }
 
     // redraw the cursor and notify the tilemap view
@@ -2674,10 +2676,6 @@ ROMGraphicsView.prototype.selectTile = function(tile) {
     var v = tile & 0x20000000;
     var h = tile & 0x10000000;
     var z = tile & 0x0F000000;
-
-    // var tilesPerPage = this.width * this.height;
-    // this.page = Math.floor(t / tilesPerPage);
-    // t %= tilesPerPage;
 
     var x = t % this.width;
     var y = Math.floor(t / this.width);
@@ -2820,45 +2818,22 @@ ROMGraphicsView.prototype.updateToolbox = function() {
         }
     }
 
-    // // add page selection buttons
-    // var tileCount = this.graphics.length >> 6;
-    // var tilesPerPage = this.width * this.height;
-    // var pageCount = Math.ceil(tileCount / tilesPerPage);
-    // if (pageCount > 1) {
-    //     if (this.page >= pageCount) this.page = 0;
-    //
-    //     var pageDiv = document.createElement("div");
-    //     pageDiv.classList.add("toolbox-button-div");
-    //     this.div.appendChild(pageDiv);
-    //
-    //     for (var page = 0; page < pageCount; page++) {
-    //         var pageButton = document.createElement("button");
-    //         pageDiv.appendChild(pageButton);
-    //         pageButton.classList.add("graphics-page-button");
-    //         if (page === this.page) pageButton.classList.add("selected");
-    //         pageButton.value = page;
-    //         pageButton.innerHTML = "Page " + (page + 1);
-    //         pageButton.onclick = function() {
-    //             if (self.page === Number(this.value)) return;
-    //             self.page = Number(this.value);
-    //             self.showCursor = false;
-    //             self.updateTilemap();
-    //             self.redraw();
-    //         }
-    //     }
-    // } else {
-    //     this.page = 0;
-    // }
+    var showZLevelControl = this.format.maxZ && !this.tilemapView.object.disableZLevel;
+    var showVFlipControl = this.format.vFlip && !this.tilemapView.object.disableVFlip;
+    var showHFlipControl = this.format.hFlip && !this.tilemapView.object.disableHFlip;
 
     // add controls for v/h flip, z-level
-    if (this.format.vFlip || this.format.hFlip) {
+    if (showZLevelControl || showVFlipControl || showHFlipControl) {
 
         var graphicsControlsDiv = document.createElement('div');
         graphicsControlsDiv.classList.add("graphics-controls");
         this.div.appendChild(graphicsControlsDiv);
     }
 
-    if (this.format.vFlip) {
+    if (showZLevelControl) {
+    }
+
+    if (showVFlipControl) {
         var vLabel = document.createElement('label');
         vLabel.classList.add("two-state");
         vLabel.style.display = "inline-block";
@@ -2885,7 +2860,7 @@ ROMGraphicsView.prototype.updateToolbox = function() {
         vLabel.appendChild(vText);
     }
 
-    if (this.format.hFlip) {
+    if (showHFlipControl) {
         var hLabel = document.createElement('label');
         hLabel.classList.add("two-state");
         hLabel.style.display = "inline-block";
@@ -3182,21 +3157,7 @@ ROMGraphicsView.prototype.updateTilemap = function() {
         this.spriteSheet = null;
         var tileCount = this.graphics.length >> 6;
         var tilesPerPage = this.height * this.width;
-        // var pageCount = Math.ceil(tileCount / tilesPerPage);
-        // if (pageCount > 1) {
-        //     // multiple pages
-        //     var pageButtons = document.getElementsByClassName("graphics-page-button");
-        //     if (this.page >= pageButtons.length) this.page = 0;
-        //     for (var p = 0; p < pageButtons.length; p++) {
-        //         if (p === this.page) {
-        //             pageButtons[this.page].classList.add("selected");
-        //         } else {
-        //             pageButtons[p].classList.remove("selected");
-        //         }
-        //     }
-        // }
 
-        // this.tilemap = new Uint32Array(tilesPerPage * pageCount);
         this.tilemap = new Uint32Array(this.height * this.width);
         this.tilemap.fill(0xFFFFFFFF);
 
@@ -3235,7 +3196,6 @@ ROMGraphicsView.prototype.updateTilemap = function() {
                     vTilemap[t1] = this.tilemap[t++] ^ 0x20000000;
                 }
             }
-            // pageOffset += tilesPerPage;
         }
         this.tilemap = vTilemap;
     }
@@ -3251,7 +3211,6 @@ ROMGraphicsView.prototype.updateTilemap = function() {
                     hTilemap[t1] = this.tilemap[t++] ^ 0x10000000;
                 }
             }
-            // pageOffset += tilesPerPage;
         }
         this.tilemap = hTilemap;
     }
@@ -3288,15 +3247,6 @@ ROMGraphicsView.prototype.drawGraphics = function() {
 
     // create the palette
     var palette = new Uint32Array(this.paletteView.palette);
-    // if (this.backColor) {
-    //     // use first palette color as back color
-    //     palette[0] = this.paletteView.palette[0];
-    //     ppu.back = true;
-    // } else {
-    //     // use a transparent background
-    //     palette[0] = 0;
-    //     ppu.back = false;
-    // }
 
     ppu.pal = palette;
     ppu.width = this.width * 8;
@@ -3313,7 +3263,6 @@ ROMGraphicsView.prototype.drawGraphics = function() {
     ppu.layers[0].z[3] = GFX.Z.top;
     ppu.layers[0].gfx = this.graphics;
     ppu.layers[0].tiles = this.tilemap;
-    // ppu.layers[0].tiles = this.tilemap.subarray(this.page * this.width * this.height);
     ppu.layers[0].main = true;
 
     // draw layout image
@@ -3380,19 +3329,6 @@ ROMGraphicsView.prototype.drawGraphics = function() {
     this.canvas.height = ppu.height * this.zoom;
     this.cursorCanvas.width = this.canvas.width;
     this.cursorCanvas.height = this.canvas.height;
-    // this.canvasDiv.style.width = this.canvas.width + "px";
-    // if (this.toolboxMode && this.canvas.height > 256) {
-    //     // max height 256 pixels in toolbox mode
-    //     this.canvasDiv.classList.add("toolbox-scroll");
-    //     // this.canvasDiv.classList.remove("toolbox-scroll");
-    //     // this.canvasDiv.style.height = "256px";
-    //     // this.canvasDiv.style.overflowY = "scroll";
-    // } else {
-    //     // no max height in other modes
-    //     this.canvasDiv.classList.remove("toolbox-scroll");
-    //     // this.canvasDiv.style.height = this.canvas.height + "px";
-    //     // this.canvasDiv.style.overflowY = "visible";
-    // }
     context = this.canvas.getContext('2d');
     context.imageSmoothingEnabled = false;
     context.webkitImageSmoothingEnabled = false;
@@ -3423,7 +3359,6 @@ ROMGraphicsView.prototype.drawCursor = function() {
     if (w <= 0 || h <= 0) return;
 
     // convert the selection to screen coordinates
-    // var colors = ["green", "blue", "red", "white"];
     ctx.lineWidth = 1;
     ctx.strokeStyle = "black";
     x += 0.5; y += 0.5; w--; h--;
@@ -3469,10 +3404,6 @@ function ROMTilemapView(rom) {
     this.cursorCanvas.width = 8;
     this.cursorCanvas.height = 8;
     this.div.appendChild(this.cursorCanvas);
-
-    // this.tiles = null;
-    // this.gfx = null;
-    // this.pal = null;
 
     this.selection = { x: 0, y: 0, w: 1, h: 1, tilemap: new Uint32Array(1) };
     this.clickPoint = null;
@@ -3588,6 +3519,12 @@ ROMTilemapView.prototype.mouseDown = function(e) {
     }
 
     this.drawCursor();
+
+    // this doesn't work properly for e.g. ff4 battle backgrounds
+    // // select the tilemap object
+    // if (this.object) {
+    //     propertyList.select(this.object);
+    // }
 }
 
 ROMTilemapView.prototype.mouseMove = function(e) {
@@ -3850,7 +3787,7 @@ ROMTilemapView.prototype.drawTilemap = function() {
         ppu.back = true;
     } else {
         // transparent background
-        // palette[0] = 0xFF000000;
+        palette[0] = 0;
         ppu.back = false;
     }
 
@@ -4271,7 +4208,7 @@ ROMTilemapView.prototype.exportTilemap = function() {
         ppu.back = true;
     } else {
         // transparent background
-        // palette[0] = 0xFF000000;
+        palette[0] = 0;
         ppu.back = false;
     }
 

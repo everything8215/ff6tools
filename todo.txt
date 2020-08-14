@@ -31,7 +31,7 @@ gui
  * progress bar
  * show rom title in top bar
  * script list/trigger double click functionality
- * navigator labels should update automatically
+ * navigator labels should update automatically (also hex/dec mode)
  * find a better way to auto-populate battle names
  * array insert/remove
  * arrayPath/objectPath in navigator
@@ -53,7 +53,6 @@ game specific
  * ff5-sfc monster graphics (set format automatically)
  * ff5 RPGe dialog strings can't straddle two banks
  * ff1 fiend/chaos tilemaps
- * ff5 tilesets
  * ff5 battle background animation
  * fix ff4-sfc map graphics and cave battle bg issues
  * ff6 battle magitek mode (for vram)

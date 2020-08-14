@@ -2276,7 +2276,7 @@
         },
         "mapPalettes": {
             "type": "array",
-            "name": "Map Palettes",
+            "name": "Map Palette",
             "range": "0xC3BB00-0xC3E700",
             "array": {
                 "length": 44

@@ -1261,7 +1261,7 @@
         },
         "mapPalettes": {
             "type": "array",
-            "name": "Map Palettes",
+            "name": "Map Palette",
             "range": "0x082F89F0-0x082FB750",
             "array": {
                 "length": 44

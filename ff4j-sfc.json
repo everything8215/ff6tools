@@ -457,7 +457,8 @@
                 "palette": "battleBackgroundPalette[%i]",
                 "width": 32,
                 "height": 2,
-                "backColor": true
+                "backColor": true,
+                "disableHFlip": true
             },
             "stringTable": {
                 "string": {
@@ -484,7 +485,8 @@
                 "palette": "battleBackgroundPalette[%i]",
                 "width": 32,
                 "height": 8,
-                "backColor": true
+                "backColor": true,
+                "disableHFlip": true
             },
             "stringTable": {
                 "string": {
