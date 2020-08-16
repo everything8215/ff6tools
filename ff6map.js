@@ -920,7 +920,6 @@ FF6Map.prototype.selectObject = function(object) {
 //    this.show();
     this.tileset.show();
     this.loadMap(object.i);
-    // notify on resize
 }
 
 FF6Map.prototype.resetControls = function() {
@@ -929,11 +928,13 @@ FF6Map.prototype.resetControls = function() {
 
     var map = this;
 
+    // add layer toggle buttons
     this.addTwoState("showLayer1", function() { map.changeLayer("showLayer1"); }, "Layer 1", this.showLayer1);
     this.addTwoState("showLayer2", function() { map.changeLayer("showLayer2"); }, "Layer 2", this.showLayer2);
     this.addTwoState("showLayer3", function() { map.changeLayer("showLayer3"); }, "Layer 3", this.showLayer3);
     this.addTwoState("showTriggers", function() { map.changeLayer("showTriggers"); }, "Triggers", this.showTriggers);
 
+    // add tile mask button
     var maskArray = this.isWorld ? FF6Map.WorldTileMasks : FF6Map.TileMasks
     var maskKeys = Object.keys(maskArray);
     var maskNames = [];
@@ -943,13 +944,15 @@ FF6Map.prototype.resetControls = function() {
         map.tileMask = maskArray[maskKeys[mask]];
         map.drawMap();
         map.tileset.selectLayer(map.l);
-    }
-    var maskSelected = function(mask) { return map.tileMask === maskArray[maskKeys[mask]]; }
+    };
+    var maskSelected = function(mask) { return map.tileMask === maskArray[maskKeys[mask]]; };
     this.addList("showMask", "Mask", maskNames, onChangeMask, maskSelected);
 
+    // add screen mask button
     this.addTwoState("showScreen", function() { map.changeLayer("showScreen"); }, "Screen", this.showScreen);
     this.addZoom(this.zoom, function() { map.changeZoom(); });
 
+    // notify on resize
     if (!this.resizeSensor) this.resizeSensor = new ResizeSensor(document.getElementById("edit-top"), function() { map.scroll(); });
 }
 
@@ -983,10 +986,11 @@ FF6Map.prototype.loadMap = function(m) {
     this.mapObserver.startObserving(this.mapProperties, this.loadMap);
 
     // observe tile properties (redraw map and tileset, don't reload)
+    var self = this;
     var tp = this.mapProperties.tileProperties.value;
     this.mapObserver.startObserving(this.rom.mapTileProperties.item(tp), function() {
-        this.drawMap();
-        this.tileset.redraw();
+        self.drawMap();
+        self.tileset.redraw();
     });
 
     // set the default battle background
@@ -1199,6 +1203,7 @@ FF6Map.prototype.loadWorldMap = function(m) {
     this.mapObserver.startObserving(layout, this.loadMap);
     this.mapObserver.startObserving(paletteObject, this.loadMap);
     this.mapObserver.startObserving(graphicsData.graphics, this.loadMap);
+    this.mapObserver.startObserving(graphicsData.tileset, this.loadMap);
 
     // redraw map and tileset if tile properties change
     var map = this;

@@ -3890,11 +3890,11 @@
                             "flag": true,
                             "stringTable": {
                                 "string": {
-                                    "0": "Upstairs",
-                                    "1": "Downstairs",
-                                    "2": "Bridge",
+                                    "0": "Passable on Upper Z-Level",
+                                    "1": "Passable on Lower Z-Level",
+                                    "2": "Bridge Tile",
                                     "3": "Save Point",
-                                    "4": "Door"
+                                    "4": "Door Tile"
                                 }
                             }
                         },
@@ -3903,15 +3903,17 @@
                             "name": "Flags",
                             "flag": true,
                             "begin": 1,
-                            "mask": "0xFC",
+                            "mask": "0xFF",
                             "stringTable": {
                                 "string": {
-                                    "0": "Entire Sprite Hidden",
-                                    "1": "Bottom of Sprite Hidden",
-                                    "2": "Exit",
-                                    "3": "Through-Tile",
-                                    "4": "Enable Random Battles",
-                                    "5": "Trigger"
+                                    "0": "Damage Tile",
+                                    "1": "Unknown 1.1",
+                                    "2": "Hide Entire Sprite",
+                                    "3": "Hide Bottom of Sprite",
+                                    "4": "Exit to Previous Map",
+                                    "5": "Through-Tile",
+                                    "6": "Enable Random Battles",
+                                    "7": "Trigger Tile"
                                 }
                             }
                         }
@@ -7134,14 +7136,14 @@
                             "flag": true,
                             "stringTable": {
                                 "string": {
-                                    "0": "Downstairs",
-                                    "1": "Chocobo/No Lava",
-                                    "2": "Black Chocobo (Fly)",
-                                    "3": "Black Chocobo (Land)",
-                                    "4": "Hovercraft",
-                                    "5": "Airship",
-                                    "6": "Upstairs",
-                                    "7": "Lunar Whale"
+                                    "0": "Passable on Lower Z-Level",
+                                    "1": "Chocobo Can Move/Lava",
+                                    "2": "Black Chocobo Can Fly",
+                                    "3": "Black Chocobo Can Land",
+                                    "4": "Hovercraft Can Move",
+                                    "5": "Airship Can Fly (No Lava)",
+                                    "6": "Passable on Upper Z-Level",
+                                    "7": "Lunar Whale Can Fly"
                                 }
                             }
                         },
@@ -7153,11 +7155,11 @@
                             "mask": "0xF8",
                             "stringTable": {
                                 "string": {
-                                    "0": "Bottom of Sprite Hidden",
+                                    "0": "Hide Bottom of Sprite",
                                     "1": "Airship Can Land",
-                                    "2": "?",
+                                    "2": "Unknown 1.2",
                                     "3": "Enable Random Battles",
-                                    "4": "Trigger"
+                                    "4": "Trigger Tile"
                                 }
                             }
                         },
