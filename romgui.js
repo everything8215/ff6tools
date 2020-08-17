@@ -2705,6 +2705,11 @@ ROMGraphicsView.prototype.selectTile = function(tile) {
         hButton.checked = this.hFlip;
         twoState(hButton);
     }
+
+    var zControl = document.getElementById("graphics-z-level");
+    if (zControl) {
+        zControl.value = z >> 24;
+    }
 }
 
 ROMGraphicsView.prototype.updateToolbox = function() {
@@ -2830,9 +2835,6 @@ ROMGraphicsView.prototype.updateToolbox = function() {
         this.div.appendChild(graphicsControlsDiv);
     }
 
-    if (showZLevelControl) {
-    }
-
     if (showVFlipControl) {
         var vLabel = document.createElement('label');
         vLabel.classList.add("two-state");
@@ -2885,6 +2887,33 @@ ROMGraphicsView.prototype.updateToolbox = function() {
         var hText = document.createElement('p');
         hText.innerHTML = "H-Flip";
         hLabel.appendChild(hText);
+    }
+
+    if (showZLevelControl) {
+        var zLabel = document.createElement('label');
+        zLabel.innerHTML = "Z-Level:";
+        zLabel.style.display = "inline-block";
+        zLabel.style.padding = "2px 10px";
+        zLabel.style.margin = "4px 3px";
+        zLabel.htmlFor = "graphics-z-level";
+        graphicsControlsDiv.appendChild(zLabel);
+
+        var zInput = document.createElement('input');
+        zInput.id = "graphics-z-level";
+        zInput.type = 'number';
+        zInput.classList.add("property-control");
+        zInput.style.width = "3em";
+        zInput.value = 0;
+        zInput.min = 0;
+        zInput.max = this.format.maxZ - 1;
+        zInput.onchange = function() {
+            self.z = Number(this.value);
+            self.tilemapView.setSelectionZ(self.z);
+            self.updateTilemap();
+            self.scrollToSelection();
+            self.redraw();
+        };
+        graphicsControlsDiv.appendChild(zInput);
     }
 
     // show the graphics canvas
@@ -3413,6 +3442,8 @@ function ROMTilemapView(rom) {
     this.showPalette = true;
     this.showGraphics = true;
 
+    this.tileMask = ROMTilemapView.TileMasks.none.key;
+
     var self = this;
     this.canvas.onmousedown = function(e) { self.mouseDown(e) };
     this.canvas.onmousemove = function(e) { self.mouseMove(e) };
@@ -3443,17 +3474,68 @@ ROMTilemapView.prototype.selectObject = function(object) {
     }
     this.format = GFX.tileFormat[formatKey] || GFX.tileFormat.defaultTile;
 
-    this.show();
+    this.closeList();
+    this.resetControls();
+    this.showControls();
     this.loadTilemap();
 }
 
-ROMTilemapView.prototype.show = function() {
+// ROMTilemapView.prototype.show = function() {
+//     document.getElementById('toolbox-layer-div').classList.add("hidden");
+//
+//     // add controls to show/hide the palette and graphics
+//     var self = this;
+//     this.addTwoState("showPalette", function(show) {
+//         self.showPalette = show;
+//         self.updateToolbox();
+//     }, "Palette", this.showPalette);
+//     this.addTwoState("showGraphics", function(show) {
+//         self.showGraphics = show;
+//         self.updateToolbox();
+//     }, "Graphics", this.showGraphics);
+//
+//     // add a mask menu
+//
+//     // add a zoom control
+//     this.addZoom(this.zoom, function() { self.changeZoom(); }, 0, 4);
+//
+//     this.updateToolbox();
+//     this.div.focus();
+// }
+
+ROMTilemapView.TileMasks = {
+    "none": {
+        "key": "none",
+        "name": "None"
+    },
+    "vFlip": {
+        "key": "vFlip",
+        "name": "V-Flip"
+    },
+    "hFlip": {
+        "key": "hFlip",
+        "name": "H-Flip"
+    },
+    "zLevel": {
+        "key": "zLevel",
+        "name": "Z-Level"
+    // },
+    // "tileIndex": {
+    //     "key": "tileIndex",
+    //     "name": "Tile Index"
+    }
+}
+
+ROMTilemapView.prototype.resetControls = function() {
+
+    ROMEditor.prototype.resetControls.call(this);
+
+    // hide the layer buttons
     document.getElementById('toolbox-layer-div').classList.add("hidden");
 
-    this.resetControls();
-    this.showControls();
-    this.closeList();
+    var self = this;
 
+    // add controls to show/hide the palette and graphics
     var self = this;
     this.addTwoState("showPalette", function(show) {
         self.showPalette = show;
@@ -3463,6 +3545,25 @@ ROMTilemapView.prototype.show = function() {
         self.showGraphics = show;
         self.updateToolbox();
     }, "Graphics", this.showGraphics);
+
+    // add tile mask button
+    var maskKeys = [ROMTilemapView.TileMasks.none.key];
+    if (!this.object.disableVFlip) maskKeys.push(ROMTilemapView.TileMasks.vFlip.key);
+    if (!this.object.disableHFlip) maskKeys.push(ROMTilemapView.TileMasks.hFlip.key);
+    if (!this.object.disableZLevel) maskKeys.push(ROMTilemapView.TileMasks.zLevel.key);
+    if (maskKeys.length > 1) {
+        var maskNames = [];
+        for (var i = 0; i < maskKeys.length; i++) maskNames.push(ROMTilemapView.TileMasks[maskKeys[i]].name);
+        if (!maskKeys.includes(this.tileMask)) this.tileMask = ROMTilemapView.TileMasks.none;
+        var onChangeMask = function(mask) {
+            self.tileMask = maskKeys[mask];
+            self.redraw();
+        };
+        var maskSelected = function(mask) { return self.tileMask === maskKeys[mask]; };
+        this.addList("showMask", "Mask", maskNames, onChangeMask, maskSelected);
+    }
+
+    // add a zoom control
     this.addZoom(this.zoom, function() { self.changeZoom(); }, 0, 4);
 
     this.updateToolbox();
@@ -3483,7 +3584,7 @@ ROMTilemapView.prototype.changeZoom = function() {
     var zoomValue = document.getElementById("zoom-value");
     zoomValue.innerHTML = (this.zoom * 100).toString() + "%";
 
-    this.drawTilemap();
+    this.redraw();
 }
 
 ROMTilemapView.prototype.updateToolbox = function() {
@@ -3618,7 +3719,7 @@ ROMTilemapView.prototype.setTiles = function() {
         }
     }
 
-    this.drawTilemap();
+    this.redraw();
 }
 
 ROMTilemapView.prototype.selectTiles = function() {
@@ -3704,6 +3805,23 @@ ROMTilemapView.prototype.toggleSelectionHFlip = function() {
     }
 }
 
+ROMTilemapView.prototype.setSelectionZ = function(z) {
+
+    var w = this.selection.w;
+    var h = this.selection.h;
+
+    var tilemap = new Uint32Array(this.selection.tilemap);
+
+    for (var y = 0; y < h; y++) {
+        for (var x = 0; x < w; x++) {
+            var tile = this.selection.tilemap[x + y * w];
+            tile &= 0xF0FFFFFF;
+            tile |= z << 24;
+            this.selection.tilemap[x + y * w] = tile;
+        }
+    }
+}
+
 ROMTilemapView.prototype.loadTilemap = function() {
 
     // return if nothing selected
@@ -3739,7 +3857,7 @@ ROMTilemapView.prototype.loadTilemap = function() {
     this.loadFlip(this.object.vFlip, true);
     this.loadFlip(this.object.hFlip, false);
 
-    this.drawTilemap();
+    this.redraw();
 }
 
 ROMTilemapView.prototype.setTilemap = function() {
@@ -3772,6 +3890,7 @@ ROMTilemapView.prototype.setTilemap = function() {
 
 ROMTilemapView.prototype.redraw = function() {
     this.drawTilemap();
+    this.drawMask();
     this.drawCursor();
 }
 
@@ -3825,6 +3944,45 @@ ROMTilemapView.prototype.drawTilemap = function() {
     context.drawImage(this.layoutCanvas,
         0, 0, this.layoutCanvas.width, this.layoutCanvas.height,
         0, 0, this.canvas.width, this.canvas.height);
+}
+
+ROMTilemapView.prototype.drawMask = function() {
+
+    if (this.tileMask === ROMTilemapView.TileMasks.none.key) return;
+
+    var ctx = this.canvas.getContext('2d');
+    ctx.globalCompositeOperation = 'source-over';
+
+    // draw the mask at each tile
+    for (var y = 0; y < this.height; y++) {
+        for (var x = 0; x < this.width; x++) {
+
+            var t = x + y * this.width;
+            var color = this.maskColorAtTile(t);
+            if (!color) continue;
+            ctx.fillStyle = color;
+
+            var left = (x << 3) * this.zoom;
+            var top = (y << 3) * this.zoom;
+            var size = 8 * this.zoom;
+
+            ctx.fillRect(left, top, size, size);
+        }
+    }
+}
+
+ROMTilemapView.prototype.maskColorAtTile = function(t) {
+    var tile = this.tilemap[t];
+    if (this.tileMask === ROMTilemapView.TileMasks.vFlip.key) {
+        if (tile & 0x20000000) return "rgba(255,255,0,0.5)";
+    } else if (this.tileMask === ROMTilemapView.TileMasks.hFlip.key) {
+        if (tile & 0x10000000) return "rgba(255,255,0,0.5)";
+    } else if (this.tileMask === ROMTilemapView.TileMasks.zLevel.key) {
+        var z = (tile >> 24) & 0x0F;
+        if (z === 0) return "rgba(0,255,0,0.5)";
+        if (z === 1) return "rgba(0,0,255,0.5)";
+    }
+    return null;
 }
 
 ROMTilemapView.prototype.drawCursor = function() {

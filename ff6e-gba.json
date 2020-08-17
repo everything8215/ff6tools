@@ -454,7 +454,8 @@
             "graphics": "attackGraphics2bpp",
             "palette": "attackPalette",
             "height": 256,
-            "width": 16
+            "width": 16,
+            "disableZLevel": true
         },
         "attackTilemap3bpp": {
             "type": "tilemap",
@@ -464,7 +465,8 @@
             "graphics": "attackGraphics3bpp",
             "palette": "attackPalette",
             "height": 768,
-            "width": 16
+            "width": 16,
+            "disableZLevel": true
         },
         "battleBackgroundGraphics": {
             "type": "array",

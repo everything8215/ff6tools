@@ -729,9 +729,19 @@ FF5BattleBackgroundEditor.prototype.updateBackgroundLayout = function() {
 
     // create hFlip and vFlip definitions
     var vFlip = this.bgProperties.vFlip.value;
-    if (vFlip !== 0xFF) this.layout.vFlip = "battleBackgroundTileFlip[" + vFlip + "]";
+    if (vFlip === 0xFF) {
+        this.layout.disableVFlip = true;
+    } else {
+        this.layout.vFlip = "battleBackgroundTileFlip[" + vFlip + "]";
+        this.layout.disableVFlip = false;
+    }
     var hFlip = this.bgProperties.hFlip.value;
-    if (hFlip !== 0xFF) this.layout.hFlip = "battleBackgroundTileFlip[" + hFlip + "]";
+    if (hFlip === 0xFF) {
+        this.layout.disableHFlip = true;
+    } else {
+        this.layout.hFlip = "battleBackgroundTileFlip[" + hFlip + "]";
+        this.layout.disableHFlip = false;
+    }
 }
 
 FF5BattleBackgroundEditor.prototype.updateBackgroundLayoutGBA = function() {

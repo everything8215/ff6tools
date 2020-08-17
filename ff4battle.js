@@ -916,7 +916,7 @@ FF4BattleBackgroundEditor.prototype.loadTilemap = function() {
     this.observer.startObserving(this.object, this.loadTilemap);
     this.observeDefinitionObject([this.object.tileOffset]);
 
-    this.drawTilemap();
+    this.redraw();
 }
 
 FF4BattleBackgroundEditor.prototype.setTilemap = function() {

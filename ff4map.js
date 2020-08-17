@@ -948,23 +948,6 @@ FF4Map.prototype.resetControls = function() {
     if (!this.resizeSensor) this.resizeSensor = new ResizeSensor(document.getElementById("edit-top"), function() { map.scroll(); });
 }
 
-
-// FF4Map.prototype.show = function() {
-//
-//     var map = this;
-//
-//     this.resetControls();
-//     this.showControls();
-//     this.addTwoState("showLayer1", function() { map.changeLayer("showLayer1"); }, "Layer 1", this.showLayer1);
-//     this.addTwoState("showLayer2", function() { map.changeLayer("showLayer2"); }, "Layer 2", this.showLayer2);
-//     this.addTwoState("showTriggers", function() { map.changeLayer("showTriggers"); }, "Triggers", this.showTriggers);
-//     this.addTwoState("showScreen", function() { map.changeLayer("showScreen"); }, "Screen", this.showScreen);
-//     this.addZoom(this.zoom, function() { map.changeZoom(); });
-//
-//     if (!this.resizeSensor) this.resizeSensor = new ResizeSensor(document.getElementById("edit-top"), function() { map.scroll(); });
-//     this.tileset.show();
-// }
-
 FF4Map.prototype.hide = function() {
     this.observer.stopObservingAll();
     if (this.resizeSensor) {
@@ -1696,7 +1679,7 @@ function FF4MapTileset(rom, map) {
 FF4MapTileset.prototype.show = function() {
     this.div = document.getElementById('toolbox-div');
     this.div.innerHTML = "";
-    this.div.classList.remove('hidden');
+    // this.div.classList.remove('hidden');
     this.div.appendChild(this.canvas);
     this.div.appendChild(this.cursorCanvas);
 
@@ -1883,7 +1866,6 @@ FF4MapTileset.prototype.drawTileset = function() {
 
 FF4MapTileset.prototype.drawMask = function() {
 
-    // if (this.map.isWorld) return; // world map not implemented yet
     if (this.map.l !== 0) return; // only for layer 1
     if (this.map.tileMask === FF4Map.TileMasks.none) return;
 

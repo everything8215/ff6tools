@@ -278,7 +278,8 @@
             "graphics": "attackGraphics1",
             "palette": "attackPalette",
             "width": 16,
-            "height": 64
+            "height": 64,
+            "disableZLevel": true
         },
         "attackTilemap2": {
             "type": "tilemap",
@@ -288,7 +289,8 @@
             "graphics": "attackGraphics2",
             "palette": "attackPalette",
             "width": 16,
-            "height": 64
+            "height": 64,
+            "disableZLevel": true
         },
         "attackTilemap3": {
             "type": "tilemap",
@@ -298,7 +300,8 @@
             "graphics": "attackGraphics3",
             "palette": "attackPalette",
             "width": 16,
-            "height": 64
+            "height": 64,
+            "disableZLevel": true
         },
         "attackTilemap4": {
             "type": "tilemap",
@@ -308,7 +311,8 @@
             "graphics": "attackGraphics4",
             "palette": "attackPalette",
             "width": 16,
-            "height": 64
+            "height": 64,
+            "disableZLevel": true
         },
         "attackTilemap5": {
             "type": "tilemap",
@@ -318,7 +322,8 @@
             "graphics": "attackGraphics5",
             "palette": "attackPalette",
             "width": 16,
-            "height": 16
+            "height": 16,
+            "disableZLevel": true
         },
         "attackTilemap6": {
             "type": "tilemap",
@@ -328,7 +333,8 @@
             "graphics": "attackGraphics6",
             "palette": "attackPalette",
             "width": 16,
-            "height": 32
+            "height": 32,
+            "disableZLevel": true
         },
         "battleBackgroundGraphics": {
             "type": "array",
@@ -468,7 +474,8 @@
                 "type": "tilemap",
                 "format": ["snes4bppTile", "ff5-battlebg"],
                 "width": 32,
-                "height": 20
+                "height": 20,
+                "disableZLevel": true
             },
             "pointerTable": {
                 "range": "0xD4C86D-0xD4C8A5",

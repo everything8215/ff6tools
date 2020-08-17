@@ -1406,7 +1406,7 @@ FF5MapTileset.prototype.show = function() {
     // reset the toolbox div
     this.div = document.getElementById('toolbox-div');
     this.div.innerHTML = "";
-    this.div.classList.remove('hidden');
+    // this.div.classList.remove('hidden');
     this.div.appendChild(this.canvas);
     this.div.appendChild(this.cursorCanvas);
 

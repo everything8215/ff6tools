@@ -422,7 +422,8 @@
             "graphics": "attackGraphics",
             "palette": "attackPalette",
             "width": 16,
-            "height": 48
+            "height": 48,
+            "disableZLevel": true
         },
         "battleBackgroundGraphics": {
             "type": "array",
@@ -458,7 +459,8 @@
                 "width": 32,
                 "height": 2,
                 "backColor": true,
-                "disableHFlip": true
+                "disableHFlip": true,
+                "disableZLevel": true
             },
             "stringTable": {
                 "string": {
@@ -486,7 +488,8 @@
                 "width": 32,
                 "height": 8,
                 "backColor": true,
-                "disableHFlip": true
+                "disableHFlip": true,
+                "disableZLevel": true
             },
             "stringTable": {
                 "string": {
