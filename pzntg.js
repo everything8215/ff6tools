@@ -239,7 +239,7 @@ pzntg.getIndexed = function(pngData) {
 	// color alpha values
 	if (chunks.tRNS && out.palette) {
 		for (var i = 0; i < out.colorCount; i++) {
-			if (i > chunks.tRNS.data.length) break;
+			if (i >= chunks.tRNS.data.length) break;
 			out.palette[i * 4 + 3] = chunks.tRNS.data[i];
 		}
 	}
