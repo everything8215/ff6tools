@@ -4196,10 +4196,12 @@ ROMArray.prototype.removeAssembly = function(i) {
     var assembly = this.array[i];
     function redo() {
         self.array.splice(i, 1);
+        self.updateArray();
         self.notifyObservers();
     }
     function undo() {
         self.array.splice(i, 0, assembly);
+        self.updateArray();
         self.notifyObservers();
     }
     var description = "Remove Assembly";
