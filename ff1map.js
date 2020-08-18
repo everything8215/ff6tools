@@ -639,7 +639,8 @@ FF1Map.prototype.loadMap = function(m) {
     this.observer.startObserving(tilesetPalette, this.loadMap);
 
     // get the palette
-    var palette = this.rom.mapPalette.item(this.m);
+    var paletteObject = this.rom.mapPalette.item(this.m);
+    var palette = paletteObject.data.subarray(this.showRooms ? 32 : 0);
     this.observer.startObserving(palette, this.loadMap);
 
     // load graphics
@@ -652,7 +653,7 @@ FF1Map.prototype.loadMap = function(m) {
 
     // set up the ppu
     this.ppu = new GFX.PPU();
-    this.ppu.pal = palette.data.subarray(this.showRooms ? 32 : 0);
+    this.ppu.pal = this.rom.gammaCorrectedPalette(palette);
     this.ppu.height = 64 * 16;
     this.ppu.width = 64 * 16;
     this.ppu.back = true;
@@ -712,7 +713,7 @@ FF1Map.prototype.loadWorldMap = function() {
 
     // set up the ppu
     this.ppu = new GFX.PPU();
-    this.ppu.pal = pal.data;
+    this.ppu.pal = this.rom.gammaCorrectedPalette(pal.data);
     this.ppu.width = size * 16;
     this.ppu.height = size * 16;
     this.ppu.back = true;
@@ -978,7 +979,7 @@ FF1Map.prototype.drawNPC = function(npc) {
 
     // set up the ppu
     var ppu = new GFX.PPU();
-    ppu.pal = pal;
+    ppu.pal = this.rom.gammaCorrectedPalette(pal);
     ppu.width = w;
     ppu.height = h;
 

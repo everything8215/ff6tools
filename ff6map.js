@@ -1092,7 +1092,7 @@ FF6Map.prototype.loadMap = function(m) {
 
     // set up the ppu
     this.ppu = new GFX.PPU();
-    this.ppu.pal = pal;
+    this.ppu.pal = this.rom.gammaCorrectedPalette(pal);
     this.ppu.height = Math.max(height1, height2, height3) * 16;
     this.ppu.width = Math.max(width1, width2, width3) * 16;
     this.ppu.back = true;
@@ -1222,7 +1222,7 @@ FF6Map.prototype.loadWorldMap = function(m) {
 
     // set up the ppu
     this.ppu = new GFX.PPU();
-    this.ppu.pal = paletteObject.data;
+    this.ppu.pal = this.rom.gammaCorrectedPalette(paletteObject.data);
     this.ppu.width = size * 16;
     this.ppu.height = size * 16;
     this.ppu.back = true;
@@ -1877,7 +1877,7 @@ FF6Map.prototype.drawNPC = function(npc) {
 
         // set up the ppu
         var ppu = new GFX.PPU();
-        ppu.pal = pal;
+        ppu.pal = this.rom.gammaCorrectedPalette(pal);
         ppu.width = vw;
         ppu.height = vh;
 
@@ -1918,7 +1918,7 @@ FF6Map.prototype.drawNPC = function(npc) {
 
         // set up the ppu
         var ppu = new GFX.PPU();
-        ppu.pal = pal;
+        ppu.pal = this.rom.gammaCorrectedPalette(pal);
         ppu.width = w;
         ppu.height = h;
 
@@ -1984,7 +1984,7 @@ FF6Map.prototype.drawNPC = function(npc) {
 
         // set up the ppu
         var ppu = new GFX.PPU();
-        ppu.pal = pal;
+        ppu.pal = this.rom.gammaCorrectedPalette(pal);
         ppu.width = tw;
         ppu.height = th;
 

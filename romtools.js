@@ -1197,6 +1197,7 @@ function ROM(rom, definition) {
     if (!isNumber(this.pointerLength)) { this.pointerLength = 2; }
     this.numberBase = definition.numberBase || 10;
     this.noChecksumFix = definition.noChecksumFix || false;
+    this.gammaCorrection = definition.gammaCorrection || false;
 
     var i, key, keys;
 
@@ -1272,6 +1273,7 @@ Object.defineProperty(ROM.prototype, "definition", { get: function() {
     if (this.pointerLength != 2) definition.pointerLength = this.pointerLength;
     if (this.numberBase !== 10) definition.numberBase = this.numberBase;
     if (this.noChecksumFix) definition.noChecksumFix = true;
+    if (this.gammaCorrection) definition.gammaCorrection = true;
 
     var keys, key;
 
@@ -3043,6 +3045,33 @@ ROM.prototype.showSettings = function() {
         checksumLabel.classList.add("property-check-label");
         checksumDiv.appendChild(checksumLabel);
     }
+
+    if (rom.isSFC || rom.isGBA) {
+        var gammaDiv = document.createElement('div');
+        gammaDiv.classList.add("property-div");
+        content.appendChild(gammaDiv);
+        var gammaControl = document.createElement('input');
+        gammaControl.type = "checkbox";
+        gammaControl.id = "settings-gamma-control";
+        gammaControl.classList.add("property-label");
+        gammaControl.onchange = function() {
+            rom.gammaCorrection = this.checked;
+        }
+        gammaControl.checked = rom.gammaCorrection;
+        gammaDiv.appendChild(gammaControl);
+        var gammaLabel = document.createElement('label');
+        gammaLabel.innerHTML = "Enable gamma correction";
+        gammaLabel.htmlFor = "settings-gamma-control";
+        gammaLabel.classList.add("property-check-label");
+        gammaDiv.appendChild(gammaLabel);
+    }
+}
+
+ROM.prototype.gammaCorrectedPalette = function(palette) {
+    if (!this.gammaCorrection) return palette;
+    if (this.isSFC) return GFX.gammaCorrectedPaletteSNES(palette);
+    if (this.isGBA) return GFX.gammaCorrectedPaletteGBA(palette);
+    return palette;
 }
 
 // ROMAction

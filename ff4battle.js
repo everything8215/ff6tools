@@ -515,7 +515,7 @@ FF4Battle.prototype.drawMonster = function(slot) {
 
     // set up the ppu
     var ppu = new GFX.PPU();
-    ppu.pal = this.vram.vramPalette;
+    ppu.pal = this.rom.gammaCorrectedPalette(this.vram.vramPalette);
     ppu.width = w * 8;
     ppu.height = h * 8;
 
@@ -593,7 +593,7 @@ FF4Battle.prototype.drawMonsterGBA = function(slot) {
 
     // set up the ppu
     var ppu = new GFX.PPU();
-    ppu.pal = pal;
+    ppu.pal = this.rom.gammaCorrectedPalette(pal);
     ppu.width = w * 8;
     ppu.height = h * 8;
 
@@ -722,7 +722,7 @@ FF4Battle.prototype.drawBackground = function() {
 
     // set up the ppu
     this.ppu = new GFX.PPU();
-    this.ppu.pal = pal;
+    this.ppu.pal = this.rom.gammaCorrectedPalette(pal);
     this.ppu.width = 256;
     this.ppu.height = 144;
     this.ppu.back = true;
@@ -760,7 +760,7 @@ FF4Battle.prototype.drawBackgroundGBA = function() {
 
     // set up the ppu
     this.ppu = new GFX.PPU();
-    this.ppu.pal = pal;
+    this.ppu.pal = this.rom.gammaCorrectedPalette(pal);
     this.ppu.width = 256;
     this.ppu.height = 128;
     this.ppu.back = true;
@@ -1152,7 +1152,7 @@ FF4BattleVRAM.prototype.drawVRAM = function() {
 
     // set up the ppu
     var ppu = new GFX.PPU();
-    ppu.pal = this.vramPalette;
+    ppu.pal = this.rom.gammaCorrectedPalette(this.vramPalette);
     ppu.width = 16 * 8;
     ppu.height = 32 * 8;
 

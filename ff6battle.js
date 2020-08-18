@@ -624,7 +624,7 @@ FF6Battle.prototype.drawMonster = function(slot) {
 
     // set up the ppu
     var ppu = new GFX.PPU();
-    ppu.pal = pal;
+    ppu.pal = this.rom.gammaCorrectedPalette(pal);
     ppu.width = map.size * 8;
     ppu.height = map.size * 8;
 
@@ -717,7 +717,7 @@ FF6Battle.prototype.drawCharacter = function(slot) {
 
     // set up the ppu
     var ppu = new GFX.PPU();
-    ppu.pal = pal.data;
+    ppu.pal = this.rom.gammaCorrectedPalette(pal.data);
     ppu.width = 16;
     ppu.height = 24;
 
@@ -806,7 +806,7 @@ FF6Battle.prototype.drawGhostTrain = function(slot) {
 
     // set up the ppu
     this.ppu = new GFX.PPU();
-    this.ppu.pal = pal;
+    this.ppu.pal = this.rom.gammaCorrectedPalette(pal);
     this.ppu.height = 128;
     this.ppu.width = 128;
 
@@ -880,7 +880,7 @@ FF6Battle.prototype.drawBackground = function() {
 
     // set up the ppu
     this.ppu = new GFX.PPU();
-    this.ppu.pal = pal;
+    this.ppu.pal = this.rom.gammaCorrectedPalette(pal);
     this.ppu.height = 256;
     this.ppu.width = 256;
     this.ppu.back = true;

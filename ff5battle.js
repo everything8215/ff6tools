@@ -485,7 +485,7 @@ FF5Battle.prototype.drawMonster = function(slot) {
 
     // set up the ppu
     var ppu = new GFX.PPU();
-    ppu.pal = pal;
+    ppu.pal = this.rom.gammaCorrectedPalette(pal);
     ppu.width = w * 8;
     ppu.height = h * 8;
 
@@ -592,7 +592,7 @@ FF5Battle.prototype.drawBackground = function() {
 
     // set up the ppu
     this.ppu = new GFX.PPU();
-    this.ppu.pal = pal;
+    this.ppu.pal = this.rom.gammaCorrectedPalette(pal);
     this.ppu.width = 256;
     this.ppu.height = 160;
     this.ppu.back = true;
@@ -648,7 +648,7 @@ FF5Battle.prototype.drawBackgroundGBA = function() {
 
     // set up the ppu
     this.ppu = new GFX.PPU();
-    this.ppu.pal = pal;
+    this.ppu.pal = this.rom.gammaCorrectedPalette(pal);
     this.ppu.width = 256;
     this.ppu.height = 136;
     this.ppu.back = true;

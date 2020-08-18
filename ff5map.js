@@ -784,7 +784,7 @@ FF5Map.prototype.loadMap = function(m) {
 
     // set up the ppu
     this.ppu = new GFX.PPU();
-    this.ppu.pal = pal;
+    this.ppu.pal = this.rom.gammaCorrectedPalette(pal);
     this.ppu.height = 64 * 16;
     this.ppu.width = 64 * 16;
     this.ppu.back = true;
@@ -890,7 +890,7 @@ FF5Map.prototype.loadWorldMap = function(m) {
 
     // set up the ppu
     this.ppu = new GFX.PPU();
-    this.ppu.pal = palette.data;
+    this.ppu.pal = this.rom.gammaCorrectedPalette(palette.data);
     this.ppu.width = 256 * 16;
     this.ppu.height = 256 * 16;
     this.ppu.back = true;
@@ -1326,7 +1326,7 @@ FF5Map.prototype.drawNPC = function(npc) {
 
     // set up the ppu
     var ppu = new GFX.PPU();
-    ppu.pal = pal;
+    ppu.pal = this.rom.gammaCorrectedPalette(pal);
     ppu.width = w;
     ppu.height = h;
 

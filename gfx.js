@@ -495,7 +495,15 @@ var GFX = {
         }
     },
 
-    // for 5-bit to 8-bit color conversion
+    // for 5-bit to 8-bit color conversion (gamma corrected)
+    gammaColorsSNES: [
+        0x00, 0x01, 0x03, 0x06, 0x0a, 0x0f, 0x15, 0x1c,
+        0x24, 0x2d, 0x37, 0x42, 0x4e, 0x5b, 0x69, 0x78,
+        0x88, 0x90, 0x98, 0xa0, 0xa8, 0xb0, 0xb8, 0xc0,
+        0xc8, 0xd0, 0xd8, 0xe0, 0xe8, 0xf0, 0xf8, 0xff,
+    ],
+
+    // for 5-bit to 8-bit color conversion (linear)
     colors31: [
           0,   8,  16,  25,  33,  41,  49,  58,
          66,  74,  82,  90,  99, 107, 115, 123,
@@ -715,6 +723,60 @@ var GFX = {
             pal[i] = c | (c << 8) | (c << 16) | 0xFF000000;
         }
         return pal;
+    },
+
+    gammaCorrectedPaletteSNES: function(data) {
+        // 8-bit source, 8 bit destination
+        var src = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+        var dest = new Uint8Array(src.length);
+
+        var s = 0;
+        var d = 0;
+        var r, g, b, a;
+
+        while (s < src.length) {
+            b = src[s++]; b = Math.round(b * 31 / 255);
+            g = src[s++]; g = Math.round(g * 31 / 255);
+            r = src[s++]; r = Math.round(r * 31 / 255);
+            a = src[s++];
+
+            dest[d++] = GFX.gammaColorsSNES[b];
+            dest[d++] = GFX.gammaColorsSNES[g];
+            dest[d++] = GFX.gammaColorsSNES[r];
+            dest[d++] = 0xFF;
+        }
+        return new Uint32Array(dest.buffer);
+    },
+
+    gammaCorrectedPaletteGBA: function(data) {
+        // 8-bit source, 8 bit destination
+        var src = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+        var dest = new Uint8Array(src.length);
+
+        var s = 0;
+        var d = 0;
+        var r, g, b, a, r1, g1, b1;
+
+        while (s < src.length) {
+            b = src[s++]; b = Math.round(b * 31 / 255);
+            g = src[s++]; g = Math.round(g * 31 / 255);
+            r = src[s++]; r = Math.round(r * 31 / 255);
+            a = src[s++];
+
+            b1 = Math.pow(b / 31, 4.0);
+            g1 = Math.pow(g / 31, 4.0);
+            r1 = Math.pow(r / 31, 4.0);
+
+            b = Math.pow((220 * b1 +  10 * g1 +  50 * r1) / 255, 1 / 2.2) * (0xFF * 255 / 280);
+            g = Math.pow(( 30 * b1 + 230 * g1 +  10 * r1) / 255, 1 / 2.2) * (0xFF * 255 / 280);
+            r = Math.pow((  0 * b1 +  50 * g1 + 255 * r1) / 255, 1 / 2.2) * (0xFF * 255 / 280);
+
+            dest[d++] = b;
+            dest[d++] = g;
+            dest[d++] = r;
+            dest[d++] = 0xFF;
+        }
+        return new Uint32Array(dest.buffer);
     },
 
     tileFormat: {

@@ -400,7 +400,7 @@ FF1Battle.prototype.drawMonster = function(slot) {
 
     // set up the ppu
     var ppu = new GFX.PPU();
-    ppu.pal = pal;
+    ppu.pal = this.rom.gammaCorrectedPalette(pal);
     ppu.width = m.rect.w;
     ppu.height = m.rect.h;
 
@@ -523,7 +523,7 @@ FF1Battle.prototype.drawBackground = function() {
 
     // set up the ppu
     this.ppu = new GFX.PPU();
-    this.ppu.pal = pal;
+    this.ppu.pal = this.rom.gammaCorrectedPalette(pal);
     this.ppu.height = h * 8;
     this.ppu.width = w * 8;
     this.ppu.back = true;

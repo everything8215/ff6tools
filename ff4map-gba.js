@@ -1028,7 +1028,7 @@ FF4MapGBA.prototype.loadMap = function(m) {
 
     // set up the ppu
     this.ppu = new GFX.PPU();
-    this.ppu.pal = pal;
+    this.ppu.pal = this.rom.gammaCorrectedPalette(pal);
     this.ppu.width = w * 16;
     this.ppu.height = h * 16;
     this.ppu.back = true;
@@ -1137,7 +1137,7 @@ FF4MapGBA.prototype.loadWorldMap = function(m) {
 
     // set up the ppu
     this.ppu = new GFX.PPU();
-    this.ppu.pal = pal;
+    this.ppu.pal = this.rom.gammaCorrectedPalette(pal);
     this.ppu.width = width * 16;
     this.ppu.height = height * 16;
     this.ppu.back = true;
@@ -1772,7 +1772,7 @@ FF4MapGBA.prototype.drawNPC = function(npc) {
 
     // set up the ppu
     var ppu = new GFX.PPU();
-    ppu.pal = paletteData.data;
+    ppu.pal = this.rom.gammaCorrectedPalette(paletteData.data);
     ppu.width = w;
     ppu.height = h;
 

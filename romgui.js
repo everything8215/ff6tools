@@ -2383,10 +2383,12 @@ ROMPaletteView.prototype.drawPalette = function() {
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
+    var palette = this.rom.gammaCorrectedPalette(this.palette);
+
     var c = 0;
     for (var y = 0; y < this.rows; y++) {
         for (var x = 0; x < this.colorsPerRow; x++) {
-            var color = this.palette[c++];
+            var color = palette[c++];
             if (!isNumber(color)) color = 0;
             var r = (color & 0xFF);
             var g = (color & 0xFF00) >> 8;
@@ -3277,7 +3279,7 @@ ROMGraphicsView.prototype.drawGraphics = function() {
     // create the palette
     var palette = new Uint32Array(this.paletteView.palette);
 
-    ppu.pal = palette;
+    ppu.pal = this.rom.gammaCorrectedPalette(palette);
     ppu.width = this.width * 8;
     ppu.height = this.height * 8;
     if (ppu.height === 0) return;
@@ -3911,7 +3913,7 @@ ROMTilemapView.prototype.drawTilemap = function() {
     }
 
     // set up the ppu
-    ppu.pal = palette;
+    ppu.pal = this.rom.gammaCorrectedPalette(palette);
     ppu.width = this.width * 8;
     ppu.height = this.height * 8;
 
@@ -4371,7 +4373,7 @@ ROMTilemapView.prototype.exportTilemap = function() {
     }
 
     // set up the ppu
-    ppu.pal = palette;
+    ppu.pal = this.rom.gammaCorrectedPalette(palette);
     ppu.width = this.width * 8;
     ppu.height = this.height * 8;
 
@@ -4494,7 +4496,7 @@ ROMGraphicsExporter.prototype.exportGraphics = function(formatKey) {
     var extension = "bin";
 
     var ppu = new GFX.PPU();
-    ppu.pal = this.palette;
+    ppu.pal = this.rom.gammaCorrectedPalette(this.palette);
     ppu.height = this.height * 8;
     ppu.width = this.width * 8;
     ppu.back = true;

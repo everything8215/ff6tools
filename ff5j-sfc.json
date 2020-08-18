@@ -1342,6 +1342,40 @@
                 "type": "data",
                 "length": 80,
                 "assembly": {
+                    "character": {
+                        "type": "property",
+                        "name": "Character",
+                        "begin": 0,
+                        "mask": "0x07",
+                        "stringTable": "characterNames"
+                    },
+                    "present": {
+                        "type": "property",
+                        "name": "Present",
+                        "begin": 0,
+                        "mask": "0x40",
+                        "bool": true,
+                        "invert": true
+                    },
+                    "row": {
+                        "type": "property",
+                        "name": "Row",
+                        "begin": 0,
+                        "mask": "0x80",
+                        "stringTable": {
+                            "hideIndex": true,
+                            "string": {
+                                "0": "Front",
+                                "1": "Back"
+                            }
+                        }
+                    },
+                    "battleOrder": {
+                        "type": "property",
+                        "name": "Battle Order",
+                        "begin": 0,
+                        "mask": "0x38"
+                    },
                     "job": {
                         "type": "property",
                         "name": "Job",
@@ -5488,7 +5522,35 @@
                             "type": "property",
                             "name": "Character",
                             "begin": 1,
-                            "stringTable": "eventCharacter"
+                            "mask": "0x07",
+                            "stringTable": "characterNames"
+                        },
+                        "present": {
+                            "type": "property",
+                            "name": "Present",
+                            "begin": 1,
+                            "mask": "0x40",
+                            "bool": true,
+                            "invert": true
+                        },
+                        "row": {
+                            "type": "property",
+                            "name": "Row",
+                            "begin": 1,
+                            "mask": "0x80",
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0": "Front",
+                                    "1": "Back"
+                                }
+                            }
+                        },
+                        "battleOrder": {
+                            "type": "property",
+                            "name": "Battle Order",
+                            "begin": 1,
+                            "mask": "0x38"
                         }
                     }
                 },
