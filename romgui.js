@@ -1713,6 +1713,7 @@ ROMScriptList.prototype.liForCommand = function(command) {
 ROMScriptList.prototype.updateMenu = function() {
 
     this.menu.innerHTML = "";
+    this.menu.classList.add('menu');
 
     // build the menu for the appropriate script commands
     if (isArray(this.script.encoding)) {
@@ -1740,7 +1741,7 @@ ROMScriptList.prototype.openMenu = function(e) {
     this.menu.classList.add("menu-active");
     this.menu.style.left = e.x + "px";
     this.menu.style.height = "";
-//    this.menu.style.overflowY = "visible";
+    this.menu.style.overflowY = "visible";
 
     var top = e.y;
     var height = this.menu.clientHeight;
@@ -1749,7 +1750,7 @@ ROMScriptList.prototype.openMenu = function(e) {
     }
     if (top < 0) {
         this.menu.style.height = (window.innerHeight - 10) + "px";
-//        this.menu.style.overflowY = "auto";
+        this.menu.style.overflowY = "auto";
         top = 0;
     }
     this.menu.style.top = top + "px";
