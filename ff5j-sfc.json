@@ -1647,7 +1647,8 @@
         "eventScript": {
             "type": "array",
             "name": "Event Script",
-            "range": "0xC849DC-0xCA0000",
+            "range": "0xC849DC-0xC9FF9C",
+            "canRelocate": true,
             "array": {
                 "length": 1940
             },
@@ -8232,5 +8233,12 @@
                 "6": "Airship"
             }
         }
-    }
+    },
+    "freeSpace": [
+        "0xC9FF9C-0xCA0000",
+        "0xCDF9FF-0xCDFA40",
+        "0xCFD7CB-0xCFD800",
+        "0xD13600-0xD13840",
+        "0xD4EFF1-0xD4F000"
+    ]
 }
