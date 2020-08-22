@@ -92,8 +92,8 @@
                     "name": "Character Names",
                     "path": "characterNames"
                 }, {
-                    "name": "Job Names",
-                    "path": "jobName"
+                    "name": "Jobs",
+                    "path": "jobStats"
                 }, {
                     "name": "Spell Names",
                     "path": "spellName"
@@ -103,6 +103,9 @@
                 }, {
                     "name": "Ability Names",
                     "path": "abilityName"
+                }, {
+                    "name": "Innate Ability Names",
+                    "path": "abilityNameInnate"
                 }, {
                     "name": "Attack Names",
                     "path": "attackName"
@@ -170,6 +173,21 @@
             "stringTable": {
                 "length": 105,
                 "default": "<abilityName[%i]>"
+            }
+        },
+        "abilityNameInnate": {
+            "type": "array",
+            "name": "Innate Ability Name (Short)",
+            "range": "0xD16200-0xD16308",
+            "arrayLength": 33,
+            "assembly": {
+                "type": "text",
+                "length": 8,
+                "encoding": "fixedLength"
+            },
+            "stringTable": {
+                "length": 33,
+                "default": "<abilityNameInnate[%i]>"
             }
         },
         "attackGraphics1": {
@@ -1752,6 +1770,228 @@
                 "default": "<itemNames[%i]>"
             }
         },
+        "jobAbilitiesCount": {
+            "type": "array",
+            "name": "Job Ability Count",
+            "range": "0xD152EA-0xD15300",
+            "array": {
+                "length": 22
+            },
+            "assembly": {
+                "type": "data",
+                "length": 1,
+                "assembly": {
+                    "abilityCount": {
+                        "type": "property",
+                        "name": "Ability Count",
+                        "begin": 0
+                    }
+                }
+            }
+        },
+        "jobAbilitesInnate": {
+            "type": "array",
+            "name": "Job Innate Abilities",
+            "range": "0xD157B8-0xD157E4",
+            "array": {
+                "length": 22
+            },
+            "assembly": {
+                "type": "data",
+                "length": 2,
+                "assembly": {
+                    "abilities": {
+                        "type": "property",
+                        "name": "Abilities",
+                        "begin": 0,
+                        "mask": "0xFFFF",
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "0": "Detect Passages",
+                                "1": "Pitfalls",
+                                "2": "Floor Damage",
+                                "3": "Dash",
+                                "4": "Learning",
+                                "5": "Barrier",
+                                "6": "Evade",
+                                "7": "Counter",
+                                "8": "Two-Handed",
+                                "9": "Preemptive",
+                                "10": "Caution",
+                                "11": "Berserk",
+                                "12": "Medicine",
+                                "13": "Double Grip",
+                                "14": "Brawl",
+                                "15": "Cover"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "jobAbilitesLearned": {
+            "type": "array",
+            "name": "Learned Abilities",
+            "range": "0xD15300-0xD1542C",
+            "array": {
+                "length": 21
+            },
+            "pointerTable": {
+                "range": "0xD152C0-0xD152EA",
+                "offset": "0xD10000"
+            },
+            "assembly": {
+                "type": "array",
+                "reference": [
+                    {
+                        "target": "jobAbilitiesCount[%i].abilityCount",
+                        "arrayLength": true
+                    }
+                ],
+                "assembly": {
+                    "type": "data",
+                    "length": 3,
+                    "assembly": {
+                        "ap": {
+                            "type": "property",
+                            "name": "AP",
+                            "begin": 0,
+                            "mask": "0xFFFF"
+                        },
+                        "abilityType": {
+                            "type": "property",
+                            "name": "Innate Ability",
+                            "begin": 2,
+                            "mask": "0x80",
+                            "bool": true
+                        },
+                        "abilityCommand": {
+                            "type": "property",
+                            "name": "Ability",
+                            "begin": 2,
+                            "mask": "0x7F",
+                            "stringTable": "battleCommandName",
+                            "invalid": "this.parent.abilityType.value"
+                        },
+                        "abilityInnate": {
+                            "type": "property",
+                            "name": "Ability",
+                            "begin": 2,
+                            "mask": "0x7F",
+                            "stringTable": "abilityNameInnate",
+                            "invalid": "!this.parent.abilityType.value"
+                        }
+                    }
+                }
+            }
+        },
+        "jobBattleCommands": {
+            "type": "array",
+            "name": "Job Default Battle Commands",
+            "range": "0xD15760-0xD157B8",
+            "array": {
+                "length": 22
+            },
+            "assembly": {
+                "type": "data",
+                "length": 4,
+                "assembly": {
+                    "command1": {
+                        "type": "property",
+                        "name": "Command 1",
+                        "begin": 0,
+                        "stringTable": "battleCommandName"
+                    },
+                    "command2": {
+                        "type": "property",
+                        "name": "Command 2",
+                        "begin": 1,
+                        "stringTable": "battleCommandName"
+                    },
+                    "command3": {
+                        "type": "property",
+                        "name": "Command 3",
+                        "begin": 2,
+                        "stringTable": "battleCommandName"
+                    },
+                    "command4": {
+                        "type": "property",
+                        "name": "Command 4",
+                        "begin": 3,
+                        "stringTable": "battleCommandName"
+                    }
+                }
+            }
+        },
+        "jobEquipment": {
+            "type": "array",
+            "name": "Job Equipment",
+            "range": "0xD15708-0xD15760",
+            "array": {
+                "length": 22
+            },
+            "assembly": {
+                "type": "data",
+                "length": 4,
+                "assembly": {
+                    "equipment1": {
+                        "type": "property",
+                        "name": "Weapons",
+                        "begin": 0,
+                        "mask": "0xFFFF",
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "0": "Knife",
+                                "1": "Ninja Sword",
+                                "2": "Sword",
+                                "3": "Knight Sword",
+                                "4": "Spear",
+                                "5": "Axe",
+                                "6": "Hammer",
+                                "7": "Katana",
+                                "8": "Rod",
+                                "9": "Staff",
+                                "10": "Flail",
+                                "11": "Bow",
+                                "12": "Harp",
+                                "13": "Whip",
+                                "14": "Bell",
+                                "15": "1.7"
+                            }
+                        }
+                    },
+                    "equipment2": {
+                        "type": "property",
+                        "name": "Armor",
+                        "begin": 2,
+                        "mask": "0xFFFF",
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "0": "Shield",
+                                "1": "Heavy Helmet",
+                                "2": "Light Helmet",
+                                "3": "Dancer Clothes",
+                                "4": "Heavy Armor",
+                                "5": "Light Armor",
+                                "6": "Mage Robe",
+                                "7": "2.7",
+                                "8": "Glove",
+                                "9": "Ring",
+                                "10": "Thief Glove",
+                                "11": "Chemist Glove",
+                                "12": "Mage Hat",
+                                "13": "3.5",
+                                "14": "3.6",
+                                "15": "3.7"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "jobName": {
             "type": "array",
             "name": "Job Name",
@@ -1768,6 +2008,85 @@
             "stringTable": {
                 "length": 22,
                 "default": "<jobName[%i]>"
+            }
+        },
+        "jobStats": {
+            "type": "array",
+            "name": "Job Stat Modifiers",
+            "range": "0xD156B0-0xD15708",
+            "array": {
+                "length": 22
+            },
+            "stringTable": "jobName",
+            "assembly": {
+                "type": "data",
+                "length": 4,
+                "assembly": {
+                    "jobName": {
+                        "type": "assembly",
+                        "external": "jobName[%i]"
+                    },
+                    "cat-statMod": "Stat Modifiers",
+                    "strength": {
+                        "type": "property",
+                        "name": "Strength",
+                        "begin": 0,
+                        "offset": -24
+                    },
+                    "agility": {
+                        "type": "property",
+                        "name": "Agility",
+                        "begin": 1,
+                        "offset": -24
+                    },
+                    "stamina": {
+                        "type": "property",
+                        "name": "Stamina",
+                        "begin": 2,
+                        "offset": -24
+                    },
+                    "magicPower": {
+                        "type": "property",
+                        "name": "Magic Power",
+                        "begin": 3,
+                        "offset": -24
+                    },
+                    "cat-battleCommands": "Default Battle Commands",
+                    "command1": {
+                        "type": "assembly",
+                        "external": "jobBattleCommands[%i].command1"
+                    },
+                    "command2": {
+                        "type": "assembly",
+                        "external": "jobBattleCommands[%i].command2"
+                    },
+                    "command3": {
+                        "type": "assembly",
+                        "external": "jobBattleCommands[%i].command3"
+                    },
+                    "command4": {
+                        "type": "assembly",
+                        "external": "jobBattleCommands[%i].command4"
+                    },
+                    "cat-equipment": "Equipment Types",
+                    "jobEquipment1": {
+                        "type": "assembly",
+                        "external": "jobEquipment[%i].equipment1"
+                    },
+                    "jobEquipment2": {
+                        "type": "assembly",
+                        "external": "jobEquipment[%i].equipment2"
+                    },
+                    "cat-abilitiesInnate": "Innate Abilites",
+                    "jobAbilitesInnate": {
+                        "type": "assembly",
+                        "external": "jobAbilitesInnate[%i].abilities"
+                    },
+                    "jobAbilitesLearned": {
+                        "type": "assembly",
+                        "external": "jobAbilitesLearned[%i]"
+                    }
+                }
             }
         },
         "mapAnimationGraphics": {
