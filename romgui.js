@@ -461,6 +461,13 @@ ROMPropertyList.prototype.showProperties = function() {
         properties.appendChild(propertyHTML);
         this.observer.startObserving(link, this.showProperties);
 
+    } else if (object instanceof ROMText) {
+        // text object
+        var propertyHTML = this.propertyHTML(object, {name: "Text"});
+        if (!propertyHTML) return;
+        properties.appendChild(propertyHTML);
+        this.observer.startObserving(object, this.showProperties);
+
     } else if ((object instanceof ROMProperty) || (object instanceof ROMText) || (object instanceof ROMString)) {
         // object with a single property
         var propertyHTML = this.propertyHTML(object);

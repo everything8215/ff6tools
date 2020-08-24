@@ -76,11 +76,22 @@
                     "name": "Battle Messages",
                     "path": "battleMessage"
                 }, {
+                    "name": "Battle Backgrounds",
+                    "path": "battleBackgroundProperties"
+                }
+            ]
+        }, {
+            "name": "Monster",
+            "list": [
+                {
                     "name": "Monsters",
                     "path": "monsterProperties"
                 }, {
-                    "name": "Battle Backgrounds",
-                    "path": "battleBackgroundProperties"
+                    "name": "Monster Names",
+                    "path": "monsterName"
+                }, {
+                    "name": "Monster Special Attack Names",
+                    "path": "monsterSpecialAttackName"
                 }
             ]
         }, {
@@ -137,8 +148,14 @@
                     "name": "Item Names",
                     "path": "itemNames"
                 }, {
+                    "name": "Item Names (Long)",
+                    "path": "itemNamesLong"
+                }, {
                     "name": "Item Descriptions",
                     "path": "itemDescription"
+                }, {
+                    "name": "Weapons",
+                    "path": "weaponProperties"
                 }, {
                     "name": "Weapon Graphics",
                     "path": "attackTilemap6"
@@ -976,13 +993,13 @@
                         "stringTable": {
                             "string": {
                                 "7": "Force Back Attack",
-                                "6": "Time Magic Disabled",
+                                "6": "Void Disabled",
                                 "5": "Boss Battle",
                                 "4": "Sandworm",
-                                "3": "???",
+                                "3": "15.3",
                                 "2": "Cast Void at Start",
                                 "1": "No Reward",
-                                "0": "Alt. Death"
+                                "0": "Alternate Death"
                             }
                         }
                     },
@@ -996,8 +1013,8 @@
                             "string": {
                                 "3": "Credits",
                                 "2": "Underwater",
-                                "1": "Final Boss",
-                                "0": "Wall Barrier"
+                                "1": "Final Boss (Targets Invalid)",
+                                "0": "Monsters in Wall"
                             }
                         }
                     },
@@ -1902,6 +1919,119 @@
                 "default": "<itemNames[%i]>"
             }
         },
+        "itemNamesLong": {
+            "type": "array",
+            "name": "Item Names (Long)",
+            "range": "0xE75860-0xE77060",
+            "array": {
+                "length": 256,
+                "max": 256
+            },
+            "assembly": {
+                "type": "text",
+                "length": 24,
+                "encoding": "fixedLength"
+            },
+            "stringTable": {
+                "name": "Item Names (Long)",
+                "length": 256,
+                "default": "<itemNamesLong[%i]>"
+            }
+        },
+        "itemPrice": {
+            "type": "array",
+            "name": "Item/Spell Price",
+            "range": "0xD12A00-0xD12D00",
+            "array": {
+                "length": 384
+            },
+            "assembly": {
+                "type": "data",
+                "length": 2,
+                "assembly": {
+                    "priceOverride": {
+                        "type": "property",
+                        "name": "Price Override",
+                        "begin": 0,
+                        "mask": "0xC0",
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "0": "Sells for 5GP",
+                                "1": "Can't be Sold"
+                            }
+                        }
+                    },
+                    "priceMultiplier": {
+                        "type": "property",
+                        "name": "Price Multiplier",
+                        "begin": 0,
+                        "mask": "0x1F",
+                        "stringTable": {
+                            "hideIndex": true,
+                            "string": {
+                                "0": "×1",
+                                "1": "×10",
+                                "2": "×100",
+                                "3": "×1000",
+                                "4": "×10000",
+                                "5": "×100000",
+                                "6": "×1000000"
+                            }
+                        }
+                    },
+                    "price1": {
+                        "type": "property",
+                        "name": "Price",
+                        "begin": 1,
+                        "multiplier": 10,
+                        "invalid": "this.parent.priceMultiplier.value !== 0"
+                    },
+                    "price10": {
+                        "type": "property",
+                        "name": "Price",
+                        "begin": 1,
+                        "multiplier": 10,
+                        "invalid": "this.parent.priceMultiplier.value !== 1"
+                    },
+                    "price100": {
+                        "type": "property",
+                        "name": "Price",
+                        "begin": 1,
+                        "multiplier": 100,
+                        "invalid": "this.parent.priceMultiplier.value !== 2"
+                    },
+                    "price1000": {
+                        "type": "property",
+                        "name": "Price",
+                        "begin": 1,
+                        "multiplier": 1000,
+                        "invalid": "this.parent.priceMultiplier.value !== 3"
+                    },
+                    "price10000": {
+                        "type": "property",
+                        "name": "Price",
+                        "begin": 1,
+                        "multiplier": 10000,
+                        "invalid": "this.parent.priceMultiplier.value !== 4"
+                    },
+                    "price100000": {
+                        "type": "property",
+                        "name": "Price",
+                        "begin": 1,
+                        "multiplier": 100000,
+                        "invalid": "this.parent.priceMultiplier.value !== 5"
+                    },
+                    "price1000000": {
+                        "type": "property",
+                        "name": "Price",
+                        "begin": 1,
+                        "multiplier": 1000000,
+                        "invalid": "this.parent.priceMultiplier.value !== 6"
+                    }
+                }
+            }
+        },
         "jobAbilitiesCount": {
             "type": "array",
             "name": "Job Ability Count",
@@ -2109,7 +2239,7 @@
                                 "4": "Heavy Armor",
                                 "5": "Light Armor",
                                 "6": "Mage Robe",
-                                "7": "2.7",
+                                "7": "Common",
                                 "8": "Glove",
                                 "9": "Ring",
                                 "10": "Thief Glove",
@@ -4656,9 +4786,34 @@
                 "type": "data",
                 "length": 32,
                 "assembly": {
-                    "monsterName": {
-                        "type": "assembly",
-                        "external": "monsterName[%i]"
+                    "monsterID": {
+                        "type": "property",
+                        "name": "Name",
+                        "begin": 30,
+                        "invalid": "this.parent.i >= 256",
+                        "link": "monsterName[%i]",
+                        "stringTable": {
+                            "length": 256,
+                            "default": "<stringTable.monsterName[%i]>"
+                        }
+                    },
+                    "monsterIDBoss": {
+                        "type": "property",
+                        "name": "Name",
+                        "begin": 30,
+                        "offset": 256,
+                        "invalid": "this.parent.i < 256",
+                        "link": "monsterName[%i]",
+                        "stringTable": {
+                            "string": {
+                                "256-384": "<stringTable.monsterName[%i]>"
+                            }
+                        }
+                    },
+                    "level": {
+                        "type": "property",
+                        "name": "Level",
+                        "begin": 31
                     },
                     "speed": {
                         "type": "property",
@@ -4670,9 +4825,9 @@
                         "name": "Attack Power",
                         "begin": 1
                     },
-                    "attackMultiplier": {
+                    "damageMultiplier": {
                         "type": "property",
-                        "name": "Attack Multiplier",
+                        "name": "Damage Mult.",
                         "begin": 2
                     },
                     "evade": {
@@ -4724,23 +4879,101 @@
                         "begin": 14,
                         "mask": "0xFFFF"
                     },
-                    "monsterID": {
+                    "monsterType": {
                         "type": "property",
-                        "name": "Monster ID",
-                        "begin": 30,
-                        "invalid": "this.parent.i >= 256"
+                        "name": "Monster Type",
+                        "begin": 24,
+                        "flag": true,
+                        "stringTable": "monsterType"
                     },
-                    "monsterIDBoss": {
+                    "flags": {
                         "type": "property",
-                        "name": "Monster ID",
-                        "begin": 30,
-                        "offset": 256,
-                        "invalid": "this.parent.i < 256"
+                        "name": "Flags",
+                        "begin": 25,
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "0": "25.0",
+                                "1": "25.1",
+                                "2": "25.2",
+                                "3": "Can't be Caught",
+                                "4": "Can't be Controlled",
+                                "5": "25.5",
+                                "6": "25.6",
+                                "7": "Can't be Scanned"
+                            }
+                        }
                     },
-                    "level": {
+                    "attackGraphics": {
                         "type": "property",
-                        "name": "Level",
-                        "begin": 31
+                        "name": "Attack Graphics",
+                        "begin": 16
+                    },
+                    "attackType": {
+                        "type": "property",
+                        "name": "Attack Type",
+                        "begin": 22,
+                        "flag": true,
+                        "stringTable": "attackType"
+                    },
+                    "cat-specialAttack": "Special Attack",
+                    "specialAttackName": {
+                        "type": "assembly",
+                        "external": "monsterSpecialAttackProperties[%i].specialAttackName"
+                    },
+                    "specialAttackFlags": {
+                        "type": "assembly",
+                        "external": "monsterSpecialAttackProperties[%i].specialAttackFlags"
+                    },
+                    "cat-element": "Elements",
+                    "elementImmune": {
+                        "type": "property",
+                        "name": "Immune",
+                        "begin": 17,
+                        "flag": true,
+                        "stringTable": "element"
+                    },
+                    "elementAbsorb": {
+                        "type": "property",
+                        "name": "Absorbed",
+                        "begin": 21,
+                        "flag": true,
+                        "stringTable": "element"
+                    },
+                    "elementWeak": {
+                        "type": "property",
+                        "name": "Weak",
+                        "begin": 23,
+                        "flag": true,
+                        "stringTable": "element"
+                    },
+                    "cat-status": "Status",
+                    "statusImmune": {
+                        "type": "property",
+                        "name": "Immunity",
+                        "begin": 18,
+                        "mask": "0xFFFFFF",
+                        "flag": true,
+                        "stringTable": "status"
+                    },
+                    "status1": {
+                        "type": "property",
+                        "name": "Set",
+                        "begin": 26,
+                        "mask": "0xFFFF",
+                        "flag": true,
+                        "stringTable": "status"
+                    },
+                    "status2": {
+                        "type": "property",
+                        "name": "",
+                        "begin": 28,
+                        "mask": "0xFFFF",
+                        "flag": true,
+                        "stringTable": {
+                            "length": 16,
+                            "default": "<stringTable.status[%i+16]>"
+                        }
                     },
                     "cat-graphics": "Graphics",
                     "graphics": {
@@ -4768,6 +5001,61 @@
                     "useLargeMap": {
                         "type": "assembly",
                         "external": "monsterGraphicsProperties[%i].useLargeMap"
+                    }
+                }
+            }
+        },
+        "monsterSpecialAttackName": {
+            "type": "array",
+            "name": "Monster Special Attack Name",
+            "range": "0xE73700-0xE73B00",
+            "array": {
+                "length": 64
+            },
+            "assembly": {
+                "type": "text",
+                "encoding": "fixedLength",
+                "length": 16
+            },
+            "stringTable": {
+                "length": 64,
+                "default": "<monsterSpecialAttackName[%i]>"
+            }
+        },
+        "monsterSpecialAttackProperties": {
+            "type": "array",
+            "name": "Monster Special Attack Properties",
+            "range": "0xD09900-0xD09C00",
+            "array": {
+                "length": 384
+            },
+            "assembly": {
+                "type": "data",
+                "length": 2,
+                "assembly": {
+                    "specialAttackFlags": {
+                        "type": "property",
+                        "name": "Flags",
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "0": "+50% Damage",
+                                "1": "HP Leak",
+                                "2": "Charm",
+                                "3": "Paralyze",
+                                "4": "Blind",
+                                "5": "Poison",
+                                "6": "Aging",
+                                "7": "Unavoidable/Ignore Defense"
+                            }
+                        }
+                    },
+                    "specialAttackName": {
+                        "type": "property",
+                        "name": "Name",
+                        "begin": 1,
+                        "link": "monsterSpecialAttackName[%i]",
+                        "stringTable": "monsterSpecialAttackName"
                     }
                 }
             }
@@ -5592,6 +5880,221 @@
                 "default": "Trigger Event %i",
                 "string": {
                     "255": "Save Point"
+                }
+            }
+        },
+        "weaponProperties": {
+            "type": "array",
+            "name": "Item Properties",
+            "range": "0xD10000-0xD10600",
+            "array": {
+                "length": 128
+            },
+            "stringTable": {
+                "length": 128,
+                "default": "<itemNamesLong[%i]>"
+            },
+            "assembly": {
+                "type": "data",
+                "length": 12,
+                "assembly": {
+                    "nameShort": {
+                        "type": "assembly",
+                        "name": "Name (Short)",
+                        "external": "itemNames[%i]"
+                    },
+                    "nameLong": {
+                        "type": "assembly",
+                        "name": "Name (Long)",
+                        "external": "itemNamesLong[%i]"
+                    },
+                    "description": {
+                        "type": "property",
+                        "name": "Description",
+                        "begin": 4,
+                        "mask": "0x3F",
+                        "stringTable": "itemDescription",
+                        "link": "itemDescription[%i]"
+                    },
+                    "itemType": {
+                        "type": "property",
+                        "name": "Type",
+                        "begin": 2,
+                        "mask": "0x3F",
+                        "stringTable": "itemType"
+                    },
+                    "priceOverride": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i].priceOverride"
+                    },
+                    "priceMultiplier": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i].priceMultiplier"
+                    },
+                    "price1": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i].price1"
+                    },
+                    "price10": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i].price10"
+                    },
+                    "price100": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i].price100"
+                    },
+                    "price1000": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i].price1000"
+                    },
+                    "price10000": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i].price10000"
+                    },
+                    "price100000": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i].price100000"
+                    },
+                    "price1000000": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i].price1000000"
+                    },
+                    "attackPower": {
+                        "type": "property",
+                        "name": "Attack Power",
+                        "begin": 8
+                    },
+                    "weapon9": {
+                        "type": "property",
+                        "name": "Byte 9",
+                        "begin": 9
+                    },
+                    "weapon10": {
+                        "type": "property",
+                        "name": "Byte 10",
+                        "begin": 10
+                    },
+                    "weapon11": {
+                        "type": "property",
+                        "name": "Byte 11",
+                        "begin": 11
+                    },
+                    "bonusType": {
+                        "type": "property",
+                        "name": "Bonus Type",
+                        "begin": 3,
+                        "mask": "0x80",
+                        "stringTable": {
+                            "hideIndex": true,
+                            "string": {
+                                "0": "Element",
+                                "1": "Stat Bonus"
+                            }
+                        }
+                    },
+                    "element": {
+                        "type": "property",
+                        "name": "Element",
+                        "begin": 3,
+                        "mask": "0x7F",
+                        "invalid": "this.parent.bonusType.value === 1",
+                        "flag": true,
+                        "stringTable": "element"
+                    },
+                    "stats": {
+                        "type": "property",
+                        "name": "Stats",
+                        "begin": 3,
+                        "mask": "0x78",
+                        "invalid": "this.parent.bonusType.value === 0",
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "0": "Magic Power",
+                                "1": "Vitality",
+                                "2": "Speed",
+                                "3": "Strength"
+                            }
+                        }
+                    },
+                    "statValue": {
+                        "type": "property",
+                        "name": "Bonus",
+                        "begin": 3,
+                        "mask": "0x07",
+                        "invalid": "this.parent.bonusType.value === 0",
+                        "stringTable": {
+                            "string": {
+                                "0": "+1",
+                                "1": "+2",
+                                "2": "+3",
+                                "3": "+1/-1/+1/-1",
+                                "4": "-1 (to unselected stats)",
+                                "5": "+5/-5/+5/-5",
+                                "6": "-5 (to unselected stats)",
+                                "7": "+5"
+                            }
+                        }
+                    },
+                    "flags": {
+                        "type": "property",
+                        "name": "Flags",
+                        "begin": 4,
+                        "mask": "0xFFC0",
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "0": "Can Double Grip",
+                                "1": "Double Grip Only",
+                                "2": "Wonder Rod",
+                                "3": "Use Ability",
+                                "4": "Magic Sword",
+                                "5": "Action on Hit",
+                                "6": "5.4",
+                                "7": "First Strike",
+                                "8": "Knife Parry",
+                                "9": "Sword Parry"
+                            }
+                        }
+                    },
+                    "cat-useAsItem": "Use/Throw",
+                    "cantThrow": {
+                        "type": "property",
+                        "name": "Can't be Thrown",
+                        "begin": 2,
+                        "mask": "0x40",
+                        "bool": true
+                    },
+                    "breaksAfterUse": {
+                        "type": "property",
+                        "name": "Breaks After Use",
+                        "begin": 6,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "spellCast": {
+                        "type": "property",
+                        "name": "Spell Cast",
+                        "begin": 6,
+                        "mask": "0x7F",
+                        "stringTable": "attackName"
+                    },
+                    "targeting": {
+                        "type": "property",
+                        "name": "Targeting",
+                        "begin": 0,
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "2": "Roulette",
+                                "3": "Target Enemy by Default",
+                                "4": "Can Target Either Side",
+                                "5": "Can Select Target",
+                                "6": "Always Target All",
+                                "7": "Can Target All"
+                            }
+                        }
+                    }
                 }
             }
         },
@@ -7714,10 +8217,38 @@
         }
     },
     "stringTable": {
+        "attackType": {
+            "name": "Attack Type",
+            "length": 8,
+            "string": {
+                "0": "Blue Magic",
+                "1": "White Magic",
+                "2": "Black Magic",
+                "3": "Dimension Magic",
+                "4": "Summon",
+                "5": "Song",
+                "6": "Aerial",
+                "7": "Physical"
+            }
+        },
         "battleSwitch": {
             "name": "Battle Switch",
             "length": 256,
             "default": "Battle Switch %i"
+        },
+        "element": {
+            "name": "Status",
+            "length": 8,
+            "string": {
+                "0": "Fire",
+                "1": "Ice",
+                "2": "Lightning",
+                "3": "Poison",
+                "4": "Holy",
+                "5": "Earth",
+                "6": "Wind",
+                "7": "Water"
+            }
         },
         "eventCharacter": {
             "name": "Event Character",
@@ -7742,6 +8273,42 @@
                 "511": "Disable Random Battles"
             }
         },
+        "itemType": {
+            "name": "Item Type",
+            "string": {
+                "0": "None",
+                "1": "Common",
+                "2": "Knife",
+                "3": "Ninja Sword",
+                "4": "Sword",
+                "5": "Knight Sword",
+                "6": "Spear",
+                "7": "Axe",
+                "8": "Hammer",
+                "9": "Katana",
+                "10": "Rod",
+                "11": "Staff",
+                "12": "Flail (Unused)",
+                "13": "Bow",
+                "14": "Harp",
+                "15": "Whip",
+                "16": "Bell",
+                "17": "Shield",
+                "18": "Heavy Helmet",
+                "19": "Light Helmet",
+                "20": "Mage Hat",
+                "21": "Dancer Gear",
+                "22": "Heavy Armor",
+                "23": "Light Armor",
+                "24": "Mage Robe",
+                "25": "Glove",
+                "26": "Ring",
+                "27": "Accessory",
+                "28": "Thief Gear",
+                "29": "Chemist Gear",
+                "30": "Exotic Weapon"
+            }
+        },
         "jobNameReversed": {
             "name": "Job Name (Reverse Order)",
             "string": {
@@ -7749,6 +8316,20 @@
                 "8-16": "<jobName[23-%i]>",
                 "18": "Freelancer",
                 "19-24": "<jobName[39-%i]>"
+            }
+        },
+        "monsterType": {
+            "name": "Monster Type",
+            "length": 8,
+            "string": {
+                "0": "Undead",
+                "1": "Archaetoad",
+                "2": "Beast",
+                "3": "Avis",
+                "4": "Dragon",
+                "5": "Heavy",
+                "6": "Desert",
+                "7": "Human"
             }
         },
         "npcSwitch": {
@@ -8147,6 +8728,44 @@
             "length": 256,
             "default": "Sound Effect %i"
         },
+        "status": {
+            "name": "Status",
+            "length": 32,
+            "string": {
+                "0": "Darkness",
+                "1": "Zombie",
+                "2": "Poison",
+                "3": "Float",
+                "4": "Mini",
+                "5": "Toad",
+                "6": "Stone",
+                "7": "Wounded",
+                "8": "Image 1",
+                "9": "Image 2",
+                "10": "Mute",
+                "11": "Berserk",
+                "12": "Charm",
+                "13": "Paralyze",
+                "14": "Sleep",
+                "15": "Aging",
+                "16": "Regen",
+                "17": "Invulnerable",
+                "18": "Slow",
+                "19": "Haste",
+                "20": "Stop",
+                "21": "Shell",
+                "22": "Armor",
+                "23": "Wall",
+                "24": "Hidden",
+                "25": "Critical",
+                "26": "Singing",
+                "27": "HP Leak",
+                "28": "Countdown",
+                "29": "Controlled",
+                "30": "False Image",
+                "31": "Erased"
+            }
+        },
         "vehicle": {
             "name": "Vehicle",
             "string": {
@@ -8164,6 +8783,7 @@
         "0xC9FF9C-0xCA0000",
         "0xCDF9FF-0xCDFA40",
         "0xCFD7CB-0xCFD800",
+        "0xD0F1D4-0xD0FFA0",
         "0xD13600-0xD13840",
         "0xD1542C-0xD15500",
         "0xD4EFF1-0xD4F000",
