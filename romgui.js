@@ -4504,7 +4504,7 @@ ROMGraphicsExporter.prototype.exportGraphics = function(formatKey) {
     var extension = "bin";
 
     var ppu = new GFX.PPU();
-    ppu.pal = this.rom.gammaCorrectedPalette(this.palette);
+    ppu.pal = this.palette;
     ppu.height = this.height * 8;
     ppu.width = this.width * 8;
     ppu.back = true;
