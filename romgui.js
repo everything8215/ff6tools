@@ -4584,12 +4584,21 @@ function ROMGraphicsImporter(rom, graphicsView, callback) {
     this.graphicsLeft.tilemap = null;
     this.graphicsLeft.spriteSheet = null;
     // this.graphicsLeft.canvasDiv.classList.add("background-gradient");
-    this.graphicsLeft.selection = {
-        x: 0, y: 0,
-        w: graphicsView.selection.w,
-        h: graphicsView.selection.h,
-        tilemap: new Uint32Array(this.graphicsLeft.width * this.graphicsLeft.height)
-    };
+    if (graphicsView.selection.tilemap.length > 1) {
+      this.graphicsLeft.selection = {
+          x: 0, y: 0,
+          w: graphicsView.selection.w,
+          h: graphicsView.selection.h,
+          tilemap: new Uint32Array(this.graphicsLeft.width * this.graphicsLeft.height)
+      };
+    } else {
+      this.graphicsLeft.selection = {
+          x: 0, y: 0,
+          w: this.graphicsLeft.width,
+          h: this.graphicsLeft.height,
+          tilemap: new Uint32Array(this.graphicsLeft.width * this.graphicsLeft.height)
+      };
+    }
     this.graphicsLeft.canvas.onmousedown = function(e) {
         importer.graphicsLeft.mouseDown(e);
         importer.validateSelection();
@@ -4618,13 +4627,22 @@ function ROMGraphicsImporter(rom, graphicsView, callback) {
     this.graphicsRight.tilemap = graphicsView.tilemap;
     this.graphicsRight.spriteSheet = graphicsView.spriteSheet;
     // this.graphicsRight.canvasDiv.classList.add("background-gradient");
-    this.graphicsRight.selection = {
+    if (graphicsView.selection.tilemap.length > 1) {
+      this.graphicsRight.selection = {
         x: graphicsView.selection.x,
         y: graphicsView.selection.y,
         w: graphicsView.selection.w,
         h: graphicsView.selection.h,
-        tilemap: new Uint32Array(this.graphicsRight.width * this.graphicsRight.height)
-    };
+          tilemap: new Uint32Array(this.graphicsRight.width * this.graphicsRight.height)
+      };
+    } else {
+      this.graphicsRight.selection = {
+          x: 0, y: 0,
+          w: this.graphicsLeft.width,
+          h: this.graphicsLeft.height,
+          tilemap: new Uint32Array(this.graphicsRight.width * this.graphicsRight.height)
+      };
+    }
     this.graphicsRight.canvas.onmousedown = function(e) {
         importer.graphicsRight.mouseDown(e);
         importer.validateSelection();
