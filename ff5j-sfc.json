@@ -75,11 +75,22 @@
                     "name": "Battle Messages",
                     "path": "battleMessage"
                 }, {
+                    "name": "Battle Backgrounds",
+                    "path": "battleBackgroundProperties"
+                }
+            ]
+        }, {
+            "name": "Monster",
+            "list": [
+                {
                     "name": "Monsters",
                     "path": "monsterProperties"
                 }, {
-                    "name": "Battle Backgrounds",
-                    "path": "battleBackgroundProperties"
+                    "name": "Monster Names",
+                    "path": "monsterName"
+                }, {
+                    "name": "Monster Special Attack Names",
+                    "path": "monsterSpecialAttackName"
                 }
             ]
         }, {
@@ -135,6 +146,12 @@
                 }, {
                     "name": "Item Descriptions",
                     "path": "itemDescription"
+                }, {
+                    "name": "Weapons",
+                    "path": "itemPropertiesWeapon"
+                }, {
+                    "name": "Armor",
+                    "path": "itemPropertiesArmor"
                 }, {
                     "name": "Weapon Graphics",
                     "path": "attackTilemap6"
@@ -939,13 +956,13 @@
                         "stringTable": {
                             "string": {
                                 "7": "Force Back Attack",
-                                "6": "Time Magic Disabled",
+                                "6": "Disable Void",
                                 "5": "Boss Battle",
                                 "4": "Sandworm",
-                                "3": "???",
+                                "3": "15.3",
                                 "2": "Cast Void at Start",
                                 "1": "No Reward",
-                                "0": "Alt. Death"
+                                "0": "Alternate Death"
                             }
                         }
                     },
@@ -959,8 +976,8 @@
                             "string": {
                                 "3": "Credits",
                                 "2": "Underwater",
-                                "1": "Final Boss",
-                                "0": "Wall Barrier"
+                                "1": "Final Boss (Targets Invalid)",
+                                "0": "Monsters in Wall"
                             }
                         }
                     },
@@ -1388,11 +1405,18 @@
                             }
                         }
                     },
-                    "battleOrder": {
+                    "gender": {
                         "type": "property",
-                        "name": "Battle Order",
+                        "name": "Gender",
                         "begin": 0,
-                        "mask": "0x38"
+                        "mask": "0x08",
+                        "stringTable": {
+                            "hideIndex": true,
+                            "string": {
+                                "0": "Male",
+                                "1": "Female"
+                            }
+                        }
                     },
                     "job": {
                         "type": "property",
@@ -1751,6 +1775,27 @@
                 "offset": "0xCE2400"
             }
         },
+        "itemDescription": {
+            "type": "array",
+            "name": "Item Description",
+            "range": "0xD14100-0xD143FE",
+            "array": {
+                "length": 128
+            },
+            "assembly": {
+                "type": "text",
+                "encoding": "nullTerminated",
+                "multiLine": true
+            },
+            "pointerTable": {
+                "range": "0xD14000-0xD14100",
+                "offset": "0xD10000"
+            },
+            "stringTable": {
+                "length": 128,
+                "default": "<itemDescription[%i]>"
+            }
+        },
         "itemNames": {
             "type": "array",
             "name": "Item Names",
@@ -1768,6 +1813,661 @@
                 "name": "Item Names",
                 "length": 256,
                 "default": "<itemNames[%i]>"
+            }
+        },
+        "itemPrice": {
+            "type": "array",
+            "name": "Item/Spell Price",
+            "range": "0xD12A00-0xD12D00",
+            "array": {
+                "length": 384
+            },
+            "assembly": {
+                "type": "data",
+                "length": 2,
+                "assembly": {
+                    "priceOverride": {
+                        "type": "property",
+                        "name": "Price Override",
+                        "begin": 0,
+                        "mask": "0xC0",
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "0": "Sells for 5GP",
+                                "1": "Can't be Sold"
+                            }
+                        }
+                    },
+                    "priceMultiplier": {
+                        "type": "property",
+                        "name": "Price Multiplier",
+                        "begin": 0,
+                        "mask": "0x1F",
+                        "stringTable": {
+                            "hideIndex": true,
+                            "string": {
+                                "0": "×1",
+                                "1": "×10",
+                                "2": "×100",
+                                "3": "×1000",
+                                "4": "×10000",
+                                "5": "×100000",
+                                "6": "×1000000"
+                            }
+                        }
+                    },
+                    "price1": {
+                        "type": "property",
+                        "name": "Price",
+                        "begin": 1,
+                        "multiplier": 10,
+                        "invalid": "this.parent.priceMultiplier.value !== 0"
+                    },
+                    "price10": {
+                        "type": "property",
+                        "name": "Price",
+                        "begin": 1,
+                        "multiplier": 10,
+                        "invalid": "this.parent.priceMultiplier.value !== 1"
+                    },
+                    "price100": {
+                        "type": "property",
+                        "name": "Price",
+                        "begin": 1,
+                        "multiplier": 100,
+                        "invalid": "this.parent.priceMultiplier.value !== 2"
+                    },
+                    "price1000": {
+                        "type": "property",
+                        "name": "Price",
+                        "begin": 1,
+                        "multiplier": 1000,
+                        "invalid": "this.parent.priceMultiplier.value !== 3"
+                    },
+                    "price10000": {
+                        "type": "property",
+                        "name": "Price",
+                        "begin": 1,
+                        "multiplier": 10000,
+                        "invalid": "this.parent.priceMultiplier.value !== 4"
+                    },
+                    "price100000": {
+                        "type": "property",
+                        "name": "Price",
+                        "begin": 1,
+                        "multiplier": 100000,
+                        "invalid": "this.parent.priceMultiplier.value !== 5"
+                    },
+                    "price1000000": {
+                        "type": "property",
+                        "name": "Price",
+                        "begin": 1,
+                        "multiplier": 1000000,
+                        "invalid": "this.parent.priceMultiplier.value !== 6"
+                    }
+                }
+            }
+        },
+        "itemPropertiesArmor": {
+            "type": "array",
+            "name": "Item Properties",
+            "range": "0xD10600-0xD10C00",
+            "array": {
+                "length": 96
+            },
+            "stringTable": {
+                "length": 96,
+                "default": "<itemNames[%i+128]>"
+            },
+            "assembly": {
+                "type": "data",
+                "length": 12,
+                "assembly": {
+                    "itemName": {
+                        "type": "assembly",
+                        "name": "Name (Short)",
+                        "external": "itemNames[%i+128]"
+                    },
+                    "description": {
+                        "type": "property",
+                        "name": "Description",
+                        "begin": 4,
+                        "mask": "0x3F",
+                        "stringTable": "itemDescription",
+                        "link": "itemDescription[%i]"
+                    },
+                    "armorSlot": {
+                        "type": "property",
+                        "name": "Armor Slot",
+                        "begin": 0,
+                        "mask": "0x0F",
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "0": "Accessory",
+                                "1": "Armor",
+                                "2": "Helmet",
+                                "3": "Shield"
+                            }
+                        }
+                    },
+                    "priceOverride": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i].priceOverride"
+                    },
+                    "priceMultiplier": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i].priceMultiplier"
+                    },
+                    "price1": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i].price1"
+                    },
+                    "price10": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i].price10"
+                    },
+                    "price100": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i].price100"
+                    },
+                    "price1000": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i].price1000"
+                    },
+                    "price10000": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i].price10000"
+                    },
+                    "price100000": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i].price100000"
+                    },
+                    "price1000000": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i].price1000000"
+                    },
+                    "weight": {
+                        "type": "property",
+                        "name": "Weight",
+                        "begin": 1
+                    },
+                    "evade": {
+                        "type": "property",
+                        "name": "Evade",
+                        "begin": 6
+                    },
+                    "defense": {
+                        "type": "property",
+                        "name": "Defense",
+                        "begin": 7
+                    },
+                    "magicEvade": {
+                        "type": "property",
+                        "name": "Magic Evade",
+                        "begin": 8
+                    },
+                    "Magic Defense": {
+                        "type": "property",
+                        "name": "Magic Defense",
+                        "begin": 9
+                    },
+                    "bonusType": {
+                        "type": "property",
+                        "name": "Bonus Type",
+                        "begin": 3,
+                        "mask": "0x80",
+                        "stringTable": {
+                            "hideIndex": true,
+                            "string": {
+                                "0": "Element",
+                                "1": "Stat Bonus"
+                            }
+                        }
+                    },
+                    "element": {
+                        "type": "property",
+                        "name": "Element",
+                        "begin": 3,
+                        "mask": "0x7F",
+                        "invalid": "this.parent.bonusType.value === 1",
+                        "flag": true,
+                        "stringTable": "element"
+                    },
+                    "stats": {
+                        "type": "property",
+                        "name": "Stats",
+                        "begin": 3,
+                        "mask": "0x78",
+                        "invalid": "this.parent.bonusType.value === 0",
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "0": "Magic Power",
+                                "1": "Vitality",
+                                "2": "Speed",
+                                "3": "Strength"
+                            }
+                        }
+                    },
+                    "statValue": {
+                        "type": "property",
+                        "name": "Bonus",
+                        "begin": 3,
+                        "mask": "0x07",
+                        "invalid": "this.parent.bonusType.value === 0",
+                        "stringTable": {
+                            "string": {
+                                "0": "+1",
+                                "1": "+2",
+                                "2": "+3",
+                                "3": "+1/-1/+1/-1",
+                                "4": "-1 (to unselected stats)",
+                                "5": "+5/-5/+5/-5",
+                                "6": "-5 (to unselected stats)",
+                                "7": "+5"
+                            }
+                        }
+                    },
+                    "flags": {
+                        "type": "property",
+                        "name": "Flags",
+                        "begin": 5,
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "0": "Improve Catch",
+                                "1": "Become Undead",
+                                "2": "Improve Sword Dance/Flirt",
+                                "3": "Halve MP Cost",
+                                "4": "Improve Steal",
+                                "5": "Improve Brawl",
+                                "6": "Elf Cape Dodge",
+                                "7": "Block All Magic"
+                            }
+                        }
+                    },
+                    "elemental": {
+                        "type": "property",
+                        "name": "Element Effect",
+                        "begin": 10,
+                        "stringTable": {
+                            "string": {
+                                "0": "None",
+                                "1": "Diamond Gear",
+                                "2": "Halve All Elements",
+                                "3": "Angel Suit",
+                                "4": "Flame Ring",
+                                "5": "Coral Ring",
+                                "6": "Bone Mail",
+                                "7": "Flame Shield",
+                                "8": "Ice Shield"
+                            }
+                        }
+                    },
+                    "status": {
+                        "type": "property",
+                        "name": "Status Effect",
+                        "begin": 11,
+                        "stringTable": {
+                            "string": {
+                                "0": "None",
+                                "1": "Guard Ring",
+                                "2": "Cursed Ring",
+                                "3": "Running Shoes",
+                                "4": "Aegis Shield",
+                                "5": "Ribbon",
+                                "6": "Tiara, Rainbow Suit, Red Shoes",
+                                "7": "Bard's Clothes",
+                                "8": "Glasses",
+                                "9": "Angel Suit",
+                                "10": "Bone Mail",
+                                "11": "Wall Ring",
+                                "12": "Giant's Glove",
+                                "13": "Angel Ring",
+                                "14": "Thornlet",
+                                "15": "Mirage Vest",
+                                "16": "Genji Shield",
+                                "17": "Genji Helmet",
+                                "18": "Genji Armor",
+                                "19": "Genji Glove"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "itemPropertiesWeapon": {
+            "type": "array",
+            "name": "Item Properties",
+            "range": "0xD10000-0xD10600",
+            "array": {
+                "length": 128
+            },
+            "stringTable": {
+                "length": 128,
+                "default": "<itemNames[%i]>"
+            },
+            "assembly": {
+                "type": "data",
+                "length": 12,
+                "assembly": {
+                    "itemName": {
+                        "type": "assembly",
+                        "name": "Name (Short)",
+                        "external": "itemNames[%i]"
+                    },
+                    "description": {
+                        "type": "property",
+                        "name": "Description",
+                        "begin": 4,
+                        "mask": "0x3F",
+                        "stringTable": "itemDescription",
+                        "link": "itemDescription[%i]"
+                    },
+                    "itemType": {
+                        "type": "property",
+                        "name": "Type",
+                        "begin": 2,
+                        "mask": "0x3F",
+                        "stringTable": "itemType"
+                    },
+                    "priceOverride": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i].priceOverride"
+                    },
+                    "priceMultiplier": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i].priceMultiplier"
+                    },
+                    "price1": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i].price1"
+                    },
+                    "price10": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i].price10"
+                    },
+                    "price100": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i].price100"
+                    },
+                    "price1000": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i].price1000"
+                    },
+                    "price10000": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i].price10000"
+                    },
+                    "price100000": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i].price100000"
+                    },
+                    "price1000000": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i].price1000000"
+                    },
+                    "attackPower": {
+                        "type": "property",
+                        "name": "Attack Power",
+                        "begin": 7
+                    },
+                    "attackEffect": {
+                        "type": "property",
+                        "name": "Attack Effect",
+                        "begin": 8,
+                        "mask": "0x7F",
+                        "stringTable": {
+                            "length": 128,
+                            "default": "Attack Effect %i",
+                            "string": {
+                                "0": "No Effect",
+                                "1": "Monster Fight",
+                                "2": "Monster Special Attack",
+                                "3": "Magic Sword 1",
+                                "4": "Magic Sword 2",
+                                "5": "Magic Sword 3",
+                                "6": "Offensive Magic",
+                                "7": "HP-Based Damge + Status",
+                                "8": "Ignore Defense",
+                                "9": "Random Damage",
+                                "10": "Physical Magic",
+                                "11": "Level Based Damage + Status",
+                                "12": "Ignore Defense + HP Leak",
+                                "13": "Drain HP",
+                                "14": "Drain MP",
+                                "15": "HP to Critical",
+                                "16": "Restore HP",
+                                "17": "Restore to Full HP",
+                                "18": "Inflict Status 1",
+                                "19": "Inflict Status 2",
+                                "20": "Inflict Status 3",
+                                "21": "Toggle Status",
+                                "22": "Reversing Status Infliction",
+                                "23": "Instant Death",
+                                "24": "Instant Destroy",
+                                "25": "Remove Status",
+                                "26": "Resurrect",
+                                "27": "Whispering Wind",
+                                "28": "Change Element Attribute",
+                                "29": "View Stats",
+                                "30": "Drag",
+                                "31": "Void",
+                                "32": "End Battle",
+                                "33": "Reset Battle",
+                                "34": "Quick",
+                                "35": "Earth Wall",
+                                "36": "Restore HP (Fixed Value)",
+                                "37": "Restore MP (Fixed Value)",
+                                "38": "Restore Full HP/MP",
+                                "39": "Status Added",
+                                "40": "Damage (Fixed Value)",
+                                "41": "Inflict Status 4",
+                                "42": "HP-Based Damage + HP Leak",
+                                "43": "Attacker HP-Based Damage",
+                                "44": "Random Effect",
+                                "45": "Ground Attack",
+                                "46": "Reaper's Sword",
+                                "48": "Unarmed",
+                                "49": "Sword",
+                                "50": "Knife",
+                                "51": "Spear",
+                                "52": "Axe/Staff",
+                                "53": "Bow + Status",
+                                "54": "Bow",
+                                "55": "Katana",
+                                "56": "Whip",
+                                "57": "Bell",
+                                "58": "Axe (No Back Row Penalty)",
+                                "59": "Rod",
+                                "60": "Rune Weapons",
+                                "61": "Death Claw",
+                                "62": "Failure (EL+TS)",
+                                "63": "Zombie Breath",
+                                "64": "Change Row",
+                                "66": "Restore HP and Status",
+                                "67": "Steal",
+                                "68": "Escape",
+                                "69": "Throw",
+                                "70": "GilToss",
+                                "71": "Tame",
+                                "72": "Catch",
+                                "73": "Flirt",
+                                "74": "Dance",
+                                "75": "L5 Doom",
+                                "76": "L2 Old",
+                                "77": "L4 Qrter",
+                                "78": "L3 Flare",
+                                "79": "Spirit",
+                                "80": "Goblin Punch",
+                                "81": "Increase Stats",
+                                "82": "Mucus",
+                                "83": "MP Damage",
+                                "84": "Attacker HP-Based Damage (Negative)",
+                                "85": "Fusion",
+                                "87": "Random Effect",
+                                "88": "Mind Blast",
+                                "89": "Increase HP",
+                                "90": "White Wind",
+                                "92": "Hug",
+                                "93": "Zombie Status",
+                                "97": "Stalker Attack",
+                                "98": "Byblos Attack",
+                                "99": "Grand Cross",
+                                "100": "Chicken Knife",
+                                "101": "Interceptor Rocket",
+                                "102": "Targeting",
+                                "103": "Pull",
+                                "104": "End Battle",
+                                "105": "Control",
+                                "106": "Sandworm",
+                                "107": "Change Attribute",
+                                "108": "Monster Type Bonus",
+                                "109": "Vampire",
+                                "110": "Brave Blade",
+                                "111": "Fight (Strong)",
+                                "112": "Wormhole",
+                                "113": "Level Down",
+                                "114": "Bow (Strong vs. Monster Type)",
+                                "115": "Spear (Strong vs. Monster Type)",
+                                "127": "No Attack"
+                            }
+                        }
+                    },
+                    "weapon9": {
+                        "type": "property",
+                        "name": "Byte 9",
+                        "begin": 9
+                    },
+                    "weapon10": {
+                        "type": "property",
+                        "name": "Byte 10",
+                        "begin": 10
+                    },
+                    "weapon11": {
+                        "type": "property",
+                        "name": "Byte 11",
+                        "begin": 11
+                    },
+                    "bonusType": {
+                        "type": "property",
+                        "name": "Bonus Type",
+                        "begin": 3,
+                        "mask": "0x80",
+                        "stringTable": {
+                            "hideIndex": true,
+                            "string": {
+                                "0": "Element",
+                                "1": "Stat Bonus"
+                            }
+                        }
+                    },
+                    "element": {
+                        "type": "property",
+                        "name": "Element",
+                        "begin": 3,
+                        "mask": "0x7F",
+                        "invalid": "this.parent.bonusType.value === 1",
+                        "flag": true,
+                        "stringTable": "element"
+                    },
+                    "stats": {
+                        "type": "property",
+                        "name": "Stats",
+                        "begin": 3,
+                        "mask": "0x78",
+                        "invalid": "this.parent.bonusType.value === 0",
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "0": "Magic Power",
+                                "1": "Vitality",
+                                "2": "Speed",
+                                "3": "Strength"
+                            }
+                        }
+                    },
+                    "statValue": {
+                        "type": "property",
+                        "name": "Bonus",
+                        "begin": 3,
+                        "mask": "0x07",
+                        "invalid": "this.parent.bonusType.value === 0",
+                        "stringTable": {
+                            "string": {
+                                "0": "+1",
+                                "1": "+2",
+                                "2": "+3",
+                                "3": "+1/-1/+1/-1",
+                                "4": "-1 (to unselected stats)",
+                                "5": "+5/-5/+5/-5",
+                                "6": "-5 (to unselected stats)",
+                                "7": "+5"
+                            }
+                        }
+                    },
+                    "targeting": {
+                        "type": "property",
+                        "name": "Targeting",
+                        "begin": 0,
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "2": "Roulette",
+                                "3": "Target Enemy by Default",
+                                "4": "Can Target Either Side",
+                                "5": "Can Select Target",
+                                "6": "Always Target All",
+                                "7": "Can Target All"
+                            }
+                        }
+                    },
+                    "flags": {
+                        "type": "property",
+                        "name": "Flags",
+                        "begin": 4,
+                        "mask": "0xFFC0",
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "0": "Can Double Grip",
+                                "1": "Double Grip Only",
+                                "2": "Wonder Rod",
+                                "3": "Use Ability",
+                                "4": "Magic Sword",
+                                "5": "Action on Hit",
+                                "6": "5.4",
+                                "7": "First Strike",
+                                "8": "Knife Parry",
+                                "9": "Sword Parry"
+                            }
+                        }
+                    },
+                    "cat-useAsItem": "Use/Throw",
+                    "cantThrow": {
+                        "type": "property",
+                        "name": "Can't be Thrown",
+                        "begin": 2,
+                        "mask": "0x40",
+                        "bool": true
+                    },
+                    "breaksAfterUse": {
+                        "type": "property",
+                        "name": "Breaks After Use",
+                        "begin": 6,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "spellCast": {
+                        "type": "property",
+                        "name": "Spell Cast",
+                        "begin": 6,
+                        "mask": "0x7F",
+                        "stringTable": "attackName"
+                    }
+                }
             }
         },
         "jobAbilitiesCount": {
@@ -1977,7 +2677,7 @@
                                 "4": "Heavy Armor",
                                 "5": "Light Armor",
                                 "6": "Mage Robe",
-                                "7": "2.7",
+                                "7": "Common",
                                 "8": "Glove",
                                 "9": "Ring",
                                 "10": "Thief Glove",
@@ -4526,12 +5226,12 @@
                     },
                     "damageMultiplier": {
                         "type": "property",
-                        "name": "Damage Multiplier",
+                        "name": "Damage Mult.",
                         "begin": 2
                     },
                     "evade": {
                         "type": "property",
-                        "name": "Evade %",
+                        "name": "Evade",
                         "begin": 3
                     },
                     "defense": {
@@ -4551,7 +5251,7 @@
                     },
                     "magicEvade": {
                         "type": "property",
-                        "name": "Magic Evade %",
+                        "name": "Magic Evade",
                         "begin": 7
                     },
                     "hp": {
@@ -4578,6 +5278,31 @@
                         "begin": 14,
                         "mask": "0xFFFF"
                     },
+                    "monsterType": {
+                        "type": "property",
+                        "name": "Monster Type",
+                        "begin": 24,
+                        "flag": true,
+                        "stringTable": "monsterType"
+                    },
+                    "flags": {
+                        "type": "property",
+                        "name": "Flags",
+                        "begin": 25,
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "0": "25.0",
+                                "1": "25.1",
+                                "2": "25.2",
+                                "3": "Can't be Caught",
+                                "4": "Can't be Controlled",
+                                "5": "25.5",
+                                "6": "25.6",
+                                "7": "Can't be Scanned"
+                            }
+                        }
+                    },
                     "attackGraphics": {
                         "type": "property",
                         "name": "Attack Graphics",
@@ -4587,32 +5312,44 @@
                         "type": "property",
                         "name": "Attack Type",
                         "begin": 22,
+                        "flag": true,
                         "stringTable": "attackType"
                     },
+                    "cat-specialAttack": "Special Attack",
+                    "specialAttackName": {
+                        "type": "assembly",
+                        "external": "monsterSpecialAttackProperties[%i].specialAttackName"
+                    },
+                    "specialAttackFlags": {
+                        "type": "assembly",
+                        "external": "monsterSpecialAttackProperties[%i].specialAttackFlags"
+                    },
+                    "cat-element": "Elements",
                     "elementImmune": {
                         "type": "property",
-                        "name": "Immune Elements",
+                        "name": "Immune",
                         "begin": 17,
                         "flag": true,
                         "stringTable": "element"
                     },
                     "elementAbsorb": {
                         "type": "property",
-                        "name": "Absorbed Elements",
+                        "name": "Absorb",
                         "begin": 21,
                         "flag": true,
                         "stringTable": "element"
                     },
                     "elementWeak": {
                         "type": "property",
-                        "name": "Weak Elements",
+                        "name": "Weak",
                         "begin": 23,
                         "flag": true,
                         "stringTable": "element"
                     },
+                    "cat-status": "Status",
                     "statusImmune": {
                         "type": "property",
-                        "name": "Immune Status",
+                        "name": "Immune",
                         "begin": 18,
                         "mask": "0xFFFFFF",
                         "flag": true,
@@ -4620,7 +5357,7 @@
                     },
                     "status1": {
                         "type": "property",
-                        "name": "Status",
+                        "name": "Set",
                         "begin": 26,
                         "mask": "0xFFFF",
                         "flag": true,
@@ -4663,6 +5400,61 @@
                     "useLargeMap": {
                         "type": "assembly",
                         "external": "monsterGraphicsProperties[%i].useLargeMap"
+                    }
+                }
+            }
+        },
+        "monsterSpecialAttackName": {
+            "type": "array",
+            "name": "Monster Special Attack Name",
+            "range": "0xD08700-0xD08900",
+            "array": {
+                "length": 64
+            },
+            "assembly": {
+                "type": "text",
+                "encoding": "fixedLength",
+                "length": 8
+            },
+            "stringTable": {
+                "length": 64,
+                "default": "<monsterSpecialAttackName[%i]>"
+            }
+        },
+        "monsterSpecialAttackProperties": {
+            "type": "array",
+            "name": "Monster Special Attack Properties",
+            "range": "0xD09900-0xD09C00",
+            "array": {
+                "length": 384
+            },
+            "assembly": {
+                "type": "data",
+                "length": 2,
+                "assembly": {
+                    "specialAttackFlags": {
+                        "type": "property",
+                        "name": "Flags",
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "0": "+50% Damage",
+                                "1": "HP Leak",
+                                "2": "Charm",
+                                "3": "Paralyze",
+                                "4": "Blind",
+                                "5": "Poison",
+                                "6": "Aging",
+                                "7": "Unavoidable/Ignore Defense"
+                            }
+                        }
+                    },
+                    "specialAttackName": {
+                        "type": "property",
+                        "name": "Name",
+                        "begin": 1,
+                        "link": "monsterSpecialAttackName[%i]",
+                        "stringTable": "monsterSpecialAttackName"
                     }
                 }
             }
@@ -8173,6 +8965,20 @@
         }
     },
     "stringTable": {
+        "attackType": {
+            "name": "Attack Type",
+            "length": 8,
+            "string": {
+                "0": "Blue Magic",
+                "1": "White Magic",
+                "2": "Black Magic",
+                "3": "Dimension Magic",
+                "4": "Summon",
+                "5": "Song",
+                "6": "Aerial",
+                "7": "Physical"
+            }
+        },
         "battleSwitch": {
             "name": "Battle Switch",
             "length": 256,
@@ -8727,6 +9533,7 @@
         "0xCFD7CB-0xCFD800",
         "0xD0FEBC-0xD0FFA0",
         "0xD13600-0xD13840",
+        "0xD143FE-0xD15000",
         "0xD4EFF1-0xD4F000"
     ]
 }
