@@ -639,7 +639,9 @@ ROMPropertyList.prototype.graphicsHTML = function(object, options) {
             graphics: graphicsView.graphics,
             palette: paletteView.palette,
             width: graphicsView.width,
-            backColor: graphicsView.backColor
+            backColor: graphicsView.backColor,
+            tileWidth: graphicsView.tileWidth,
+            tileHeight: graphicsView.tileHeight
         });
     };
     graphicsDiv.appendChild(exportButton);
@@ -2450,8 +2452,11 @@ function ROMGraphicsView(rom, tilemapView) {
     this.zoom = 2.0;
     this.width = 16; // width in tiles
     this.height = 16; // height in tiles
+    this.tileWidth = 8; // tile width in pixels
+    this.tileHeight = 8; // tile height in pixels
+    this.bytesPerTile = this.tileWidth * this.tileHeight;
     this.backColor = false;
-    this.graphics = new Uint8Array(64);
+    this.graphics = new Uint8Array(this.bytesPerTile);
     this.tilemap = new Uint32Array();
     this.spriteSheet = null;
     this.ss = 0; // sprite sheet index
@@ -2513,6 +2518,9 @@ ROMGraphicsView.prototype.selectObject = function(object) {
     this.definition = null;
     this.width = object.width || 16;
     this.height = object.height || 16;
+    this.tileWidth = object.tileWidth || 8;
+    this.tileHeight = object.tileHeight || 8;
+    this.bytesPerTile = this.tileWidth * this.tileHeight;
     this.backColor = object.backColor;
     this.selection = {x: 0, y: 0, w: 0, h: 0, tilemap: new Uint32Array};
     this.spriteSheet = null;
@@ -2614,10 +2622,8 @@ ROMGraphicsView.prototype.hide = function() {
 
 ROMGraphicsView.prototype.mouseDown = function(e) {
     this.closeList();
-    var x = e.offsetX / this.zoom;
-    var y = e.offsetY / this.zoom;
-    this.clickedCol = x >> 3;
-    this.clickedRow = y >> 3;
+    this.clickedCol = Math.floor(e.offsetX / this.zoom / this.tileWidth);
+    this.clickedRow = Math.floor(e.offsetY / this.zoom / this.tileHeight);
     this.mouseMove(e);
 
     // select the graphics object in editor mode
@@ -2637,8 +2643,8 @@ ROMGraphicsView.prototype.mouseOut = function(e) {
 
 ROMGraphicsView.prototype.mouseMove = function(e) {
 
-    var col = (e.offsetX / this.zoom) >> 3;
-    var row = (e.offsetY / this.zoom) >> 3;
+    var col = Math.floor(e.offsetX / this.zoom / this.tileWidth);
+    var row = Math.floor(e.offsetY / this.zoom / this.tileHeight);
     col = Math.min(col, this.width - 1);
     row = Math.min(row, this.height - 1);
 
@@ -2663,7 +2669,7 @@ ROMGraphicsView.prototype.mouseMove = function(e) {
     this.selection.h = rows;
     this.selection.tilemap = new Uint32Array(cols * rows);
     for (var y = 0; y < rows; y++) {
-        var begin = col + (row + y) * this.width; // + this.page * this.height * this.width;
+        var begin = col + (row + y) * this.width;
         var end = begin + cols;
         var line = this.tilemap.subarray(begin, end);
         this.selection.tilemap.set(line, y * cols);
@@ -2943,6 +2949,8 @@ ROMGraphicsView.prototype.updateToolbox = function() {
             graphics: self.graphics,
             palette: self.paletteView.palette,
             width: self.width,
+            tileWidth: self.tileWidth,
+            tileHeight: self.tileHeight,
             backColor: self.backColor
         });
     };
@@ -2995,9 +3003,12 @@ ROMGraphicsView.prototype.loadDefinition = function(definition) {
 
     // load graphics from the definition
     this.loadGraphics(definition);
+    if (!this.tileWidth) this.tileWidth = 8;
+    if (!this.tileHeight) this.tileHeight = 8;
+    this.bytesPerTile = this.tileWidth * this.tileHeight;
     if (!this.width) this.width = 16;
     if (!this.height) {
-        this.height = Math.ceil(this.graphics.length / 64 / this.width);
+        this.height = Math.ceil(this.graphics.length / this.bytesPerTile / this.width);
         // this.height = Math.min(this.height, 16); // maximum height is 16
     }
 
@@ -3057,6 +3068,8 @@ ROMGraphicsView.prototype.loadGraphics = function(definition) {
 
     if (definition.width) this.width = definition.width;
     if (definition.height) this.height = definition.height;
+    if (definition.tileWidth) this.tileWidth = definition.tileWidth;
+    if (definition.tileHeight) this.tileHeight = definition.tileHeight;
 
     var self = this;
     this.observer.startObserving(object, function() {
@@ -3194,8 +3207,7 @@ ROMGraphicsView.prototype.updateTilemap = function() {
     if (this.toolboxMode) {
 
         this.spriteSheet = null;
-        var tileCount = this.graphics.length >> 6;
-        var tilesPerPage = this.height * this.width;
+        var tileCount = Math.floor(this.graphics.length / this.bytesPerTile);
 
         this.tilemap = new Uint32Array(this.height * this.width);
         this.tilemap.fill(0xFFFFFFFF);
@@ -3206,7 +3218,7 @@ ROMGraphicsView.prototype.updateTilemap = function() {
     } else if (this.spriteSheet) {
         // use a sprite sheet
         this.width = this.spriteSheet.width || this.width;
-        this.height = this.spriteSheet.height || Math.ceil(this.graphics.length / 64 / this.width);
+        this.height = this.spriteSheet.height || Math.ceil(this.graphics.length / this.bytesPerTile / this.width);
         this.tilemap = new Uint32Array(this.height * this.width);
         this.tilemap.fill(0xFFFFFFFF);
         for (var t = 0; t < this.tilemap.length; t++) {
@@ -3217,7 +3229,7 @@ ROMGraphicsView.prototype.updateTilemap = function() {
     } else {
         // no sprite sheet
         if (this.object) this.width = this.object.width || 16;
-        this.height = Math.ceil(this.graphics.length / 64 / this.width) || 1;
+        this.height = Math.ceil(this.graphics.length / this.bytesPerTile / this.width) || 1;
         this.tilemap = new Uint32Array(this.height * this.width);
         this.tilemap.fill(0xFFFF);
         var p = (this.paletteView.p * this.paletteView.colorsPerPalette) << 16;
@@ -3227,7 +3239,6 @@ ROMGraphicsView.prototype.updateTilemap = function() {
     if (this.vFlip) {
         var vTilemap = new Uint32Array(this.tilemap.length);
         var t = 0;
-        // var pageOffset = 0;
         while (t < tileCount) {
             for (var y = 0; y < this.height; y++) {
                 for (var x = 0; x < this.width; x++) {
@@ -3242,7 +3253,6 @@ ROMGraphicsView.prototype.updateTilemap = function() {
     if (this.hFlip) {
         var hTilemap = new Uint32Array(this.tilemap.length);
         var t = 0;
-        // var pageOffset = 0;
         while (t < tileCount) {
             for (var y = 0; y < this.height; y++) {
                 for (var x = 0; x < this.width; x++) {
@@ -3256,10 +3266,10 @@ ROMGraphicsView.prototype.updateTilemap = function() {
 }
 
 ROMGraphicsView.prototype.scrollToSelection = function() {
-    var selectionHeight = this.selection.h * 8 * this.zoom;
+    var selectionHeight = this.selection.h * this.tileHeight * this.zoom;
     var clientHeight = this.canvasDiv.clientHeight;
 
-    var selectionTop = this.selection.y * 8 * this.zoom;
+    var selectionTop = this.selection.y * this.tileWidth * this.zoom;
     var selectionBottom = selectionTop + selectionHeight;
     var visibleTop = this.canvasDiv.scrollTop;
     var visibleBottom = visibleTop + clientHeight;
@@ -3288,8 +3298,8 @@ ROMGraphicsView.prototype.drawGraphics = function() {
     var palette = new Uint32Array(this.paletteView.palette);
 
     ppu.pal = this.rom.gammaCorrectedPalette(palette);
-    ppu.width = this.width * 8;
-    ppu.height = this.height * 8;
+    ppu.width = this.width * this.tileWidth;
+    ppu.height = this.height * this.tileHeight;
     if (ppu.height === 0) return;
 
     // layer 1
@@ -3302,6 +3312,8 @@ ROMGraphicsView.prototype.drawGraphics = function() {
     ppu.layers[0].z[3] = GFX.Z.top;
     ppu.layers[0].gfx = this.graphics;
     ppu.layers[0].tiles = this.tilemap;
+    ppu.layers[0].tileWidth = this.tileWidth;
+    ppu.layers[0].tileHeight = this.tileHeight;
     ppu.layers[0].main = true;
 
     // draw layout image
@@ -3330,7 +3342,7 @@ ROMGraphicsView.prototype.drawGraphics = function() {
             // max height same is 256 pixels in toolbox mode
             this.canvasDiv.height = 256;
         } else {
-            // hide scroll bars is less than max height
+            // hide scroll bars if less than max height
             this.canvasDiv.classList.remove("toolbox-scroll");
         }
 
@@ -3385,16 +3397,17 @@ ROMGraphicsView.prototype.drawCursor = function() {
     if (!this.selection.tilemap.length) return;
 
     // get the cursor geometry
-    var x = Math.round((this.selection.x * 8) * this.zoom);
-    var y = Math.round((this.selection.y * 8) * this.zoom);
-    var w = Math.round((this.selection.w * 8) * this.zoom);
-    var h = Math.round((this.selection.h * 8) * this.zoom);
+    var x = Math.round((this.selection.x * this.tileWidth) * this.zoom);
+    var y = Math.round((this.selection.y * this.tileHeight) * this.zoom);
+    var w = Math.round((this.selection.w * this.tileWidth) * this.zoom);
+    var h = Math.round((this.selection.h * this.tileHeight) * this.zoom);
 
-    w = Math.min(w, this.width * 8 * this.zoom - x);
-    h = Math.min(h, this.height * 8 * this.zoom - y);
+    w = Math.min(w, this.width * this.tileWidth * this.zoom - x);
+    h = Math.min(h, this.height * this.tileHeight * this.zoom - y);
 
     // draw the cursor
-    if (x > this.width * 8 * this.zoom || y > this.height * 8 * this.zoom) return;
+    if (x > this.width * this.tileWidth * this.zoom ||
+        y > this.height * this.tileHeight * this.zoom) return;
     if (w <= 0 || h <= 0) return;
 
     // convert the selection to screen coordinates
@@ -3431,6 +3444,8 @@ function ROMTilemapView(rom) {
     this.zoom = 2.0;
     this.width = 16; // width in tiles
     this.height = 16; // height in tiles
+    this.tileWidth = 8; // tile width in pixels
+    this.tileHeight = 8; // tile height in pixels
     this.backColor = false;
     this.object = null;
     this.tilemap = new Uint32Array();
@@ -3610,8 +3625,8 @@ ROMTilemapView.prototype.mouseDown = function(e) {
     this.closeList();
 
     this.clickPoint = {
-        x: (e.offsetX / this.zoom) >> 3,
-        y: (e.offsetY / this.zoom) >> 3,
+        x: Math.floor(e.offsetX / this.zoom / this.tileWidth),
+        y: Math.floor(e.offsetY / this.zoom / this.tileHeight),
         button: e.button
     };
     this.mousePoint = {
@@ -3640,9 +3655,9 @@ ROMTilemapView.prototype.mouseDown = function(e) {
 
 ROMTilemapView.prototype.mouseMove = function(e) {
 
-    var col = (e.offsetX / this.zoom) >> 3;
+    var col = Math.floor(e.offsetX / this.zoom / this.tileWidth);
     col = Math.min(Math.max(0, col), this.width - 1);
-    var row = (e.offsetY / this.zoom) >> 3;
+    var row = Math.floor(e.offsetY / this.zoom / this.tileHeight);
     row = Math.min(Math.max(0, row), this.height - 1);
 
     // update the displayed coordinates
@@ -3703,10 +3718,10 @@ ROMTilemapView.prototype.setTiles = function() {
     var cols = this.selection.w;
     var rows = this.selection.h;
 
-    var l = (col << 3);
-    var r = l + (cols << 3);
-    var t = (row << 3);
-    var b = t + (rows << 3);
+    var l = (col * this.tileWidth);
+    var r = l + (cols * this.tileWidth);
+    var t = (row * this.tileHeight);
+    var b = t + (rows * this.tileHeight);
     var rect = new Rect(l, r, t, b);
 
     var x = col;
@@ -3855,6 +3870,10 @@ ROMTilemapView.prototype.loadTilemap = function() {
     this.graphicsView.redraw();
     this.paletteView.redraw();
 
+    // use the tile size from the graphics view
+    this.tileWidth = this.graphicsView.tileWidth;
+    this.tileHeight = this.graphicsView.tileHeight;
+
     // copy the tilemap
     this.tilemap = new Uint32Array(this.height * this.width);
     if (this.object.data) {
@@ -3922,8 +3941,8 @@ ROMTilemapView.prototype.drawTilemap = function() {
 
     // set up the ppu
     ppu.pal = this.rom.gammaCorrectedPalette(palette);
-    ppu.width = this.width * 8;
-    ppu.height = this.height * 8;
+    ppu.width = this.width * this.tileWidth;
+    ppu.height = this.height * this.tileHeight;
 
     // layer 1
     ppu.layers[0].format = null;
@@ -3935,6 +3954,8 @@ ROMTilemapView.prototype.drawTilemap = function() {
     ppu.layers[0].z[3] = GFX.Z.top;
     ppu.layers[0].gfx = this.graphicsView.graphics;
     ppu.layers[0].tiles = this.tilemap;
+    ppu.layers[0].tileWidth = this.tileWidth;
+    ppu.layers[0].tileHeight = this.tileHeight;
     ppu.layers[0].main = true;
 
     // draw tilemap image
@@ -3964,6 +3985,8 @@ ROMTilemapView.prototype.drawMask = function() {
     ctx.globalCompositeOperation = 'source-over';
 
     // draw the mask at each tile
+    var width = this.tileWidth * this.zoom;
+    var height = this.tileHeight * this.zoom;
     for (var y = 0; y < this.height; y++) {
         for (var x = 0; x < this.width; x++) {
 
@@ -3972,11 +3995,10 @@ ROMTilemapView.prototype.drawMask = function() {
             if (!color) continue;
             ctx.fillStyle = color;
 
-            var left = (x << 3) * this.zoom;
-            var top = (y << 3) * this.zoom;
-            var size = 8 * this.zoom;
+            var left = x * this.tileWidth * this.zoom;
+            var top = y * this.tileHeight * this.zoom;
 
-            ctx.fillRect(left, top, size, size);
+            ctx.fillRect(left, top, width, height);
         }
     }
 }
@@ -4003,14 +4025,14 @@ ROMTilemapView.prototype.drawCursor = function() {
     var row = this.selection.y;
 
     // get the cursor geometry and color
-    var x = (col << 3) * this.zoom;
-    var y = (row << 3) * this.zoom;
-    var w = (this.selection.w << 3) * this.zoom;
-    var h = (this.selection.h << 3) * this.zoom;
+    var x = col * this.tileWidth * this.zoom;
+    var y = row * this.tileHeight * this.zoom;
+    var w = this.selection.w * this.tileWidth * this.zoom;
+    var h = this.selection.h * this.tileHeight * this.zoom;
 
     // draw the cursor
-    w = Math.min(this.width * 8 * this.zoom - x, w);
-    h = Math.min(this.height * 8 * this.zoom - y, h);
+    w = Math.min(this.width * this.tileWidth * this.zoom - x, w);
+    h = Math.min(this.height * this.tileHeight * this.zoom - y, h);
     if (w <= 0 || h <= 0) return;
 
     // set up the cursor canvas
@@ -4382,8 +4404,8 @@ ROMTilemapView.prototype.exportTilemap = function() {
 
     // set up the ppu
     ppu.pal = this.rom.gammaCorrectedPalette(palette);
-    ppu.width = this.width * 8;
-    ppu.height = this.height * 8;
+    ppu.width = this.width * this.tileWidth;
+    ppu.height = this.height * this.tileHeight;
 
     // layer 1
     ppu.layers[0].format = null;
@@ -4395,9 +4417,11 @@ ROMTilemapView.prototype.exportTilemap = function() {
     ppu.layers[0].z[3] = GFX.Z.top;
     ppu.layers[0].gfx = this.graphicsView.graphics;
     ppu.layers[0].tiles = this.tilemap;
+    ppu.layers[0].tileWidth = this.tileWidth;
+    ppu.layers[0].tileHeight = this.tileHeight;
     ppu.layers[0].main = true;
 
-    var image = ppu.createPNG(0, 0, this.width * 8, this.height * 8);
+    var image = ppu.createPNG(0, 0, this.width * this.tileWidth, this.height * this.tileHeight);
     var blob = new Blob([image.buffer]);
     url = window.URL.createObjectURL(blob);
 
@@ -4422,6 +4446,8 @@ ROMGraphicsExporter.prototype.export = function(options) {
     this.tilemap = new Uint32Array(options.tilemap || 0);
     this.width = options.width || 16;
     this.height = options.height || Math.ceil(this.tilemap.length / this.width);
+    this.tileWidth = options.tileWidth || 8;
+    this.tileHeight = options.tileHeight || 8;
     if (!options.backColor) this.palette[0] = 0;
 
     // open a dialog box
@@ -4505,14 +4531,16 @@ ROMGraphicsExporter.prototype.exportGraphics = function(formatKey) {
 
     var ppu = new GFX.PPU();
     ppu.pal = this.palette;
-    ppu.height = this.height * 8;
-    ppu.width = this.width * 8;
+    ppu.width = this.width * this.tileWidth;
+    ppu.height = this.height * this.tileHeight;
     ppu.back = true;
     ppu.layers[0].cols = this.width;
     ppu.layers[0].rows = this.height;
     ppu.layers[0].z[0] = GFX.Z.top;
     ppu.layers[0].gfx = this.graphics;
     ppu.layers[0].tiles = this.tilemap;
+    ppu.layers[0].tileWidth = this.tileWidth;
+    ppu.layers[0].tileHeight = this.tileHeight;
     ppu.layers[0].main = true;
 
     if (formatKey === "indexed") {
@@ -4580,24 +4608,27 @@ function ROMGraphicsImporter(rom, graphicsView, callback) {
     this.graphicsLeft.backColor = graphicsView.backColor;
     this.graphicsLeft.width = graphicsView.width || 16;
     this.graphicsLeft.height = graphicsView.height || 16;
-    this.graphicsLeft.graphics = new Uint8Array(this.graphicsLeft.width * this.graphicsLeft.height * 64);
+    this.graphicsLeft.tileWidth = graphicsView.tileWidth || 8;
+    this.graphicsLeft.tileHeight = graphicsView.tileHeight || 8;
+    this.graphicsLeft.bytesPerTile = this.graphicsLeft.tileWidth * this.graphicsLeft.tileHeight;
+    this.graphicsLeft.graphics = new Uint8Array(this.graphicsLeft.width * this.graphicsLeft.height * this.graphicsLeft.bytesPerTile);
     this.graphicsLeft.tilemap = null;
     this.graphicsLeft.spriteSheet = null;
     // this.graphicsLeft.canvasDiv.classList.add("background-gradient");
     if (graphicsView.selection.tilemap.length > 1) {
-      this.graphicsLeft.selection = {
-          x: 0, y: 0,
-          w: graphicsView.selection.w,
-          h: graphicsView.selection.h,
-          tilemap: new Uint32Array(this.graphicsLeft.width * this.graphicsLeft.height)
-      };
+        this.graphicsLeft.selection = {
+            x: 0, y: 0,
+            w: graphicsView.selection.w,
+            h: graphicsView.selection.h,
+            tilemap: new Uint32Array(this.graphicsLeft.width * this.graphicsLeft.height)
+        };
     } else {
-      this.graphicsLeft.selection = {
-          x: 0, y: 0,
-          w: this.graphicsLeft.width,
-          h: this.graphicsLeft.height,
-          tilemap: new Uint32Array(this.graphicsLeft.width * this.graphicsLeft.height)
-      };
+        this.graphicsLeft.selection = {
+            x: 0, y: 0,
+            w: this.graphicsLeft.width,
+            h: this.graphicsLeft.height,
+            tilemap: new Uint32Array(this.graphicsLeft.width * this.graphicsLeft.height)
+        };
     }
     this.graphicsLeft.canvas.onmousedown = function(e) {
         importer.graphicsLeft.mouseDown(e);
@@ -4624,24 +4655,27 @@ function ROMGraphicsImporter(rom, graphicsView, callback) {
     this.graphicsRight.backColor = graphicsView.backColor;
     this.graphicsRight.width = graphicsView.width || 16;
     this.graphicsRight.height = graphicsView.height || 16;
+    this.graphicsRight.tileWidth = graphicsView.tileWidth || 8;
+    this.graphicsRight.tileHeight = graphicsView.tileHeight || 8;
+    this.graphicsRight.bytesPerTile = this.graphicsRight.tileWidth * this.graphicsRight.tileHeight;
     this.graphicsRight.tilemap = graphicsView.tilemap;
     this.graphicsRight.spriteSheet = graphicsView.spriteSheet;
     // this.graphicsRight.canvasDiv.classList.add("background-gradient");
     if (graphicsView.selection.tilemap.length > 1) {
-      this.graphicsRight.selection = {
-        x: graphicsView.selection.x,
-        y: graphicsView.selection.y,
-        w: graphicsView.selection.w,
-        h: graphicsView.selection.h,
-          tilemap: new Uint32Array(this.graphicsRight.width * this.graphicsRight.height)
-      };
+        this.graphicsRight.selection = {
+            x: graphicsView.selection.x,
+            y: graphicsView.selection.y,
+            w: graphicsView.selection.w,
+            h: graphicsView.selection.h,
+            tilemap: new Uint32Array(this.graphicsRight.width * this.graphicsRight.height)
+        };
     } else {
-      this.graphicsRight.selection = {
-          x: 0, y: 0,
-          w: this.graphicsLeft.width,
-          h: this.graphicsLeft.height,
-          tilemap: new Uint32Array(this.graphicsRight.width * this.graphicsRight.height)
-      };
+        this.graphicsRight.selection = {
+            x: 0, y: 0,
+            w: this.graphicsLeft.width,
+            h: this.graphicsLeft.height,
+            tilemap: new Uint32Array(this.graphicsRight.width * this.graphicsRight.height)
+        };
     }
     this.graphicsRight.canvas.onmousedown = function(e) {
         importer.graphicsRight.mouseDown(e);
@@ -4912,10 +4946,10 @@ ROMGraphicsImporter.prototype.resize = function() {
     // show scroll bars before calculating zoom
     this.graphicsPreviewLeft.style.overflowX = "hidden";
     this.graphicsPreviewLeft.style.overflowY = "scroll";
-    this.graphicsLeft.zoom = Math.min(this.graphicsPreviewLeft.clientWidth / this.graphicsLeft.width / 8, 4.0);
-    if (this.graphicsLeft.height * 8 * this.graphicsLeft.zoom <= width) {
+    this.graphicsLeft.zoom = Math.min(this.graphicsPreviewLeft.clientWidth / this.graphicsLeft.width / this.graphicsLeft.tileWidth, 4.0);
+    if (this.graphicsLeft.height * this.graphicsLeft.tileHeight * this.graphicsLeft.zoom <= width) {
         // no scroll bar
-        this.graphicsPreviewLeft.style.height = this.graphicsLeft.height * 8 * this.graphicsLeft.zoom + "px";
+        this.graphicsPreviewLeft.style.height = this.graphicsLeft.height * this.graphicsLeft.tileHeight * this.graphicsLeft.zoom + "px";
         this.graphicsPreviewLeft.style.overflowY = "hidden";
 
     } else {
@@ -4923,19 +4957,19 @@ ROMGraphicsImporter.prototype.resize = function() {
         this.graphicsPreviewLeft.style.height = width + "px";
     }
     // recalculate zoom
-    this.graphicsLeft.zoom = Math.min(this.graphicsPreviewLeft.clientWidth / this.graphicsLeft.width / 8, 4.0);
-    this.graphicsLeft.canvasDiv.style.height = this.graphicsLeft.height * 8 * this.graphicsLeft.zoom + "px";
-    this.graphicsLeft.canvasDiv.style.width = this.graphicsLeft.width * 8 * this.graphicsLeft.zoom + "px";
+    this.graphicsLeft.zoom = Math.min(this.graphicsPreviewLeft.clientWidth / this.graphicsLeft.width / this.graphicsLeft.tileWidth, 4.0);
+    this.graphicsLeft.canvasDiv.style.height = this.graphicsLeft.height * this.graphicsLeft.tileHeight * this.graphicsLeft.zoom + "px";
+    this.graphicsLeft.canvasDiv.style.width = this.graphicsLeft.width * this.graphicsLeft.tileWidth * this.graphicsLeft.zoom + "px";
 
     this.graphicsPreviewRight.style.width = width + "px";
 
     // show scroll bars before calculating zoom
     this.graphicsPreviewRight.style.overflowX = "hidden";
     this.graphicsPreviewRight.style.overflowY = "scroll";
-    this.graphicsRight.zoom = Math.min(this.graphicsPreviewRight.clientWidth / this.graphicsRight.width / 8, 4.0);
-    if (this.graphicsRight.height * 8 * this.graphicsRight.zoom <= width) {
+    this.graphicsRight.zoom = Math.min(this.graphicsPreviewRight.clientWidth / this.graphicsRight.width / this.graphicsRight.tileWidth, 4.0);
+    if (this.graphicsRight.height * this.graphicsRight.tileHeight * this.graphicsRight.zoom <= width) {
         // no scroll bar
-        this.graphicsPreviewRight.style.height = this.graphicsRight.height * 8 * this.graphicsRight.zoom + "px";
+        this.graphicsPreviewRight.style.height = this.graphicsRight.height * this.graphicsRight.tileHeight * this.graphicsRight.zoom + "px";
         this.graphicsPreviewRight.style.overflowY = "hidden";
 
     } else {
@@ -4943,9 +4977,9 @@ ROMGraphicsImporter.prototype.resize = function() {
         this.graphicsPreviewRight.style.height = width + "px";
     }
     // recalculate zoom
-    this.graphicsRight.zoom = Math.min(this.graphicsPreviewRight.clientWidth / this.graphicsRight.width / 8, 4.0);
-    this.graphicsRight.canvasDiv.style.height = this.graphicsRight.height * 8 * this.graphicsRight.zoom + "px";
-    this.graphicsRight.canvasDiv.style.width = this.graphicsRight.width * 8 * this.graphicsRight.zoom + "px";
+    this.graphicsRight.zoom = Math.min(this.graphicsPreviewRight.clientWidth / this.graphicsRight.width / this.graphicsRight.tileWidth, 4.0);
+    this.graphicsRight.canvasDiv.style.height = this.graphicsRight.height * this.graphicsRight.tileHeight * this.graphicsRight.zoom + "px";
+    this.graphicsRight.canvasDiv.style.width = this.graphicsRight.width * this.graphicsRight.tileWidth * this.graphicsRight.zoom + "px";
 
     this.paletteLeft.resize(width);
     this.paletteRight.resize(width);
@@ -5031,7 +5065,7 @@ ROMGraphicsImporter.prototype.updateImportPreview = function() {
             importer.paletteLeft.palette.fill(0xFF000000)
             importer.graphicsLeft.width = importer.graphicsRight.width;
             importer.graphicsLeft.height = importer.graphicsRight.height;
-            importer.graphicsLeft.graphics = new Uint8Array(importer.graphicsLeft.width * importer.graphicsLeft.height * 64);
+            importer.graphicsLeft.graphics = new Uint8Array(importer.graphicsLeft.width * importer.graphicsLeft.height * this.graphicsLeft.bytesPerTile);
 
             importer.resize();
             importer.drawImportPreview();
@@ -5059,11 +5093,12 @@ ROMGraphicsImporter.prototype.updateImportPreview = function() {
             var graphics = indexed.graphics;
             this.graphicsLeft.graphics = indexed.graphics;
 
-            // interlace to convert to 8x8 tiles
-            this.graphicsLeft.width = indexed.width >> 3;
-            this.graphicsLeft.height = indexed.height >> 3;
+            this.graphicsLeft.width = Math.floor(indexed.width / this.graphicsLeft.tileWidth);
+            this.graphicsLeft.height = Math.floor(indexed.height / this.graphicsLeft.tileHeight);
 
-            this.graphicsLeft.graphics = ROM.dataFormat.interlace.decode(graphics, 8, 8, indexed.width >> 3)[0];
+            this.graphicsLeft.graphics = ROM.dataFormat.interlace.decode(graphics,
+                this.graphicsLeft.tileWidth, this.graphicsLeft.tileHeight,
+                this.graphicsLeft.width)[0];
 
             this.resize();
             this.validateSelection();
@@ -5073,7 +5108,7 @@ ROMGraphicsImporter.prototype.updateImportPreview = function() {
         } else {
             this.graphicsLeft.width = this.graphicsRight.width;
             this.graphicsLeft.height = this.graphicsRight.height;
-            this.graphicsLeft.graphics = new Uint8Array(this.graphicsLeft.width * this.graphicsLeft.height * 64);
+            this.graphicsLeft.graphics = new Uint8Array(this.graphicsLeft.width * this.graphicsLeft.height * this.graphicsLeft.bytesPerTile);
 
             this.resize();
             this.validateSelection();
@@ -5146,7 +5181,7 @@ ROMGraphicsImporter.prototype.copyGraphics = function() {
     if (!this.includeGraphics) return;
 
     // blank tile for comparison
-    var blankTile = new Uint8Array(64);
+    var blankTile = new Uint8Array(this.graphicsLeft.bytesPerTile);
 
     // set the graphics on the right
     var colorDepth = this.graphicsRight.format.colorsPerPalette;
@@ -5158,21 +5193,19 @@ ROMGraphicsImporter.prototype.copyGraphics = function() {
             // get the tile
             var begin = this.graphicsLeft.selection.x + x;
             begin += (this.graphicsLeft.selection.y + y) * this.graphicsLeft.width;
-            begin *= 64;
-            var end = begin + 64;
+            begin *= this.graphicsLeft.bytesPerTile;
+            var end = begin + this.graphicsLeft.bytesPerTile;
             var tile = this.graphicsLeft.graphics.subarray(begin, end);
 
             // modulo colors by the color depth
-            for (var i = 0; i < tile.length; i++) {
-                tile[i] %= colorDepth;
-            }
+            for (var i = 0; i < tile.length; i++) tile[i] %= colorDepth;
 
             // skip blank tiles
             if (this.ignoreBlankTiles && compareTypedArrays(tile, blankTile)) continue;
 
             var offset = this.graphicsRight.selection.x + x;
             offset += (this.graphicsRight.selection.y + y) * this.graphicsRight.width;
-            offset *= 64;
+            offset *= this.graphicsLeft.bytesPerTile;
             if (offset >= this.graphicsRight.graphics.length) break;
             this.graphicsRight.graphics.set(tile, offset);
         }
@@ -5194,7 +5227,7 @@ ROMGraphicsImporter.prototype.copySpriteSheet = function() {
     if (!this.includeGraphics) return;
 
     // blank tile for comparison
-    var blankTile = new Uint8Array(64);
+    var blankTile = new Uint8Array(this.graphicsLeft.bytesPerTile);
 
     // find the first instance of each tile
     var tileGraphics = [];
@@ -5222,14 +5255,12 @@ ROMGraphicsImporter.prototype.copySpriteSheet = function() {
             var yLeft = this.graphicsLeft.selection.y + y;
             if (yLeft >= this.graphicsLeft.height) continue;
 
-            var begin = (xLeft + yLeft * this.graphicsLeft.width) * 64;
-            var end = begin + 64;
+            var begin = (xLeft + yLeft * this.graphicsLeft.width) * this.graphicsLeft.bytesPerTile;
+            var end = begin + this.graphicsLeft.bytesPerTile;
             var tile = this.graphicsLeft.graphics.slice(begin, end);
 
             // modulo colors by the color depth
-            for (var i = 0; i < 64; i++) {
-                tile[i] %= this.graphicsRight.format.colorsPerPalette;
-            }
+            for (var i = 0; i < tile.length; i++) tile[i] %= this.graphicsRight.format.colorsPerPalette;
 
             // skip blank tiles
             if (this.ignoreBlankTiles && compareTypedArrays(tile, blankTile)) continue;
@@ -5248,7 +5279,7 @@ ROMGraphicsImporter.prototype.copySpriteSheet = function() {
     }
 
     // copy tiles to right graphics
-    var maxTiles = this.graphicsRight.graphics.length >> 6;
+    var maxTiles = Math.floor(this.graphicsRight.graphics.length / this.graphicsRight.bytesPerTile);
     for (var t = 0; t < tileGraphics.length; t++) {
         // skip tiles that were not found
         if (!tileGraphics[t]) continue;
@@ -5257,7 +5288,7 @@ ROMGraphicsImporter.prototype.copySpriteSheet = function() {
         if (t >= maxTiles) continue;
 
         // copy the tile
-        this.graphicsRight.graphics.set(tileGraphics[t], t * 64);
+        this.graphicsRight.graphics.set(tileGraphics[t], t * this.graphicsRight.bytesPerTile);
     }
 }
 
@@ -5312,7 +5343,7 @@ ROMGraphicsImporter.prototype.quantizeImage = function(img) {
     var options = {
         colors: colorDepth,      // desired palette size
         method: 2,               // histogram method, 2: min-population threshold within subregions; 1: global top-population
-        boxSize: [8,8],          // subregion dims (if method = 2)
+        boxSize: [this.graphicsRight.tileWidth, this.graphicsRight.tileHeight],          // subregion dims (if method = 2)
         boxPxls: 2,              // min-population threshold (if method = 2)
         initColors: 4096,        // # of top-occurring colors  to start with (if method = 1)
         minHueCols: 0,           // # of colors per hue group to evaluate regardless of counts, to retain low-count hues
@@ -5353,9 +5384,11 @@ ROMGraphicsImporter.prototype.quantizeImage = function(img) {
         }
     }
 
-    this.graphicsLeft.width = img.width >> 3;
-    this.graphicsLeft.height = img.height >> 3;
+    this.graphicsLeft.width = Math.floor(img.width / this.graphicsLeft.tileWidth);
+    this.graphicsLeft.height = Math.floor(img.height / this.graphicsLeft.tileHeight);
 
     // interlace to convert to 8x8 tiles
-    this.graphicsLeft.graphics = ROM.dataFormat.interlace.decode(graphics, 8, 8, this.graphicsLeft.width)[0];
+    this.graphicsLeft.graphics = ROM.dataFormat.interlace.decode(graphics,
+        this.graphicsLeft.tileWidth, this.graphicsLeft.tileHeight,
+        this.graphicsLeft.width)[0];
 }

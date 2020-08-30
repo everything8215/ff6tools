@@ -676,8 +676,10 @@ function ROMGraphics(rom, definition, parent) {
     ROMAssembly.call(this, rom, definition, parent);
 
     this.palette = definition.palette;
-    this.width = definition.width; // width in 8x8 tiles
-    this.height = definition.height; // height in 8x8 tiles
+    this.width = definition.width; // width in tiles
+    this.height = definition.height; // height in tiles
+    this.tileWidth = definition.tileWidth || 8; // tile width in pixels
+    this.tileHeight = definition.tileHeight || 8; // tile height in pixels
     this.backColor = (definition.backColor === true); // no transparent color
     this.spriteSheet = definition.spriteSheet;
 }
@@ -691,6 +693,8 @@ Object.defineProperty(ROMGraphics.prototype, "definition", { get: function() {
     if (this.palette) definition.palette = this.palette;
     if (this.width) definition.width = this.width;
     if (this.height) definition.height = this.height;
+    if (this.tileWidth !== 8) definition.tileWidth = this.tileWidth;
+    if (this.tileHeight !== 8) definition.tileHeight = this.tileHeight;
     if (this.backColor) definition.backColor = true;
     if (this.spriteSheet) definition.spriteSheet = this.spriteSheet;
 

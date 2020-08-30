@@ -261,6 +261,10 @@
                     "name": "SNES Header",
                     "path": "snesHeader"
                 }, {
+                    "path": "fontGraphicsSmall"
+                }, {
+                    "path": "fontGraphicsLarge"
+                }, {
                     "name": "Menu Window",
                     "path": "windowGraphics"
                 }
@@ -3309,6 +3313,32 @@
                     "height": 10,
                     "backColor": true
                 }
+            }
+        },
+        "fontGraphicsLarge": {
+            "type": "graphics",
+            "name": "Large Font Graphics",
+            "range": "0xC494C0-0xC50000",
+            "format": ["linear1bpp(1)", "byteSwapped(2)"],
+            "tileWidth": 16,
+            "tileHeight": 11
+        },
+        "fontGraphicsSmall": {
+            "type": "graphics",
+            "name": "Small Font Graphics",
+            "range": "0xC47FC0-0xC48FC0",
+            "format": "snes2bpp",
+            "palette": "fontPalette"
+        },
+        "fontPalette": {
+            "type": "array",
+            "name": "Font Palette",
+            "range": "0xD8E800-0xD8E8A0",
+            "arrayLength": 40,
+            "assembly": {
+                "type": "assembly",
+                "length": 8,
+                "format": "bgr555"
             }
         },
         "initialLore": {
@@ -9372,7 +9402,19 @@
                 "length": "0x0380",
                 "format": "snes4bpp",
                 "palette": "windowPalette[%i]",
-                "width": 4
+                "width": 4,
+                "spriteSheet": {
+                    "width": 6,
+                    "height": 6,
+                    "tilemap": [
+                        16,17,18,17,18,19,
+                        20, 0, 1, 2, 3,21,
+                        22, 4, 5, 6, 7,23,
+                        20, 8, 9,10,11,21,
+                        22,12,13,14,15,23,
+                        24,25,26,25,26,27
+                    ]
+                }
             }
         },
         "windowPalette": {
@@ -14816,10 +14858,7 @@
                 "0xD5": "→",
                 "0xD6": "↙",
                 "0xD7": "×",
-                "0xE0": "・",
-                "0xF5": "\\black",
-                "0xF6": "\\effect",
-                "0xF7": "\\white"
+                "0xE0": "・"
             }
         },
         "swdTech": {

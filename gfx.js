@@ -43,7 +43,6 @@ var GFX = {
             key: "linear8bpp",
             name: "Linear 8bpp",
             colorDepth: 8,
-            bytesPerTile: 64,
             colorsPerPalette: 256,
             encode: function(data) {
                 return [new Uint8Array(data.buffer), data.length];
@@ -56,7 +55,6 @@ var GFX = {
             key: "linear4bpp",
             name: "Linear 4bpp",
             colorDepth: 4,
-            bytesPerTile: 32,
             colorsPerPalette: 16,
             encode: function(data, reverse) {
                 // 8-bit source, 8-bit destination
@@ -111,7 +109,6 @@ var GFX = {
             key: "linear2bpp",
             name: "Linear 2bpp",
             colorDepth: 2,
-            bytesPerTile: 16,
             colorsPerPalette: 4,
             encode: function(data, reverse) {
                 // 8-bit source, 8-bit destination
@@ -175,7 +172,6 @@ var GFX = {
             key: "linear1bpp",
             name: "Linear 1bpp",
             colorDepth: 1,
-            bytesPerTile: 8,
             colorsPerPalette: 2,
             encode: function(data, reverse) {
 
@@ -255,7 +251,6 @@ var GFX = {
             key: "nes2bpp",
             name: "NES 2bpp",
             colorDepth: 2,
-            bytesPerTile: 16,
             colorsPerPalette: 4,
             encode: function(data) {
                 // 8-bit source, 8-bit destination
@@ -313,7 +308,6 @@ var GFX = {
             key: "snes4bpp",
             name: "SNES 4bpp",
             colorDepth: 4,
-            bytesPerTile: 32,
             colorsPerPalette: 16,
             encode: function(data) {
                 // 8-bit source, 8-bit destination
@@ -377,7 +371,6 @@ var GFX = {
             key: "snes3bpp",
             name: "SNES 3bpp",
             colorDepth: 3,
-            bytesPerTile: 24,
             colorsPerPalette: 8,
             encode: function(data) {
                 // 8-bit source, 8-bit destination
@@ -443,7 +436,6 @@ var GFX = {
             key: "snes2bpp",
             name: "SNES 2bpp",
             colorDepth: 2,
-            bytesPerTile: 8,
             colorsPerPalette: 4,
             encode: function(data) {
                 // 8-bit source, 8-bit destination
@@ -1271,46 +1263,93 @@ var GFX = {
                 }
                 return [dest, data.byteLength];
             }
+        },
+        x16_4bppTile: {
+            //                   vhpppptt tttttttt
+            // --vh---z -ppp---- ------tt tttttttt
+            key: "x164bppTile",
+            name: "X16 4bpp Tile",
+            maxTiles: 1024,
+            colorsPerPalette: 16,
+            maxZ: 0,
+            hFlip: true,
+            vFlip: true,
+            encode: function(data) {
+                // 32-bit source, 16-bit destination
+                var src = new Uint32Array(data.buffer, data.byteOffset, data.byteLength >> 2);
+                var dest = new Uint16Array(src.length);
+
+                var s = 0;
+                var d = 0;
+                var t, tile;
+
+                while (s < src.length) {
+                    t = src[s++];
+                    tile = t & 0x000003FF;
+                    tile |= (t & 0x00F00000) >> 10;
+                    tile |= (t & 0x30000000) >> 14;
+                    dest[d++] = tile;
+                }
+                return [new Uint8Array(dest.buffer), data.byteLength];
+            },
+            decode: function(data) {
+                // 16-bit source, 32-bit destination
+                var src = new Uint16Array(data.buffer, data.byteOffset, data.byteLength >> 1);
+                var dest = new Uint32Array(src.length);
+
+                var s = 0;
+                var d = 0;
+                var t, tile;
+
+                while (s < src.length) {
+                    t = src[s++];
+                    tile = t & 0x03FF;
+                    tile |= (t & 0x3C00) << 10;
+                    tile |= (t & 0xC000) << 14;
+                    dest[d++] = tile;
+                }
+                return [dest, data.byteLength];
+            }
         }
     },
 
-    createPNG: function(gfx, pal, ppl) {
-        // de-interlace 8x8 tiles
-        var h = Math.ceil(gfx.length / ppl / 8) * 8;
-        var dest = new Uint8Array(ppl * h);
-
-        var g = 0;
-        var d = 0;
-        var x = 0;
-        var y, p;
-        while (g < gfx.length) {
-            y = d + x;
-            for (var line = 0; line < 8; line++) {
-                p = y;
-                dest[p++] = gfx[g++];
-                dest[p++] = gfx[g++];
-                dest[p++] = gfx[g++];
-                dest[p++] = gfx[g++];
-                dest[p++] = gfx[g++];
-                dest[p++] = gfx[g++];
-                dest[p++] = gfx[g++];
-                dest[p++] = gfx[g++];
-                y += ppl;
-            }
-            x += 8;
-            if (x >= ppl) {
-                x = 0;
-                d += 8 * ppl;
-            }
-        }
-
-        return pzntg.create({
-            width: ppl,
-            height: h,
-            pixels: dest,
-            palette: pal
-        });
-    },
+    // createPNG: function(gfx, pal, ppl) {
+    //     // de-interlace 8x8 tiles
+    //     var h = Math.ceil(gfx.length / ppl / 8) * 8;
+    //     var dest = new Uint8Array(ppl * h);
+    //
+    //     var g = 0;
+    //     var d = 0;
+    //     var x = 0;
+    //     var y, p;
+    //     while (g < gfx.length) {
+    //         y = d + x;
+    //         for (var line = 0; line < 8; line++) {
+    //             p = y;
+    //             dest[p++] = gfx[g++];
+    //             dest[p++] = gfx[g++];
+    //             dest[p++] = gfx[g++];
+    //             dest[p++] = gfx[g++];
+    //             dest[p++] = gfx[g++];
+    //             dest[p++] = gfx[g++];
+    //             dest[p++] = gfx[g++];
+    //             dest[p++] = gfx[g++];
+    //             y += ppl;
+    //         }
+    //         x += 8;
+    //         if (x >= ppl) {
+    //             x = 0;
+    //             d += 8 * ppl;
+    //         }
+    //     }
+    //
+    //     return pzntg.create({
+    //         width: ppl,
+    //         height: h,
+    //         pixels: dest,
+    //         palette: pal
+    //     });
+    // },
 
     mathNone: function(c1) {
         return c1;
@@ -1420,6 +1459,8 @@ var GFX = {
             this.main = false;
             this.sub = false;
             this.math = false;
+            this.tileWidth = 8;
+            this.tileHeight = 8;
         }
         this.layers = [new Layer(), new Layer(), new Layer(), new Layer()];
         this.height = 0;
@@ -1438,7 +1479,7 @@ var GFX = {
             for (var c = 0; c < 256; c++) this.pal[c] = c;
 
             // render the graphics to a Uint32Array
-            var pixels32 = new Uint32Array(width * height * 64);
+            var pixels32 = new Uint32Array(width * height);
             this.renderPPU(pixels32, x, y, width, height);
 
             // convert to an 8-bit array
@@ -1477,10 +1518,12 @@ var GFX = {
             var d = 0; // destination buffer location
             var l; // layer index
             var layer;
+            var bytesPerTile;
 
-            var ly, lx;
-            var tx, ty;
-            var i, c, s, t, p, z, h, v, m;
+            var ly, lx; // layer position
+            var tx, ty; // tile position
+            var tw, th; // tile size
+            var i, c, s, t, p, z, h, v, m; // tile parameters
 
             // color math as determined by ppu
             var math = GFX.mathNone;
@@ -1528,117 +1571,119 @@ var GFX = {
 
             // --vhzzzz pppppppp mmmmmmmm mmmmmmmm
             function updateTileGeneric() {
-                var row = (ly >> 3) % layer.rows;
-                var col = (lx >> 3) % layer.cols;
+                var col = Math.floor(lx / tw) % layer.cols;
+                var row = Math.floor(ly / th) % layer.rows;
                 t = layer.tiles[col + row * layer.cols];
                 p = (t & 0x00FF0000) >> 16; // palette
                 z = (t & 0x0F000000) >> 24; // z-level
                 h = (t & 0x10000000); // horizontal flip
                 v = (t & 0x20000000); // vertical flip
-                t = (t & 0x0000FFFF) << 6; // tile index
-                ty = (v ? (7 - (ly & 7)) : (ly & 7)) << 3;
+                t = (t & 0x0000FFFF) * bytesPerTile; // tile index
+                ty = (v ? (th - (ly % th) - 1) : (ly % th)) * tw;
                 m = 255;
             }
 
             // mmmmmmmm
             function updateTileGBA8bpp() {
-                var row = (ly >> 3) % layer.rows;
-                var col = (lx >> 3) % layer.cols;
+                var col = Math.floor(lx / tw) % layer.cols;
+                var row = Math.floor(ly / th) % layer.rows;
                 t = layer.tiles[col + row * layer.cols];
                 p = 0; // palette
                 z = 0; // z-level
                 h = 0; // horizontal flip
                 v = 0; // vertical flip
-                t = (t & 0xFF) << 6; // tile index
-                ty = (v ? (7 - (ly & 7)) : (ly & 7)) << 3;
+                t = (t & 0xFF) * bytesPerTile; // tile index
+                ty = (v ? (th - (ly % th) - 1) : (ly % th)) * tw;
                 m = 255;
             }
 
             // zpppvhmm mmmmmmmm
             function updateTileGBA4bpp() {
-                var row = (ly >> 3) % layer.rows;
-                var col = (lx >> 3) % layer.cols;
+                var col = Math.floor(lx / tw) % layer.cols;
+                var row = Math.floor(ly / th) % layer.rows;
                 t = layer.tiles[col + row * layer.cols];
                 p = (t & 0x7000) >> 8; // palette
                 z = (t & 0x8000) >> 15; // z-level
                 h = (t & 0x0400); // horizontal flip
                 v = (t & 0x0800); // vertical flip
-                t = (t & 0x03FF) << 6; // tile index
-                ty = (v ? (7 - (ly & 7)) : (ly & 7)) << 3;
+                t = (t & 0x03FF) * bytesPerTile; // tile index
+                ty = (v ? (th - (ly % th) - 1) : (ly % th)) * tw;
                 m = 15;
             }
 
             // zpppvhmm mmmmmmmm
             function updateTileGBA2bpp() {
-                var row = (ly >> 3) % layer.rows;
-                var col = (lx >> 3) % layer.cols;
+                var col = Math.floor(lx / tw) % layer.cols;
+                var row = Math.floor(ly / th) % layer.rows;
                 t = layer.tiles[col + row * layer.cols];
                 p = (t & 0x7000) >> 10; // palette
                 z = (t & 0x8000) >> 15; // z-level
                 h = (t & 0x0400); // horizontal flip
                 v = (t & 0x0800); // vertical flip
-                t = (t & 0x03FF) << 6; // tile index
-                ty = (v ? (7 - (ly & 7)) : (ly & 7)) << 3;
+                t = (t & 0x03FF) * bytesPerTile; // tile index
+                ty = (v ? (th - (ly % th) - 1) : (ly % th)) * tw;
                 m = 3;
             }
 
             // vhzpppmm mmmmmmmm
             function updateTileSNES4bpp() {
-                var row = (ly >> 3) % layer.rows;
-                var col = (lx >> 3) % layer.cols;
+                var col = Math.floor(lx / tw) % layer.cols;
+                var row = Math.floor(ly / th) % layer.rows;
                 t = layer.tiles[col + row * layer.cols];
                 p = (t & 0x1C00) >> 6; // palette
                 z = (t & 0x2000) >> 13; // z-level
                 h = (t & 0x4000); // horizontal flip
                 v = (t & 0x8000); // vertical flip
-                t = (t & 0x03FF) << 6; // tile index
-                ty = (v ? (7 - (ly & 7)) : (ly & 7)) << 3;
+                t = (t & 0x03FF) * bytesPerTile; // tile index
+                ty = (v ? (th - (ly % th) - 1) : (ly % th)) * tw;
                 m = 15;
             }
 
             // vhzpppmm mmmmmmmm
             function updateTileSNES2bpp() {
-                var row = (ly >> 3) % layer.rows;
-                var col = (lx >> 3) % layer.cols;
+                var col = Math.floor(lx / tw) % layer.cols;
+                var row = Math.floor(ly / th) % layer.rows;
                 t = layer.tiles[col + row * layer.cols];
                 p = (t & 0x1C00) >> 8; // palette
                 z = (t & 0x2000) >> 13; // z-level
                 h = (t & 0x4000); // horizontal flip
                 v = (t & 0x8000); // vertical flip
-                t = (t & 0x03FF) << 6; // tile index
-                ty = (v ? (7 - (ly & 7)) : (ly & 7)) << 3;
+                t = (t & 0x03FF) * bytesPerTile; // tile index
+                ty = (v ? (th - (ly % th) - 1) : (ly % th)) * tw;
                 m = 3;
             }
 
             // vhzzpppm mmmmmmmm
             function updateTileSNESSprite() {
-                var row = (ly >> 3) % layer.rows;
-                var col = (lx >> 3) % layer.cols;
+                var col = Math.floor(lx / tw) % layer.cols;
+                var row = Math.floor(ly / th) % layer.rows;
                 t = layer.tiles[col + row * layer.cols];
                 p = (t & 0x0E00) >> 5; // palette
                 z = (t & 0x3000) >> 12; // z-level
                 h = (t & 0x4000); // horizontal flip
                 v = (t & 0x8000); // vertical flip
-                t = (t & 0x01FF) << 6; // tile index
-                ty = (v ? (7 - (ly & 7)) : (ly & 7)) << 3;
+                t = (t & 0x01FF) * bytesPerTile; // tile index
+                ty = (v ? (th - (ly % th) - 1) : (ly % th)) * tw;
                 m = 15;
             }
 
             // mmmmmmmm (palette from attr table)
             function updateTileNESBG() {
-                var row = (ly >> 3) % layer.rows;
-                var col = (lx >> 3) % layer.cols;
+                var col = Math.floor(lx / tw) % layer.cols;
+                var row = Math.floor(ly / th) % layer.rows;
                 var tt = col + row * layer.cols;
-                t = layer.tiles[tt] << 6; // tile index
+                t = layer.tiles[tt] * bytesPerTile; // tile index
                 p = layer.attr[tt >> 2]; // palette index (from attribute table)
                 p >>= (tt & 3); p &= 0x03; p <<= 2;
                 z = 0;
-                ty = (ly & 7) << 3;
+                ty = (ly % th) * tw;
                 m = 3;
             }
 
             function renderLayerLine() {
 
+                tw = layer.tileWidth;
+                th = layer.tileHeight;
                 ly = y + layer.y; // y location in layer (ignoring flip)
                 lx = x + layer.x; // x location in layer (ignoring flip)
                 while (ly < 0) ly += 0x1000;
@@ -1647,24 +1692,24 @@ var GFX = {
 
                 // draw first tile
                 updateTile();
-                tx = (h ? (7 - lx) : lx) & 7;
-                while (h ? (tx >= 0) : (tx < 8)) {
+                tx = (h ? (tw - lx - 1) : lx) % tw;
+                while (h ? (tx >= 0) : (tx < tw)) {
                     renderPixel();
                     h ? --tx : ++tx;
                 }
 
                 // draw mid tiles
-                while (i < width - 8) {
+                while (i < width - tw) {
                     updateTile();
                     if (h) {
-                        tx = 7;
+                        tx = tw - 1;
                         while (tx >= 0) {
                             renderPixel();
                             --tx;
                         }
                     } else {
                         tx = 0;
-                        while (tx < 8) {
+                        while (tx < tw) {
                             renderPixel();
                             ++tx;
                         }
@@ -1673,7 +1718,7 @@ var GFX = {
 
                 // draw last tile
                 updateTile();
-                tx = h ? 7 : 0;
+                tx = h ? (tw - 1) : 0;
                 while (i < width) {
                     renderPixel();
                     h ? --tx : ++tx;
@@ -1689,6 +1734,7 @@ var GFX = {
                 renderPixel = renderPixelSub;
                 for (l = 0; l < 4; l++) {
                     layer = ppu.layers[l];
+                    bytesPerTile = layer.tileWidth * layer.tileHeight;
                     if (layer.sub) {
                         switch (layer.format) {
                             case GFX.TileFormat.gba2bppTile: updateTile = updateTileGBA2bpp; break;
@@ -1719,6 +1765,7 @@ var GFX = {
 
                 for (l = 0; l < 4; l++) {
                     layer = ppu.layers[l];
+                    bytesPerTile = layer.tileWidth * layer.tileHeight;
                     if (layer.main) {
                         switch (layer.format) {
                             case GFX.TileFormat.gba2bppTile: updateTile = updateTileGBA2bpp; break;

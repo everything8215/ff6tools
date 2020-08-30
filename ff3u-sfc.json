@@ -261,6 +261,10 @@
                     "name": "SNES Header",
                     "path": "snesHeader"
                 }, {
+                    "path": "fontGraphicsSmall"
+                }, {
+                    "path": "fontGraphicsLarge"
+                }, {
                     "name": "Menu Window",
                     "path": "windowGraphics"
                 }
@@ -3670,6 +3674,32 @@
                     "height": 10,
                     "backColor": true
                 }
+            }
+        },
+        "fontGraphicsLarge": {
+            "type": "graphics",
+            "name": "Large Font Graphics",
+            "range": "0xC490C0-0xC4A4C0",
+            "format": ["linear1bpp(1)", "byteSwapped(2)"],
+            "tileWidth": 16,
+            "tileHeight": 11
+        },
+        "fontGraphicsSmall": {
+            "type": "graphics",
+            "name": "Small Font Graphics",
+            "range": "0xC487C0-0xC48FC0",
+            "format": "snes2bpp",
+            "palette": "fontPalette"
+        },
+        "fontPalette": {
+            "type": "array",
+            "name": "Font Palette",
+            "range": "0xD8E800-0xD8E8A0",
+            "arrayLength": 40,
+            "assembly": {
+                "type": "assembly",
+                "length": 8,
+                "format": "bgr555"
             }
         },
         "initialLore": {
@@ -10044,7 +10074,19 @@
                 "length": "0x0380",
                 "format": "snes4bpp",
                 "palette": "windowPalette[%i]",
-                "width": 4
+                "width": 4,
+                "spriteSheet": {
+                    "width": 6,
+                    "height": 6,
+                    "tilemap": [
+                        16,17,18,17,18,19,
+                        20, 0, 1, 2, 3,21,
+                        22, 4, 5, 6, 7,23,
+                        20, 8, 9,10,11,21,
+                        22,12,13,14,15,23,
+                        24,25,26,25,26,27
+                    ]
+                }
             }
         },
         "windowPalette": {
@@ -14286,6 +14328,15 @@
                 "0x71": "♬",
                 "0x72": "=",
                 "0x73": "“",
+                "0x76": "\\holy",
+                "0x77": "×",
+                "0x78": "\\lightning",
+                "0x79": "\\wind",
+                "0x7A": "\\earth",
+                "0x7B": "\\ice",
+                "0x7C": "\\fire",
+                "0x7D": "\\water",
+                "0x7E": "\\poison",
                 "0x7F": " "
             }
         },
@@ -14422,19 +14473,6 @@
                 "0xFF": "e…"
             }
         },
-        "element": {
-            "name": "Element Icons",
-            "char": {
-                "0xD6": "\\holy",
-                "0xD8": "\\lightning",
-                "0xD9": "\\wind",
-                "0xDA": "\\earth",
-                "0xDB": "\\ice",
-                "0xDC": "\\fire",
-                "0xDD": "\\water",
-                "0xDE": "\\poison"
-            }
-        },
         "fixedLength": {
             "name": "Fixed Length",
             "char": {
@@ -14567,11 +14605,10 @@
                 "0xCC": ")",
                 "0xCD": "%",
                 "0xCE": "~",
-                "0xCF": "*",
-                "0xD0": "@",
-                "0xD1": "♬",
                 "0xD2": "=",
-                "0xD3": "“",
+                "0xD4": "↑",
+                "0xD5": "→",
+                "0xD6": "↙",
                 "0xD7": "×"
             }
         }
@@ -14581,7 +14618,6 @@
             "name": "Big Text",
             "charTable": [
                 "text",
-                "element",
                 "fixedLength"
             ]
         },
@@ -14596,7 +14632,6 @@
             "name": "Null-Terminated",
             "charTable": [
                 "text",
-                "element",
                 "nullTerminated"
             ]
         },

@@ -792,7 +792,6 @@ FF5Map.prototype.loadMap = function(m) {
     this.ppu.half = colorMath.half.value;
 
     // layer 1
-    // this.ppu.layers[0].format = this.rom.isSFC ? GFX.TileFormat.defaultTile : GFX.TileFormat.gba4bppTile;
     this.ppu.layers[0].cols = this.layer[0].w * 2;
     this.ppu.layers[0].rows = this.layer[0].h * 2;
     this.ppu.layers[0].z[0] = GFX.Z.snes1L;
@@ -804,7 +803,6 @@ FF5Map.prototype.loadMap = function(m) {
     this.ppu.layers[0].math = colorMath.layer1.value;
 
     // layer 2
-    // this.ppu.layers[1].format = this.rom.isSFC ? GFX.TileFormat.defaultTile : GFX.TileFormat.gba4bppTile;
     this.ppu.layers[1].cols = this.layer[1].w * 2;
     this.ppu.layers[1].rows = this.layer[1].h * 2;
     this.ppu.layers[1].x = -map.hOffsetLayer2.value * 16;
@@ -818,7 +816,6 @@ FF5Map.prototype.loadMap = function(m) {
     this.ppu.layers[1].math = colorMath.layer2.value;
 
     // layer 3
-    // this.ppu.layers[2].format = this.rom.isSFC ? GFX.TileFormat.defaultTile : GFX.TileFormat.gba2bppTile;
     this.ppu.layers[2].cols = this.layer[2].w * 2;
     this.ppu.layers[2].rows = this.layer[2].h * 2;
     this.ppu.layers[2].x = -map.hOffsetLayer3.value * 16;
@@ -896,7 +893,6 @@ FF5Map.prototype.loadWorldMap = function(m) {
     this.ppu.back = true;
 
     // layer 1
-    // this.ppu.layers[0].format = GFX.TileFormat.snes4bppTile;
     this.ppu.layers[0].cols = 256 * 2;
     this.ppu.layers[0].rows = 256 * 2;
     this.ppu.layers[0].z[0] = GFX.Z.snes1L;
@@ -1239,7 +1235,7 @@ FF5Map.prototype.drawNPC = function(npc) {
     if (g === 0xFF) return;
     var a = npc.animation.value;
     var direction = npc.direction.value;
-    var p = npc.palette.value << 9;
+    var p = npc.palette.value << 20;
 
     // set tile data
     var f = direction << 1;
@@ -1281,22 +1277,21 @@ FF5Map.prototype.drawNPC = function(npc) {
         gfxOffset = (g - 0x52) * 0x0200 + 0x10000;
     } else if (g === 0x67) {
         // hiryuu body
-        p = 2 << 9; // force palette 2
         tileCount = 64;
         w = 32;
         h = 32;
-        tiles = [0x0400, 0x0401, 0x4401, 0x4400,
-                 0x0410, 0x0411, 0x4411, 0x4410,
-                 0x0402, 0x0403, 0x4403, 0x4402,
-                 0x0412, 0x0413, 0x4413, 0x4412];
+        tiles = [0x00200000, 0x00200001, 0x10200001, 0x10200000,
+                 0x00200010, 0x00200011, 0x10200011, 0x10200010,
+                 0x00200002, 0x00200003, 0x10200003, 0x10200002,
+                 0x00200012, 0x00200013, 0x10200013, 0x10200012];
         gfxOffset = 0x12A00;
         x -= 8;
         y -= 19;
 
     } else if (g === 0x68) {
         // hiryuu head
-        p = 2 << 9; // force palette 2
-        p |= (direction << 1);
+        p = 2 << 20; // force palette 2
+        p |= (direction << 1); // direction * 2 gives tile offset
         tileCount = 32;
         tiles = [p, p + 1, p + 16, p + 17];
         gfxOffset = 0x136C0;
@@ -1331,7 +1326,6 @@ FF5Map.prototype.drawNPC = function(npc) {
     ppu.height = h;
 
     // layer 1
-    ppu.layers[0].format = GFX.TileFormat.snesSpriteTile;
     ppu.layers[0].cols = w >> 3;
     ppu.layers[0].rows = h >> 3;
     ppu.layers[0].z[0] = GFX.Z.snesS0;
@@ -1490,7 +1484,6 @@ FF5MapTileset.prototype.loadMap = function(m) {
         this.worldLayer.loadLayout({layout: layout, tileset: this.map.worldLayer.tileset, w: 16, h: 12, paletteAssignment: this.map.worldLayer.paletteAssignment})
 
         // layer 1
-        // this.ppu.layers[0].format = this.rom.isSFC ? GFX.TileFormat.snes4bppTile : GFX.TileFormat.gba4bppTile;
         this.ppu.layers[0].rows = 24;
         this.ppu.layers[0].cols = 32;
         this.ppu.layers[0].z[0] = GFX.Z.snes1L;
@@ -1516,7 +1509,6 @@ FF5MapTileset.prototype.loadMap = function(m) {
         this.layer[2].loadLayout({layout: layout, tileset: this.map.layer[2].tileset, w: 16, h: 16, tilePriority: this.map.layer[2].tilePriority});
 
         // layer 1
-        // this.ppu.layers[0].format = this.rom.isSFC ? GFX.TileFormat.defaultTile : GFX.TileFormat.gba4bppTile;
         this.ppu.layers[0].rows = 32;
         this.ppu.layers[0].cols = 32;
         this.ppu.layers[0].z[0] = GFX.Z.snes1L;
@@ -1525,7 +1517,6 @@ FF5MapTileset.prototype.loadMap = function(m) {
         this.ppu.layers[0].tiles = this.layer[0].tiles;
 
         // layer 2
-        // this.ppu.layers[1].format = this.rom.isSFC ? GFX.TileFormat.defaultTile : GFX.TileFormat.gba4bppTile;
         this.ppu.layers[1].rows = 32;
         this.ppu.layers[1].cols = 32;
         this.ppu.layers[1].z[0] = GFX.Z.snes2L;
@@ -1534,7 +1525,6 @@ FF5MapTileset.prototype.loadMap = function(m) {
         this.ppu.layers[1].tiles = this.layer[1].tiles;
 
         // layer 3
-        // this.ppu.layers[2].format = this.rom.isSFC ? GFX.TileFormat.snes2bppTile : GFX.TileFormat.gba2bppTile;
         this.ppu.layers[2].rows = 32;
         this.ppu.layers[2].cols = 32;
         this.ppu.layers[2].z[0] = GFX.Z.snes3L;
