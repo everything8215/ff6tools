@@ -670,7 +670,7 @@ var GFX = {
                     r = (rgb & 0x000000FF); r = Math.round(r * 15 / 255);
                     dest[d++] = (r << 8) | (g << 4) | b;
                 }
-                return [new Uint8Array(dest), data.length];
+                return [new Uint8Array(dest.buffer), data.length];
             },
             decode: function(data) {
                 // 16-bit source, 8-bit destination
@@ -1265,8 +1265,8 @@ var GFX = {
             }
         },
         x16_4bppTile: {
-            //                   vhpppptt tttttttt
-            // --vh---z -ppp---- ------tt tttttttt
+            //                   ppppvhtt tttttttt
+            // --vh---- pppp---- ------tt tttttttt
             key: "x164bppTile",
             name: "X16 4bpp Tile",
             maxTiles: 1024,
@@ -1286,8 +1286,8 @@ var GFX = {
                 while (s < src.length) {
                     t = src[s++];
                     tile = t & 0x000003FF;
-                    tile |= (t & 0x00F00000) >> 10;
-                    tile |= (t & 0x30000000) >> 14;
+                    tile |= (t & 0x00F00000) >> 8;
+                    tile |= (t & 0x30000000) >> 18;
                     dest[d++] = tile;
                 }
                 return [new Uint8Array(dest.buffer), data.byteLength];
@@ -1304,52 +1304,14 @@ var GFX = {
                 while (s < src.length) {
                     t = src[s++];
                     tile = t & 0x03FF;
-                    tile |= (t & 0x3C00) << 10;
-                    tile |= (t & 0xC000) << 14;
+                    tile |= (t & 0xF000) << 8;
+                    tile |= (t & 0x0C00) << 18;
                     dest[d++] = tile;
                 }
                 return [dest, data.byteLength];
             }
         }
     },
-
-    // createPNG: function(gfx, pal, ppl) {
-    //     // de-interlace 8x8 tiles
-    //     var h = Math.ceil(gfx.length / ppl / 8) * 8;
-    //     var dest = new Uint8Array(ppl * h);
-    //
-    //     var g = 0;
-    //     var d = 0;
-    //     var x = 0;
-    //     var y, p;
-    //     while (g < gfx.length) {
-    //         y = d + x;
-    //         for (var line = 0; line < 8; line++) {
-    //             p = y;
-    //             dest[p++] = gfx[g++];
-    //             dest[p++] = gfx[g++];
-    //             dest[p++] = gfx[g++];
-    //             dest[p++] = gfx[g++];
-    //             dest[p++] = gfx[g++];
-    //             dest[p++] = gfx[g++];
-    //             dest[p++] = gfx[g++];
-    //             dest[p++] = gfx[g++];
-    //             y += ppl;
-    //         }
-    //         x += 8;
-    //         if (x >= ppl) {
-    //             x = 0;
-    //             d += 8 * ppl;
-    //         }
-    //     }
-    //
-    //     return pzntg.create({
-    //         width: ppl,
-    //         height: h,
-    //         pixels: dest,
-    //         palette: pal
-    //     });
-    // },
 
     mathNone: function(c1) {
         return c1;

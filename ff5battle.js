@@ -759,14 +759,13 @@ FF5BattleBackgroundEditor.prototype.updateBackgroundLayoutGBA = function() {
 
     // create graphics definition
     var graphicsData = this.rom.battleBackgroundGraphics.item(bg);
+    graphicsData.width = 32;
     if (!graphicsData.format) {
         graphicsData.format = ["linear4bpp", "tose-graphics", "gba-lzss"];
         graphicsData.disassemble(graphicsData.parent.data);
     }
     this.layout.graphics = {
-        path: "battleBackgroundGraphics[" + bg + "]",
-        width: 32,
-        height: 17
+        path: "battleBackgroundGraphics[" + bg + "]"
     };
 
     // create palette definition

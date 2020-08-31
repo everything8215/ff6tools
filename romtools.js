@@ -1426,6 +1426,7 @@ ROM.System = {
     nes: "nes",
     sfc: "sfc",
     gba: "gba",
+    x16: "x16",
     psx: "psx"
 }
 
@@ -1440,6 +1441,7 @@ ROM.MapMode = {
     loROM: "loROM",
     hiROM: "hiROM",
     gba: "gba",
+    x16: "x16",
     psx: "psx"
 }
 
@@ -1448,6 +1450,7 @@ ROM.prototype.bankSize = function() {
         case ROM.MapMode.mmc1: return 0x4000;
         case ROM.MapMode.loROM: return 0x8000;
         case ROM.MapMode.hiROM: return 0x10000;
+        case ROM.MapMode.x16: return 0x2000;
         default: return 0x10000;
     }
 }
@@ -1478,6 +1481,11 @@ ROM.prototype.mapAddress = function(address) {
                 return address;
             }
 
+        case ROM.MapMode.x16:
+             var bank = address & 0xFF0000;
+             bank -= 0x010000;
+             return (bank >> 3) + (address & 0x1FFF) + 2;
+
         case ROM.MapMode.None:
         default:
             return address;
@@ -1506,6 +1514,12 @@ ROM.prototype.unmapAddress = function(address) {
 
         case ROM.MapMode.gba:
             return address | 0x08000000;
+
+        case ROM.MapMode.x16:
+            address -= 2; // header
+            var bank = (address << 3) & 0xFF0000;
+            bank += 0x010000;
+            return bank | (address & 0x1FFF) | 0xA000;
 
         case ROM.MapMode.None:
         default:
@@ -1812,6 +1826,7 @@ ROM.dataFormat = {
     "snes4bppTile": GFX.tileFormat.snes4bppTile,
     "snes3bppTile": GFX.tileFormat.snes3bppTile,
     "snes2bppTile": GFX.tileFormat.snes2bppTile,
+    "x16_4bppTile": GFX.tileFormat.x16_4bppTile,
 
     // game-specific formats
     "ff1-map": {

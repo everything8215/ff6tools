@@ -534,11 +534,24 @@ body {
     width: 256px;
     min-width: 256px;
     position: relative;
-    display: flex;
     flex: 0 0 auto;
+    overflow-y: hidden;
+    display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
+    align-content: flex-start;
     justify-content: flex-start;
+}
+
+#toolbox-scroll-div {
+    display: flex;
+    height: auto;
+    flex-direction: column;
+    align-items: stretch;
+    align-content: flex-start;
+    justify-content: flex-start;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 #toolbox.hidden {
@@ -557,6 +570,7 @@ body {
     font-size: 12px;
     position: relative;
     width: 100%;
+    flex: 0 0 auto;
 }
 
 #toolbox-div.hidden {
@@ -645,9 +659,10 @@ body {
 
 #properties {
     font-size: 12px;
-    flex: 2;
+    flex: 1 0 auto;
     overflow-y: auto;
     overflow-x: visible;
+    height: auto;
     width: 100%;
     padding: 0px;
     margin: 0px;

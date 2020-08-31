@@ -128,9 +128,7 @@
                 "type": "tilemap",
                 "format": ["gba4bppTile", "tose-layout"],
                 "graphics": {
-                    "path": "battleBackgroundGraphics[%i]",
-                    "width": 32,
-                    "height": 16
+                    "path": "battleBackgroundGraphics[%i]"
                 },
                 "palette": "battleBackgroundPalette[%i]",
                 "width": 32,
