@@ -1,45 +1,61 @@
 {
-    "ff1j-nes.json": {
+    "ff1j-nes": {
         "name": "Final Fantasy (J)",
-        "crc32": "0x8328E614"
+        "url": "ff1/ff1j-nes.json",
+        "crc32": [
+            "0x8328E614"
+        ]
     },
-    "ff1u-nes.json": {
+    "ff1u-nes": {
         "name": "Final Fantasy (U)",
-        "crc32": "0xAB12ECE6"
+        "url": "ff1/ff1u-nes.json",
+        "crc32": [
+            "0xAB12ECE6"
+        ]
     },
-    "ff2u-sfc.json": {
+    "ff2u-sfc": {
         "name": "Final Fantasy II (U)",
+        "url": "ff4/ff2u-sfc.json",
         "crc32": [
             "0x65D0A825",
             "0x23084FCD"
         ]
     },
-    "ff4j-sfc.json": {
+    "ff4j-sfc": {
         "name": "Final Fantasy IV (J)",
+        "url": "ff4/ff4j-sfc.json",
         "crc32": [
             "0x21027C5D",
             "0xCAA15E97",
             "0x6CDA700C"
         ]
     },
-    "ff4u-gba.json": {
+    "ff4u-gba": {
         "name": "Final Fantasy IV Advance (U)",
-        "crc32": "0xFEEEBDE4"
+        "url": "ff4/ff4u-gba.json",
+        "crc32": [
+            "0xFEEEBDE4"
+        ]
     },
-    "ff4e-gba.json": {
+    "ff4e-gba": {
         "name": "Final Fantasy IV Advance (E)",
-        "crc32": "0x27F2BC67"
+        "url": "ff4/ff4e-gba.json",
+        "crc32": [
+            "0x27F2BC67"
+        ]
     },
-    "ff5j-sfc.json": {
+    "ff5j-sfc": {
         "name": "Final Fantasy V (J)",
+        "url": "ff5/ff5j-sfc.json",
         "crc32": [
             "0xC1BC267D",
             "0x84CC8DBE",
             "0x295AF98D"
         ]
     },
-    "ff5u-sfc.json": {
+    "ff5u-sfc": {
         "name": "Final Fantasy V (RPGe)",
+        "url": "ff5/ff5u-sfc.json",
         "crc32": [
             "0x8D66F796",
             "0xAD0AB846",
@@ -51,34 +67,48 @@
             "0x17444605",
             "0xD19F6CB5"]
     },
-    "ff5u-gba.json": {
+    "ff5u-gba": {
         "name": "Final Fantasy V Advance (U)",
-        "crc32": "0x7A24AB0C"
+        "url": "ff5/ff5u-gba.json",
+        "crc32": [
+            "0x7A24AB0C"
+        ]
     },
-    "ff3u-sfc.json": {
+    "ff3u-sfc": {
         "name": "Final Fantasy III (U)",
+        "url": "ff6/ff3u-sfc.json",
         "crc32": [
             "0xA27F1C7A",
             "0xC0FA0464"
         ]
     },
-    "ff6j-sfc.json": {
+    "ff6j-sfc": {
         "name": "Final Fantasy VI (J)",
-        "crc32": "0x45EF5AC8"
+        "url": "ff6/ff6j-sfc.json",
+        "crc32": [
+            "0x45EF5AC8"
+        ]
     },
-    "ff6u-gba.json": {
+    "ff6u-gba": {
         "name": "Final Fantasy VI Advance (U)",
-        "crc32": "0xD708F5AB"
+        "url": "ff6/ff6u-gba.json",
+        "crc32": [
+            "0xD708F5AB"
+        ]
     },
-    "ff6j-gba.json": {
+    "ff6j-gba": {
         "name": "Final Fantasy VI Advance (J)",
+        "url": "ff6/ff6j-gba.json",
         "crc32": [
             "0xD67478FE",
             "0x479179F5"
         ]
     },
-    "ff6e-gba.json": {
+    "ff6e-gba": {
         "name": "Final Fantasy VI Advance (E)",
-        "crc32": "0xD15DEBA5"
+        "url": "ff6/ff6e-gba.json",
+        "crc32": [
+            "0xD15DEBA5"
+        ]
     }
 }

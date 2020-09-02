@@ -2947,11 +2947,11 @@ ROM.prototype.endAction = function() {
     this.action = null;
 }
 
-ROM.prototype.numToString = function(num) {
+ROM.prototype.numToString = function(num, pad) {
     if (this.numberBase === 10) {
         return num.toString();
     } else if (this.numberBase === 16) {
-        return hexString(num);
+        return hexString(num, pad);
     }
     this.log("Invalid Number Base: " + this.numberBase);
     return "Invalid Number Base: " + this.numberBase;
@@ -3043,6 +3043,7 @@ ROM.prototype.showSettings = function() {
     hexDecControl.value = rom.numberBase;
     hexDecControl.onchange = function() {
         rom.numberBase = Number(this.value);
+        romNavigator.resetList();
     }
 
     if (rom.isSFC) {
@@ -4295,6 +4296,24 @@ ROMArray.prototype.item = function(i) {
         assembly.disassemble(data);
     }
     return assembly;
+}
+
+ROMArray.prototype.iterator = function() {
+    const self = this;
+    const iterator = {
+        [Symbol.iterator]() {
+            return {
+                i: 0,
+                next() {
+                    if (this.i < self.arrayLength) {
+                        return { value: self.item(this.i++), done: false };
+                    }
+                    return { value: undefined, done: true };
+                }
+            };
+        }
+    };
+    return iterator
 }
 
 // ROMCommand

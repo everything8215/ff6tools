@@ -1101,15 +1101,47 @@ FF6BattleVRAM.prototype.drawVRAM = function() {
     var toolbox = document.getElementById("toolbox");
     var toolboxDiv = document.getElementById("toolbox-div");
 
-    // reset element sizes
-    this.zoom = Math.min(toolbox.clientWidth / 128, 4.0);
+    // hide scroll bars before calculating zoom
+    toolboxDiv.classList.remove("hidden");
+    toolbox.style.overflowY = "hidden";
+    toolboxDiv.style.width = toolbox.clientWidth + "px";
+
+    // recalculate zoom without scroll bars
+    this.zoom = Math.min(toolboxDiv.clientWidth / 128, 4.0);
+
+    // update canvas size
     var w = 128 * this.zoom;
     var h = 128 * this.zoom;
-    toolboxDiv.style.width = w + "px";
     toolboxDiv.style.height = h + "px";
-    toolboxDiv.classList.remove("hidden");
+
+    // check if scroll bars are needed
+    if (toolbox.scrollHeight > toolbox.clientHeight) {
+
+        // show scroll bars and recalculate zoom
+        toolbox.style.overflowY = "scroll";
+        toolboxDiv.style.width = toolbox.clientWidth + "px";
+        this.zoom = Math.min(toolboxDiv.clientWidth / 128, 4.0);
+
+        w = 128 * this.zoom;
+        h = 128 * this.zoom;
+        toolboxDiv.style.height = h + "px";
+    }
+
+    toolbox.style.overflowY = "";
+
+    // reset element sizes
     this.canvas.width = w;
     this.canvas.height = h;
+
+    // // reset element sizes
+    // this.zoom = Math.min(toolbox.clientWidth / 128, 4.0);
+    // var w = 128 * this.zoom;
+    // var h = 128 * this.zoom;
+    // toolboxDiv.style.width = w + "px";
+    // toolboxDiv.style.height = h + "px";
+    // toolboxDiv.classList.remove("hidden");
+    // this.canvas.width = w;
+    // this.canvas.height = h;
 
     // clear the canvas
     var ctx = this.canvas.getContext('2d');

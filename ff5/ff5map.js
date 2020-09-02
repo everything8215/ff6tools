@@ -1569,13 +1569,35 @@ FF5MapTileset.prototype.drawTileset = function() {
         return;
     }
 
-    // reset element sizes
-    this.zoom = toolbox.clientWidth / this.ppu.width;
+    // hide scroll bars before calculating zoom
+    toolboxDiv.classList.remove("hidden");
+    toolbox.style.overflowY = "hidden";
+    toolboxDiv.style.width = toolbox.clientWidth + "px";
+
+    // recalculate zoom without scroll bars
+    this.zoom = toolboxDiv.clientWidth / this.ppu.width;
+
+    // update canvas size
     var w = this.ppu.width * this.zoom;
     var h = this.ppu.height * this.zoom;
-    toolboxDiv.style.width = w + "px";
     toolboxDiv.style.height = h + "px";
-    toolboxDiv.classList.remove("hidden");
+
+    // check if scroll bars are needed
+    if (toolbox.scrollHeight > toolbox.clientHeight) {
+
+        // show scroll bars and recalculate zoom
+        toolbox.style.overflowY = "scroll";
+        toolboxDiv.style.width = toolbox.clientWidth + "px";
+        this.zoom = toolboxDiv.clientWidth / this.ppu.width;
+
+        w = this.ppu.width * this.zoom;
+        h = this.ppu.height * this.zoom;
+        toolboxDiv.style.height = h + "px";
+    }
+
+    toolbox.style.overflowY = "";
+
+    // // reset element sizes
     this.canvas.width = w;
     this.canvas.height = h;
     this.cursorCanvas.width = w;

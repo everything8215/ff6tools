@@ -5,35 +5,37 @@
         <title>FF6Tools</title>
         <meta name="description" content="Browser-Based Editor for Final Fantasy ROMs">
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
-        <link rel="stylesheet" type="text/css" href="balloon.css" />
-        <link rel="stylesheet" type="text/css" href="ff6tools.css" />
+        <link rel="stylesheet" type="text/css" href="css/balloon.css" />
+        <link rel="stylesheet" type="text/css" href="css/ff6tools.css" />
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/split.js/1.5.11/split.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/1.0.10/pako.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/css-element-queries/1.2.3/ResizeSensor.min.js"></script>
-        <script type="text/javascript" src="pzntg.js"></script>
-        <script type="text/javascript" src="rgbquant.js"></script>
-        <script type="text/javascript" src="gfx.js"></script>
-        <script type="text/javascript" src="tose70.js"></script>
-        <script type="text/javascript" src="romtools.js"></script>
-        <script type="text/javascript" src="romgui.js"></script>
-        <script type="text/javascript" src="ff1map.js"></script>
-        <script type="text/javascript" src="ff1battle.js"></script>
-        <script type="text/javascript" src="ff1level.js"></script>
-        <script type="text/javascript" src="ff4map.js"></script>
-        <script type="text/javascript" src="ff4map-gba.js"></script>
-        <script type="text/javascript" src="ff4battle.js"></script>
-        <script type="text/javascript" src="ff4script.js"></script>
-        <script type="text/javascript" src="ff4level.js"></script>
-        <script type="text/javascript" src="ff5map.js"></script>
-        <script type="text/javascript" src="ff5battle.js"></script>
-        <script type="text/javascript" src="ff5script.js"></script>
-        <script type="text/javascript" src="ff6map.js"></script>
-        <script type="text/javascript" src="ff6battle.js"></script>
-        <script type="text/javascript" src="ff6script.js"></script>
-        <script type="text/javascript" src="ff6level.js"></script>
+        <script type="text/javascript" src="lib/pzntg.js"></script>
+        <script type="text/javascript" src="lib/rgbquant.js"></script>
+        <script type="text/javascript" src="rom/gfx.js"></script>
+        <script type="text/javascript" src="rom/tose70.js"></script>
+        <script type="text/javascript" src="rom/romtools.js"></script>
+        <script type="text/javascript" src="gui/romgui.js"></script>
+        <script type="text/javascript" src="gui/navigator.js"></script>
+        <script type="text/javascript" src="gui/property-list.js"></script>
+        <script type="text/javascript" src="ff1/ff1map.js"></script>
+        <script type="text/javascript" src="ff1/ff1battle.js"></script>
+        <script type="text/javascript" src="ff1/ff1level.js"></script>
+        <script type="text/javascript" src="ff4/ff4map.js"></script>
+        <script type="text/javascript" src="ff4/ff4map-gba.js"></script>
+        <script type="text/javascript" src="ff4/ff4battle.js"></script>
+        <script type="text/javascript" src="ff4/ff4script.js"></script>
+        <script type="text/javascript" src="ff4/ff4level.js"></script>
+        <script type="text/javascript" src="ff5/ff5map.js"></script>
+        <script type="text/javascript" src="ff5/ff5battle.js"></script>
+        <script type="text/javascript" src="ff5/ff5script.js"></script>
+        <script type="text/javascript" src="ff6/ff6map.js"></script>
+        <script type="text/javascript" src="ff6/ff6battle.js"></script>
+        <script type="text/javascript" src="ff6/ff6script.js"></script>
+        <script type="text/javascript" src="ff6/ff6level.js"></script>
         <script type="text/javascript">
 
             var rom, definition, data, modal, definitions;
@@ -49,7 +51,7 @@
                 xhr.onerror = function() {
                     console.log("Unable to load ROM definitions");
                 };
-                xhr.open("get", "def.json");
+                xhr.open("get", "rom/def.json");
                 xhr.send();
 
                 modal = document.getElementById('modal');
@@ -61,7 +63,7 @@
                 var closeButton = document.getElementById("modal-close");
                 closeButton.onclick = closeModal;
 
-                Split(["#nav", "#edit", "#toolbox"], {
+                Split(["#left-pane", "#center-pane", "#right-pane"], {
                     sizes: [5, 80, 5],
                     minSize: [256, 0, 256],
                     gutterSize: 5,
@@ -171,7 +173,10 @@
                     // prompt the user to load their own definition
                     var content = openModal("Select Definition");
                     var p = document.createElement('p');
-                    p.innerHTML = "The CRC32 of this ROM does not match any built-in definitions. Please select a built-in definition manually from the list or choose a custom definition file.";
+                    p.innerHTML = "The CRC32 of this ROM does not match any " +
+                        "built-in definitions. Please select a built-in " +
+                        "definition manually from the list or choose a " +
+                        "custom definition file.";
                     content.appendChild(p);
 
                     var ul = document.createElement('ul');
@@ -180,7 +185,7 @@
                     for (var i = 0; i < keys.length; i++) {
                         var key = keys[i];
                         var def = definitions[key];
-                        var li = liForDefinition(def, key);
+                        var li = liForDefinition(def, def.url);
                         ul.appendChild(li);
                     }
                     content.appendChild(ul);
@@ -206,23 +211,16 @@
             function loadBuiltInDefinition(url) {
 
                 if (!url) {
-                    var crc32 = ROM.crc32(data);
+                    var fileCRC32 = ROM.crc32(data);
 
                     if (!definitions) return false;
-                    var keys = Object.keys(definitions);
-                    for (var i = 0; i < keys.length; i++) {
-                        var key = keys[i];
+                    for (const key in definitions) {
                         var def = definitions[key];
-                        if (!def.crc32) continue;
-                        if (isArray(def.crc32)) {
-                            for (var c = 0; c < def.crc32.length; c++) {
-                                if (Number(def.crc32[c]) === crc32) url = key;
-                            }
-                            if (url) break;
-                        } else if (Number(def.crc32) === crc32) {
-                            url = key;
-                            break;
+                        if (!isArray(def.crc32)) continue;
+                        for (const defCRC32 of def.crc32) {
+                            if (Number(defCRC32) === fileCRC32) url = def.url;
                         }
+                        if (url) break;
                     }
                 }
 
@@ -533,45 +531,41 @@
         <div id="outer">
 
             <div id="topbar">
-                <div>
-                    <button class="icon-btn float-left" onclick="document.getElementById('rom-file').click();" aria-label="Open ROM" data-balloon-pos="down-left">
-                        <i class="fas fa-folder-open"></i>
-                    </button>
-                    <input type="file" style="display:none;" id="rom-file" name="file"/>
-                    <button class="icon-btn float-left" onclick="saveROM()" aria-label="Save ROM" data-balloon-pos="down">
-                        <i class="fas fa-save"></i>
-                    </button>
-                    <button class="icon-btn float-left" onclick="undo()" aria-label="Undo" data-balloon-pos="down">
-                        <i class="fas fa-undo"></i>
-                    </button>
-                    <button class="icon-btn float-left" onclick="redo()" aria-label="Redo" data-balloon-pos="down">
-                        <i class="fas fa-redo"></i>
-                    </button>
-                    <button class="icon-btn float-left" onclick="showSettings()" aria-label="Settings" data-balloon-pos="down">
-                        <i class="fas fa-cog"></i>
-                    </button>
-                    <button class="icon-btn float-left" onclick="showAbout()" aria-label="About" data-balloon-pos="down">
-                        <i class="fas fa-question"></i>
-                    </button>
+                <button class="icon-btn float-left" onclick="document.getElementById('rom-file').click();" aria-label="Open ROM" data-balloon-pos="down-left">
+                    <i class="fas fa-folder-open"></i>
+                </button>
+                <input type="file" style="display:none;" id="rom-file" name="file"/>
+                <button class="icon-btn float-left" onclick="saveROM()" aria-label="Save ROM" data-balloon-pos="down">
+                    <i class="fas fa-save"></i>
+                </button>
+                <button class="icon-btn float-left" onclick="undo()" aria-label="Undo" data-balloon-pos="down">
+                    <i class="fas fa-undo"></i>
+                </button>
+                <button class="icon-btn float-left" onclick="redo()" aria-label="Redo" data-balloon-pos="down">
+                    <i class="fas fa-redo"></i>
+                </button>
+                <button class="icon-btn float-left" onclick="showSettings()" aria-label="ROM Settings" data-balloon-pos="down">
+                    <i class="fas fa-cog"></i>
+                </button>
+                <button class="icon-btn float-left" onclick="showAbout()" aria-label="About FF6Tools" data-balloon-pos="down">
+                    <i class="fas fa-question"></i>
+                </button>
 
-                    <button class="icon-btn float-right" onclick="togglePane('toolbox')" aria-label="Show/Hide Toolbox" data-balloon-pos="down-right">
-                        <i class="fas fa-angle-double-right"></i>
-                    </button>
-                    <button class="icon-btn float-right" onclick="togglePane('edit-bottom')" aria-label="Show/Hide Script" data-balloon-pos="down-right">
-                        <i class="fas fa-angle-double-down"></i>
-                    </button>
-                    <button class="icon-btn float-right" onclick="togglePane('nav')" aria-label="Show/Hide Navigator" data-balloon-pos="down">
-                        <i class="fas fa-angle-double-left"></i>
-                    </button>
-                </div>
+                <button class="icon-btn float-right" onclick="togglePane('right-pane')" aria-label="Show/Hide Toolbox/Properties" data-balloon-pos="down-right">
+                    <i class="fas fa-angle-double-right"></i>
+                </button>
+                <button class="icon-btn float-right" onclick="togglePane('edit-bottom')" aria-label="Show/Hide Script" data-balloon-pos="down-right">
+                    <i class="fas fa-angle-double-down"></i>
+                </button>
+                <button class="icon-btn float-right" onclick="togglePane('left-pane')" aria-label="Show/Hide Navigator" data-balloon-pos="down">
+                    <i class="fas fa-angle-double-left"></i>
+                </button>
             </div>
 
             <div id="main">
-                <div id="nav">
-                    <ul id="navList"></ul>
-                </div>
+                <div id="left-pane"></div>
 
-                <div id="edit">
+                <div id="center-pane">
                     <div id="edit-top" class="background-gradient">
                         <div id="edit-controls" class="hidden">
                         </div>
@@ -594,7 +588,7 @@
                     </div>
                 </div>
 
-                <div id="toolbox">
+                <div id="right-pane">
 
                     <div id="toolbox-layer-div" class="toolbox-button-div">
                         <button class="toolbox-button selected" value="0">Layer 1</button>
@@ -603,7 +597,7 @@
                         <button class="toolbox-button" value="3">Triggers</button>
                     </div>
 
-                    <div id="toolbox-scroll-div">
+                    <div id="toolbox">
                         <div id="toolbox-div" class="no-select hidden"></div>
                         <div id="properties"></div>
                     </div>

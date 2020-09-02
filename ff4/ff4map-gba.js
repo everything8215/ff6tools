@@ -526,7 +526,7 @@ FF4MapGBA.prototype.selectTiles = function() {
         // select a single tile in the tileset view
         var tile = this.selection[5];
         this.tileset.selection = new Uint8Array([0x73, tile & 0x0F, tile >> 4, 1, 1, tile]);
-        if (this.isWorld && this.m !== 2) {
+        if (this.isWorld && this.w !== 2) {
             var w = this.layer[0].w;
             var h = this.layer[0].h;
             var t1 = this.layer[0].getLayout(col, row, 1, 1)[5];
@@ -914,7 +914,7 @@ FF4MapGBA.prototype.resetControls = function() {
     this.addTwoState("showTriggers", function() { map.changeLayer("showTriggers"); }, "Triggers", this.showTriggers);
 
     // control to change selected z-level
-    if (this.isWorld && this.m !== 2) {
+    if (this.isWorld && this.w !== 2) {
         // world map
 
     } else {
@@ -1072,6 +1072,7 @@ FF4MapGBA.prototype.loadWorldMap = function(m) {
     this.isWorld = true;
     if (!isNumber(m)) m = this.m;
     this.w = m;
+    this.m = m;
     if (m === 0x015E) this.w = 3; // overworld map for cid's trial
 
     var layerButtons = document.getElementsByClassName("toolbox-button");
@@ -1107,8 +1108,9 @@ FF4MapGBA.prototype.loadWorldMap = function(m) {
     pal[0] = 0xFF000000;
 
     // load tileset
-    var tileset1 = this.mapProperties.tileset1.target.data;
-    var layout1 = this.mapProperties.layout1.target
+    var tileset1 = this.mapProperties.tileset1.target;
+    if (tileset1) tileset1 = tileset1.data;
+    var layout1 = this.mapProperties.layout1.target;
     if (layout1 && tileset1) {
         if (layout1.range.length !== width * height) {
             layout1.range.length = width * height;
@@ -1129,7 +1131,7 @@ FF4MapGBA.prototype.loadWorldMap = function(m) {
     }
 
     // load tile properties layer (moon only)
-    if (this.m === 2) {
+    if (this.w === 2) {
     var tp = map.tileProperties;
         this.layer[2].loadLayout({type: FF4MapGBALayer.Type.mask1, layout: this.rom.moonTileProperties, w: width, h: height});
         this.layer[3].loadLayout({type: FF4MapGBALayer.Type.mask2, layout: this.rom.moonTileProperties, w: width, h: height});
@@ -1261,14 +1263,9 @@ FF4MapGBA.prototype.loadTriggers = function() {
     this.loadedEvents = [];
 
     if (this.isWorld) {
-        if (this.m !== 2) this.loadWorldTriggers();
+        if (this.w !== 2) this.loadWorldTriggers();
         return;
     }
-
-//    if (this.isWorld) {
-//        (this.m !== 2) ? this.loadWorldTriggers() : this.loadMoonTriggers();
-//        return;
-//    }
 
     var i;
     // load triggers
@@ -1381,42 +1378,6 @@ FF4MapGBA.prototype.loadWorldTriggers = function() {
         this.triggers.push(trigger);
     }
 }
-
-//FF4MapGBA.prototype.loadMoonTriggers = function() {
-//
-//    // load tile properties triggers
-//    var exits = this.rom.worldExit;
-//    for (var y = 0; y < this.layer[0].h; y++) {
-//        for (var x = 0; x < this.layer[0].w; x++) {
-//            var tp = this.tilePropertiesAtTile(x, y);
-//            var object = null;
-//            var key;
-//            if (tp & 0x0040) {
-//                // exit (upper z-level)
-//                if (!exits) continue;
-//                tp = tp & 0x1F;
-//                object = exits.item(tp + 37);
-//                if (!object) continue;
-//                key = "entranceTriggers";
-//            } else if (tp & 0x4000) {
-//                // exit (lower z-level)
-//                if (!exits) continue;
-//                tp = (tp & 0x1F00) >> 8;
-//                object = exits.item(tp + 37);
-//                if (!object) continue;
-//                key = "entranceTriggers";
-//            } else {
-//                continue;
-//            }
-//            this.triggers.push({
-//                key: key,
-//                x: {value: x},
-//                y: {value: y},
-//                object: object
-//            });
-//        }
-//    }
-//}
 
 FF4MapGBA.prototype.fixTreasure = function(trigger) {
     trigger.name = "Treasure";
@@ -1886,7 +1847,7 @@ FF4MapGBATileset.prototype.mouseDown = function(e) {
             this.drawCursor();
             this.map.selection = new Uint8Array([0x73, 0, 0, 1, 1, maskType.value]);
         }
-    } else if (this.map.isWorld && this.map.m !== 2) {
+    } else if (this.map.isWorld && this.map.w !== 2) {
         this.map.selectWorldTileProperties(this.clickedCol + (this.clickedRow * 16));
     }
 }
@@ -2240,7 +2201,7 @@ FF4MapGBATileset.prototype.updateTileDiv = function() {
         tileset.map.endAction(callback);
     }
 
-    if (this.map.m === 2 && currentTile & 0x40) {
+    if (this.map.w === 2 && currentTile & 0x40) {
         // moon exit
         var exitDiv = this.createMoonExitDiv();
         if (exitDiv) this.tileDiv.appendChild(exitDiv);

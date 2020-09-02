@@ -31,7 +31,7 @@ gui
  * progress bar
  * show rom title in top bar
  * script list/trigger double click functionality
- * navigator labels should update automatically (also hex/dec mode)
+ * navigator labels should update automatically
  * find a better way to auto-populate battle names
  * array insert/remove
  * arrayPath/objectPath in navigator

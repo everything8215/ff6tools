@@ -5,6 +5,15 @@ created 1/11/2018
 
 */
 
+:root {
+    --control-color-selected: hsl(210, 100%, 50%);
+    --control-color-hover: hsl(210, 100%, 70%);
+    --control-color-active: hsl(210, 100%, 40%);
+    --list-color-hover: hsl(210, 100%, 90%);
+    --list-color-selected: hsl(210, 100%, 50%);
+    --list-color-active: hsl(210, 100%, 40%);
+}
+
 body {
     margin: 0px;
     padding: 0px;
@@ -35,21 +44,27 @@ body {
 }
 
 .icon-btn.selected {
-    background-color: hsl(210, 100%, 60%);
+    background-color: var(--control-color-selected);
     color: hsl(0, 0%, 95%);
     transition: 0.2s;
 }
 
 .icon-btn:hover {
-    background-color: hsl(210, 100%, 50%);
+    background-color: var(--control-color-hover);
     color: white;
     transition: 0.2s;
 }
 
 .icon-btn:active {
-    background-color: hsl(210, 100%, 70%);
+    background-color: var(--control-color-active);
     color: hsl(0, 0%, 95%);
     transition: 0.2s;
+}
+
+/*  buttons in top bar don't get as dark when compressed
+    because they are on a dark background */
+#topbar .icon-btn:active {
+    background-color: var(--list-color-selected);
 }
 
 .icon-btn:disabled {
@@ -88,7 +103,7 @@ body {
     flex: 2 1 auto;
 }
 
-#nav {
+#left-pane {
     width: 256px;
     height: 100%;
     display: flex;
@@ -103,7 +118,7 @@ body {
     user-select: none;
 }
 
-#nav.hidden {
+#left-pane.hidden {
     display: none;
 }
 
@@ -197,18 +212,18 @@ body {
 }
 
 .nav-array > p:hover {
-    background-color: hsl(210, 100%, 90%);
-}
-
-.nav-array > p:active {
-    background-color: hsl(210, 100%, 40%);
-    color: hsl(0, 0%, 95%);
-    transition: 0.1s;
+    background-color: var(--list-color-hover);
 }
 
 .nav-array > p.selected {
-    background-color: hsl(210, 100%, 50%);
+    background-color: var(--list-color-selected);
     color: white;
+    transition: 0.1s;
+}
+
+.nav-array > p:active {
+    background-color: var(--list-color-active);
+    color: hsl(0, 0%, 95%);
     transition: 0.1s;
 }
 
@@ -241,18 +256,18 @@ body {
 }
 
 .nav-object:hover {
-    background-color: hsl(210, 100%, 90%);
-}
-
-.nav-object:active {
-    background-color: hsl(210, 100%, 40%);
-    color: hsl(0, 0%, 95%);
-    transition: 0.1s;
+    background-color: var(--list-color-hover);
 }
 
 .nav-object.selected {
-    background-color: hsl(210, 100%, 50%);
+    background-color: var(--list-color-selected);
     color: white;
+    transition: 0.1s;
+}
+
+.nav-object:active {
+    background-color: var(--list-color-active);
+    color: hsl(0, 0%, 95%);
     transition: 0.1s;
 }
 
@@ -272,11 +287,27 @@ body {
     padding-right: 0.5em;
 }
 
-.nav-object-index.hex {
-    width: 3.5em;
+.nav-object-index.hex2 {
+    width: 2.5em;
+    text-align: left;
 }
 
-#edit {
+.nav-object-index.hex4 {
+    width: 3.5em;
+    text-align: left;
+}
+
+.nav-object-index.hex6 {
+    width: 4.5em;
+    text-align: left;
+}
+
+.nav-object-index.hex8 {
+    width: 5.5em;
+    text-align: left;
+}
+
+#center-pane {
     margin: 0px;
     padding: 0px;
     align-items: stretch;
@@ -431,21 +462,22 @@ body {
     margin: 0px;
     float: left;
     width: 75%;
+    user-select: none;
 }
 
 #script-list li:hover {
-    background-color: hsl(210, 100%, 90%);
-}
-
-#script-list li:active {
-    background-color: hsl(210, 100%, 40%);
-    color: hsl(0, 0%, 95%);
-    transition: 0.1s;
+    background-color: var(--list-color-hover);
 }
 
 #script-list li.selected {
-    background-color: hsl(210, 100%, 50%);
+    background-color: var(--list-color-selected);
     color: white;
+    transition: 0.1s;
+}
+
+#script-list li:active {
+    background-color: var(--list-color-active);
+    color: hsl(0, 0%, 95%);
     transition: 0.1s;
 }
 
@@ -460,6 +492,7 @@ body {
     overflow-x: hidden;
     float: left;
     clear: left;
+    user-select: none;
 }
 
 .bold {
@@ -481,19 +514,19 @@ body {
 }
 
 .two-state.checked {
-    background: hsl(210, 100%, 50%);
+    background-color: var(--control-color-selected);
     color: white;
     transition: 0.2s;
 }
 
 .two-state:hover {
-    background: hsl(210, 100%, 40%);
+    background-color: var(--control-color-hover);
     color: white;
     transition: 0.2s;
 }
 
 .two-state:active {
-    background: hsl(210, 100%, 60%);
+    background-color: var(--control-color-active);
     color: hsl(0, 0%, 95%);
     transition: 0.2s;
 }
@@ -528,14 +561,14 @@ body {
     text-align: center;
 }
 
-#toolbox {
+#right-pane {
     margin: 0px 0px;
     padding: 0px 0px;
-    width: 256px;
     min-width: 256px;
     position: relative;
     flex: 0 0 auto;
     overflow-y: hidden;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -543,7 +576,11 @@ body {
     justify-content: flex-start;
 }
 
-#toolbox-scroll-div {
+#right-pane.hidden {
+    display: none;
+}
+
+#toolbox {
     display: flex;
     height: auto;
     flex-direction: column;
@@ -605,19 +642,19 @@ body {
 }
 
 .toolbox-button-div button.selected {
-    background-color: hsl(210, 100%, 50%);
+    background-color: var(--control-color-selected);
     color: white;
     transition: 0.2s;
 }
 
 .toolbox-button-div button:hover {
-    background: hsl(210, 100%, 70%);
+    background-color: var(--control-color-hover);
     color: white;
     transition: 0.2s;
 }
 
 .toolbox-button-div button:active {
-    background-color: hsl(210, 100%, 40%);
+    background-color: var(--control-color-active);
     color: hsl(0, 0%, 95%);
     transition: 0.2s;
 }
@@ -812,15 +849,13 @@ body {
 }
 
 .menu-item:hover {
-    background-color: hsl(210, 100%, 50%);
+    background-color: var(--control-color-selected);
     color: white;
-    transition: 0.2s;
 }
 
 .menu-item:active {
-    background-color: hsl(210, 100%, 40%);
+    background-color: var(--control-color-active);
     color: hsl(0, 0%, 95%);
-    transition: 0.2s;
 }
 
 .menu-item-disabled {
@@ -912,11 +947,11 @@ body {
 }
 
 .modal-list li:hover {
-    background-color: hsl(210, 100%, 90%);
+    background-color: var(--list-color-hover);
 }
 
 .modal-list li:active {
-    background-color: hsl(210, 100%, 40%);
+    background-color: var(--list-color-active);
     color: hsl(0, 0%, 95%);
     transition: 0.1s;
 }
