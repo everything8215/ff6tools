@@ -232,7 +232,7 @@ FF1Battle.prototype.monsterInSlot = function(slot) {
         case 1: // 4 large monsters
             if (slot > 4) return null;
 
-            x = (slot <= 2) ? 8 : 56;
+            x = (slot <= 2) ? 8 : 72;
             y = (slot % 2 === 1) ? 40 : 88;
 
             w = h = 48;

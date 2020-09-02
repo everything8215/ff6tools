@@ -2150,39 +2150,39 @@
                     },
                     "priceOverride": {
                         "type": "assembly",
-                        "external": "itemPrice[%i].priceOverride"
+                        "external": "itemPrice[%i+128].priceOverride"
                     },
                     "priceMultiplier": {
                         "type": "assembly",
-                        "external": "itemPrice[%i].priceMultiplier"
+                        "external": "itemPrice[%i+128].priceMultiplier"
                     },
                     "price1": {
                         "type": "assembly",
-                        "external": "itemPrice[%i].price1"
+                        "external": "itemPrice[%i+128].price1"
                     },
                     "price10": {
                         "type": "assembly",
-                        "external": "itemPrice[%i].price10"
+                        "external": "itemPrice[%i+128].price10"
                     },
                     "price100": {
                         "type": "assembly",
-                        "external": "itemPrice[%i].price100"
+                        "external": "itemPrice[%i+128].price100"
                     },
                     "price1000": {
                         "type": "assembly",
-                        "external": "itemPrice[%i].price1000"
+                        "external": "itemPrice[%i+128].price1000"
                     },
                     "price10000": {
                         "type": "assembly",
-                        "external": "itemPrice[%i].price10000"
+                        "external": "itemPrice[%i+128].price10000"
                     },
                     "price100000": {
                         "type": "assembly",
-                        "external": "itemPrice[%i].price100000"
+                        "external": "itemPrice[%i+128].price100000"
                     },
                     "price1000000": {
                         "type": "assembly",
-                        "external": "itemPrice[%i].price1000000"
+                        "external": "itemPrice[%i+128].price1000000"
                     },
                     "weight": {
                         "type": "property",
@@ -2217,7 +2217,7 @@
                         "stringTable": {
                             "hideIndex": true,
                             "string": {
-                                "0": "Element",
+                                "0": "Attack Element",
                                 "1": "Stat Bonus"
                             }
                         }
@@ -2369,7 +2369,7 @@
                     },
                     "itemType": {
                         "type": "property",
-                        "name": "Type",
+                        "name": "Item Type",
                         "begin": 2,
                         "mask": "0x3F",
                         "stringTable": "itemType"
@@ -2414,6 +2414,13 @@
                         "type": "property",
                         "name": "Attack Power",
                         "begin": 7
+                    },
+                    "attackType": {
+                        "type": "property",
+                        "name": "Attack Type",
+                        "begin": 1,
+                        "flag": true,
+                        "stringTable": "attackType"
                     },
                     "attackEffect": {
                         "type": "property",
@@ -2560,7 +2567,7 @@
                         "stringTable": {
                             "hideIndex": true,
                             "string": {
-                                "0": "Element",
+                                "0": "Attack Element",
                                 "1": "Stat Bonus"
                             }
                         }
@@ -8647,11 +8654,11 @@
             "string": {
                 "0": "Blue Magic",
                 "1": "White Magic",
-                "2": "Black Magic",
+                "2": "Black Magic/Rod",
                 "3": "Dimension Magic",
                 "4": "Summon",
-                "5": "Song",
-                "6": "Aerial",
+                "5": "Song/Harp/Bell",
+                "6": "Aerial/Bow/Whip",
                 "7": "Physical"
             }
         },
