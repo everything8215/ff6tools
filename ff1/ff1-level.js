@@ -1,5 +1,5 @@
 //
-// ff1level.js
+// ff1-level.js
 // created 5/19/2020
 //
 
@@ -44,7 +44,6 @@ FF1LevelProgression.prototype = Object.create(ROMEditor.prototype);
 FF1LevelProgression.prototype.constructor = FF1LevelProgression;
 
 FF1LevelProgression.prototype.selectObject = function(object) {
-    this.show();
     this.loadClass(object.i);
 }
 
@@ -159,9 +158,6 @@ FF1LevelProgression.prototype.mouseMove = function(e) {
 }
 
 FF1LevelProgression.prototype.show = function() {
-
-    document.getElementById('toolbox-layer-div').classList.add("hidden");
-    document.getElementById('toolbox-div').classList.add("hidden");
 
     this.resetControls();
     this.showControls();

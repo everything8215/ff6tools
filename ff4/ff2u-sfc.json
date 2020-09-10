@@ -495,7 +495,7 @@
             },
             "stringTable": {
                 "string": {
-                    "0": "Field (Upper)",
+                    "0": "Field (Top)",
                     "1": "Forest",
                     "2": "Mountains",
                     "3": "Castle",
@@ -504,7 +504,7 @@
                     "6": "Airship",
                     "7": "Generic",
                     "8": "Field (Middle)",
-                    "9": "Final Boss (Upper)",
+                    "9": "Final Boss (Top)",
                     "10": "Final Boss (Middle)"
                 }
             }
@@ -561,25 +561,25 @@
                 "assembly": {
                     "top": {
                         "type": "property",
-                        "name": "Top Layout",
+                        "name": "Top Tilemap",
                         "begin": 0,
                         "link": "battleBackgroundLayoutUpper[%i]",
                         "stringTable": "battleBackgroundLayoutUpper"
                     },
                     "middle": {
                         "type": "property",
-                        "name": "Middle Layout",
+                        "name": "Middle Tilemap",
                         "begin": 1,
                         "link": "battleBackgroundLayoutUpper[%i]",
                         "stringTable": "battleBackgroundLayoutUpper",
                         "min": 1,
                         "special": {
-                            "0": "Use Bottom"
+                            "0": "Repeat Bottom"
                         }
                     },
                     "bottom": {
                         "type": "property",
-                        "name": "Bottom Layout",
+                        "name": "Bottom Tilemap",
                         "begin": 2,
                         "link": "battleBackgroundLayoutLower[%i]",
                         "stringTable": "battleBackgroundLayoutLower"

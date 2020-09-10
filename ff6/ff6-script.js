@@ -1,5 +1,5 @@
 //
-// ff6script.js
+// ff6-script.js
 // created 3/21/2018
 //
 
@@ -59,7 +59,7 @@ FF6Script.description = function(command) {
             label = FF6Script.label(command.parent, offset);
             var count = command.switchArray.arrayLength;
             var anyAll = command.anyAll.value ? "all" : "any";
-            
+
             desc = "Jump to " + label + " if " + anyAll + " of these are true:"
             for (var s = 0; s < count; s++) {
                 var switchAssembly = command.switchArray.item(s);
@@ -68,12 +68,12 @@ FF6Script.description = function(command) {
                 desc += "<br/>" + s + ". " + eventSwitch + " == " + state;
             }
             break;
-            
+
         case "switch":
             desc = this.string(command, "switch", "eventSwitches");
             desc += " = " + (command.onOff.value ? "Off" : "On");
             break;
-            
+
         default:
             desc = command.name;
             break;
@@ -97,12 +97,12 @@ FF6Script.label = function(script, offset) {
 }
 
 FF6Script.initScript = function(script) {
-    
+
     if (script.key !== "eventScript") return;
 
     // add references for each map's events
     var triggers, m, t, offset, label;
-    
+
     // event triggers
     for (m = 0; m < script.rom.eventTriggers.arrayLength; m++) {
         triggers = script.rom.eventTriggers.item(m);
@@ -111,7 +111,7 @@ FF6Script.initScript = function(script) {
             script.addPlaceholder(triggers.item(t).scriptPointer, offset, (m < 3) ? "world" : "event");
         }
     }
-    
+
     // npcs
     for (m = 3; m < script.rom.npcProperties.arrayLength; m++) {
         triggers = script.rom.npcProperties.item(m);
@@ -122,14 +122,14 @@ FF6Script.initScript = function(script) {
             script.addPlaceholder(triggers.item(t).scriptPointer, offset, "event");
         }
     }
-    
+
     // startup event
     for (m = 3; m < script.rom.mapProperties.arrayLength; m++) {
         offset = script.rom.mapProperties.item(m).scriptPointer.value;
         label = script.rom.stringTable.mapProperties.string[m].fString();
         script.addPlaceholder(script.rom.mapProperties.item(m).scriptPointer, offset, "event", label);
     }
-    
+
     // add references for vehicle events
     for (var e = 0; e < script.rom.vehicleEvents.arrayLength; e++) {
         offset = script.rom.vehicleEvents.item(e).scriptPointer.value;
@@ -138,15 +138,15 @@ FF6Script.initScript = function(script) {
     }
 
     // add references for ff6 advance events
-    
+
 }
 
 FF6Script.didDisassemble = function(command, data) {
-    
+
     var offset;
-    
+
     switch (command.key) {
-            
+
         case "objectEvent":
         case "startTimer":
         case "jumpSub":
@@ -175,14 +175,14 @@ FF6Script.didDisassemble = function(command, data) {
         case "jumpDialog":
             // default to 2 choices
             var choices = 2;
-            
+
             // find the previous dialog command
             var c = command.parent.command.length - 1;
             while (true) {
                 var previous = command.parent.command[c--];
                 if (!previous) break;
                 if (previous.key !== "dialog") continue;
-                
+
                 // get the previous dialog text
                 var d = previous.dialog.value;
                 var dialog;
@@ -214,7 +214,7 @@ FF6Script.didDisassemble = function(command, data) {
 //            command.count.value = choices;
             command.pointerArray.arrayLength = choices;
             command.pointerArray.range.end = command.range.length;
-            
+
             ROMData.prototype.disassemble.call(command, data);
             command.pointerArray.disassemble(command.data);
             for (c = 0; c < choices; c++) {
@@ -229,7 +229,7 @@ FF6Script.didDisassemble = function(command, data) {
         case "jumpSwitch":
             var count = command.count.value;
             var length = count * 2 + 4;
-            
+
             // update the command's range
             command.range.end = command.range.begin + length;
             command.assembly.scriptPointer.range = new ROMRange(length - 3, length);
@@ -238,18 +238,18 @@ FF6Script.didDisassemble = function(command, data) {
             ROMData.prototype.disassemble.call(command, data);
             command.switchArray.disassemble(command.data);
             command.scriptPointer.disassemble(command.data);
-            
+
             // add a placeholder at the jump offset
             offset = command.scriptPointer.value;
             command.parent.addPlaceholder(command.scriptPointer, offset, command.encoding);
             break;
-            
+
         case "objectScript":
             // add a placeholder at the end of the object script
             offset = command.range.end + command.scriptLength.value;
             command.parent.addPlaceholder(null, offset, "event");
             break;
-            
+
         case "mapBackground":
             var w = command.w.value;
             var h = command.h.value;
@@ -272,7 +272,7 @@ FF6Script.didDisassemble = function(command, data) {
                 command.switch.value += (opcode << 8);
             }
             break;
-            
+
         default:
             break;
     }
@@ -293,7 +293,7 @@ FF6Script.willAssemble = function(command) {
             command.scriptLength.value = length;
             command.scriptLength.markAsDirty();
             break;
-            
+
         case "switch":
             if (command.encoding !== "event") break;
             command.bank.value = command.switch.value >> 8;
@@ -336,12 +336,12 @@ FF6Script.nextEncoding = function(command) {
     switch (command.key) {
         case "objectScript":
             return "object";
-            
+
         case "map":
             if (command.map.value >= 3 && command.map.value !== 511) return "event";
             if (command.vehicle.value) return "vehicle";
             return "world";
-            
+
         case "end":
             return "event";
 
@@ -352,7 +352,7 @@ FF6Script.nextEncoding = function(command) {
 
 var FF6MonsterScript = {
     name: "FF6MonsterScript",
-    
+
     initScript: function(script) {
         // add references for monsters
         for (var e = 0; e < script.rom.monsterScriptPointers.arrayLength; e++) {
@@ -362,25 +362,25 @@ var FF6MonsterScript = {
             script.addPlaceholder(script.rom.monsterScriptPointers.item(e), offset, "monster", label);
         }
     },
-    
+
     string: function(command, key, stringKey) {
         var string = command.rom.stringTable[stringKey].string[command[key].value];
         if (!string) return null;
         return string.fString();
     },
-    
+
     attackString: function(command, key) {
         var a = command[key].value;
         if (a === 0xFE) return "Do Nothing";
         return this.string(command, key, "attackName");
     },
-    
+
     commandString: function(command, key) {
         var a = command[key].value;
         if (a === 0xFE) return "Do Nothing";
         return this.string(command, key, "battleCommandName");
     },
-    
+
     elementString: function(command, key) {
         var e = command[key].value;
         if (e === 0) return "No Element";
@@ -426,7 +426,7 @@ var FF6MonsterScript = {
     conditionalString: function(command) {
         var target = this.string(command, "target", "battleTargets");
         switch (command.condition.value) {
-                
+
             case 1: // command
                 var command1 = this.commandString(command, "command1");
                 var command2 = this.commandString(command, "command2");
@@ -450,7 +450,7 @@ var FF6MonsterScript = {
 
             case 5: // any action
                 return "If Any Action Was Used Against This Monster";
-                
+
             case 6: // hp
                 return "If " + target + "'s HP < " + command.hp.value.toString();
 
@@ -496,7 +496,7 @@ var FF6MonsterScript = {
 
             case 21: // switch off
                 return "If " + this.string(command, "switch", "battleSwitch") + " == Off";
-                
+
             case 22: // battle timer
                 return "If Battle Timer > " + command.timer.value.toString();
 
@@ -518,7 +518,7 @@ var FF6MonsterScript = {
             default: return this.string(command, "condition", command.condition.stringTable);
         }
     },
-    
+
     description: function(command) {
         switch (command.key) {
             case "attack":

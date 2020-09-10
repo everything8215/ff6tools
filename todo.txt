@@ -37,7 +37,7 @@ gui
  * arrayPath/objectPath in navigator
  * make menu close any time you click outside of it
  * graphics export selection only
- * import/export tilemap (image, native/generic, Tiled)
+ * import/export tilemap (native/generic, Tiled)
 
 game specific
 -------------
@@ -56,6 +56,7 @@ game specific
  * ff5 battle background animation
  * fix ff4-sfc map graphics and cave battle bg issues
  * ff6 battle magitek mode (for vram)
+ * ff5 treasure fix
 
 wish list
 ---------

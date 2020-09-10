@@ -715,7 +715,8 @@
                     "layout1": {
                         "type": "property",
                         "name": "Layout",
-                        "begin": 3
+                        "begin": 3,
+                        "link": "battleBackgroundLayout[%i]"
                     },
                     "layout2": {
                         "type": "property",

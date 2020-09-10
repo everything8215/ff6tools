@@ -20,22 +20,33 @@
         <script type="text/javascript" src="rom/romtools.js"></script>
         <script type="text/javascript" src="gui/romgui.js"></script>
         <script type="text/javascript" src="gui/navigator.js"></script>
+        <script type="text/javascript" src="gui/palette-view.js"></script>
+        <script type="text/javascript" src="gui/graphics-view.js"></script>
+        <script type="text/javascript" src="gui/tilemap-view.js"></script>
         <script type="text/javascript" src="gui/property-list.js"></script>
-        <script type="text/javascript" src="ff1/ff1map.js"></script>
-        <script type="text/javascript" src="ff1/ff1battle.js"></script>
-        <script type="text/javascript" src="ff1/ff1level.js"></script>
-        <script type="text/javascript" src="ff4/ff4map.js"></script>
-        <script type="text/javascript" src="ff4/ff4map-gba.js"></script>
-        <script type="text/javascript" src="ff4/ff4battle.js"></script>
-        <script type="text/javascript" src="ff4/ff4script.js"></script>
-        <script type="text/javascript" src="ff4/ff4level.js"></script>
-        <script type="text/javascript" src="ff5/ff5map.js"></script>
-        <script type="text/javascript" src="ff5/ff5battle.js"></script>
-        <script type="text/javascript" src="ff5/ff5script.js"></script>
-        <script type="text/javascript" src="ff6/ff6map.js"></script>
-        <script type="text/javascript" src="ff6/ff6battle.js"></script>
-        <script type="text/javascript" src="ff6/ff6script.js"></script>
-        <script type="text/javascript" src="ff6/ff6level.js"></script>
+        <script type="text/javascript" src="gui/toolbox.js"></script>
+        <script type="text/javascript" src="ff1/ff1-map.js"></script>
+        <script type="text/javascript" src="ff1/ff1-map-tileset.js"></script>
+        <script type="text/javascript" src="ff1/ff1-battle.js"></script>
+        <script type="text/javascript" src="ff1/ff1-level.js"></script>
+        <script type="text/javascript" src="ff4/ff4-map.js"></script>
+        <script type="text/javascript" src="ff4/ff4-map-tileset.js"></script>
+        <script type="text/javascript" src="ff4/ff4-map-gba.js"></script>
+        <script type="text/javascript" src="ff4/ff4-map-gba-tileset.js"></script>
+        <script type="text/javascript" src="ff4/ff4-battle.js"></script>
+        <script type="text/javascript" src="ff4/ff4-battle-vram.js"></script>
+        <script type="text/javascript" src="ff4/ff4-script.js"></script>
+        <script type="text/javascript" src="ff4/ff4-level.js"></script>
+        <script type="text/javascript" src="ff5/ff5-map.js"></script>
+        <script type="text/javascript" src="ff5/ff5-map-tileset.js"></script>
+        <script type="text/javascript" src="ff5/ff5-battle.js"></script>
+        <script type="text/javascript" src="ff5/ff5-script.js"></script>
+        <script type="text/javascript" src="ff6/ff6-map.js"></script>
+        <script type="text/javascript" src="ff6/ff6-map-tileset.js"></script>
+        <script type="text/javascript" src="ff6/ff6-battle.js"></script>
+        <script type="text/javascript" src="ff6/ff6-battle-vram.js"></script>
+        <script type="text/javascript" src="ff6/ff6-script.js"></script>
+        <script type="text/javascript" src="ff6/ff6-level.js"></script>
         <script type="text/javascript">
 
             var rom, definition, data, modal, definitions;
@@ -86,13 +97,37 @@
 
                 Split(["#edit-top", "#edit-bottom"], {
                     sizes: [50, 50],
-                    minSize: [29, 44],
+                    minSize: [28, 43],
                     gutterSize: 5,
                     snapOffset: 0,
                     direction: 'vertical',
                     elementStyle: function (dimension, size, gutterSize) {
                         return {
                             'flex-basis': 'calc(' + size + '% - ' + gutterSize + 'px)'
+                        }
+                    },
+                    gutterStyle: function (dimension, gutterSize) {
+                        return {
+                            'flex-shrink': 0,
+                            'flex-basis':  gutterSize + 'px',
+                            'background-color': 'hsl(0, 0%, 30%)'
+                        }
+                    }
+                });
+
+                Split(["#right-pane-top", "#right-pane-bottom"], {
+                    sizes: [25, 75],
+                    minSize: [0, 0],
+                    gutterSize: 5,
+                    snapOffset: 0,
+                    direction: 'vertical',
+                    elementStyle: function (dimension, size, gutterSize, index) {
+                        if (index === 0) {
+                            return {
+                                'flex-basis': `calc(${size}% - ${gutterSize}px)`
+                            };
+                        } else {
+                            return {};
                         }
                     },
                     gutterStyle: function (dimension, gutterSize) {
@@ -274,6 +309,9 @@
                 if (rom.isSFC) console.log("SNES Checksum: " + hexString(ROM.checksum(data), 4));
 
                 // create gui objects
+                if (propertyList) {
+                    propertyList.hideEditor();
+                }
                 propertyList = new ROMPropertyList(rom);
                 if (rom.mapProperties && rom.mapProperties.assembly && rom.mapProperties.assembly.editor)
                     propertyList.getEditor(rom.mapProperties.assembly.editor);
@@ -575,12 +613,24 @@
 
                     <div id="edit-bottom" class="hidden">
                         <div id="script-bar">
-                            <button id="script-insert" class="icon-btn"><i class="fas fa-plus"></i></button>
-                            <button class="icon-btn" onclick="scriptList.delete()"><i class="fas fa-minus"></i></button>
-                            <button class="icon-btn" onclick="scriptList.moveUp()"><i class="fas fa-arrow-up"></i></button>
-                            <button class="icon-btn" onclick="scriptList.moveDown()"><i class="fas fa-arrow-down"></i></button>
-                            <button class="icon-btn" style="display:none"><i class="fas fa-copy"></i></button>
-                            <button class="icon-btn" style="display:none"><i class="fas fa-paste"></i></button>
+                            <button id="script-insert" class="icon-btn">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button class="icon-btn" onclick="scriptList.delete()">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <button class="icon-btn" onclick="scriptList.moveUp()">
+                                <i class="fas fa-arrow-up"></i>
+                            </button>
+                            <button class="icon-btn" onclick="scriptList.moveDown()">
+                                <i class="fas fa-arrow-down"></i>
+                            </button>
+                            <button class="icon-btn" style="display:none">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button class="icon-btn" style="display:none">
+                                <i class="fas fa-paste"></i>
+                            </button>
                         </div>
                         <div id="script-div">
                             <ul id="script-list"></ul>
@@ -590,15 +640,27 @@
 
                 <div id="right-pane">
 
-                    <div id="toolbox-layer-div" class="toolbox-button-div">
-                        <button class="toolbox-button selected" value="0">Layer 1</button>
-                        <button class="toolbox-button" value="1">Layer 2</button>
-                        <button class="toolbox-button" value="2">Layer 3</button>
-                        <button class="toolbox-button" value="3">Triggers</button>
+                    <div id="right-pane-top">
+                        <div id="toolbox-bar">
+                            <button class="toolbox-button selected" value="0">Layer 1</button>
+                            <button class="toolbox-button" value="1">Layer 2</button>
+                            <button class="toolbox-button" value="2">Layer 3</button>
+                            <button class="toolbox-button" value="3">Triggers</button>
+                        </div>
+                        <div id="toolbox" class="no-select hidden"></div>
                     </div>
 
-                    <div id="toolbox">
-                        <div id="toolbox-div" class="no-select hidden"></div>
+                    <div id="right-pane-bottom">
+                        <div id="properties-bar">
+                            <button class="icon-btn" disabled onclick="propertyList.selectPrevious()"
+                                aria-label="Select Previous" data-balloon-pos="down-left">
+                                <i class="fas fa-arrow-left"></i>
+                            </button>
+                            <button class="icon-btn" disabled onclick="propertyList.selectNext()"
+                                aria-label="Select Next" data-balloon-pos="down">
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
                         <div id="properties"></div>
                     </div>
                 </div>

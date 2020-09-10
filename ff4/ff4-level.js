@@ -1,5 +1,5 @@
 //
-// ff4level.js
+// ff4-level.js
 // created 2/5/2020
 //
 
@@ -48,7 +48,6 @@ FF4LevelProgression.prototype = Object.create(ROMEditor.prototype);
 FF4LevelProgression.prototype.constructor = FF4LevelProgression;
 
 FF4LevelProgression.prototype.selectObject = function(object) {
-    this.show();
     this.loadCharacter(object.i);
 }
 
@@ -158,8 +157,8 @@ FF4LevelProgression.prototype.mouseMove = function(e) {
 
 FF4LevelProgression.prototype.show = function() {
 
-    document.getElementById('toolbox-layer-div').classList.add("hidden");
-    document.getElementById('toolbox-div').classList.add("hidden");
+    // document.getElementById('toolbox-bar').classList.add("hidden");
+    // document.getElementById('toolbox-div').classList.add("hidden");
 
     this.resetControls();
     this.showControls();

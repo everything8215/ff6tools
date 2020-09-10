@@ -1,5 +1,5 @@
 //
-// ff4script.js
+// ff4-script.js
 // created 4/8/2018
 //
 
@@ -11,14 +11,14 @@ FF4Script.initScript = function(script) {
 
     if (script.key === "npcScript") {
         script.addPlaceholder(null, 0, "npc", script.rom.stringTable.npcSwitch.string[script.i].fString());
-        
+
         // look for npc dialog
         var i = script.data.length - 1;
         if (script.data[i] !== 0xFF) {
             while (script.data[i] !== 0xFF && i > 0) i--;
             script.addPlaceholder(null, i + 2, "npcDialog");
         }
-        
+
     } else if (script.key === "eventScript") {
         // add references for events
         script.addPlaceholder(null, 0, "event", script.rom.stringTable.eventScript.string[script.i].fString());
@@ -29,7 +29,7 @@ FF4Script.didDisassemble = function(command, data) {
     switch (command.key) {
         case "repeat":
             break;
-            
+
         default:
             break;
     }
@@ -37,15 +37,15 @@ FF4Script.didDisassemble = function(command, data) {
 
 FF4Script.description = function(command) {
     var desc = "Invalid Command"
-    
+
     if (command.encoding === "npcDialog") {
-        
+
         var script = command.parent;
         var i = script.command.length - 1;
         while (script.command[i].encoding === "npcDialog") i--;
         i = script.command.indexOf(command) - i;
         desc = "NPC Dialog " + i + ":<br/>"
-        
+
         var map = propertyList.editors["FF4Map"];
         var dialog = command.rom.mapDialog.item(map.m).item(command.dialog.value);
         if (dialog) {
@@ -54,7 +54,7 @@ FF4Script.description = function(command) {
             return desc + "Invalid Dialog Message";
         }
     }
-    
+
     switch (command.key) {
 
         case "action":
@@ -62,7 +62,7 @@ FF4Script.description = function(command) {
 
         case "end":
             return "End of Script";
-            
+
         case "dialog":
         case "dialogWait":
         case "dialog0D":
@@ -71,7 +71,7 @@ FF4Script.description = function(command) {
             if (dialog) {
                 return "Display Dialog:<br/>" + dialog.htmlString();
             }
-            
+
         case "eventDialog":
             var b = command.bank.value;
             var dialog;
@@ -94,7 +94,7 @@ FF4Script.description = function(command) {
                 return "Display Map Dialog " + command.dialog.value.toString();
             }
             var m = map.m;
-            
+
             var dialog = command.rom.mapDialog.item(m).item(command.dialog.value);
             if (dialog) {
                 return "Display Map Dialog:<br/>" + dialog.htmlText;
@@ -119,7 +119,7 @@ FF4Script.description = function(command) {
 
         case "inn":
             return "Inn: " + this.string(command, "price");
-            
+
         case "shop":
             return "Shop: " + this.string(command, "shop");
 
@@ -150,7 +150,7 @@ FF4Script.description = function(command) {
                 }
             }
             return "Execute Event: " + this.string(command, "event", "eventScript");
-        
+
         case "off":
             this.fixSwitch(command.switch);
             return "If Switch is Off: " + this.string(command, "switch", "eventSwitch");
@@ -168,13 +168,13 @@ FF4Script.string = function(command, key, stringKey) {
     var stringTable;
     var property = command[key];
     if (!property) return "Invalid String";
-    
+
     if (stringKey) {
         stringTable = command.rom.stringTable[stringKey];
     } else {
         stringTable = command.rom.stringTable[property.stringTable];
     }
-    
+
     var value = property.value;
     var string = stringTable.string[value];
     if (!string) return "Invalid String";
@@ -194,7 +194,7 @@ FF4Script.fixSwitch = function(switchProperty) {
 
 var FF4MonsterScript = {
     name: "FF4MonsterScript",
-    
+
     moonMonsters: [
         32, // Tricker
         53, // D.Bone
@@ -223,18 +223,18 @@ var FF4MonsterScript = {
         201, // Zeromus 3 (Final Form)
         216 // Zeromus 1 (Golbez & FuSoYa)
     ],
-    
+
     moonScripts: [],
 
     initScript: function(script) {
-        
+
         if (this.moonScripts.length === 0) this.initMoon(script.rom)
 
         var encoding = (this.moonScripts.includes(script.i)) ? "monsterMoon" : "monster";
         script.encoding = encoding;
         script.addPlaceholder(null, 0, encoding, script.rom.stringTable.monsterScript.string[script.i].fString());
     },
-    
+
     initMoon: function(rom) {
         // initialize action and condition scripts
         rom.monsterAction;
@@ -250,9 +250,9 @@ var FF4MonsterScript = {
             if (monster.counter.value !== 0) {
                 this.moonScripts.push(monster.counter.value);
             }
-        }        
+        }
     },
-    
+
     description: function(command) {
         if (command.key !== "action") return command.name;
         var c = command.condition.value;
@@ -266,13 +266,13 @@ var FF4MonsterScript = {
 
 var FF4MonsterActionScript = {
     name: "FF4MonsterActionScript",
-    
+
     initScript: function(script) {
         var string = script.rom.stringTable[script.key].string[script.i];
         if (!string) return;
         script.addPlaceholder(null, 0, "monsterAction", string.fString());
     },
-    
+
     description: function(command) {
         switch (command.key) {
 
@@ -329,7 +329,7 @@ var FF4MonsterActionScript = {
 
 var FF4MonsterConditionScript = {
     name: "FF4MonsterConditionScript",
-    
+
     initScript: function(script) {
         var name = "";
         for (var i = 0; i < script.data.length; i++) {
@@ -344,7 +344,7 @@ var FF4MonsterConditionScript = {
         string.value = (name === "Always") ? name : "If " + name;
         script.addPlaceholder(null, 0, "monsterCondition", name);
     },
-    
+
     description: function(command) {
         if (command.key !== "condition") return command.name;
         var c = command.condition.value;

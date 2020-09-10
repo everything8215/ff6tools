@@ -3,7 +3,6 @@
 // created 9/1/2019
 //
 
-// ROMPropertyList
 class ROMPropertyList {
     constructor(rom) {
         this.rom = rom;
@@ -252,8 +251,10 @@ class ROMPropertyList {
             if (assembly instanceof ROMArray) {
                 // array of properties
                 const arrayHTML = this.arrayHTML(assembly, {
-                    name: object.assembly[key].name, index: options.index,
-                    key: options.key, disabled: options.disabled
+                    name: object.assembly[key].name,
+                    index: options.index,
+                    key: key,
+                    disabled: options.disabled
                 });
                 if (!arrayHTML) continue;
                 divs.push(...arrayHTML);
@@ -263,8 +264,10 @@ class ROMPropertyList {
                 assembly instanceof ROMCommand) {
                 // object with sub-assemblies
                 const assemblyHTML = this.assemblyHTML(assembly, {
-                    name: object.assembly[key].name, index: options.index,
-                    key: options.key, disabled: options.disabled
+                    name: object.assembly[key].name,
+                    index: options.index,
+                    key: key,
+                    disabled: options.disabled
                 });
                 if (!assemblyHTML) continue;
                 divs.push(...assemblyHTML);
@@ -273,8 +276,10 @@ class ROMPropertyList {
             } else {
                 // single property
                 const propertyHTML = this.propertyHTML(assembly, {
-                    name: object.assembly[key].name, index: options.index,
-                    key: options.key, disabled: options.disabled
+                    name: object.assembly[key].name,
+                    index: options.index,
+                    key: key,
+                    disabled: options.disabled
                 });
                 if (!propertyHTML) continue;
                 divs.push(propertyHTML);
@@ -286,7 +291,7 @@ class ROMPropertyList {
         const specialHTML = this.propertyHTML(object, {
             controlID: object.key, index: options.index
         });
-        if (specialHTML) divs.push(...specialHTML);
+        if (specialHTML) divs.push(specialHTML);
 
         return divs;
     }
@@ -685,7 +690,7 @@ class ROMPropertyList {
         for (let key in object.special) {
             key = Number(key);
             if (!isNumber(key)) continue;
-            indexList.push(key);
+            if (!indexList.includes(key)) indexList.push(key);
         }
 
         // sort the list from low to high
@@ -1058,7 +1063,7 @@ class ROMPropertyList {
     getEditor(name) {
         if (this.editors[name]) return this.editors[name];
 
-        const editorClass = window[name];
+        const editorClass = eval(name);
         if (!editorClass) return null;
         const editor = new editorClass(this.rom);
         this.editors[name] = editor;
@@ -1077,14 +1082,23 @@ class ROMPropertyList {
         }
         if (!editor) return;
 
+        // check if the editor is already active
         const editDiv = document.getElementById('edit-div');
         if (!editDiv.contains(editor.div)) {
-            if (this.activeEditor && this.activeEditor.hide) this.activeEditor.hide();
+            // hide the active editor
+            this.hideEditor();
+
+            // show the new editor
             this.activeEditor = editor;
             editDiv.innerHTML = '';
             editDiv.appendChild(editor.div);
+            editor.show();
         }
 
         editor.selectObject(object);
+    }
+
+    hideEditor() {
+        if (this.activeEditor && this.activeEditor.hide) this.activeEditor.hide();
     }
 }

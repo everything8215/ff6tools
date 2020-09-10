@@ -1,5 +1,5 @@
 //
-// ff6battle.js
+// ff6-battle.js
 // created 6/24/2018
 //
 
@@ -33,11 +33,11 @@ function FF6Battle(rom) {
     this.observer = new ROMObserver(rom, this, {sub: true, link: true, array: true});
 
     var self = this;
-    this.canvas.onmousedown = function(e) { self.mouseDown(e) };
-    this.canvas.onmousemove = function(e) { self.mouseMove(e) };
-    this.canvas.onmouseup = function(e) { self.mouseUp(e) };
+    this.canvas.onmousedown = function(e) { self.mouseDown(e); };
+    this.canvas.onmousemove = function(e) { self.mouseMove(e); };
+    this.canvas.onmouseup = function(e) { self.mouseUp(e); };
 //    this.canvas.onmouseenter = function(e) { self.mouseEnter(e) };
-    this.canvas.onmouseleave = function(e) { self.mouseLeave(e) };
+    this.canvas.onmouseleave = function(e) { self.mouseLeave(e); };
     this.resizeSensor = null;
 
     this.monsterPoint = null;
@@ -284,55 +284,67 @@ FF6Battle.prototype.mouseLeave = function(e) {
 
 FF6Battle.prototype.selectObject = function(object) {
     this.loadBattle(object.i);
-    this.show();
-    if (this.showVRAM) {
-        this.vram.show();
-    } else {
-        this.vram.hide();
-    }
 }
 
 FF6Battle.prototype.show = function() {
-    var vram = this.vram;
-    var battle = this;
+    const self = this;
 
     this.resetControls();
     this.showControls();
     this.closeList();
-    this.addTwoState("showMonsters", function(checked) { battle.showMonsters = checked; battle.drawBattle(); }, "Monsters", this.showMonsters);
 
+    // add a control to show/hide VRAM
+    this.addTwoState("showMonsters", function(checked) {
+        self.showMonsters = checked;
+        self.drawBattle();
+    }, "Monsters", this.showMonsters);
+
+    // add a control to select the battle background
     var bgNames = [];
     for (var i = 0; i < this.rom.battleBackgroundProperties.arrayLength; i++) {
         bgNames.push(this.rom.stringTable.battleBackground.string[i].fString());
     }
-    var onChangeBG = function(bg) { battle.bg = bg; battle.drawBattle(); }
-    var bgSelected = function(bg) { return battle.bg === bg; }
+    var onChangeBG = function(bg) {
+        self.bg = bg;
+        self.drawBattle();
+    }
+    var bgSelected = function(bg) {
+        return self.bg === bg;
+    }
     this.addList("showBackground", "Background", bgNames, onChangeBG, bgSelected);
 
-    var onChangeType = function(type) {
+    // add a control to show different battle types
+    function onChangeType(type) {
         switch (type) {
-            case 0: battle.battleType = FF6Battle.Type.normal; break;
-            case 1: battle.battleType = FF6Battle.Type.back; break;
-            case 2: battle.battleType = FF6Battle.Type.pincer; break;
-            case 3: battle.battleType = FF6Battle.Type.side; break;
+            case 0: self.battleType = FF6Battle.Type.normal; break;
+            case 1: self.battleType = FF6Battle.Type.back; break;
+            case 2: self.battleType = FF6Battle.Type.pincer; break;
+            case 3: self.battleType = FF6Battle.Type.side; break;
         }
-        battle.drawBattle();
+        self.drawBattle();
     }
-    var typeSelected = function(type) {
+    function typeSelected(type) {
         switch (type) {
-            case 0: return battle.battleType === FF6Battle.Type.normal;
-            case 1: return battle.battleType === FF6Battle.Type.back;
-            case 2: return battle.battleType === FF6Battle.Type.pincer;
-            case 3: return battle.battleType === FF6Battle.Type.side;
+            case 0: return self.battleType === FF6Battle.Type.normal;
+            case 1: return self.battleType === FF6Battle.Type.back;
+            case 2: return self.battleType === FF6Battle.Type.pincer;
+            case 3: return self.battleType === FF6Battle.Type.side;
         }
     }
-    this.addList("battleType", "Type", ["Normal", "Back", "Pincer", "Side"], onChangeType, typeSelected);
-    this.addTwoState("showVRAM", function(checked) {
-        checked ? vram.show() : vram.hide();
-        battle.showVRAM = checked;
-    }, "VRAM", battle.showVRAM);
+    const typeNames = ["Normal", "Back", "Pincer", "Side"];
+    this.addList("battleType", "Type", typeNames, onChangeType, typeSelected);
 
-    this.resizeSensor = new ResizeSensor(document.getElementById("edit-top"), function() { battle.drawBattle(); });
+    // add a control to show/hide VRAM
+    this.addTwoState("showVRAM", function(checked) {
+        self.showVRAM = checked;
+        checked ? self.vram.show() : self.vram.hide();
+    }, "VRAM", self.showVRAM);
+    this.showVRAM ? this.vram.show() : this.vram.hide();
+
+    // notify on resize
+    this.resizeSensor = new ResizeSensor(document.getElementById("edit-top"), function() {
+        self.drawBattle();
+    });
 }
 
 FF6Battle.prototype.hide = function() {
@@ -540,7 +552,7 @@ FF6Battle.prototype.drawBattle = function() {
     ctx.webkitImageSmoothingEnabled = false;
     ctx.drawImage(this.battleCanvas, this.battleRect.l, this.battleRect.t, this.battleRect.w, this.battleRect.h, 0, 0, scaledRect.w, scaledRect.h);
 
-    if (this.showVRAM) this.vram.drawVRAM();
+    if (this.showVRAM) this.vram.redraw();
 }
 
 FF6Battle.prototype.mapForMonster = function(m) {
@@ -927,258 +939,81 @@ FF6Battle.prototype.loadBattleBackgroundGraphics = function(i, double) {
 }
 
 // FF6BattleBackgroundEditor
-function FF6BattleBackgroundEditor(rom) {
-    ROMTilemapView.call(this, rom);
-    this.name = "FF6BattleBackgroundEditor";
-    this.bgProperties = null;
-    this.layout = null;
-    this.observer.options.sub = true;
-}
+class FF6BattleBackgroundEditor extends ROMTilemapView {
 
-FF6BattleBackgroundEditor.prototype = Object.create(ROMTilemapView.prototype);
-FF6BattleBackgroundEditor.prototype.constructor = FF6BattleBackgroundEditor;
-
-FF6BattleBackgroundEditor.prototype.selectObject = function(object) {
-
-    this.bgProperties = object;
-
-    var self = this;
-    function reload() {
-        self.updateBackgroundLayout();
-        ROMTilemapView.prototype.selectObject.call(self, self.layout);
-        self.observer.startObserving(self.bgProperties, reload);
+    constructor(rom) {
+        super(rom);
+        this.name = 'FF6BattleBackgroundEditor';
+        this.bgProperties = null;
+        this.layout = null;
+        this.observer.options.sub = true;
     }
-    reload();
-}
 
-FF6BattleBackgroundEditor.prototype.updateBackgroundLayout = function() {
+    selectObject(object) {
+        this.bgProperties = object;
+        const l = this.bgProperties.layout1.value;
+        this.layout = this.rom.battleBackgroundLayout.item(l);
+        super.selectObject(this.layout);
+    }
 
-    var l = this.bgProperties.layout1.value;
-    this.layout = this.rom.battleBackgroundLayout.item(l);
-    this.layout.graphics = [[]];
+    loadTilemap() {
+        const l = this.bgProperties.layout1.value;
+        this.layout = this.rom.battleBackgroundLayout.item(l);
+        this.layout.graphics = [[]];
+        this.object = this.layout;
 
-    // create graphics definition
-    var g1 = this.bgProperties.graphics1;
-    var g2 = this.bgProperties.graphics2.value;
-    var g3 = this.bgProperties.graphics3.value;
-    if (g1.getSpecialValue() !== 0xFF) this.layout.graphics[0].push({
-        path: this.graphicsPath(g1.g.value),
-        offset: this.rom.isSFC ? "0x0000" : "0x4000"
+        // create graphics definition
+        const g1 = this.bgProperties.graphics1;
+        const g2 = this.bgProperties.graphics2.value;
+        const g3 = this.bgProperties.graphics3.value;
+        if (g1.getSpecialValue() !== 0xFF) this.layout.graphics[0].push({
+            path: this.graphicsPath(g1.g.value),
+            offset: this.rom.isSFC ? '0x0000' : '0x4000'
         });
-    if (g2 !== 0xFF) this.layout.graphics[0].push({
-        path: this.graphicsPath(g2),
-        offset: this.rom.isSFC ? "0x2000" : "0x6000"
-    });
-    if (g3 !== 0xFF) this.layout.graphics[0].push({
-        path: this.graphicsPath(g3),
-        offset: this.rom.isSFC ? "0xE000" : "0x2000"
-    });
+        if (g2 !== 0xFF) this.layout.graphics[0].push({
+            path: this.graphicsPath(g2),
+            offset: this.rom.isSFC ? '0x2000' : '0x6000'
+        });
+        if (g3 !== 0xFF) this.layout.graphics[0].push({
+            path: this.graphicsPath(g3),
+            offset: this.rom.isSFC ? '0xE000' : '0x2000'
+        });
 
-    // create palette definition
-    var p = this.bgProperties.palette.value;
-    this.layout.palette = {
-        path: "battleBackgroundPalette[" + p + "]",
-        offset: "0x50"
-    }
-}
-
-FF6BattleBackgroundEditor.prototype.graphicsPath = function(g) {
-    var bgGraphics = this.rom.battleBackgroundGraphics;
-    if (bgGraphics.item(g).data.length) return "battleBackgroundGraphics[" + g + "]";
-
-    // find map graphics with a matching pointer
-    // todo: combine map and battle bg graphics into a fragmented array ???
-    var pointer = bgGraphics.createPointer(g);
-    var mappedAddress = this.rom.mapAddress(pointer.value);
-    var mapGraphics = this.rom.mapGraphics;
-    if (this.rom.isGBA) {
-        pointer.options.offset = this.rom.mapAddress(Number(this.rom.mapGraphics.pointerOffset));
-        mappedAddress = pointer.value & 0x7FFFFF;
-    }
-    for (var i = 0; i < mapGraphics.arrayLength; i++) {
-        var mapGraphicsPointer = mapGraphics.createPointer(i);
-        if (mappedAddress === mapGraphicsPointer.value) return "mapGraphics[" + i + "]";
-    }
-}
-
-// FF6BattleVRAM
-function FF6BattleVRAM(rom, battle) {
-    this.rom = rom;
-    this.battle = battle;
-    this.name = "FF6BattleVRAM";
-
-    this.canvas = document.createElement('canvas');
-    this.vramCanvas = document.createElement('canvas');
-    this.vramCanvas.width = 128;
-    this.vramCanvas.height = 128;
-
-    this.zoom = 2.0;
-
-    var self = this;
-    this.canvas.onmousedown = function(e) { self.mouseDown(e) };
-    this.resizeSensor = null;
-}
-
-FF6BattleVRAM.prototype.show = function() {
-
-    var toolbox = document.getElementById("toolbox");
-    var toolboxDiv = document.getElementById("toolbox-div");
-    var toolboxButtons = document.getElementById("toolbox-layer-div");
-    toolboxDiv.classList.remove('hidden');
-    toolboxDiv.innerHTML = "";
-    toolboxDiv.appendChild(this.canvas);
-    // toolboxDiv.style.height = "256px";
-    toolboxButtons.classList.add('hidden');
-
-    // notify on resize
-    var self = this;
-    this.resizeSensor = new ResizeSensor(toolbox, function() { self.drawVRAM(); });
-}
-
-FF6BattleVRAM.prototype.hide = function() {
-
-    // hide the toolbox
-    var toolbox = document.getElementById("toolbox");
-    var toolboxDiv = document.getElementById("toolbox-div");
-    var toolboxButtons = document.getElementById("toolbox-layer-div");
-    toolboxDiv.classList.add('hidden');
-    toolboxDiv.innerHTML = "";
-    toolboxButtons.classList.add('hidden');
-
-    if (this.resizeSensor) {
-        this.resizeSensor.detach(toolbox);
-        this.resizeSensor = null;
-    }
-}
-
-FF6BattleVRAM.prototype.mouseDown = function(e) {
-    var x = Math.floor(e.offsetX / this.zoom);
-    var y = Math.floor(e.offsetY / this.zoom);
-
-    var clickedSlot = this.slotAtPoint(x, y);
-    if (!clickedSlot) return;
-
-    var m = this.battle.monsterInSlot(clickedSlot);
-    if (!m) {
-        propertyList.select(this.battle.battleProperties);
-        return;
-    }
-
-    this.battle.selectedMonster = m;
-    this.battle.selectedCharacter = null;
-    propertyList.select(this.rom.monsterProperties.item(m.monster));
-
-    this.battle.drawBattle();
-}
-
-FF6BattleVRAM.prototype.rectForSlot = function(slot) {
-    var v = this.battle.battleProperties.vramMap.value;
-    var vramMap = this.rom.battleVRAMMap.item(v);
-    if (slot > vramMap.arrayLength) { return Rect.emptyRect; }
-    var vramMapData = vramMap.item(slot - 1);
-
-    // monster slot, get vram map data
-    var vramAddress = vramMapData.vramAddress.value;
-    var w = vramMapData.width.value;
-    var h = vramMapData.height.value;
-    var l = (vramAddress & 0x01E0) >> 5;
-    var t = (vramAddress & 0xFE00) >> 9;
-    var r = l + w;
-    var b = t + h;
-    var slotRect = new Rect(l, r, t, b);
-    return slotRect.scale(8);
-}
-
-FF6BattleVRAM.prototype.slotAtPoint = function(x, y) {
-    for (var slot = 1; slot <= 6; slot++) {
-        if (this.rectForSlot(slot).containsPoint(x, y)) return slot;
-    }
-    return null;
-}
-
-FF6BattleVRAM.prototype.drawVRAM = function() {
-
-    var toolbox = document.getElementById("toolbox");
-    var toolboxDiv = document.getElementById("toolbox-div");
-
-    // hide scroll bars before calculating zoom
-    toolboxDiv.classList.remove("hidden");
-    toolbox.style.overflowY = "hidden";
-    toolboxDiv.style.width = toolbox.clientWidth + "px";
-
-    // recalculate zoom without scroll bars
-    this.zoom = Math.min(toolboxDiv.clientWidth / 128, 4.0);
-
-    // update canvas size
-    var w = 128 * this.zoom;
-    var h = 128 * this.zoom;
-    toolboxDiv.style.height = h + "px";
-
-    // check if scroll bars are needed
-    if (toolbox.scrollHeight > toolbox.clientHeight) {
-
-        // show scroll bars and recalculate zoom
-        toolbox.style.overflowY = "scroll";
-        toolboxDiv.style.width = toolbox.clientWidth + "px";
-        this.zoom = Math.min(toolboxDiv.clientWidth / 128, 4.0);
-
-        w = 128 * this.zoom;
-        h = 128 * this.zoom;
-        toolboxDiv.style.height = h + "px";
-    }
-
-    toolbox.style.overflowY = "";
-
-    // reset element sizes
-    this.canvas.width = w;
-    this.canvas.height = h;
-
-    // // reset element sizes
-    // this.zoom = Math.min(toolbox.clientWidth / 128, 4.0);
-    // var w = 128 * this.zoom;
-    // var h = 128 * this.zoom;
-    // toolboxDiv.style.width = w + "px";
-    // toolboxDiv.style.height = h + "px";
-    // toolboxDiv.classList.remove("hidden");
-    // this.canvas.width = w;
-    // this.canvas.height = h;
-
-    // clear the canvas
-    var ctx = this.canvas.getContext('2d');
-    ctx.fillStyle = 'black';
-    ctx.fillRect(0, 0, w, h)
-
-    // draw the monsters
-    ctx.imageSmoothingEnabled = false;
-    ctx.webkitImageSmoothingEnabled = false;
-    ctx.drawImage(this.vramCanvas, 0, 0, w, h);
-
-    // draw the slots
-    ctx.font = 'bold 48px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    for (var slot = 1; slot <= 6; slot++) {
-        var slotRect = this.rectForSlot(slot);
-        if (slotRect.isEmpty()) continue;
-        slotRect = slotRect.scale(this.zoom);
-
-        // draw the vram slot
-        var x = slotRect.l + 0.5;
-        var y = slotRect.t + 0.5;
-        var w = slotRect.w - 1;
-        var h = slotRect.h - 1;
-
-        ctx.rect(x, y, w, h);
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = "gray";
-        ctx.stroke();
-        if (this.battle.selectedMonster && this.battle.selectedMonster.slot === slot) {
-            ctx.fillStyle = 'hsla(210, 100%, 50%, 0.5)';
-        } else {
-            ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+        // create palette definition
+        const p = this.bgProperties.palette.value;
+        this.layout.palette = {
+            path: `battleBackgroundPalette[${p}]`,
+            offset: '0x50'
         }
-        ctx.fillText(slot.toString(), slotRect.centerX, slotRect.centerY);
-        ctx.strokeStyle = "rgba(255, 255, 255, 1.0)";
-        ctx.strokeText(slot.toString(), slotRect.centerX, slotRect.centerY);
+
+        super.loadTilemap();
+        this.observer.startObserving(this.bgProperties, this.loadTilemap);
+    }
+
+    graphicsPath(g) {
+        const bgGraphics = this.rom.battleBackgroundGraphics;
+        if (bgGraphics.item(g) && bgGraphics.item(g).data.length) {
+            return `battleBackgroundGraphics[${g}]`;
+        }
+
+        // find map graphics with a matching pointer
+        // todo: combine map and battle bg graphics into a fragmented array ???
+        const pointer = bgGraphics.createPointer(g);
+        let mappedAddress = this.rom.mapAddress(pointer.value);
+        const mapGraphics = this.rom.mapGraphics;
+        if (this.rom.isGBA) {
+            const offset = Number(this.rom.mapGraphics.pointerOffset);
+            pointer.options.offset = this.rom.mapAddress(offset);
+            mappedAddress = pointer.value & 0x7FFFFF;
+        }
+
+        for (let i = 0; i < mapGraphics.arrayLength; i++) {
+            const mapGraphicsPointer = mapGraphics.createPointer(i);
+            if (mappedAddress === mapGraphicsPointer.value) {
+                return `mapGraphics[${i}]`;
+            }
+        }
+
+        return null;
     }
 }

@@ -1,5 +1,5 @@
 //
-// ff1battle.js
+// ff1-battle.js
 // created 11/10/2018
 //
 
@@ -113,19 +113,18 @@ FF1Battle.prototype.mouseDown = function(e) {
 
 FF1Battle.prototype.selectObject = function(object) {
     this.loadBattle(object.i);
-    this.show();
 }
 
 FF1Battle.prototype.show = function() {
     var battle = this;
 
-    document.getElementById('toolbox-layer-div').classList.add("hidden");
-    document.getElementById('toolbox-div').classList.add("hidden");
-
     this.resetControls();
     this.showControls();
     this.closeList();
-    this.addTwoState("showMonsters", function(checked) { battle.showMonsters = checked; battle.drawBattle(); }, "Monsters", this.showMonsters);
+    this.addTwoState("showMonsters", function(checked) {
+        battle.showMonsters = checked;
+        battle.drawBattle();
+    }, "Monsters", this.showMonsters);
 
     var bgNames = [];
     for (var i = 0; i < this.rom.stringTable.battleBackground.string.length; i++) {

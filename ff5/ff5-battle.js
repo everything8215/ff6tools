@@ -1,5 +1,5 @@
 //
-// ff5battle.js
+// ff5-battle.js
 // created 1/14/2019
 //
 
@@ -226,8 +226,8 @@ FF5Battle.prototype.selectObject = function(object) {
 
 FF5Battle.prototype.show = function() {
     var battle = this;
-    document.getElementById('toolbox-layer-div').classList.add("hidden");
-    document.getElementById('toolbox-div').classList.add("hidden");
+    // document.getElementById('toolbox-bar').classList.add("hidden");
+    // document.getElementById('toolbox-div').classList.add("hidden");
 
     this.resetControls();
     this.showControls();
@@ -670,109 +670,106 @@ FF5Battle.prototype.drawBackgroundGBA = function() {
 }
 
 // FF5BattleBackgroundEditor
-function FF5BattleBackgroundEditor(rom) {
-    ROMTilemapView.call(this, rom);
-    this.name = "FF5BattleBackgroundEditor";
-    this.bgProperties = null;
-    this.layout = null;
-    this.observer.options.sub = true;
-    this.observer.options.link = true;
-}
+class FF5BattleBackgroundEditor extends ROMTilemapView {
 
-FF5BattleBackgroundEditor.prototype = Object.create(ROMTilemapView.prototype);
-FF5BattleBackgroundEditor.prototype.constructor = FF5BattleBackgroundEditor;
-
-FF5BattleBackgroundEditor.prototype.selectObject = function(object) {
-
-    this.bgProperties = object;
-
-    var self = this;
-    function reload() {
-        self.updateBackgroundLayout();
-        ROMTilemapView.prototype.selectObject.call(self, self.layout);
-        self.observer.startObserving(self.bgProperties, reload);
-    }
-    reload();
-}
-
-FF5BattleBackgroundEditor.prototype.updateBackgroundLayout = function() {
-
-    if (this.rom.isGBA) {
-        this.updateBackgroundLayoutGBA();
-        return;
+    constructor(rom) {
+        super(rom);
+        this.name = 'FF5BattleBackgroundEditor';
+        this.bgProperties = null;
+        this.layout = null;
+        this.observer.options.sub = true;
+        this.observer.options.link = true;
     }
 
-    var l = this.bgProperties.layout.value;
-    this.layout = this.rom.battleBackgroundLayout.item(l);
-
-    // create graphics definition
-    var g = this.bgProperties.graphics.value;
-    var gfxPointer = this.rom.battleBackgroundGraphicsPointer.item(g).pointer;
-    var gfxObject = gfxPointer.target;
-    this.layout.graphics = "battleBackgroundGraphics[" + gfxObject.i + "]";
-
-    var graphicsOffset = this.rom.battleBackgroundGraphicsOffset.item(g);
-    this.layout.tileOffset = graphicsOffset.offset.value;
-
-    // create palette definition
-    this.layout.palette = [[]];
-    var p1 = this.bgProperties.palette1.value;
-    var p2 = this.bgProperties.palette2.value;
-    this.layout.palette[0].push({
-        path: "battleBackgroundPalette[" + p1 + "]",
-        offset: "0x00"
-    });
-    this.layout.palette[0].push({
-        path: "battleBackgroundPalette[" + p2 + "]",
-        offset: "0x10"
-    });
-
-    // create hFlip and vFlip definitions
-    var vFlip = this.bgProperties.vFlip.value;
-    if (vFlip === 0xFF) {
-        this.layout.disableVFlip = true;
-    } else {
-        this.layout.vFlip = "battleBackgroundTileFlip[" + vFlip + "]";
-        this.layout.disableVFlip = false;
+    selectObject(object) {
+        this.bgProperties = object;
+        const l = this.bgProperties.layout.value;
+        this.layout = this.rom.battleBackgroundLayout.item(l);
+        super.selectObject(this.layout);
     }
-    var hFlip = this.bgProperties.hFlip.value;
-    if (hFlip === 0xFF) {
-        this.layout.disableHFlip = true;
-    } else {
-        this.layout.hFlip = "battleBackgroundTileFlip[" + hFlip + "]";
-        this.layout.disableHFlip = false;
-    }
-}
 
-FF5BattleBackgroundEditor.prototype.updateBackgroundLayoutGBA = function() {
-    var bg = this.bgProperties.i * 3;
+    loadTilemap() {
+        if (this.rom.isGBA) {
+            this.updateBackgroundLayoutGBA();
+            return;
+        }
 
-    // load layout
-    var layout = this.rom.battleBackgroundGraphics.item(bg + 1);
-    if (!layout.format) {
-        layout.format = ["gba4bppTile", "tose-layout"];
-        layout.width = 32;
-        layout.height = 17;
-        layout.disassemble(layout.parent.data);
-    }
-    this.layout = layout;
+        const l = this.bgProperties.layout.value;
+        this.layout = this.rom.battleBackgroundLayout.item(l);
+        this.object = this.layout;
 
-    // create graphics definition
-    var graphicsData = this.rom.battleBackgroundGraphics.item(bg);
-    graphicsData.width = 32;
-    if (!graphicsData.format) {
-        graphicsData.format = ["linear4bpp", "tose-graphics", "gba-lzss"];
-        graphicsData.disassemble(graphicsData.parent.data);
-    }
-    this.layout.graphics = {
-        path: "battleBackgroundGraphics[" + bg + "]"
-    };
+        // create graphics definition
+        const g = this.bgProperties.graphics.value;
+        const gfxPointer = this.rom.battleBackgroundGraphicsPointer.item(g).pointer;
+        const gfxObject = gfxPointer.target;
+        this.layout.graphics = `battleBackgroundGraphics[${gfxObject.i}]`;
 
-    // create palette definition
-    var paletteData = this.rom.battleBackgroundGraphics.item(bg + 2);
-    if (!paletteData.format) {
-        paletteData.format = ["bgr555", "tose-palette"];
-        paletteData.disassemble(paletteData.parent.data);
+        const graphicsOffset = this.rom.battleBackgroundGraphicsOffset.item(g);
+        this.layout.tileOffset = graphicsOffset.offset.value;
+
+        // create palette definition
+        this.layout.palette = [[]];
+        const p1 = this.bgProperties.palette1.value;
+        const p2 = this.bgProperties.palette2.value;
+        this.layout.palette[0].push({
+            path: `battleBackgroundPalette[${p1}]`,
+            offset: '0x00'
+        });
+        this.layout.palette[0].push({
+            path: `battleBackgroundPalette[${p2}]`,
+            offset: '0x10'
+        });
+
+        // create hFlip and vFlip definitions
+        const vFlip = this.bgProperties.vFlip.value;
+        if (vFlip === 0xFF) {
+            this.layout.disableVFlip = true;
+        } else {
+            this.layout.vFlip = `battleBackgroundTileFlip[${vFlip}]`;
+            this.layout.disableVFlip = false;
+        }
+        const hFlip = this.bgProperties.hFlip.value;
+        if (hFlip === 0xFF) {
+            this.layout.disableHFlip = true;
+        } else {
+            this.layout.hFlip = `battleBackgroundTileFlip[${hFlip}]`;
+            this.layout.disableHFlip = false;
+        }
+
+        super.loadTilemap();
+        this.observer.startObserving(this.bgProperties, this.loadTilemap);
     }
-    this.layout.palette = "battleBackgroundGraphics[" + (bg + 2) + "]";
+
+    updateBackgroundLayoutGBA() {
+        const bg = this.bgProperties.i * 3;
+
+        // load layout
+        const layout = this.rom.battleBackgroundGraphics.item(bg + 1);
+        if (!layout.format) {
+            layout.format = ['gba4bppTile', 'tose-layout'];
+            layout.width = 32;
+            layout.height = 17;
+            layout.disassemble(layout.parent.data);
+        }
+        this.layout = layout;
+
+        // create graphics definition
+        const graphicsData = this.rom.battleBackgroundGraphics.item(bg);
+        graphicsData.width = 32;
+        if (!graphicsData.format) {
+            graphicsData.format = ['linear4bpp', 'tose-graphics', 'gba-lzss'];
+            graphicsData.disassemble(graphicsData.parent.data);
+        }
+        this.layout.graphics = {
+            path: `battleBackgroundGraphics[${bg}]`
+        };
+
+        // create palette definition
+        const paletteData = this.rom.battleBackgroundGraphics.item(bg + 2);
+        if (!paletteData.format) {
+            paletteData.format = ['bgr555', 'tose-palette'];
+            paletteData.disassemble(paletteData.parent.data);
+        }
+        this.layout.palette = `battleBackgroundGraphics[${bg + 2}]`;
+    }
 }

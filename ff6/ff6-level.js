@@ -1,5 +1,5 @@
 //
-// ff6level.js
+// ff6-level.js
 // created 2/10/2020
 //
 
@@ -150,9 +150,6 @@ FF6LevelProgression.prototype.mouseMove = function(e) {
 }
 
 FF6LevelProgression.prototype.show = function() {
-
-    document.getElementById('toolbox-layer-div').classList.add("hidden");
-    document.getElementById('toolbox-div').classList.add("hidden");
 
     this.resetControls();
     this.showControls();
