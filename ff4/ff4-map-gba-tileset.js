@@ -545,84 +545,85 @@ class FF4MapGBATileset extends ROMToolbox {
         return null;
     }
 
-    static MaskType = {
-        passable: {
-            name: 'Passable',
-            color: 'rgba(0, 0, 0, 0.0)',
-            value: 0x00,
-            index: 0
-        },
-        impassable: {
-            name: 'Impassable',
-            color: 'rgba(0, 0, 255, 0.5)',
-            value: 0x01,
-            index: 1
-        },
-        spriteHidden: {
-            name: 'Sprite Hidden',
-            color: 'rgba(0, 255, 0, 0.5)',
-            value: 0x04,
-            index: 2
-        },
-        zLevelChange: {
-            name: 'Z-Level Change',
-            color: 'rgba(0, 255, 255, 0.5)',
-            value: 0x02,
-            index: 3
-        },
-        exit: {
-            name: 'Exit',
-            color: 'rgba(255, 0, 0, 0.5)',
-            value: 0x40,
-            index: 4
-        },
-        bridge: {
-            name: 'Bridge',
-            color: 'rgba(255, 0, 255, 0.5)',
-            value: 0x05,
-            index: 5
-        },
-        treasure: {
-            name: 'Treasure',
-            color: 'rgba(255, 255, 0, 0.5)',
-            value: 0x20,
-            index: 6
-        },
-        damageTile: {
-            name: 'Damage Tile',
-            color: 'rgba(0, 0, 0, 0.5)',
-            value: 0x06,
-            index: 7
-        },
-        unknown7: {
-            name: 'Unknown (0x07)',
-            color: 'rgba(255, 255, 255, 0.5)',
-            value: 0x07,
-            index: 8
-        },
-        bottomHidden: {
-            name: 'Bottom Half Hidden',
-            color: 'rgba(255, 255, 255, 0.5)',
-            value: 0x11,
-            index: 9
-        },
-        bottomTransparent: {
-            name: 'Bottom Half Transparent',
-            color: 'rgba(255, 255, 255, 0.5)',
-            value: 0x10,
-            index: 10
-        },
-        unknown12: {
-            name: 'Unknown (0x12)',
-            color: 'rgba(255, 255, 255, 0.5)',
-            value: 0x12,
-            index: 11
-        },
-        unknown13: {
-            name: 'Unknown (0x13)',
-            color: 'rgba(255, 255, 255, 0.5)',
-            value: 0x13,
-            index: 12
-        }
+}
+
+FF4MapGBATileset.MaskType = {
+    passable: {
+        name: 'Passable',
+        color: 'rgba(0, 0, 0, 0.0)',
+        value: 0x00,
+        index: 0
+    },
+    impassable: {
+        name: 'Impassable',
+        color: 'rgba(0, 0, 255, 0.5)',
+        value: 0x01,
+        index: 1
+    },
+    spriteHidden: {
+        name: 'Sprite Hidden',
+        color: 'rgba(0, 255, 0, 0.5)',
+        value: 0x04,
+        index: 2
+    },
+    zLevelChange: {
+        name: 'Z-Level Change',
+        color: 'rgba(0, 255, 255, 0.5)',
+        value: 0x02,
+        index: 3
+    },
+    exit: {
+        name: 'Exit',
+        color: 'rgba(255, 0, 0, 0.5)',
+        value: 0x40,
+        index: 4
+    },
+    bridge: {
+        name: 'Bridge',
+        color: 'rgba(255, 0, 255, 0.5)',
+        value: 0x05,
+        index: 5
+    },
+    treasure: {
+        name: 'Treasure',
+        color: 'rgba(255, 255, 0, 0.5)',
+        value: 0x20,
+        index: 6
+    },
+    damageTile: {
+        name: 'Damage Tile',
+        color: 'rgba(0, 0, 0, 0.5)',
+        value: 0x06,
+        index: 7
+    },
+    unknown7: {
+        name: 'Unknown (0x07)',
+        color: 'rgba(255, 255, 255, 0.5)',
+        value: 0x07,
+        index: 8
+    },
+    bottomHidden: {
+        name: 'Bottom Half Hidden',
+        color: 'rgba(255, 255, 255, 0.5)',
+        value: 0x11,
+        index: 9
+    },
+    bottomTransparent: {
+        name: 'Bottom Half Transparent',
+        color: 'rgba(255, 255, 255, 0.5)',
+        value: 0x10,
+        index: 10
+    },
+    unknown12: {
+        name: 'Unknown (0x12)',
+        color: 'rgba(255, 255, 255, 0.5)',
+        value: 0x12,
+        index: 11
+    },
+    unknown13: {
+        name: 'Unknown (0x13)',
+        color: 'rgba(255, 255, 255, 0.5)',
+        value: 0x13,
+        index: 12
     }
 }

@@ -246,61 +246,61 @@ class ROMNavigator {
             this.selectedNode.classList.add('selected');
         }
     }
-
-    static defaultHierarchy = [
-        {
-            name: 'Map',
-            list: [
-                {
-                    name: 'Maps',
-                    path: 'mapProperties'
-                }, {
-                    name: 'Map Titles',
-                    path: 'mapTitle'
-                }, {
-                    name: 'Parallax',
-                    path: 'mapParallax'
-                }, {
-                    name: 'Color Math',
-                    path: 'mapColorMath'
-                }
-            ]
-        }, {
-            name: 'Event',
-            list: [
-                {
-                    name: 'Event Script',
-                    path: 'eventScript'
-                }, {
-                    name: 'Dialog',
-                    path: 'dialog'
-                }, {
-                    name: 'NPC Switches',
-                    path: 'stringTable.npcSwitches'
-                }, {
-                    name: 'Map Switches',
-                    path: 'stringTable.mapSwitches'
-                }
-            ]
-        }, {
-            name: 'Battle',
-            list: [
-                {
-                    name: 'Battles',
-                    path: 'battleProperties'
-                }, {
-                    name: 'Monsters',
-                    path: 'monsterProperties'
-                }
-            ]
-        }, {
-            name: 'System',
-            list: [
-                {
-                    'name': 'SNES Header',
-                    'path': 'snesHeader'
-                }
-            ]
-        }
-    ]
 }
+
+ROMNavigator.defaultHierarchy = [
+    {
+        name: 'Map',
+        list: [
+            {
+                name: 'Maps',
+                path: 'mapProperties'
+            }, {
+                name: 'Map Titles',
+                path: 'mapTitle'
+            }, {
+                name: 'Parallax',
+                path: 'mapParallax'
+            }, {
+                name: 'Color Math',
+                path: 'mapColorMath'
+            }
+        ]
+    }, {
+        name: 'Event',
+        list: [
+            {
+                name: 'Event Script',
+                path: 'eventScript'
+            }, {
+                name: 'Dialog',
+                path: 'dialog'
+            }, {
+                name: 'NPC Switches',
+                path: 'stringTable.npcSwitches'
+            }, {
+                name: 'Map Switches',
+                path: 'stringTable.mapSwitches'
+            }
+        ]
+    }, {
+        name: 'Battle',
+        list: [
+            {
+                name: 'Battles',
+                path: 'battleProperties'
+            }, {
+                name: 'Monsters',
+                path: 'monsterProperties'
+            }
+        ]
+    }, {
+        name: 'System',
+        list: [
+            {
+                'name': 'SNES Header',
+                'path': 'snesHeader'
+            }
+        ]
+    }
+]

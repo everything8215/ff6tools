@@ -962,27 +962,27 @@ class ROMTilemapView extends ROMEditor_ {
         // release the reference to the file by revoking the Object URL
         window.URL.revokeObjectURL(url);
     }
+}
 
-    static TileMasks = {
-        none: {
-            key: "none",
-            name: "None"
-        },
-        vFlip: {
-            key: "vFlip",
-            name: "V-Flip"
-        },
-        hFlip: {
-            key: "hFlip",
-            name: "H-Flip"
-        },
-        zLevel: {
-            key: "zLevel",
-            name: "Z-Level"
-        // },
-        // "tileIndex": {
-        //     "key": "tileIndex",
-        //     "name": "Tile Index"
-        }
+ROMTilemapView.TileMasks = {
+    none: {
+        key: "none",
+        name: "None"
+    },
+    vFlip: {
+        key: "vFlip",
+        name: "V-Flip"
+    },
+    hFlip: {
+        key: "hFlip",
+        name: "H-Flip"
+    },
+    zLevel: {
+        key: "zLevel",
+        name: "Z-Level"
+    // },
+    // "tileIndex": {
+    //     "key": "tileIndex",
+    //     "name": "Tile Index"
     }
 }
