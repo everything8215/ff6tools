@@ -28,7 +28,7 @@ function FF1LevelProgression(rom) {
     this.selectedPoint = null;
     this.classProperties = null;
     this.classStats = null;
-    this.observer = new ROMObserver(rom, this, {sub: true, link: true, array: true});
+    this.observer = new ROMObserver(rom, this);
 
     var levelProg = this;
 //    this.div.onscroll = function() { levelProg.resize() };
@@ -268,8 +268,19 @@ FF1LevelProgression.prototype.loadClass = function(c) {
     if (!this.classStats) return;
     propertyList.select(this.classProperties);
 
-    this.observer.startObserving(this.classProperties, this.updateStats);
-    this.observer.startObserving(this.classStats, this.updateStats);
+    this.observer.startObserving([
+        this.classProperties.hp,
+        this.classProperties.strength,
+        this.classProperties.agility,
+        this.classProperties.vitality,
+        this.classProperties.intelligence,
+        this.classProperties.luck,
+    ], this.updateStats);
+    for (level of this.classStats.iterator()) {
+        this.observer.startObserving([
+            level.exp, level.stats, level.mp
+        ], this.updateStats);
+    }
     this.selectedPoint = null;
 
     this.updateStats();

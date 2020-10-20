@@ -27,7 +27,7 @@ function FF6LevelProgression(rom) {
     this.selectedPoint = null;
     this.characterStats = null;
     this.levelProgData = null;
-    this.observer = new ROMObserver(rom, this, {sub: true, link: true, array: true});
+    this.observer = new ROMObserver(rom, this);
 
     var levelProg = this;
 //    this.div.onscroll = function() { levelProg.resize() };
@@ -236,10 +236,19 @@ FF6LevelProgression.prototype.loadCharacter = function(c) {
     if (!this.characterProperties || !this.expProgression) return;
     propertyList.select(this.characterProperties);
 
-    this.observer.startObserving(this.characterProperties, this.updateStats);
-    this.observer.startObserving(this.expProgression, this.updateStats);
-    this.observer.startObserving(this.hpProgression, this.updateStats);
-    this.observer.startObserving(this.mpProgression, this.updateStats);
+    this.observer.startObserving([
+        this.characterProperties.hp,
+        this.characterProperties.mp
+    ], this.updateStats);
+    for (expObject of this.expProgression.iterator()) {
+        this.observer.startObserving(expObject.exp, this.updateStats);
+    }
+    for (hpObject of this.hpProgression.iterator()) {
+        this.observer.startObserving(hpObject.hp, this.updateStats);
+    }
+    for (mpObject of this.mpProgression.iterator()) {
+        this.observer.startObserving(mpObject.mp, this.updateStats);
+    }
     this.selectedPoint = null;
 
     this.updateStats();

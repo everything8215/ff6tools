@@ -94,18 +94,7 @@ class ROMTilemapView extends ROMEditor_ {
         // notify on resize
         const self = this;
         this.resizeSensor = new ResizeSensor(this.toolbox.paneTop, function() {
-            // resize graphics based on width with no scrollbar
-            self.graphicsView.resize(self.toolbox.div.offsetWidth);
-
-            // set toolbox height
-            const totalHeight = self.paletteView.div.scrollHeight + self.graphicsView.div.scrollHeight;
-            self.toolbox.setHeight(totalHeight);
-
-            // resize based on width with possible scrollbar
-            self.graphicsView.resize(self.toolbox.div.clientWidth);
-            self.graphicsView.redraw();
-            self.paletteView.resize(self.toolbox.div.clientWidth);
-            self.paletteView.redraw();
+            self.resize();
         });
 
         this.div.focus();
@@ -460,6 +449,39 @@ class ROMTilemapView extends ROMEditor_ {
 
         this.observer.wake();
         this.rom.endAction();
+    }
+
+    resize() {
+        // resize graphics based on full toolbox width with no scrollbar
+        this.graphicsView.resize(this.toolbox.div.offsetWidth);
+
+        // set toolbox height
+        const scrollHeight = this.paletteView.div.scrollHeight + this.graphicsView.div.scrollHeight;
+        this.toolbox.setHeight(scrollHeight);
+
+        // get visible toolbox height and check for overflow
+        const toolboxHeight = this.toolbox.div.clientHeight;
+        let graphicsHeight = this.graphicsView.div.scrollHeight;
+        if (scrollHeight > toolboxHeight) {
+            // min toolbox height assuming graphics height is zero
+            const minHeight = scrollHeight - this.graphicsView.canvasDiv.scrollHeight;
+            const minGraphicsHeight = minHeight - this.paletteView.div.scrollHeight;
+
+            // height available for graphics div
+            graphicsHeight = toolboxHeight - this.paletteView.div.scrollHeight;
+            if (graphicsHeight < minGraphicsHeight) {
+                this.toolbox.setHeight(minHeight);
+                graphicsHeight = minGraphicsHeight;
+            } else {
+                this.toolbox.div.style.overflowY = '';
+            }
+        }
+
+        // resize graphics and palette based on actual width
+        this.graphicsView.resize(this.toolbox.div.clientWidth, graphicsHeight);
+        this.graphicsView.redraw();
+        this.paletteView.resize(this.toolbox.div.clientWidth);
+        this.paletteView.redraw();
     }
 
     redraw() {

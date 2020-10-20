@@ -2013,6 +2013,7 @@
                             "type": "property",
                             "name": "I.D.",
                             "min": 1,
+                            "begin": 0,
                             "link": "npcProperties[%i]",
                             "stringTable": "npcProperties"
                         },

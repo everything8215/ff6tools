@@ -7,7 +7,7 @@ general
  * patch/asm support
  * manual relocation
  * reserve rom ranges (remove free space for patches or compatibility with other editors)
- * make things load faster! (load event script in parallel ???)
+ * make things load faster! (load event script asynchronously?)
  * copy and paste
  * paste-able script text
  * import/export binary data

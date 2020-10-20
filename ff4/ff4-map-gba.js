@@ -58,7 +58,7 @@ function FF4MapGBA(rom) {
     this.showScreen = false;
     this.selectedTrigger = null;
     this.isWorld = false;
-    this.observer = new ROMObserver(rom, this, {sub: true, link: true, array: true});
+    this.observer = new ROMObserver(rom, this);
     this.ppu = new GFX.PPU();
 
     this.screenCanvas = document.createElement('canvas');
@@ -968,15 +968,24 @@ FF4MapGBA.prototype.loadMap = function(m) {
     this.isWorld = false;
     this.observer.stopObservingAll();
     this.mapProperties = this.rom.mapProperties.item(this.m);
-    this.observer.startObserving(this.mapProperties, this.loadMap);
 
     // get map properties
     var map = this.mapProperties;
     if (!map) return;
     this.resetControls();
+    this.observer.startObserving([
+        map.tileset,
+        map.layout,
+        map.tileProperties
+    ], this.loadMap);
 
     var mapTileset = this.rom.mapTileset.item(this.mapProperties.tileset.value);
     if (!mapTileset) return;
+    this.observer.startObserving([
+        mapTileset.graphics,
+        mapTileset.palette,
+        mapTileset.layout
+    ], this.loadMap);
 
     // set the map background
 //    var battleEditor = propertyList.getEditor("FF4Battle");
@@ -997,6 +1006,11 @@ FF4MapGBA.prototype.loadMap = function(m) {
 
     var layout, tileset, w, h;
     var tileset = this.rom.mapGraphicsData.item(mapTileset.layout.value);
+    this.observer.startObserving([
+        graphicsData,
+        paletteData,
+        tileset
+    ], this.loadMap);
 
     // load and de-interlace tile layouts
     layout = this.rom.mapGraphicsData.item(map.layout.value);
@@ -1051,8 +1065,8 @@ FF4MapGBA.prototype.loadMap = function(m) {
     this.ppu.layers[1].tiles = this.layer[1].tiles;
     this.ppu.layers[1].main = this.showLayer2;
 
-    this.scrollDiv.style.width = (this.ppu.width * this.zoom).toString() + "px";
-    this.scrollDiv.style.height = (this.ppu.height * this.zoom).toString() + "px";
+    this.scrollDiv.style.width = `${this.ppu.width * this.zoom}px`;
+    this.scrollDiv.style.height = `${this.ppu.height * this.zoom}px`;
     this.mapCanvas.width = w * 16;
     this.mapCanvas.height = h * 16;
 
@@ -1076,7 +1090,17 @@ FF4MapGBA.prototype.loadWorldMap = function(m) {
 
     this.observer.stopObservingAll();
     this.mapProperties = this.rom.worldProperties.item(this.w);
-    this.observer.startObserving(this.mapProperties, this.loadMap);
+    this.observer.startObserving([
+        this.mapProperties.width,
+        this.mapProperties.height,
+        this.mapProperties.graphics1,
+        this.mapProperties.graphics2,
+        this.mapProperties.palette,
+        this.mapProperties.tileset1,
+        this.mapProperties.layout1,
+        this.mapProperties.tileset2,
+        this.mapProperties.layout2
+    ], this.loadMap);
     propertyList.select(this.mapProperties);
 
     var width = this.mapProperties.width.value >> 4;
@@ -1258,7 +1282,6 @@ FF4MapGBA.prototype.loadTriggers = function() {
     var i;
     // load triggers
     var triggers = this.rom.mapTriggerPointers.item(this.mapProperties.events.value).triggerPointer.target;
-    this.observer.startObserving(triggers, this.reloadTriggers);
     for (i = 0; i < triggers.arrayLength; i++) {
         var trigger = triggers.item(i);
         if (trigger.triggerType.value === 0) {
@@ -1275,6 +1298,7 @@ FF4MapGBA.prototype.loadTriggers = function() {
         } else {
             // npc
 //            this.fixNPC(trigger);
+            this.observer.startObservingSub(trigger, this.reloadTriggers);
             this.triggers.push(trigger);
         }
     }
@@ -1363,6 +1387,7 @@ FF4MapGBA.prototype.loadWorldTriggers = function() {
             continue;
         }
         if (worldTriggersIndex !== currentIndex) continue;
+        this.observer.startObservingSub(trigger, this.reloadTriggers);
         this.triggers.push(trigger);
     }
 }
@@ -1427,16 +1452,16 @@ FF4MapGBA.prototype.loadEvent = function(object) {
     for (var c = 0; c < event.command.length; c++) {
         var command = event.command[c];
         if (command.key === "createObject") {
-            this.observer.startObserving(command, this.reloadTriggers);
+            this.observer.startObservingSub(command, this.reloadTriggers);
             this.triggers.push(command);
         } else if (command.key === "jumpPosition") {
-            this.observer.startObserving(command, this.reloadTriggers);
+            this.observer.startObservingSub(command, this.reloadTriggers);
             this.triggers.push(command);
         } else if (command.key === "jumpPositionShort") {
-            this.observer.startObserving(command, this.reloadTriggers);
+            this.observer.startObservingSub(command, this.reloadTriggers);
             this.triggers.push(command);
         } else if (command.key === "selectDeleteTrigger") {
-            this.observer.startObserving(command, this.reloadTriggers);
+            this.observer.startObservingSub(command, this.reloadTriggers);
             this.triggers.push(command);
         }
 

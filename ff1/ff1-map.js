@@ -55,7 +55,7 @@ function FF1Map(rom) {
     this.showTriggers = true;
     this.selectedTrigger = null;
     this.isWorld = false;
-    this.observer = new ROMObserver(rom, this, {sub: true, link: true, array: true});
+    this.observer = new ROMObserver(rom, this);
     this.ppu = new GFX.PPU();
 
     // mask layer stuff
@@ -247,12 +247,10 @@ FF1Map.prototype.mouseUp = function(e) {
             this.selectedTrigger.y.value = this.clickedRow;
 
             // set the new trigger position (and trigger undo)
-//            this.observer.stopObserving(this.selectedTrigger);
             this.beginAction(this.reloadTriggers);
             this.selectedTrigger.x.setValue(col);
             this.selectedTrigger.y.setValue(row);
             this.endAction(this.reloadTriggers);
-//            this.observer.startObserving(this.selectedTrigger, this.drawMap);
         }
     } else if (this.rom.action && this.isDragging) {
         this.rom.doAction(new ROMAction(this.selectedLayer, null, this.selectedLayer.decodeLayout, "Decode Layout"));
@@ -623,23 +621,23 @@ FF1Map.prototype.loadMap = function(m) {
     this.isWorld = false;
     this.mapProperties = this.rom.mapProperties.item(this.m);
     this.observer.stopObservingAll();
-    this.observer.startObserving(this.mapProperties, this.loadMap);
 
     // get the tileset
     var t = this.mapProperties.tileset.value;
     var tileset = this.rom.mapTileset.item(t);
-    this.observer.startObserving(tileset, this.loadMap);
     var tilesetPalette = this.rom.tilesetPalette.item(t);
-    this.observer.startObserving(tilesetPalette, this.loadMap);
 
     // get the palette
     var paletteObject = this.rom.mapPalette.item(this.m);
     var palette = paletteObject.data.subarray(this.showRooms ? 32 : 0);
-    this.observer.startObserving(paletteObject, this.loadMap);
 
     // load graphics
     var gfx = this.rom.mapGraphics.item(t);
-    this.observer.startObserving(gfx, this.loadMap);
+
+    this.observer.startObserving([
+        this.mapProperties.tileset,
+        tileset, tilesetPalette, paletteObject, gfx
+    ], this.loadMap);
 
     // load the tile layout
     var layout = this.rom.mapLayout.item(this.m);
@@ -697,10 +695,9 @@ FF1Map.prototype.loadWorldMap = function() {
     for (var i = 0; i < size; i++) layout.push(rom.worldLayout.item(i));
     this.worldLayer.loadLayout({layout: layout, tileset: tileset.data, w: 256, h: size, paletteAssignment: paletteAssignment.data});
 
-    this.observer.startObserving(gfx, this.loadWorldMap);
-    this.observer.startObserving(pal, this.loadWorldMap);
-    this.observer.startObserving(paletteAssignment, this.loadWorldMap);
-    this.observer.startObserving(tileset, this.loadWorldMap);
+    this.observer.startObserving([
+        gfx, pal, paletteAssignment, tileset
+    ], this.loadWorldMap);
 
     // set up the ppu
     this.ppu = new GFX.PPU();
@@ -762,7 +759,7 @@ FF1Map.prototype.drawMap = function() {
 
         // continue if this sector is not visible
         var col = s % (this.ppu.width >> 8);
-        var row = (s / (this.ppu.width >> 8)) | 0;
+        var row = Math.floor(s / (this.ppu.width >> 8));
         var l = col << 8;
         var r = l + 256;
         var t = row << 8;
@@ -808,23 +805,26 @@ FF1Map.prototype.reloadTriggers = function() {
     this.drawMap();
 }
 
-FF1Map.prototype.reloadTriggers = function() {
-    this.loadTriggers();
-    this.drawMap();
-}
-
 FF1Map.prototype.loadTriggers = function() {
 
     this.triggers = [];
     if (this.isWorld) return;
 
     // load npcs
-    var npcProperties = this.rom.mapNPC.item(this.m);
-    this.observer.startObserving(npcProperties, this.reloadTriggers);
+    var mapNPC = this.rom.mapNPC.item(this.m);
 
-    for (var i = 0; i < npcProperties.arrayLength; i++) {
-        var npc = npcProperties.item(i);
+    for (var i = 0; i < mapNPC.arrayLength; i++) {
+        var npc = mapNPC.item(i);
         if (npc.npcID.value === 0) continue;
+        const id = npc.npcID.value;
+        const npcProperties = this.rom.npcProperties.item(id);
+        this.observer.startObserving([
+            npc.x,
+            npc.y,
+            npc.npcID,
+            npc.inRooms,
+            npcProperties.graphics
+        ], this.reloadTriggers);
         this.triggers.push(npc);
     }
 }
@@ -952,6 +952,8 @@ FF1Map.prototype.rectForTrigger = function(trigger) {
 }
 
 FF1Map.prototype.drawNPC = function(npc) {
+
+    if (npc.inRooms.value && !this.showRooms) return;
 
     var x = npc.x.value * 16;
     var y = npc.y.value * 16;

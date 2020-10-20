@@ -193,7 +193,12 @@ ROMObject.prototype.copy = function(parent) {
 
 ROMObject.prototype.addObserver = function(object, callback, args) {
     if (this.getObserver(object)) return;
-    this.observers.push({object: object, callback: callback, args: args, asleep: false});
+    this.observers.push({
+        object: object,
+        callback: callback,
+        args: args,
+        asleep: false
+    });
 }
 
 ROMObject.prototype.removeObserver = function(object) {
@@ -203,15 +208,15 @@ ROMObject.prototype.removeObserver = function(object) {
 }
 
 ROMObject.prototype.notifyObservers = function() {
-    this.observers.forEach(function(observer) {
-        if (observer.asleep) return;
+    for (const observer of this.observers) {
+        if (observer.asleep) continue;
         observer.callback.apply(observer.object, observer.args);
-    });
+    }
 }
 
 ROMObject.prototype.getObserver = function(object) {
-    for (var o = 0; o < this.observers.length; o++) {
-        if (this.observers[o].object === object) return this.observers[o];
+    for (const observer of this.observers) {
+        if (observer.object === object) return observer;
     }
     return null;
 }
@@ -3112,144 +3117,6 @@ ROMAction.prototype.execute = function(undo) {
     }
 }
 
-// ROMObserver
-function ROMObserver(rom, owner, options) {
-    this.rom = rom;
-    this.owner = owner;
-    this.options = options || {};
-    this.observees = [];
-    this.depth = 0;
-}
-
-ROMObserver.prototype.startObserving = function(object, callback, args) {
-
-    // can't observe nothing
-    if (!object) return;
-
-    if (this.depth > 5) return;
-
-    this.depth++;
-
-    // start observing the object and add it to the array of observees
-    if (this.observees.indexOf(object) === -1) this.observees.push(object);
-    if (object.addObserver) object.addObserver(this.owner, callback, args);
-
-    if (this.options.sub) this.startObservingSub(object, callback, args);
-    if (this.options.link) this.startObservingLink(object, callback, args);
-    if (this.options.array) this.startObservingArray(object, callback, args);
-    if (this.options.label) this.startObservingLabel(object, callback, args);
-
-    this.depth--;
-}
-
-ROMObserver.prototype.startObservingSub = function(object, callback, args) {
-    // don't observe array prototypes
-    if (!(object instanceof ROMData)) return;
-
-    var keys = Object.keys(object.assembly);
-    for (var i = 0; i < keys.length; i++) {
-        var key = keys[i];
-        var sub = object.assembly[key];
-        if (sub.invalid) continue;
-        this.startObserving(object[key], callback, args);
-    }
-}
-
-ROMObserver.prototype.startObservingLink = function(object, callback, args) {
-    if (!object.link) return;
-    this.startObserving(object.parsePath(object.link), callback, args);
-}
-
-ROMObserver.prototype.startObservingArray = function(object, callback, args) {
-    if (!(object instanceof ROMArray)) return;
-
-    for (var i = 0; i < object.arrayLength; i++) {
-        this.startObserving(object.item(i), callback, args);
-    }
-}
-
-ROMObserver.prototype.startObservingLabel = function(object, callback, args) {
-    // don't make strings observe themselves
-    if (object instanceof ROMString) return;
-
-    var label = object.labelString;
-    if (!label) return;
-    this.startObserving(label, callback, args);
-}
-
-ROMObserver.prototype.stopObserving = function(object) {
-
-    // can't observe nothing
-    if (!object) return;
-
-    // stop observing the object and remove it from the array of observees
-    var index = this.observees.indexOf(object);
-    if (index !== -1) this.observees.splice(index, 1);
-    if (object.removeObserver) object.removeObserver(this.owner);
-
-    if (this.options.sub) this.stopObservingSub(object);
-    if (this.options.link) this.stopObservingLink(object);
-    if (this.options.array) this.stopObservingArray(object);
-    if (this.options.label) this.stopObservingLabel(object);
-}
-
-ROMObserver.prototype.stopObservingSub = function(object) {
-    // don't observe array prototype assemblies
-    if (!(object instanceof ROMData)) return;
-
-    var keys = Object.keys(object.assembly);
-    for (var i = 0; i < keys.length; i++) {
-        var key = keys[i];
-        var sub = object.assembly[key];
-        if (sub.invalid) continue;
-        this.stopObserving(object[key]);
-    }
-}
-
-ROMObserver.prototype.stopObservingLink = function(object) {
-    if (!object.link) return;
-    this.stopObserving(object.parsePath(object.link));
-}
-
-ROMObserver.prototype.stopObservingArray = function(object) {
-    if (!(object instanceof ROMArray)) return;
-
-    for (var i = 0; i < object.arrayLength; i++) {
-        this.stopObserving(object.item(i));
-    }
-}
-
-ROMObserver.prototype.stopObservingLabel = function(object) {
-    // don't make strings observe themselves
-    if (object instanceof ROMString) return;
-
-    var label = object.labelString;
-    if (!label) return;
-    this.stopObserving(label);
-}
-
-ROMObserver.prototype.stopObservingAll = function() {
-    while (this.observees.length) this.stopObserving(this.observees[0]);
-}
-
-ROMObserver.prototype.sleep = function() {
-    for (var o = 0; o < this.observees.length; o++) {
-        var object = this.observees[o];
-        var observer = object.getObserver(this.owner);
-        if (!observer) continue;
-        observer.asleep = true;
-    }
-}
-
-ROMObserver.prototype.wake = function() {
-    for (var o = 0; o < this.observees.length; o++) {
-        var object = this.observees[o];
-        var observer = object.getObserver(this.owner);
-        if (!observer) continue;
-        observer.asleep = false;
-    }
-}
-
 // ROMProperty
 function ROMProperty(rom, definition, parent) {
     ROMAssembly.call(this, rom, definition, parent);
@@ -5234,7 +5101,7 @@ function ROMString(rom, definition, parent) {
     this.link = definition.link;
     this.language = definition.language;
     this._fString = null;
-    this.observer = new ROMObserver(rom, this, null);
+    this.observer = new ROMObserver(rom, this);
 }
 
 ROMString.prototype = Object.create(ROMObject.prototype);
@@ -5538,8 +5405,7 @@ function Rect(l, r, t, b) {
     this.b = b;
 }
 
-//Rect.emptyRect = new Rect(0, 0, 0, 0);
-Object.defineProperty(Rect, "emptyRect", {
+Object.defineProperty(Rect, 'emptyRect', {
     get: function() { return new Rect(0, 0, 0, 0); }
 });
 
@@ -5593,6 +5459,40 @@ Rect.prototype.inflate = function(l, r, t, b) {
     b = Number(b);
 
     return new Rect(this.l - l, this.r - r, this.t + t, this.b + b);
+}
+
+function tintRect(canvas, tintColor, rect = null) {
+    rect = rect || new Rect(0, canvas.width, 0, canvas.height);
+
+    // create an offscreen canvas filled with the color
+    const tintCanvas = document.createElement('canvas');
+    tintCanvas.width = canvas.width;
+    tintCanvas.height = canvas.height;
+    const tintContext = tintCanvas.getContext('2d');
+    tintContext.fillStyle = tintColor;
+    tintContext.fillRect(rect.l, rect.t, rect.w, rect.h);
+
+    // draw the tinted rect over the canvas
+    const context = canvas.getContext('2d');
+    context.globalCompositeOperation = 'source-atop';
+    context.drawImage(tintCanvas, 0, 0);
+}
+
+function transparentRect(canvas, rect = null) {
+    rect = rect || new Rect(0, canvas.width, 0, canvas.height);
+
+    // create an offscreen canvas filled with the color
+    const transparentCanvas = document.createElement('canvas');
+    transparentCanvas.width = canvas.width;
+    transparentCanvas.height = canvas.height;
+    const transparentContext = transparentCanvas.getContext('2d');
+    transparentContext.fillStyle = 'rgba(255, 255, 255, 0.5)';
+    transparentContext.fillRect(rect.l, rect.t, rect.w, rect.h);
+
+    // draw the transparent rect over the canvas
+    const context = canvas.getContext('2d');
+    context.globalCompositeOperation = 'destination-out';
+    context.drawImage(transparentCanvas, 0, 0);
 }
 
 Object.defineProperty(Rect.prototype, "w", {

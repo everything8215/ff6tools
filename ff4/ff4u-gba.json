@@ -311,7 +311,7 @@
                         },
                         "hp": {
                             "type": "property",
-                            "name": "HP",
+                            "name": "Min HP",
                             "begin": 0,
                             "mask": "0xFF"
                         },
@@ -323,7 +323,7 @@
                         },
                         "mp": {
                             "type": "property",
-                            "name": "MP",
+                            "name": "Min MP",
                             "begin": 2,
                             "mask": "0xFF"
                         },

@@ -422,6 +422,7 @@ body {
     align-items: center;
     flex: 0 0 auto;
     height: auto;
+    min-height: 27px;
     background: linear-gradient(#fff,#ddd);
     border-bottom: 1px solid #ccc;
     -moz-user-select: none;
@@ -508,6 +509,10 @@ body {
     z-index: 5;
     position: absolute;
     pointer-events: none;
+}
+
+#map-cursor.hidden {
+    display: none;
 }
 
 /******************************************************************************/

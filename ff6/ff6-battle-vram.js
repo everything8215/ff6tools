@@ -16,6 +16,7 @@ class FF6BattleVRAM extends ROMToolbox {
 
         // on-screen canvas
         this.canvas = document.createElement('canvas');
+        this.canvas.classList.add('tileset-canvas');
         this.canvas.classList.add('background-gradient');
 
         this.ppu = new GFX.PPU();
@@ -60,14 +61,13 @@ class FF6BattleVRAM extends ROMToolbox {
         if (!clickedSlot) return;
 
         const monster = this.battle.monsterInSlot(clickedSlot);
-        if (!monster) {
-            propertyList.select(this.battle.battleProperties);
-            return;
-        }
-
         this.battle.selectedMonster = monster;
         this.battle.selectedCharacter = null;
-        propertyList.select(this.rom.monsterProperties.item(monster.monster));
+        if (monster) {
+            propertyList.select(monster.properties);
+        } else {
+            propertyList.select(this.battle.battleProperties);
+        }
 
         this.battle.drawBattle();
     }

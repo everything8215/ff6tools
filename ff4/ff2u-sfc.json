@@ -449,7 +449,7 @@
         },
         "battleBackgroundLayoutLower": {
             "type": "array",
-            "name": "Battle Background Layout (Lower)",
+            "name": "Battle Background Layout (Bottom)",
             "range": "0x16F880-0x16FA40",
             "arrayLength": 7,
             "assembly": {
@@ -478,7 +478,7 @@
         },
         "battleBackgroundLayoutUpper": {
             "type": "array",
-            "name": "Battle Background Layout (Upper)",
+            "name": "Battle Background Layout (Top/Middle)",
             "range": "0x16ED80-0x16F880",
             "arrayLength": 11,
             "assembly": {
@@ -495,7 +495,7 @@
             },
             "stringTable": {
                 "string": {
-                    "0": "Field (Top)",
+                    "0": "Field (Upper)",
                     "1": "Forest",
                     "2": "Mountains",
                     "3": "Castle",
@@ -504,7 +504,7 @@
                     "6": "Airship",
                     "7": "Generic",
                     "8": "Field (Middle)",
-                    "9": "Final Boss (Top)",
+                    "9": "Final Boss (Upper)",
                     "10": "Final Boss (Middle)"
                 }
             }
@@ -561,25 +561,25 @@
                 "assembly": {
                     "top": {
                         "type": "property",
-                        "name": "Top Tilemap",
+                        "name": "Top Layout",
                         "begin": 0,
                         "link": "battleBackgroundLayoutUpper[%i]",
                         "stringTable": "battleBackgroundLayoutUpper"
                     },
                     "middle": {
                         "type": "property",
-                        "name": "Middle Tilemap",
+                        "name": "Middle Layout",
                         "begin": 1,
                         "link": "battleBackgroundLayoutUpper[%i]",
                         "stringTable": "battleBackgroundLayoutUpper",
                         "min": 1,
                         "special": {
-                            "0": "Repeat Bottom"
+                            "0": "Use Bottom"
                         }
                     },
                     "bottom": {
                         "type": "property",
-                        "name": "Bottom Tilemap",
+                        "name": "Bottom Layout",
                         "begin": 2,
                         "link": "battleBackgroundLayoutLower[%i]",
                         "stringTable": "battleBackgroundLayoutLower"
@@ -1568,7 +1568,7 @@
             },
             "stringTable": {
                 "name": "Character Palette",
-                "length": 17,
+                "length": 16,
                 "default": "Character Palette %i",
                 "string": {
                     "0": "Cecil (Dark Knight)",
@@ -4083,6 +4083,7 @@
                             "name": "Item",
                             "begin": 4,
                             "stringTable": "itemNames",
+                            "link": "itemProperties[%i]",
                             "invalid": "(this.parent.map.value !== 0xFE) || (this.parent.treasureType.value === 0)"
                         },
                         "gp10": {
@@ -4860,7 +4861,8 @@
                     "palette": {
                         "type": "property",
                         "name": "Palette",
-                        "begin": 2
+                        "begin": 2,
+                        "stringTable": "monsterPalette"
                     },
                     "slot": {
                         "type": "property",
@@ -5358,16 +5360,14 @@
                         "type": "property",
                         "name": "Size",
                         "mask": "0x3F",
-                        "disabled": "this.parent.isBoss.value || this.parent.isCharacter.value",
-                        "hidden": "this.parent.isBoss.value || this.parent.isCharacter.value",
+                        "invalid": "this.parent.isBoss.value || this.parent.isCharacter.value",
                         "stringTable": "monsterSize"
                     },
                     "bossProperties": {
                         "type": "property",
                         "name": "Boss Properties",
                         "mask": "0x3F",
-                        "disabled": "!this.parent.isBoss.value",
-                        "hidden": "!this.parent.isBoss.value",
+                        "invalid": "!this.parent.isBoss.value",
                         "link": "monsterBossProperties[%i]",
                         "stringTable": "monsterBossProperties"
                     },
@@ -5375,8 +5375,7 @@
                         "type": "property",
                         "name": "Character",
                         "mask": "0x3F",
-                        "disabled": "!this.parent.isCharacter.value",
-                        "hidden": "!this.parent.isCharacter.value",
+                        "invalid": "!this.parent.isCharacter.value",
                         "stringTable": "characterGraphics"
                     },
                     "isCharacter": {
@@ -5397,7 +5396,16 @@
                         "type": "property",
                         "name": "Palette",
                         "begin": 1,
-                        "stringTable": "monsterPalette"
+                        "stringTable": "monsterPalette",
+                        "invalid": "this.parent.isCharacter.value",
+                        "disabled": "this.parent.isBoss.value"
+                    },
+                    "paletteChar": {
+                        "type": "property",
+                        "name": "Palette",
+                        "begin": 1,
+                        "stringTable": "characterPalette",
+                        "invalid": "!this.parent.isCharacter.value"
                     },
                     "graphicsPointer": {
                         "type": "property",
@@ -5405,7 +5413,8 @@
                         "begin": 2,
                         "mask": "0x7FFF",
                         "multiplier": 8,
-                        "stringTable": "monsterGraphics"
+                        "stringTable": "monsterGraphics",
+                        "disabled": "this.parent.isCharacter.value"
                     },
                     "is3bpp": {
                         "type": "property",
@@ -5763,6 +5772,7 @@
                         "flag": true,
                         "stringTable": "monsterType"
                     },
+                    "cat-graphics": "Graphics",
                     "size": {
                         "type": "property",
                         "external": "monsterGraphicsProperties[%i].size"
@@ -5786,6 +5796,10 @@
                     "palette": {
                         "type": "property",
                         "external": "monsterGraphicsProperties[%i].palette"
+                    },
+                    "paletteChar": {
+                        "type": "property",
+                        "external": "monsterGraphicsProperties[%i].paletteChar"
                     },
                     "graphicsPointer": {
                         "type": "property",
@@ -6090,12 +6104,14 @@
                     "width": {
                         "type": "property",
                         "name": "Width",
-                        "begin": 0
+                        "begin": 0,
+                        "multiplier": 8
                     },
                     "height": {
                         "type": "property",
                         "name": "Height",
-                        "begin": 1
+                        "begin": 1,
+                        "multiplier": 8
                     }
                 }
             },
@@ -6439,8 +6455,7 @@
             "graphics": "prologueGraphics",
             "palette": "prologuePalette",
             "width": 32,
-            "height": 26,
-            "backColor": true
+            "height": 26
         },
         "prologuePalette": {
             "type": "assembly",

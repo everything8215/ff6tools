@@ -9,14 +9,15 @@ class FF4BattleVRAM extends ROMToolbox {
         this.battle = battle;
         this.name = 'FF4BattleVRAM';
 
-        // on-screen canvas
-        this.canvas = document.createElement('canvas');
-        this.canvas.classList.add('background-gradient');
-
         // off-screen canvas
         this.vramCanvas = document.createElement('canvas');
         this.vramCanvas.width = 256;
         this.vramCanvas.height = 512;
+
+        // on-screen canvas
+        this.canvas = document.createElement('canvas');
+        this.canvas.classList.add('tileset-canvas');
+        this.canvas.classList.add('background-gradient');
 
         this.ppu = new GFX.PPU();
         this.zoom = 2.0;
@@ -171,7 +172,7 @@ class FF4BattleVRAM extends ROMToolbox {
             }
 
             // load palette
-            const p = slot.gfxProperties.palette.value;
+            const p = slot.gfxProperties.paletteChar.value;
             if (p <= this.rom.characterPalette.arrayLength) {
                 slot.palette = this.rom.characterPalette.item(p).data;
             }
@@ -213,10 +214,12 @@ class FF4BattleVRAM extends ROMToolbox {
                 const bytesPerTile = slot.gfxProperties.is3bpp.value ? 24 : 32;
                 const begin = this.rom.monsterGraphics.range.begin + slot.gfxProperties.graphicsPointer.value;
                 const size = this.rom.monsterSize.item(slot.gfxProperties.size.value);
-                const w = size.width.value * 8;
-                const h = size.height.value * 8;
-                const end = begin + w * h * bytesPerTile / 64;
-                slot.graphics = format.decode(this.rom.data.subarray(begin, end))[0];
+                if (size) {
+                    const w = size.width.value;
+                    const h = size.height.value;
+                    const end = begin + w * h * bytesPerTile / 64;
+                    slot.graphics = format.decode(this.rom.data.subarray(begin, end))[0];
+                }
             }
         }
 
@@ -246,14 +249,14 @@ class FF4BattleVRAM extends ROMToolbox {
 
             // make hidden monsters transparent
             if (this.battle.typeHidden(slot.s)) {
-                this.transparentRect(this.vramCanvas, slot.rect);
+                transparentRect(this.vramCanvas, slot.rect);
             }
 
             // tint the selected monster
             const selectedMonster = this.battle.selectedMonster;
             const selectedSlot = selectedMonster ? selectedMonster.vramSlot : 0;
             if (slot.s === selectedSlot) {
-                this.tintRect(this.vramCanvas, 'hsla(210, 100%, 50%, 0.5)', slot.rect);
+                tintRect(this.vramCanvas, 'hsla(210, 100%, 50%, 0.5)', slot.rect);
             }
         }
 
@@ -265,8 +268,6 @@ class FF4BattleVRAM extends ROMToolbox {
 
         // copy the monsters to the on-screen canvas
         const context = this.canvas.getContext('2d');
-        // context.fillStyle = 'black';
-        // context.fillRect(0, 0, w, h);
         context.imageSmoothingEnabled = false;
         context.webkitImageSmoothingEnabled = false;
         context.globalCompositeOperation = 'source-over';
@@ -305,39 +306,5 @@ class FF4BattleVRAM extends ROMToolbox {
         context.fillText(`${slot.s}`, slotRect.centerX, slotRect.centerY);
         context.strokeStyle = 'white';
         context.strokeText(`${slot.s}`, slotRect.centerX, slotRect.centerY);
-    }
-
-    tintRect(canvas, tintColor, rect = null) {
-        rect = rect || new ROMRect(0, 0, canvas.width, canvas.height);
-
-        // create an offscreen canvas filled with the color
-        const tintCanvas = document.createElement('canvas');
-        tintCanvas.width = canvas.width;
-        tintCanvas.height = canvas.height;
-        const tintContext = tintCanvas.getContext('2d');
-        tintContext.fillStyle = tintColor;
-        tintContext.fillRect(rect.l, rect.t, rect.w, rect.h);
-
-        // draw the tinted rect over the canvas
-        const context = canvas.getContext('2d');
-        context.globalCompositeOperation = 'source-atop';
-        context.drawImage(tintCanvas, 0, 0);
-    }
-
-    transparentRect(canvas, rect = null) {
-        rect = rect || new ROMRect(0, 0, canvas.width, canvas.height);
-
-        // create an offscreen canvas filled with the color
-        const transparentCanvas = document.createElement('canvas');
-        transparentCanvas.width = canvas.width;
-        transparentCanvas.height = canvas.height;
-        const transparentContext = transparentCanvas.getContext('2d');
-        transparentContext.fillStyle = 'rgba(255, 255, 255, 0.5)';
-        transparentContext.fillRect(rect.l, rect.t, rect.w, rect.h);
-
-        // draw the transparent rect over the canvas
-        const context = canvas.getContext('2d');
-        context.globalCompositeOperation = 'destination-out';
-        context.drawImage(transparentCanvas, 0, 0);
     }
 }

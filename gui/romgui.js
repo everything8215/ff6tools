@@ -22,7 +22,7 @@ function ROMScriptList(rom) {
     this.numBlocks = 3; // number of blocks visible at one time
     this.rowHeight = 17;
 
-    this.observer = new ROMObserver(rom, this, {sub: true});
+    this.observer = new ROMObserver(rom, this);
 
     var self = this;
     this.scriptList.parentElement.onscroll = function() { self.scroll(); };
@@ -534,8 +534,8 @@ class ROMEditor_ {
         this.menu.style.height = '';
         this.menu.style.overflowY = 'visible';
 
-        const top = e.y;
-        const height = this.menu.clientHeight;
+        let top = e.y;
+        let height = this.menu.clientHeight;
         if (height + top > window.innerHeight) {
             top = window.innerHeight - height;
         }

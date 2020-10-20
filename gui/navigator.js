@@ -7,9 +7,7 @@ class ROMNavigator {
     constructor(rom) {
         this.rom = rom;
         this.hierarchy = rom.hierarchy || ROMNavigator.defaultHierarchy;
-        this.observer = new ROMObserver(this.rom, this, {
-            sub: true, link: true, label: true
-        });
+        this.observer = new ROMObserver(rom, this);
         this.resetList();
     }
 

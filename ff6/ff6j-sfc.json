@@ -6834,16 +6834,8 @@
                         "length": 128
                     },
                     "assembly": {
-                        "type": "array",
-                        "length": 8,
-                        "array": {
-                            "length": 8
-                        },
-                        "assembly": {
-                            "type": "property",
-                            "mask": "0xFF",
-                            "length": 1
-                        }
+                        "type": "assembly",
+                        "length": 8
                     },
                     "stringTable": {
                         "length": 128,
@@ -6987,17 +6979,9 @@
                         "length": 48
                     },
                     "assembly": {
-                        "type": "array",
+                        "type": "assembly",
                         "length": 32,
-                        "array": {
-                            "length": 16
-                        },
-                        "assembly": {
-                            "type": "property",
-                            "mask": "0xFFFF",
-                            "length": 2,
-                            "format": "byteSwapped"
-                        }
+                        "format": "byteSwapped(2)"
                     },
                     "stringTable": {
                         "length": 48,
@@ -8197,120 +8181,14 @@
                 "type": "array",
                 "assembly": {
                     "type": "data",
+                    "length": 9,
                     "assembly": {
-                        "scriptPointer": {
-                            "type": "property",
-                            "name": "Script Pointer",
-                            "begin": 0,
-                            "mask": "0x03FFFF",
-                            "script": "eventScript"
-                        },
-                        "vramAddress": {
-                            "type": "property",
-                            "name": "VRAM Address",
-                            "begin": 0,
-                            "mask": "0x7F"
-                        },
-                        "hFlip": {
-                            "type": "property",
-                            "name": "Horizontal Flip",
-                            "begin": 0,
-                            "mask": "0x80",
-                            "bool": true
-                        },
-                        "offset": {
-                            "type": "property",
-                            "name": "Offset",
-                            "begin": 1,
-                            "mask": "0xE0"
-                        },
-                        "master": {
-                            "type": "property",
-                            "name": "Master NPC Index",
-                            "begin": 1,
-                            "mask": "0x1F"
-                        },
-                        "offsetDirection": {
-                            "type": "property",
-                            "name": "Offset Direction",
-                            "begin": 2,
-                            "mask": "0x01",
-                            "stringTable": {
-                                "string": {
-                                    "0": "Right",
-                                    "1": "Down"
-                                }
-                            }
-                        },
-                        "slave": {
-                            "type": "property",
-                            "name": "Slave NPC",
-                            "begin": 2,
-                            "mask": "0x02",
-                            "bool": true
-                        },
-                        "palette": {
-                            "type": "property",
-                            "name": "Palette",
-                            "begin": 2,
-                            "mask": "0x1C",
-                            "stringTable": "mapSpritePalettes"
-                        },
-                        "layer2": {
-                            "type": "property",
-                            "name": "Scrolling Layer",
-                            "begin": 2,
-                            "mask": "0x20",
-                            "stringTable": {
-                                "string": {
-                                    "0": "Layer 1",
-                                    "1": "Layer 2"
-                                }
-                            }
-                        },
-                        "switch": {
-                            "type": "property",
-                            "name": "Switch",
-                            "begin": 2,
-                            "mask": "0xFFC0",
-                            "stringTable": "npcSwitches"
-                        },
                         "x": {
                             "type": "property",
                             "name": "X Position",
                             "begin": 4,
                             "mask": "0x7F",
                             "hidden": true
-                        },
-                        "vehicle": {
-                            "type": "property",
-                            "name": "Vehicle",
-                            "begin": 7,
-                            "mask": "0xC0",
-                            "stringTable": {
-                                "string": {
-                                    "0": "None",
-                                    "1": "Chocobo",
-                                    "2": "Magitek Armor",
-                                    "3": "Raft"
-                                }
-                            },
-                            "disabled": "this.parent.animation.value !== 0"
-                        },
-                        "showRider": {
-                            "type": "property",
-                            "name": "Show Rider",
-                            "begin": 4,
-                            "mask": "0x80",
-                            "bool": true,
-                            "disabled": "this.parent.vehicle.value === 0"
-                        },
-                        "specialNPC": {
-                            "type": "property",
-                            "name": "Special Graphics",
-                            "begin": 4,
-                            "mask": "0x80",
-                            "bool": true
                         },
                         "y": {
                             "type": "property",
@@ -8319,25 +8197,21 @@
                             "mask": "0x3F",
                             "hidden": true
                         },
-                        "speed": {
+                        "switch": {
                             "type": "property",
-                            "name": "Speed",
-                            "begin": 5,
-                            "mask": "0xC0",
-                            "stringTable": {
-                                "string": {
-                                    "0": "Very Slow",
-                                    "1": "Slow",
-                                    "2": "Normal",
-                                    "3": "Fast"
-                                }
-                            }
+                            "name": "Switch",
+                            "begin": 2,
+                            "mask": "0xFFC0",
+                            "stringTable": "npcSwitches"
                         },
-                        "graphics": {
+                        "cat-behavior": "Behavior",
+                        "scriptPointer": {
                             "type": "property",
-                            "name": "Graphics",
-                            "begin": 6,
-                            "stringTable": "mapSprites"
+                            "name": "Script Pointer",
+                            "begin": 0,
+                            "mask": "0x03FFFF",
+                            "script": "eventScript",
+                            "invalid": "this.parent.vehicle.value === 0 && this.parent.specialNPC.value"
                         },
                         "movement": {
                             "type": "property",
@@ -8353,27 +8227,19 @@
                                 }
                             }
                         },
-                        "spritePriority": {
+                        "speed": {
                             "type": "property",
-                            "name": "Sprite Priority",
-                            "begin": 7,
-                            "mask": "0x30",
+                            "name": "Speed",
+                            "begin": 5,
+                            "mask": "0xC0",
                             "stringTable": {
                                 "string": {
-                                    "0": "Normal",
-                                    "1": "High",
-                                    "2": "Low",
-                                    "3": "Low"
+                                    "0": "Very Slow",
+                                    "1": "Slow",
+                                    "2": "Normal",
+                                    "3": "Fast"
                                 }
                             }
-                        },
-                        "direction": {
-                            "type": "property",
-                            "name": "Facing Direction",
-                            "begin": 8,
-                            "mask": "0x03",
-                            "stringTable": "directions",
-                            "disabled": "this.parent.animation.value !== 0"
                         },
                         "reaction": {
                             "type": "property",
@@ -8385,7 +8251,110 @@
                                     "0": "Face Party",
                                     "1": "None"
                                 }
+                            },
+                            "invalid": "this.parent.vehicle.value === 0 && this.parent.specialNPC.value"
+                        },
+                        "slave": {
+                            "type": "property",
+                            "name": "Slave NPC",
+                            "begin": 2,
+                            "mask": "0x02",
+                            "bool": true,
+                            "invalid": "this.parent.vehicle.value !== 0 || !this.parent.specialNPC.value"
+                        },
+                        "master": {
+                            "type": "property",
+                            "name": "Master NPC",
+                            "begin": 1,
+                            "mask": "0x1F",
+                            "disabled": "!this.parent.slave.value",
+                            "invalid": "this.parent.vehicle.value !== 0 || !this.parent.specialNPC.value"
+                        },
+                        "offset": {
+                            "type": "property",
+                            "name": "Offset",
+                            "begin": 1,
+                            "mask": "0xE0",
+                            "invalid": "this.parent.vehicle.value !== 0 || !this.parent.specialNPC.value"
+                        },
+                        "offsetDirection": {
+                            "type": "property",
+                            "name": "Offset Direction",
+                            "begin": 2,
+                            "mask": "0x01",
+                            "stringTable": {
+                                "string": {
+                                    "0": "Right",
+                                    "1": "Down"
+                                }
+                            },
+                            "invalid": "this.parent.vehicle.value !== 0 || !this.parent.specialNPC.value"
+                        },
+                        "cat-appearance": "Appearance",
+                        "graphics": {
+                            "type": "property",
+                            "name": "Graphics",
+                            "begin": 6,
+                            "stringTable": "mapSprites"
+                        },
+                        "palette": {
+                            "type": "property",
+                            "name": "Palette",
+                            "begin": 2,
+                            "mask": "0x1C",
+                            "stringTable": {
+                                "length": 8,
+                                "default": "<stringTable.mapSpritePalettes[%i]>"
                             }
+                        },
+                        "vehicle": {
+                            "type": "property",
+                            "name": "Vehicle",
+                            "begin": 7,
+                            "mask": "0xC0",
+                            "stringTable": {
+                                "string": {
+                                    "0": "None",
+                                    "1": "Chocobo",
+                                    "2": "Magitek Armor",
+                                    "3": "Raft"
+                                }
+                            },
+                            "disabled": "this.parent.animation.value !== 0",
+                            "invalid": "this.parent.vehicle.value === 0 && this.parent.specialNPC.value"
+                        },
+                        "showRider": {
+                            "type": "property",
+                            "name": "Show Rider",
+                            "begin": 4,
+                            "mask": "0x80",
+                            "bool": true,
+                            "disabled": "this.parent.vehicle.value === 0",
+                            "invalid": "this.parent.vehicle.value === 0 && this.parent.specialNPC.value"
+                        },
+                        "direction": {
+                            "type": "property",
+                            "name": "Facing Direction",
+                            "begin": 8,
+                            "mask": "0x03",
+                            "stringTable": "directions",
+                            "disabled": "this.parent.animation.value !== 0"
+                        },
+                        "specialNPC": {
+                            "type": "property",
+                            "name": "Special Graphics",
+                            "begin": 4,
+                            "mask": "0x80",
+                            "bool": true,
+                            "hidden": true,
+                            "invalid": "this.parent.vehicle.value !== 0 || !this.parent.specialNPC.value"
+                        },
+                        "vramAddress": {
+                            "type": "property",
+                            "name": "VRAM Address",
+                            "begin": 0,
+                            "mask": "0x7F",
+                            "invalid": "this.parent.vehicle.value !== 0 || !this.parent.specialNPC.value"
                         },
                         "is32x32": {
                             "type": "property",
@@ -8396,6 +8365,29 @@
                                 "string": {
                                     "0": "16×16",
                                     "1": "32×32"
+                                }
+                            },
+                            "invalid": "this.parent.vehicle.value !== 0 || !this.parent.specialNPC.value"
+                        },
+                        "hFlip": {
+                            "type": "property",
+                            "name": "Horizontal Flip",
+                            "begin": 0,
+                            "mask": "0x80",
+                            "bool": true,
+                            "invalid": "this.parent.vehicle.value !== 0 || !this.parent.specialNPC.value"
+                        },
+                        "spritePriority": {
+                            "type": "property",
+                            "name": "Sprite Priority",
+                            "begin": 7,
+                            "mask": "0x30",
+                            "stringTable": {
+                                "string": {
+                                    "0": "Normal",
+                                    "1": "High",
+                                    "2": "Low",
+                                    "3": "Low"
                                 }
                             }
                         },
@@ -8413,6 +8405,19 @@
                                 }
                             }
                         },
+                        "layer2": {
+                            "type": "property",
+                            "name": "Scrolling Layer",
+                            "begin": 2,
+                            "mask": "0x20",
+                            "stringTable": {
+                                "string": {
+                                    "0": "Layer 1",
+                                    "1": "Layer 2"
+                                }
+                            }
+                        },
+                        "cat-animation": "Animation",
                         "animation": {
                             "type": "property",
                             "name": "Animation",
@@ -8420,7 +8425,7 @@
                             "mask": "0xE0",
                             "stringTable": {
                                 "string": {
-                                    "0": "Normal",
+                                    "0": "Default",
                                     "1": "None",
                                     "2": "Special",
                                     "3": "Knocked Out",
@@ -8433,7 +8438,7 @@
                         },
                         "animationType": {
                             "type": "property",
-                            "name": "Animation Type",
+                            "name": "Type",
                             "begin": 8,
                             "mask": "0x03",
                             "stringTable": {
@@ -8448,7 +8453,7 @@
                         },
                         "animationSpeed": {
                             "type": "property",
-                            "name": "Animation Speed",
+                            "name": "Speed",
                             "begin": 7,
                             "mask": "0xC0",
                             "stringTable": {
@@ -8461,8 +8466,7 @@
                             },
                             "disabled": "this.parent.animation.value === 0"
                         }
-                    },
-                    "length": 9
+                    }
                 }
             },
             "pointerTable": {
@@ -10353,7 +10357,7 @@
                     }
                 },
                 "jumpSub": {
-                    "name": "Jump to Subroutine",
+                    "name": "Call Subroutine",
                     "category": "Control",
                     "length": 4,
                     "opcode": "0xB2",
@@ -10368,7 +10372,7 @@
                     }
                 },
                 "jumpSubRepeat": {
-                    "name": "Jump to Subroutine (repeat)",
+                    "name": "Call Subroutine (repeat)",
                     "category": "Control",
                     "length": 5,
                     "opcode": "0xB3",
@@ -10754,7 +10758,23 @@
                     "name": "Party Select Menu",
                     "category": "Menu",
                     "opcode": "0x99",
-                    "length": 4
+                    "length": 4,
+                    "assembly": {
+                        "party": {
+                            "type": "property",
+                            "name": "Party",
+                            "begin": 1,
+                            "max": 7
+                        },
+                        "character": {
+                            "type": "property",
+                            "name": "Required",
+                            "begin": 2,
+                            "mask": "0xFFFF",
+                            "flag": true,
+                            "stringTable": "eventObjects"
+                        }
+                    }
                 },
                 "menuRestore": {
                     "name": "Restore Saved Game",
@@ -11332,7 +11352,36 @@
                     "name": "Shake the Screen",
                     "category": "Screen",
                     "opcode": "0x58",
-                    "length": 2
+                    "length": 2,
+                    "assembly": {
+                        "amplitude": {
+                            "type": "property",
+                            "name": "Amplitude",
+                            "begin": 1,
+                            "mask": "0x03"
+                        },
+                        "frequency": {
+                            "type": "property",
+                            "name": "Frequency",
+                            "begin": 1,
+                            "mask": "0x0C"
+                        },
+                        "layers": {
+                            "type": "property",
+                            "name": "Affected Layers",
+                            "begin": 1,
+                            "mask": "0xF0",
+                            "flag": true,
+                            "stringTable": {
+                                "string": {
+                                    "0": "Layer 1",
+                                    "1": "Layer 2",
+                                    "2": "Layer 3",
+                                    "3": "Sprites"
+                                }
+                            }
+                        }
+                    }
                 },
                 "screenTint": {
                     "name": "Tint the Screen",
@@ -11485,13 +11534,37 @@
                     "name": "Play Sound Effect",
                     "category": "Sound",
                     "length": 2,
-                    "opcode": "0xF4"
+                    "opcode": "0xF4",
+                    "assembly": {
+                        "soundEffect": {
+                            "type": "property",
+                            "name": "Sound Effect",
+                            "begin": 1
+                        }
+                    }
                 },
                 "spcSoundEffectManual": {
                     "name": "Play Sound Effect (manual)",
                     "category": "Sound",
                     "length": 4,
-                    "opcode": "0xF5"
+                    "opcode": "0xF5",
+                    "assembly": {
+                        "soundEffect": {
+                            "type": "property",
+                            "name": "Sound Effect",
+                            "begin": 1
+                        },
+                        "pan": {
+                            "type": "property",
+                            "name": "Pan",
+                            "begin": 2
+                        },
+                        "panEnvelope": {
+                            "type": "property",
+                            "name": "Pan Envelope",
+                            "begin": 3
+                        }
+                    }
                 },
                 "spcSync": {
                     "name": "Sync SPC",
@@ -11600,12 +11673,40 @@
                     "opcode": "0xA0",
                     "length": 6,
                     "assembly": {
+                        "timer": {
+                            "type": "property",
+                            "name": "Timer",
+                            "begin": 5,
+                            "mask": "0x0C"
+                        },
+                        "duration": {
+                            "type": "property",
+                            "name": "Duration (Frames)",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        },
                         "scriptPointer": {
                             "type": "property",
                             "name": "Script Pointer",
                             "begin": 3,
                             "mask": "0x03FFFF",
                             "script": "eventScript"
+                        },
+                        "flags": {
+                            "type": "property",
+                            "name": "Flags",
+                            "begin": 5,
+                            "mask": "0xF0",
+                            "flag": true,
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0": "Show in Menu/Battle (Timer 0 only)",
+                                    "1": "End Battle if Timer Expires",
+                                    "2": "Show on Map (Timer 0 only)",
+                                    "3": "Pause in Menu/Battle"
+                                }
+                            }
                         }
                     }
                 },

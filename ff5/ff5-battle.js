@@ -3,773 +3,591 @@
 // created 1/14/2019
 //
 
-function FF5Battle(rom) {
-    ROMEditor.call(this, rom);
-    this.name = "FF5Battle";
-
-    this.b = null; // battle index
-    this.bg = 0; // battle background index
-    this.battleProperties = null;
-    this.ppu = null;
-    this.canvas = document.createElement('canvas');
-    this.battleCanvas = document.createElement('canvas');
-    this.battleCanvas.width = 256;
-    this.battleCanvas.height = 256;
-    this.monsterCanvas = document.createElement('canvas');
-    this.div = document.createElement('div');
-    this.div.id = 'map-edit';
-    this.div.appendChild(this.canvas);
-
-    this.battleRect = new Rect(8, 248, this.rom.isSFC ? 1 : 8, this.rom.isSFC ? 160 : 128);
-    this.zoom = 1.0;
-
-    this.selectedMonster = null;
-    this.showMonsters = true;
-
-    this.observer = new ROMObserver(rom, this, {sub: true, link: true, array: true});
-
-    var self = this;
-    this.canvas.onmousedown = function(e) { self.mouseDown(e) };
-    this.canvas.onmousemove = function(e) { self.mouseMove(e) };
-    this.canvas.onmouseup = function(e) { self.mouseUp(e) };
-//    this.canvas.onmouseenter = function(e) { self.mouseEnter(e) };
-    this.canvas.onmouseleave = function(e) { self.mouseLeave(e) };
-    this.resizeSensor = null;
-    this.monsterPoint = null;
-    this.clickedPoint = null;
-
-    this.updateBattleStrings();
-}
-
-FF5Battle.prototype = Object.create(ROMEditor.prototype);
-FF5Battle.prototype.constructor = FF5Battle;
-
-//FF5Battle.prototype.battleName = function(b) {
-//    var battleProperties = this.rom.battleProperties.item(b);
-//    var isBoss = battleProperties.flags.value & 0x20;
-//
-//    // count up the monsters
-//    var monsterList = {};
-//    var index, count;
-//    for (var m = 1; m <= 8; m++) {
-//        if (isBoss) {
-//            index = battleProperties["monster" + m + "Boss"].value;
-//        } else {
-//            index = battleProperties["monster" + m].value;
-//        }
-//        if ((index & 0xFF) === 0xFF) continue;
-//        count = monsterList[index];
-//        monsterList[index] = (count || 0) + 1;
-//    }
-//
-//    var battleName = "";
-//    var keys = Object.keys(monsterList);
-//    for (var k = 0; k < keys.length; k++) {
-//        index = keys[k];
-//        count = monsterList[index];
-//        if (battleName !== "") battleName += ", ";
-//        if (this.rom.isGBA) {
-//            battleName += "<stringTable.battleMonster[" + index.toString() + "]>"
-//        } else {
-//            battleName += "<stringTable.monsterName[" + index.toString() + "]>"
-//        }
-//        if (count !== 1) battleName += " ×" + count;
-//    }
-//
-//    if (battleName === "") battleName = "Battle %i";
-//    return battleName;
-//}
-
-FF5Battle.prototype.updateBattleStrings = function() {
-
-//    var stringTable = this.rom.stringTable["monsterGraphicsMap.large"];
-//    for (var m = 0; m < this.rom.monsterGraphicsProperties.arrayLength; m++) {
-//
-//        var g = m;
-//        var graphicsProperties = this.rom.monsterGraphicsProperties.item(g);
-//        if (!graphicsProperties.useLargeMap.value) continue;
-//        var i = graphicsProperties.largeMap.value;
-//        var string = stringTable.string[i];
-//        if (!string) {
-//            stringTable.setString(i, "<stringTable.monsterName[" + m.toString() + "]>");
-//        } else {
-//            // duplicate monsters using the same graphics
-//            string.value += ", <stringTable.monsterName[" + m.toString() + "]>";
-//        }
-//    }
-//
-//    var bigString = "";
-//    for (var s = 0; s < stringTable.string.length; s++) {
-//        var string = stringTable.string[s];
-//        if (!string) continue;
-//        bigString += '"' + s + '": "' + string.fString() + '",\n';
-//    }
-//    console.log(bigString);
-
-    for (var b = 0; b < this.rom.battleProperties.arrayLength; b++) {
-        var battleProperties = this.rom.battleProperties.item(b);
-        var isBoss = battleProperties.flags.value & 0x20;
-
-        // count up the monsters
-        var monsterList = {};
-        var index, count;
-        for (var m = 1; m <= 8; m++) {
-            if (isBoss) {
-                index = battleProperties["monster" + m + "Boss"].value;
-            } else {
-                index = battleProperties["monster" + m].value;
-            }
-            if ((index & 0xFF) === 0xFF) continue;
-            count = monsterList[index];
-            monsterList[index] = (count || 0) + 1;
-        }
-
-        var battleName = "";
-        var keys = Object.keys(monsterList);
-        for (var k = 0; k < keys.length; k++) {
-            index = keys[k];
-            count = monsterList[index];
-            if (battleName !== "") battleName += ", ";
-            if (this.rom.isGBA) {
-                battleName += "<stringTable.battleMonster[" + index.toString() + "]>"
-            } else {
-                battleName += "<stringTable.monsterName[" + index.toString() + "]>"
-            }
-            if (count !== 1) battleName += " ×" + count;
-        }
-
-        if (battleName === "") battleName = "Battle %i";
-        this.rom.stringTable.battleProperties.string[b].value = battleName;
-    }
-}
-
-FF5Battle.prototype.mouseDown = function(e) {
-    this.closeList();
-
-    var x = Math.floor(e.offsetX / this.zoom) + this.battleRect.l;
-    var y = Math.floor(e.offsetY / this.zoom) + this.battleRect.t;
-    this.selectedMonster = this.monsterAtPoint(x, y);
-
-    if (this.selectedMonster) {
-        this.clickedPoint = {x: x, y: y};
-        this.monsterPoint = { x: this.selectedMonster.x, y: this.selectedMonster.y };
-        propertyList.select(this.getMonsterProperties(this.selectedMonster.m));
-    } else {
-        propertyList.select(this.battleProperties);
-    }
-
-    this.drawBattle();
-}
-
-FF5Battle.prototype.mouseMove = function(e) {
-    if (!this.selectedMonster || !this.clickedPoint) return;
-
-    var x = Math.floor(e.offsetX / this.zoom) + this.battleRect.l;
-    var y = Math.floor(e.offsetY / this.zoom) + this.battleRect.t;
-
-    var dx = x - this.clickedPoint.x;
-    var dy = y - this.clickedPoint.y;
-
-    var position = this.selectedMonster.position;
-    var monsterX = position.x.value;
-    var monsterY = position.x.value;
-    var newX = (this.monsterPoint.x + dx) & ~7;
-    var newY = (this.monsterPoint.y + dy) & ~7;
-    newX = Math.min(128, Math.max(0, newX));
-    newY = Math.min(128, Math.max(0, newY));
-
-    if (newX === monsterX && newY === monsterY) return;
-
-    this.observer.stopObserving(this.battleProperties);
-    position.x.value = newX;
-    position.y.value = newY;
-    this.observer.startObserving(this.battleProperties, this.loadBattle);
-    this.drawBattle();
-}
-
-FF5Battle.prototype.mouseUp = function(e) {
-
-    if (!this.selectedMonster || !this.monsterPoint) return;
-
-    // get the new monster's position properties
-    var position = this.selectedMonster.position;
-
-    var newPoint = { x: position.x.value, y: position.y.value };
-    var oldPoint = this.monsterPoint;
-
-    this.clickedPoint = null;
-    this.monsterPoint = null;
-
-    // return if the monster didn't move
-    if (oldPoint.x === newPoint.x && oldPoint.y === newPoint.y) return;
-
-    // temporarily move the monster back to its original position
-    position.x.value = oldPoint.x;
-    position.y.value = oldPoint.y;
-
-    this.observer.stopObserving(this.battleProperties);
-    this.rom.beginAction();
-    position.x.setValue(newPoint.x);
-    position.y.setValue(newPoint.y);
-    this.rom.endAction();
-    this.observer.startObserving(this.battleProperties, this.loadBattle);
-}
-
-FF5Battle.prototype.mouseLeave = function(e) {
-    this.mouseUp(e);
-}
-
-FF5Battle.prototype.selectObject = function(object) {
-    this.loadBattle(object.i);
-    this.show();
-}
-
-FF5Battle.prototype.show = function() {
-    var battle = this;
-    // document.getElementById('toolbox-bar').classList.add("hidden");
-    // document.getElementById('toolbox-div').classList.add("hidden");
-
-    this.resetControls();
-    this.showControls();
-    this.closeList();
-    this.addTwoState("showMonsters", function(checked) { battle.showMonsters = checked; battle.drawBattle(); }, "Monsters", this.showMonsters);
-
-    var bgNames = [];
-    for (var i = 0; i < this.rom.battleBackgroundProperties.arrayLength; i++) {
-        bgNames.push(this.rom.stringTable.battleBackgroundProperties.string[i].fString());
-    }
-    var onChangeBG = function(bg) { battle.bg = bg; battle.drawBattle(); }
-    var bgSelected = function(bg) { return battle.bg === bg; }
-    this.addList("showBackground", "Background", bgNames, onChangeBG, bgSelected);
-
-    this.resizeSensor = new ResizeSensor(document.getElementById("edit-top"), function() { battle.drawBattle(); });
-}
-
-FF5Battle.prototype.hide = function() {
-    this.observer.stopObservingAll();
-    if (this.resizeSensor) {
-        this.resizeSensor.detach(document.getElementById("edit-top"));
-        this.resizeSensor = null;
-    }
-}
-
-FF5Battle.prototype.loadBattle = function(b) {
-    b = Number(b);
-    if (isNumber(b) && this.b !== b) {
-        // battle index has changed
-        this.observer.stopObserving(this.battleProperties);
-        this.b = b;
-        this.battleProperties = this.rom.battleProperties.item(b);
-        this.observer.startObserving(this.battleProperties, this.loadBattle);
-        this.observer.startObserving(this.rom.monsterPosition.item(b), this.drawBattle);
-    }
-
-    this.selectedMonster = null;
-    this.drawBattle();
-}
-
-FF5Battle.prototype.getMonsterProperties = function(m) {
-    if (this.rom.isSFC) {
-        return this.rom.monsterProperties.item(m);
-    } else if (m < 256) {
-        // normal monster
-        return this.rom.monsterProperties.item(m + 224);
-    } else if (m < 384) {
-        // normal boss
-        return this.rom.monsterProperties.item(m - 256);
-    } else if (m < 416) {
-        // gba boss
-        return this.rom.monsterProperties.item(m - 256);
-    } else {
-        // cloister of the dead boss
-        return this.rom.monsterProperties.item(m - 256);
-    }
-}
-
-FF5Battle.prototype.monsterInSlot = function(slot) {
-    var m;
-    if (this.battleProperties.flags.value & 0x20) {
-        m = this.battleProperties["monster" + slot + "Boss"].value;
-    } else {
-        m = this.battleProperties["monster" + slot].value;
-    }
-    if ((m & 0xFF) === 0xFF) return null; // slot is empty
-
-    var monsterProperties = this.getMonsterProperties(m);
-
-    var pal = this.battleProperties["monster" + slot + "Palette"].value;
-
-    var monsterPosition = this.rom.monsterPosition.item(this.b).item(slot - 1);
-    var x = monsterPosition.x.value;
-    var y = monsterPosition.y.value;
-
-    var id;
-//    if (this.rom.isGBA) {
-//        if (m < 256) {
-//            id = m;
-//        } else if (m < 384) {
-//            id = m + 256;
-//        } else {
-//            id = m + 256;
-//        }
-    if (this.battleProperties.flags.value & 0x20) {
-        id = monsterProperties.monsterIDBoss.value;
-    } else {
-        id = monsterProperties.monsterID.value;
-    }
-
-    // minimum size is 1x1
-    var w = 1; var h = 1;
-    if (this.rom.isSFC) {
-        var map = this.mapForMonster(id);
-        for (var t = 0; t < map.tiles.length; t++) {
-            if (!map.tiles[t]) continue;
-            w = Math.max(w, (t % map.size) + 1);
-            h = Math.max(h, Math.floor(t / map.size) + 1);
-        }
-    } else {
-        var size = this.rom.monsterSize.item(id);
-        w = Math.max(size.width.value, 1);
-        h = Math.max(size.height.value, 1);
-    }
-
-    return {
-        "slot": slot,
-        "x": x,
-        "y": y,
-        "position": monsterPosition,
-        "pal": pal,
-        "m": m,
-        "id": id,
-        "rect": new Rect(x, x + w * 8, y, y + h * 8)
-    };
-}
-
-FF5Battle.prototype.monsterAtPoint = function(x, y) {
-
-    for (var slot = 1; slot <= 8; slot++) {
-        var m = this.monsterInSlot(slot);
-        if (m && m.rect.containsPoint(x, y)) return m;
-    }
-    return null;
-}
-
-FF5Battle.prototype.drawBattle = function() {
-    this.drawBackground();
-
-    if (this.showMonsters) {
-        for (var slot = 8; slot > 0; slot--) this.drawMonster(slot);
-    }
-
-    this.zoom = Math.min(this.div.clientWidth / this.battleRect.w, this.div.clientHeight / this.battleRect.h);
-    this.zoom = Math.min(Math.max(this.zoom, 1.0), 4.0);
-
-    var scaledRect = this.battleRect.scale(this.zoom);
-    this.canvas.width = scaledRect.w;
-    this.canvas.height = scaledRect.h;
-
-    var ctx = this.canvas.getContext('2d');
-    ctx.imageSmoothingEnabled = false;
-    ctx.webkitImageSmoothingEnabled = false;
-    ctx.drawImage(this.battleCanvas, this.battleRect.l, this.battleRect.t, this.battleRect.w, this.battleRect.h, 0, 0, scaledRect.w, scaledRect.h);
-}
-
-FF5Battle.prototype.mapForMonster = function(m) {
-
-    if (this.rom.isGBA) return;
-
-    // load graphics properties
-    var gfxProperties = this.rom.monsterGraphicsProperties.item(m);
-
-    // load graphics map and set up tile data
-    var size, mask, row, map;
-    if (gfxProperties.useLargeMap.value) {
-        size = 16; mask = 0x8000;
-        if (this.rom.isSFC) {
-            map = this.rom.monsterGraphicsMap.large.item(gfxProperties.largeMap.value).data;
-        } else {
-            var mapBegin = this.rom.mapAddress(gfxProperties.mapPointer.value);
-            var mapEnd = mapBegin + 32;
-            map = this.rom.data.subarray(mapBegin, mapEnd);
-        }
-        map = new Uint16Array(map.buffer, map.byteOffset, map.byteLength / 2);
-    } else {
-        size = 8; mask = 0x80;
-        if (this.rom.isSFC) {
-            map = this.rom.monsterGraphicsMap.small.item(gfxProperties.smallMap.value).data;
-        } else {
-            var mapBegin = this.rom.mapAddress(gfxProperties.mapPointer.value);
-            var mapEnd = mapBegin + 8;
-            map = this.rom.data.subarray(mapBegin, mapEnd);
-        }
-    }
-
-    var tiles = new Uint16Array(size * size);
-
-    for (var g = 1, t = 0; t < tiles.length; t++, row <<= 1) {
-        if (t % size === 0) {
-            row = map[t / size];
-//            if (this.rom.isSFC && size === 16) row = bytesSwapped16(row);
-        }
-        if (row & mask) tiles[t] = g++;
-    }
-    return {size: size, tiles: tiles};
-}
-
-FF5Battle.prototype.drawMonster = function(slot) {
-
-    var m = this.monsterInSlot(slot);
-    if (m === null) return; // return if slot is empty
-
-    var graphics, tiles, pal, w, h;
-
-    if (this.rom.isSFC) {
-        // load graphics properties
-        var gfxProperties = this.rom.monsterGraphicsProperties.item(m.id);
-
-        // decode the graphics
-        var gfx = gfxProperties.graphicsPointer.target;
-//        var gfx = this.rom.monsterGraphics.item(m.id);
-        if (this.rom.isSFC) {
-            var format = gfxProperties.is3bpp.value ? "snes3bpp" : "snes4bpp";
-            if (gfx.format !== format) {
-                gfx.format = format;
-                gfx.disassemble(gfx.parent.data);
-            }
-        }
-
-        // leave the first tile blank
-        graphics = new Uint8Array(gfx.data.length + 64);
-        graphics.set(gfx.data, 64);
-
-        var map = this.mapForMonster(m.id);
-        tiles = map.tiles;
-        w = map.size;
-        h = map.size;
-
-        // load palette
-//        var p = gfxProperties.palette.value;
-        pal = new Uint32Array(16);
-        if (this.battleProperties.gfxFlags.value & 4) {
-            // use underwater palette
-            pal.set(this.rom.monsterPaletteUnderwater.data);
-        } else {
-            pal.set(gfxProperties.palette.target.data.subarray(0, 16));
-//            if (!gfxProperties.is3bpp.value) pal.set(this.rom.monsterPalette.item(p + 1).data, 8);
-        }
-    } else {
-        // decode the graphics
-        var graphicsData = this.rom.monsterGraphics.item(m.id * 2);
-        if (!graphicsData.format) {
-            graphicsData.format = ["linear4bpp", "tose-graphics", "gba-lzss"];
-            graphicsData.disassemble(graphicsData.parent.data);
-        }
-
-        graphics = graphicsData.data;
-
-        // load size
-        w = m.rect.w >> 3;
-        h = m.rect.h >> 3;
-
-        tiles = new Uint16Array(w * h);
-        for (var t = 0; t < tiles.length; t++) tiles[t] = t;
-
-        // load palette
-        var paletteData = this.rom.monsterGraphics.item(m.id * 2 + 1);
-        if (!paletteData.format) {
-            paletteData.format = ["bgr555", "tose-palette"];
-            paletteData.disassemble(paletteData.parent.data);
-        }
-        pal = paletteData.data;
-    }
-
-    // set up the ppu
-    var ppu = new GFX.PPU();
-    ppu.pal = this.rom.gammaCorrectedPalette(pal);
-    ppu.width = w * 8;
-    ppu.height = h * 8;
-
-    // layer 1
-    ppu.layers[0].format = GFX.tileFormat.snesSpriteTile;
-    ppu.layers[0].cols = w;
-    ppu.layers[0].rows = h;
-    ppu.layers[0].z[0] = GFX.Z.snesS0;
-    ppu.layers[0].z[1] = GFX.Z.snesS1;
-    ppu.layers[0].z[2] = GFX.Z.snesS2;
-    ppu.layers[0].z[3] = GFX.Z.snesS3;
-    ppu.layers[0].gfx = graphics;
-    ppu.layers[0].tiles = tiles;
-    ppu.layers[0].main = true;
-
-    // draw the monster
-    this.monsterCanvas.width = ppu.width;
-    this.monsterCanvas.height = ppu.height;
-    var context = this.monsterCanvas.getContext('2d');
-    var imageData = context.createImageData(ppu.width, ppu.height);
-    ppu.renderPPU(imageData.data);
-    context.putImageData(imageData, 0, 0);
-
-    if (!this.battleProperties["monster" + slot + "Present"].value) this.transparentMonster();
-
-    // tint the selected monster
-    if (this.selectedMonster && this.selectedMonster.slot === slot) this.tintMonster();
-
-    var ctx = this.battleCanvas.getContext('2d');
-    ctx.imageSmoothingEnabled = false;
-    ctx.webkitImageSmoothingEnabled = false;
-    ctx.drawImage(this.monsterCanvas, 0, 0, m.rect.w, m.rect.h, m.rect.l, m.rect.t, m.rect.w, m.rect.h);
-}
-
-FF5Battle.prototype.tintMonster = function() {
-    // create an offscreen canvas filled with the color
-    var tintCanvas = document.createElement('canvas');
-    tintCanvas.width = this.monsterCanvas.width;
-    tintCanvas.height = this.monsterCanvas.height;
-    var ctx = tintCanvas.getContext('2d');
-    ctx.fillStyle = 'hsla(210, 100%, 50%, 0.5)';
-    ctx.fillRect(0, 0, this.monsterCanvas.width, this.monsterCanvas.height);
-
-    ctx = this.monsterCanvas.getContext('2d');
-    ctx.globalCompositeOperation = 'source-atop';
-    ctx.drawImage(tintCanvas, 0, 0);
-}
-
-FF5Battle.prototype.transparentMonster = function() {
-    // create an offscreen canvas filled with the color
-    var transparentCanvas = document.createElement('canvas');
-    transparentCanvas.width = this.monsterCanvas.width;
-    transparentCanvas.height = this.monsterCanvas.height;
-    var ctx = transparentCanvas.getContext('2d');
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-    ctx.fillRect(0, 0, this.monsterCanvas.width, this.monsterCanvas.height);
-
-    ctx = this.monsterCanvas.getContext('2d');
-    ctx.globalCompositeOperation = 'destination-out';
-    ctx.drawImage(transparentCanvas, 0, 0);
-}
-
-FF5Battle.prototype.drawBackground = function() {
-
-    if (this.rom.isGBA) {
-        this.drawBackgroundGBA();
-        return;
-    }
-
-    var bg = this.bg;
-    var properties = this.rom.battleBackgroundProperties.item(bg);
-
-    // load graphics
-    var gfx = new Uint8Array(0x10000);
-    var g = properties.graphics.value;
-    var gfxPointer = this.rom.battleBackgroundGraphicsPointer.item(g);
-    var gfxObject = gfxPointer.pointer.target;
-    var gfxOffset = this.rom.battleBackgroundGraphicsOffset.item(g).offset.value;
-//    gfxOffset -= 0x7FC000;
-    gfx.set(gfxObject.data.subarray(gfxOffset << 6));
-
-    // load layout
-    var l = properties.layout.value;
-    var layout = this.rom.battleBackgroundLayout.item(l).data;
-    var h = properties.hFlip.value;
-    var hFlip = new Uint8Array(0x0280);
-    if (h !== 0xFF) hFlip = this.rom.battleBackgroundTileFlip.item(h).data;
-    var v = properties.vFlip.value;
-    var vFlip = new Uint8Array(0x0280);
-    if (v !== 0xFF) hFlip = this.rom.battleBackgroundTileFlip.item(v).data;
-    var tiles = new Uint32Array(0x0280);
-    for (var i = 0; i < layout.length; i++) {
-        tiles[i] = layout[i];
-        if (hFlip[i]) tiles[i] |= 0x10000000;
-        if (vFlip[i]) tiles[i] |= 0x20000000;
-    }
-
-    var pal = new Uint32Array(0x80);
-    pal[0] = 0xFF000000;
-    var p1 = properties.palette1.value;
-    var p2 = properties.palette2.value;
-    pal.set(this.rom.battleBackgroundPalette.item(p1).data, 0x00);
-    pal.set(this.rom.battleBackgroundPalette.item(p2).data, 0x10);
-
-    // set up the ppu
-    this.ppu = new GFX.PPU();
-    this.ppu.pal = this.rom.gammaCorrectedPalette(pal);
-    this.ppu.width = 256;
-    this.ppu.height = 160;
-    this.ppu.back = true;
-
-    // layer 2
-    // this.ppu.layers[1].format = GFX.tileFormat.snes4bppTile;
-    this.ppu.layers[1].cols = 32;
-    this.ppu.layers[1].rows = 20;
-    this.ppu.layers[1].z[0] = GFX.Z.snes2L;
-    this.ppu.layers[1].z[1] = GFX.Z.snes2H;
-    this.ppu.layers[1].gfx = gfx;
-    this.ppu.layers[1].tiles = tiles;
-    this.ppu.layers[1].main = true;
-
-    var context = this.battleCanvas.getContext('2d');
-    imageData = context.createImageData(256, 160);
-    this.ppu.renderPPU(imageData.data, 0, 0, 256, 160);
-    context.putImageData(imageData, 0, 0);
-}
-
-FF5Battle.prototype.drawBackgroundGBA = function() {
-
-    var bg = this.bg * 3;
-
-    // load graphics
-    var gfx = new Uint8Array(0x10000);
-    var graphicsData = this.rom.battleBackgroundGraphics.item(bg);
-    if (!graphicsData.format) {
-        graphicsData.format = ["linear4bpp", "tose-graphics", "gba-lzss"];
-        graphicsData.disassemble(graphicsData.parent.data);
-    }
-    gfx.set(graphicsData.data);
-
-    // load layout
-    var layout = this.rom.battleBackgroundGraphics.item(bg + 1);
-    if (!layout.format) {
-        layout.format = ["gba4bppTile", "tose-layout"];
-        layout.width = 32;
-        layout.height = 17;
-        layout.disassemble(layout.parent.data);
-    }
-    var tiles = new Uint32Array(layout.data.buffer, layout.data.byteOffset);
-
-    // load palette
-    var pal = new Uint32Array(0x100);
-    var paletteData = this.rom.battleBackgroundGraphics.item(bg + 2);
-    if (!paletteData.format) {
-        paletteData.format = ["bgr555", "tose-palette"];
-        paletteData.disassemble(paletteData.parent.data);
-    }
-    pal[0] = 0xFF000000;
-    pal.set(paletteData.data);
-
-    // set up the ppu
-    this.ppu = new GFX.PPU();
-    this.ppu.pal = this.rom.gammaCorrectedPalette(pal);
-    this.ppu.width = 256;
-    this.ppu.height = 136;
-    this.ppu.back = true;
-
-    // layer 2
-    // this.ppu.layers[1].format = GFX.tileFormat.gba4bppTile;
-    this.ppu.layers[1].cols = 32;
-    this.ppu.layers[1].rows = 17;
-    this.ppu.layers[1].z[0] = GFX.Z.snes2L;
-    this.ppu.layers[1].z[1] = GFX.Z.snes2H;
-    this.ppu.layers[1].gfx = gfx;
-    this.ppu.layers[1].tiles = tiles;
-    this.ppu.layers[1].main = true;
-
-    var context = this.battleCanvas.getContext('2d');
-    imageData = context.createImageData(256, 136);
-    this.ppu.renderPPU(imageData.data, 0, 0, 256, 136);
-    context.putImageData(imageData, 0, 0);
-}
-
-// FF5BattleBackgroundEditor
-class FF5BattleBackgroundEditor extends ROMTilemapView {
-
+class FF5Battle extends ROMEditor_ {
     constructor(rom) {
         super(rom);
-        this.name = 'FF5BattleBackgroundEditor';
-        this.bgProperties = null;
-        this.layout = null;
-        this.observer.options.sub = true;
-        this.observer.options.link = true;
+
+        this.name = 'FF5Battle';
+
+        this.b = null; // battle index
+        this.bg = 0; // battle background index
+        this.showMonsters = true;
+        this.battleProperties = null;
+        this.selectedMonster = null;
+        this.monsterPoint = null;
+        this.clickPoint = null;
+        this.monsterSlots = [];
+        this.ppu = new GFX.PPU();
+
+        // off-screen canvas for drawing the battle
+        this.battleCanvas = document.createElement('canvas');
+        this.battleCanvas.width = 256;
+        this.battleCanvas.height = 256;
+
+        // off-screen canvas for drawing individual monsters
+        this.monsterCanvas = document.createElement('canvas');
+
+        // on-screen canvas
+        this.canvas = document.createElement('canvas');
+
+        this.div = document.createElement('div');
+        this.div.id = 'map-edit';
+        this.div.appendChild(this.canvas);
+
+        this.battleRect = new Rect(8, 248, this.rom.isSFC ? 1 : 8, this.rom.isSFC ? 160 : 128);
+        this.zoom = 1.0;
+
+        this.observer = new ROMObserver(rom, this);
+
+        // add message handlers
+        const self = this;
+        this.canvas.onmousedown = function(e) { self.mouseDown(e) };
+        this.canvas.onmousemove = function(e) { self.mouseMove(e) };
+        this.canvas.onmouseup = function(e) { self.mouseUp(e) };
+        this.canvas.onmouseleave = function(e) { self.mouseLeave(e) };
+        this.resizeSensor = null;
+        this.monsterPoint = null;
+        this.clickPoint = null;
+
+        this.updateBattleStrings();
+    }
+
+    updateBattleStrings() {
+        const battlePropertiesArray = this.rom.battleProperties;
+        const battleStringTable = this.rom.stringTable.battleProperties;
+        for (let b = 0; b < battlePropertiesArray.arrayLength; b++) {
+            const battleProperties = battlePropertiesArray.item(b);
+            const isBoss = battleProperties.flags.value & 0x20;
+
+            // count up the monsters
+            const monsterList = {};
+            for (let m = 1; m <= 8; m++) {
+                const key = `monster${m}${isBoss ? 'Boss' : ''}`;
+                const index = battleProperties[key].value;
+                if ((index & 0xFF) === 0xFF) continue;
+                const count = monsterList[index];
+                monsterList[index] = (count || 0) + 1;
+            }
+
+            let battleName = '';
+            for (const index in monsterList) {
+                const count = monsterList[index];
+                if (battleName) battleName += ', ';
+                if (this.rom.isGBA) {
+                    battleName += `<stringTable.battleMonster[${index}]>`;
+                } else {
+                    battleName += `<stringTable.monsterName[${index}]>`;
+                }
+                if (count !== 1) battleName += ` ×${count}`;
+            }
+
+            if (!battleName) battleName = 'Battle %i';
+            battleStringTable.string[b].value = battleName;
+        }
+    }
+
+    mouseDown(e) {
+        this.closeList();
+
+        const x = Math.floor(e.offsetX / this.zoom) + this.battleRect.l;
+        const y = Math.floor(e.offsetY / this.zoom) + this.battleRect.t;
+        this.selectedMonster = this.monsterAtPoint(x, y);
+
+        if (this.selectedMonster) {
+            this.clickPoint = { x: x, y: y };
+            this.monsterPoint = {
+                x: this.selectedMonster.position.x.value,
+                y: this.selectedMonster.position.y.value
+            };
+            propertyList.select(this.selectedMonster.properties);
+        } else {
+            propertyList.select(this.battleProperties);
+        }
+
+        this.drawBattle();
+    }
+
+    mouseMove(e) {
+        if (!this.selectedMonster || !this.clickPoint) return;
+
+        const x = Math.floor(e.offsetX / this.zoom) + this.battleRect.l;
+        const y = Math.floor(e.offsetY / this.zoom) + this.battleRect.t;
+
+        const dx = x - this.clickPoint.x;
+        const dy = y - this.clickPoint.y;
+
+        const monsterX = this.selectedMonster.position.x.value;
+        const monsterY = this.selectedMonster.position.x.value;
+        let newX = (this.monsterPoint.x + dx) & ~7;
+        let newY = (this.monsterPoint.y + dy) & ~7;
+        newX = Math.min(128, Math.max(0, newX));
+        newY = Math.min(128, Math.max(0, newY));
+
+        if (newX === monsterX && newY === monsterY) return;
+
+        this.selectedMonster.position.x.value = newX;
+        this.selectedMonster.position.y.value = newY;
+        this.drawBattle();
+    }
+
+    mouseUp(e) {
+        if (!this.selectedMonster || !this.monsterPoint) return;
+
+        // get the new monster's position properties
+        const newPoint = {
+            x: this.selectedMonster.position.x.value,
+            y: this.selectedMonster.position.y.value
+        };
+        const oldPoint = this.monsterPoint;
+
+        this.clickPoint = null;
+        this.monsterPoint = null;
+
+        // return if the monster didn't move
+        if (oldPoint.x === newPoint.x && oldPoint.y === newPoint.y) return;
+
+        // temporarily move the monster back to its original position
+        this.selectedMonster.position.x.value = oldPoint.x;
+        this.selectedMonster.position.y.value = oldPoint.y;
+
+        this.beginAction(this.drawBattle);
+        this.selectedMonster.position.x.setValue(newPoint.x);
+        this.selectedMonster.position.y.setValue(newPoint.y);
+        this.endAction(this.drawBattle);
+    }
+
+    mouseLeave(e) {
+        this.mouseUp(e);
     }
 
     selectObject(object) {
-        this.bgProperties = object;
-        const l = this.bgProperties.layout.value;
-        this.layout = this.rom.battleBackgroundLayout.item(l);
-        super.selectObject(this.layout);
+        this.loadBattle(object.i);
     }
 
-    loadTilemap() {
+    show() {
+        this.showControls();
+        this.closeList();
+
+        // notify on resize
+        const self = this;
+        this.resizeSensor = new ResizeSensor(document.getElementById('edit-top'), function() {
+            self.drawBattle();
+        });
+    }
+
+    hide() {
+        this.observer.stopObservingAll();
+        if (this.resizeSensor) {
+            this.resizeSensor.detach(document.getElementById('edit-top'));
+            this.resizeSensor = null;
+        }
+    }
+
+    resetControls() {
+        super.resetControls();
+        const self = this;
+
+        // add a control to show/hide monsters
+        this.addTwoState('showMonsters', function(checked) {
+            self.showMonsters = checked;
+            self.drawBattle();
+        }, 'Monsters', this.showMonsters);
+
+        // add a control to select the battle background
+        const bgNames = [];
+        const bgStringTable = this.rom.stringTable.battleBackgroundProperties;
+        const bgCount = this.rom.battleBackgroundProperties.arrayLength;
+        for (var i = 0; i < bgCount; i++) {
+            const bgNameString = bgStringTable.string[i];
+            if (bgNameString) bgNames.push(bgNameString.fString());
+        }
+        function onChangeBG(bg) {
+            self.bg = bg;
+            self.drawBattle();
+        };
+        function bgSelected(bg) {
+            return self.bg === bg;
+        }
+        this.addList('showBackground', 'Background', bgNames, onChangeBG, bgSelected);
+    }
+
+    loadBattle(b) {
+        this.resetControls();
+        b = Number(b);
+        if (isNumber(b)) this.b = b;
+
+        this.observer.stopObservingAll();
+        this.battleProperties = this.rom.battleProperties.item(this.b);
+        this.monsterPosition = this.rom.monsterPosition.item(this.b);
+        this.observer.startObservingSub(this.battleProperties, this.loadBattle);
+        this.observer.startObservingSub(this.monsterPosition, this.drawBattle);
+
+        this.selectedMonster = null;
+        this.monsterSlots = [];
+        for (let m = 1; m <= 8; m++) {
+            const monster = this.loadMonster(m);
+            if (monster) this.monsterSlots.push(monster);
+        }
+
+        this.drawBattle();
+    }
+
+    loadMonster(slot) {
+
+        const monster = { slot: slot };
+
+        // get monster index
+        const isBoss = this.battleProperties.flags.value & 0x20;
+        monster.key = `monster${slot}`;
+        if (isBoss) {
+            monster.m = this.battleProperties[`${monster.key}Boss`].value;
+        } else {
+            monster.m = this.battleProperties[monster.key].value;
+        }
+        if ((monster.m & 0xFF) === 0xFF) return null; // slot is empty
+
+        // get monster properties
+        let index;
+        if (this.rom.isSFC) {
+            index = monster.m;
+        } else if (monster.m < 256) {
+            // normal monster
+            index = monster.m + 224;
+        } else if (monster.m < 384) {
+            // normal boss
+            index = monster.m - 256;
+        } else if (monster.m < 416) {
+            // gba boss
+            index = monster.m - 256;
+        } else {
+            // cloister of the dead boss
+            index = monster.m - 256;
+        }
+        monster.properties = this.rom.monsterProperties.item(index);
+        this.observer.startObservingSub(monster.properties, this.loadBattle);
+
+        // get monster id
+        if (isBoss) {
+            monster.id = monster.properties.monsterIDBoss.value;
+        } else {
+            monster.id = monster.properties.monsterID.value;
+        }
+
+        monster.p = this.battleProperties[`${monster.key}Palette`].value;
+        monster.present = this.battleProperties[`${monster.key}Present`].value;
+        monster.position = this.monsterPosition.item(slot - 1);
+        this.observer.startObservingSub(monster.position, this.drawBattle);
+
+        if (this.rom.isSFC) {
+            monster.gfxProperties = this.rom.monsterGraphicsProperties.item(monster.m);
+            this.observer.startObservingSub(monster.gfxProperties, this.loadBattle);
+
+            // load graphics map
+            const map = {};
+            if (monster.gfxProperties.useLargeMap.value) {
+                // large map
+                const mapIndex = monster.gfxProperties.largeMap.value;
+                const data8 = this.rom.monsterGraphicsMap.large.item(mapIndex).data;
+                map.size = 16;
+                map.data = new Uint16Array(data8.buffer, data8.byteOffset, data8.byteLength / 2);
+            } else {
+                // small map
+                const mapIndex = monster.gfxProperties.smallMap.value;
+                map.size = 8;
+                map.data = this.rom.monsterGraphicsMap.small.item(mapIndex).data;
+            }
+
+            // set up the tilemap
+            const tileCount = map.size * map.size;
+            monster.tiles = new Uint16Array(tileCount);
+            let row = 0;
+            const mask = 1 << (map.size - 1);
+            for (let g = 1, t = 0; t < tileCount; t++, row <<= 1) {
+                if (t % map.size === 0) row = map.data[t / map.size];
+                if (row & mask) monster.tiles[t] = g++;
+            }
+            monster.map = map;
+            monster.w = map.size * 8;
+            monster.h = map.size * 8;
+
+            // load the graphics
+            const graphicsObject = monster.gfxProperties.graphicsPointer.target;
+            const format = monster.gfxProperties.is3bpp.value ? 'snes3bpp' : 'snes4bpp';
+            if (graphicsObject.format !== format) {
+                graphicsObject.format = format;
+                graphicsObject.disassemble(graphicsObject.parent.data);
+            }
+
+            // leave the first tile blank
+            monster.graphics = new Uint8Array(graphicsObject.data.length + 64);
+            monster.graphics.set(graphicsObject.data, 64);
+            this.observer.startObserving(graphicsObject, this.loadBattle);
+
+            // load palette
+            const paletteObject = monster.gfxProperties.palette.target;
+            monster.palette = paletteObject.data;
+            this.observer.startObserving(paletteObject, this.loadBattle);
+
+        } else {
+            // set up the tilemap
+            monster.size = this.rom.monsterSize.item(monster.id);
+            this.observer.startObservingSub(monster.size, this.loadBattle);
+            monster.w = monster.size.width.value;
+            monster.h = monster.size.height.value;
+            monster.tiles = new Uint16Array(monster.w * monster.h / 64);
+            for (var t = 0; t < monster.tiles.length; t++) monster.tiles[t] = t;
+
+            // load the graphics
+            const g = monster.id * 2;
+            const graphicsObject = this.rom.monsterGraphics.item(g);
+            if (!graphicsObject.format) {
+                graphicsObject.format = ['linear4bpp', 'tose-graphics', 'gba-lzss'];
+                graphicsObject.disassemble(graphicsObject.parent.data);
+            }
+            monster.graphics = graphicsObject.data;
+            this.observer.startObserving(graphicsObject, this.loadBattle);
+
+            // load palette
+            const p = monster.id * 2 + 1;
+            const paletteObject = this.rom.monsterGraphics.item(p);
+            if (!paletteObject.format) {
+                paletteObject.format = ['bgr555', 'tose-palette'];
+                paletteObject.disassemble(paletteObject.parent.data);
+            }
+            monster.palette = paletteObject.data;
+            this.observer.startObserving(paletteObject, this.loadBattle);
+        }
+
+        return monster;
+    }
+
+    rectForMonster(monster) {
+
+        // minimum size is 8x8
+        let w = 1;
+        let h = 1;
+        if (this.rom.isSFC) {
+            for (let t = 0; t < monster.tiles.length; t++) {
+                if (!monster.tiles[t]) continue;
+                w = Math.max(w, (t % monster.map.size) + 1);
+                h = Math.max(h, Math.floor(t / monster.map.size) + 1);
+            }
+            w *= 8;
+            h *= 8;
+        } else {
+            w = Math.max(monster.size.width.value, 8);
+            h = Math.max(monster.size.height.value, 8);
+        }
+
+        const l = monster.position.x.value;
+        const r = l + w;
+        const t = monster.position.y.value;
+        const b = t + h;
+        return new Rect(l, r, t, b);
+    }
+
+    monsterAtPoint(x, y) {
+        for (const monster of this.monsterSlots) {
+            if (this.rectForMonster(monster).containsPoint(x, y)) return monster;
+        }
+        return null;
+    }
+
+    drawBattle() {
+        this.drawBackground();
+
+        if (this.showMonsters) {
+            // draw monsters in reverse order
+            for (const monster of this.monsterSlots.slice().reverse()) {
+                this.drawMonster(monster);
+            }
+        }
+
+        const zx = this.div.clientWidth / this.battleRect.w;
+        const zy = this.div.clientHeight / this.battleRect.h;
+        this.zoom = Math.max(Math.min(zx, zy, 4.0), 1.0);
+
+        this.canvas.width = this.battleRect.w * this.zoom;
+        this.canvas.height = this.battleRect.h * this.zoom;
+
+        const context = this.canvas.getContext('2d');
+        context.imageSmoothingEnabled = false;
+        context.webkitImageSmoothingEnabled = false;
+        context.globalCompositeOperation = 'copy';
+        context.drawImage(this.battleCanvas,
+            this.battleRect.l, this.battleRect.t, this.battleRect.w, this.battleRect.h,
+            0, 0, this.canvas.width, this.canvas.height);
+    }
+
+    drawMonster(monster) {
+
+        // load palette
+        const palette = new Uint32Array(256);
+        if (this.rom.isSFC && this.battleProperties.gfxFlags.value & 4) {
+            // use underwater palette
+            palette.set(this.rom.monsterPaletteUnderwater.data);
+        } else {
+            palette.set(monster.palette);
+        }
+
+        // set up the ppu
+        this.ppu = new GFX.PPU();
+        this.ppu.pal = this.rom.gammaCorrectedPalette(palette);
+        this.ppu.width = monster.w;
+        this.ppu.height = monster.h;
+
+        // layer 1
+        this.ppu.layers[0].format = GFX.tileFormat.snesSpriteTile;
+        this.ppu.layers[0].cols = monster.w / 8;
+        this.ppu.layers[0].rows = monster.h / 8;
+        this.ppu.layers[0].z[0] = GFX.Z.snesS0;
+        this.ppu.layers[0].z[1] = GFX.Z.snesS1;
+        this.ppu.layers[0].z[2] = GFX.Z.snesS2;
+        this.ppu.layers[0].z[3] = GFX.Z.snesS3;
+        this.ppu.layers[0].gfx = monster.graphics;
+        this.ppu.layers[0].tiles = monster.tiles;
+        this.ppu.layers[0].main = true;
+
+        // draw the monster
+        this.monsterCanvas.width = this.ppu.width;
+        this.monsterCanvas.height = this.ppu.height;
+        const monsterContext = this.monsterCanvas.getContext('2d');
+        const imageData = monsterContext.createImageData(this.ppu.width, this.ppu.height);
+        this.ppu.renderPPU(imageData.data);
+        monsterContext.putImageData(imageData, 0, 0);
+
+        // make hidden monsters transparent
+        if (!monster.present) {
+            transparentRect(this.monsterCanvas);
+        }
+
+        // tint the selected monster
+        if (this.selectedMonster === monster) {
+            tintRect(this.monsterCanvas, 'hsla(210, 100%, 50%, 0.5)');
+        }
+
+        const rect = this.rectForMonster(monster);
+        const context = this.battleCanvas.getContext('2d');
+        context.imageSmoothingEnabled = false;
+        context.webkitImageSmoothingEnabled = false;
+        context.drawImage(this.monsterCanvas, 0, 0, rect.w, rect.h, rect.l, rect.t, rect.w, rect.h);
+    }
+
+    drawBackground() {
         if (this.rom.isGBA) {
-            this.updateBackgroundLayoutGBA();
+            this.drawBackgroundGBA();
             return;
         }
 
-        const l = this.bgProperties.layout.value;
-        this.layout = this.rom.battleBackgroundLayout.item(l);
-        this.object = this.layout;
+        var bg = this.bg;
+        var properties = this.rom.battleBackgroundProperties.item(bg);
 
-        // create graphics definition
-        const g = this.bgProperties.graphics.value;
-        const gfxPointer = this.rom.battleBackgroundGraphicsPointer.item(g).pointer;
-        const gfxObject = gfxPointer.target;
-        this.layout.graphics = `battleBackgroundGraphics[${gfxObject.i}]`;
-
-        const graphicsOffset = this.rom.battleBackgroundGraphicsOffset.item(g);
-        this.layout.tileOffset = graphicsOffset.offset.value;
-
-        // create palette definition
-        this.layout.palette = [[]];
-        const p1 = this.bgProperties.palette1.value;
-        const p2 = this.bgProperties.palette2.value;
-        this.layout.palette[0].push({
-            path: `battleBackgroundPalette[${p1}]`,
-            offset: '0x00'
-        });
-        this.layout.palette[0].push({
-            path: `battleBackgroundPalette[${p2}]`,
-            offset: '0x10'
-        });
-
-        // create hFlip and vFlip definitions
-        const vFlip = this.bgProperties.vFlip.value;
-        if (vFlip === 0xFF) {
-            this.layout.disableVFlip = true;
-        } else {
-            this.layout.vFlip = `battleBackgroundTileFlip[${vFlip}]`;
-            this.layout.disableVFlip = false;
-        }
-        const hFlip = this.bgProperties.hFlip.value;
-        if (hFlip === 0xFF) {
-            this.layout.disableHFlip = true;
-        } else {
-            this.layout.hFlip = `battleBackgroundTileFlip[${hFlip}]`;
-            this.layout.disableHFlip = false;
-        }
-
-        super.loadTilemap();
-        this.observer.startObserving(this.bgProperties, this.loadTilemap);
-    }
-
-    updateBackgroundLayoutGBA() {
-        const bg = this.bgProperties.i * 3;
+        // load graphics
+        var gfx = new Uint8Array(0x10000);
+        var g = properties.graphics.value;
+        var gfxPointer = this.rom.battleBackgroundGraphicsPointer.item(g);
+        var gfxObject = gfxPointer.pointer.target;
+        var gfxOffset = this.rom.battleBackgroundGraphicsOffset.item(g).offset.value;
+        gfx.set(gfxObject.data.subarray(gfxOffset << 6));
 
         // load layout
-        const layout = this.rom.battleBackgroundGraphics.item(bg + 1);
-        if (!layout.format) {
-            layout.format = ['gba4bppTile', 'tose-layout'];
-            layout.width = 32;
-            layout.height = 17;
-            layout.disassemble(layout.parent.data);
+        var l = properties.layout.value;
+        var layout = this.rom.battleBackgroundLayout.item(l).data;
+        var h = properties.hFlip.value;
+        var hFlip = new Uint8Array(0x0280);
+        if (h !== 0xFF) hFlip = this.rom.battleBackgroundTileFlip.item(h).data;
+        var v = properties.vFlip.value;
+        var vFlip = new Uint8Array(0x0280);
+        if (v !== 0xFF) hFlip = this.rom.battleBackgroundTileFlip.item(v).data;
+        var tiles = new Uint32Array(0x0280);
+        for (var i = 0; i < layout.length; i++) {
+            tiles[i] = layout[i];
+            if (hFlip[i]) tiles[i] |= 0x10000000;
+            if (vFlip[i]) tiles[i] |= 0x20000000;
         }
-        this.layout = layout;
 
-        // create graphics definition
-        const graphicsData = this.rom.battleBackgroundGraphics.item(bg);
-        graphicsData.width = 32;
+        var pal = new Uint32Array(0x80);
+        pal[0] = 0xFF000000;
+        var p1 = properties.palette1.value;
+        var p2 = properties.palette2.value;
+        pal.set(this.rom.battleBackgroundPalette.item(p1).data, 0x00);
+        pal.set(this.rom.battleBackgroundPalette.item(p2).data, 0x10);
+
+        // set up the ppu
+        this.ppu = new GFX.PPU();
+        this.ppu.pal = this.rom.gammaCorrectedPalette(pal);
+        this.ppu.width = 256;
+        this.ppu.height = 160;
+        this.ppu.back = true;
+
+        // layer 2
+        this.ppu.layers[1].cols = 32;
+        this.ppu.layers[1].rows = 20;
+        this.ppu.layers[1].z[0] = GFX.Z.snes2L;
+        this.ppu.layers[1].z[1] = GFX.Z.snes2H;
+        this.ppu.layers[1].gfx = gfx;
+        this.ppu.layers[1].tiles = tiles;
+        this.ppu.layers[1].main = true;
+
+        var context = this.battleCanvas.getContext('2d');
+        const imageData = context.createImageData(256, 160);
+        this.ppu.renderPPU(imageData.data, 0, 0, 256, 160);
+        context.putImageData(imageData, 0, 0);
+    }
+
+    drawBackgroundGBA() {
+        const g = this.bg * 3; // graphics index
+        const l = this.bg * 3 + 1; // tilemap index
+        const p = this.bg * 3 + 2; // palette index
+
+        // load graphics
+        const graphics = new Uint8Array(0x10000);
+        const graphicsData = this.rom.battleBackgroundGraphics.item(g);
         if (!graphicsData.format) {
             graphicsData.format = ['linear4bpp', 'tose-graphics', 'gba-lzss'];
             graphicsData.disassemble(graphicsData.parent.data);
         }
-        this.layout.graphics = {
-            path: `battleBackgroundGraphics[${bg}]`
-        };
+        graphics.set(graphicsData.data);
 
-        // create palette definition
-        const paletteData = this.rom.battleBackgroundGraphics.item(bg + 2);
+        // load tilemap
+        const tilemapData = this.rom.battleBackgroundGraphics.item(l);
+        if (!tilemapData.format) {
+            tilemapData.format = ['gba4bppTile', 'tose-layout'];
+            tilemapData.width = 32;
+            tilemapData.height = 17;
+            tilemapData.disassemble(tilemapData.parent.data);
+        }
+        const tiles = tilemapData.data;
+
+        // load palette
+        const palette = new Uint32Array(0x100);
+        const paletteData = this.rom.battleBackgroundGraphics.item(p);
         if (!paletteData.format) {
             paletteData.format = ['bgr555', 'tose-palette'];
             paletteData.disassemble(paletteData.parent.data);
         }
-        this.layout.palette = `battleBackgroundGraphics[${bg + 2}]`;
+        palette[0] = 0xFF000000;
+        palette.set(paletteData.data);
+
+        // set up the ppu
+        this.ppu = new GFX.PPU();
+        this.ppu.pal = this.rom.gammaCorrectedPalette(palette);
+        this.ppu.width = 256;
+        this.ppu.height = 136;
+        this.ppu.back = true;
+
+        // layer 2
+        this.ppu.layers[1].cols = 32;
+        this.ppu.layers[1].rows = 17;
+        this.ppu.layers[1].z[0] = GFX.Z.snes2L;
+        this.ppu.layers[1].z[1] = GFX.Z.snes2H;
+        this.ppu.layers[1].gfx = graphics;
+        this.ppu.layers[1].tiles = tiles;
+        this.ppu.layers[1].main = true;
+
+        const context = this.battleCanvas.getContext('2d');
+        const imageData = context.createImageData(256, 136);
+        this.ppu.renderPPU(imageData.data, 0, 0, 256, 136);
+        context.putImageData(imageData, 0, 0);
     }
 }

@@ -30,7 +30,10 @@ class FF6MapTileset extends ROMToolbox {
                       new FF6MapLayer(rom, FF6MapLayer.Type.overlay)];
 
         this.zoom = 1.0;
-        this.selection = new Uint8Array([0x73, 0, 0, 1, 1, 0]);
+        this.selection = {
+            x: 0, y: 0, w: 1, h: 1,
+            tilemap: new Uint8Array(1)
+        };
         this.clickPoint = null;
 
         this.ppu = new GFX.PPU();
@@ -111,17 +114,22 @@ class FF6MapTileset extends ROMToolbox {
         y = Math.min(y, this.clickPoint.y);
 
         // create the tile selection
-        this.selection = new Uint8Array(5 + w * h);
-        this.selection.set([0x73, x, y, w, h]);
+        this.selection = {
+            x: x, y: y, w: w, h: h,
+            tilemap: new Uint8Array(w * h)
+        };
         for (let r = 0; r < h; r++) {
             for (let c = 0; c < w; c++) {
-                this.selection[5 + c + r * w] = x + c + (y + r) * 16;
+                this.selection.tilemap[c + r * w] = x + c + (y + r) * 16;
             }
         }
 
         // redraw the cursor and notify the map
         this.drawCursor();
-        this.map.selection = new Uint8Array(this.selection);
+        this.map.selection = {
+            x: 0, y: 0, w: w, h: h,
+            tilemap: this.selection.tilemap.slice()
+        }
     }
 
     loadMap(m) {
@@ -226,6 +234,7 @@ class FF6MapTileset extends ROMToolbox {
     }
 
     selectLayer(l) {
+        if (this.map.isWorld && (l === 1 || l === 2)) l = 0;
         this.selectButton(l);
 
         // set the selected layer
@@ -315,10 +324,10 @@ class FF6MapTileset extends ROMToolbox {
         if (this.map.l === 3 || !this.selection) return;
 
         // get the cursor geometry
-        const l = Math.floor(this.selection[1] * 16 * this.zoom);
-        const t = Math.floor(this.selection[2] * 16 * this.zoom);
-        const r = Math.ceil((this.selection[1] + this.selection[3]) * 16 * this.zoom);
-        const b = Math.ceil((this.selection[2] + this.selection[4]) * 16 * this.zoom);
+        const l = Math.floor(this.selection.x * 16 * this.zoom);
+        const t = Math.floor(this.selection.y * 16 * this.zoom);
+        const r = Math.ceil((this.selection.x + this.selection.w) * 16 * this.zoom);
+        const b = Math.ceil((this.selection.y + this.selection.h) * 16 * this.zoom);
         let x = l;
         let y = t
         let w = r - l;

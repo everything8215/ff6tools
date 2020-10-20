@@ -382,23 +382,49 @@ class ROMGraphicsView extends ROMEditor_ {
         this.canvasDiv.scrollTop = scrollTop;
     }
 
-    resize(clientWidth) {
+    resize(clientWidth, clientHeight) {
 
         if (this.toolboxMode) {
+
             if (!isNumber(clientWidth)) {
-                clientWidth = this.toolbox.div.clientWidth;
+                clientWidth = this.div.scrollWidth;
             }
 
-            // calculate zoom based on client width (max 4)
-            this.zoom = clientWidth / this.ppu.width;
+            // calculate zoom assuming no scroll bar
+            this.canvasDiv.style.overflowY = 'hidden';
+            this.canvasDiv.style.width = `${clientWidth}px`;
+            this.zoom = this.canvasDiv.clientWidth / this.ppu.width;
             if (this.zoom > 4.0) this.zoom = 4.0;
-        }
+            this.canvasDiv.style.height = `${this.ppu.height * this.zoom}px`;
 
-        // update canvas div size
-        const w = Math.ceil(this.ppu.width * this.zoom);
-        const h = Math.ceil(this.ppu.height * this.zoom);
-        this.canvasDiv.style.width = `${w}px`;
-        this.canvasDiv.style.height = `${h}px`;
+            if (!isNumber(clientHeight)) {
+                clientHeight = this.div.scrollHeight;
+            }
+
+            const divHeight = this.div.scrollHeight;
+            const canvasHeight = this.canvasDiv.scrollHeight;
+            const otherHeight = divHeight - canvasHeight;
+            if (divHeight > clientHeight) {
+
+                // add a scroll bar if graphics is too tall
+                const canvasHeight = clientHeight - otherHeight;
+                this.canvasDiv.style.height = `${canvasHeight}px`;
+                this.canvasDiv.style.overflowY = 'scroll';
+
+                // recalculate zoom based on client width (max 4)
+                this.zoom = this.canvasDiv.clientWidth / this.ppu.width;
+                if (this.zoom > 4.0) this.zoom = 4.0;
+            }
+
+        } else {
+
+            // update canvas div size
+            const w = Math.ceil(this.ppu.width * this.zoom);
+            const h = Math.ceil(this.ppu.height * this.zoom);
+            this.canvasDiv.style.overflowY = 'hidden';
+            this.canvasDiv.style.width = `${w}px`;
+            this.canvasDiv.style.height = `${h}px`;
+        }
     }
 
     redraw() {
@@ -729,7 +755,7 @@ class ROMGraphicsView extends ROMEditor_ {
         // convert to and from the native format to validate the data
         if (object.format) {
             // get the graphics format
-            const formatKey = object.format;
+            let formatKey = object.format;
 
             // for assemblies with multiple formats, the graphics format is the first one
             if (isArray(formatKey)) formatKey = formatKey[0];

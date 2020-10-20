@@ -2012,6 +2012,7 @@
                         "npcID": {
                             "type": "property",
                             "name": "I.D.",
+                            "begin": 0,
                             "min": 1,
                             "link": "npcProperties[%i]",
                             "stringTable": "npcProperties"

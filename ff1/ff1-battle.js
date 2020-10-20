@@ -28,7 +28,7 @@ function FF1Battle(rom) {
     this.selectedMonster = null;
     this.showMonsters = true;
 
-    this.observer = new ROMObserver(rom, this, {sub: true, link: true, array: true});
+    this.observer = new ROMObserver(rom, this);
 
     var self = this;
     this.canvas.onmousedown = function(e) { self.mouseDown(e) };
@@ -157,10 +157,10 @@ FF1Battle.prototype.loadBattle = function(b) {
     b = Number(b);
     if (isNumber(b) && this.b !== b) {
         // battle index has changed
-        this.observer.stopObserving(this.battleProperties);
+        this.observer.stopObservingAll();
         this.b = b;
         this.battleProperties = this.rom.battleProperties.item(b);
-        this.observer.startObserving(this.battleProperties, this.loadBattle);
+        this.observer.startObservingSub(this.battleProperties, this.loadBattle);
     }
 
     this.selectedMonster = null;

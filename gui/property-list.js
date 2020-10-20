@@ -6,10 +6,12 @@
 class ROMPropertyList {
     constructor(rom) {
         this.rom = rom;
-        this.observer = new ROMObserver(this.rom, this, {
-            sub: true, link: true, label: true
-        });
-        this.selection = { current: null, previous: [], next: [] };
+        this.observer = new ROMObserver(rom, this);
+        this.selection = {
+            current: null,
+            previous: [],
+            next: []
+        };
         this.editors = {};
     }
 
@@ -175,7 +177,7 @@ class ROMPropertyList {
 
         } else if (object instanceof ROMText) {
             // text object
-            const propertyHTML = this.propertyHTML(object, {name: 'Text'});
+            const propertyHTML = this.propertyHTML(object, { name: 'Text' });
             if (!propertyHTML) return;
             properties.appendChild(propertyHTML);
             this.observer.startObserving(object, this.showProperties);
@@ -760,8 +762,8 @@ class ROMPropertyList {
         input.classList.add('property-control');
         input.value = object.value; // hex is not supported by normal controls
         input.step = object.multiplier;
-        input.min = (object.min + object.offset) * object.multiplier;
-        input.max = (object.max + object.offset) * object.multiplier;
+        input.min = object.min * object.multiplier + object.offset;
+        input.max = object.max * object.multiplier + object.offset;
         input.onchange = function() {
             let value = Number(this.value);
             value = Math.max(value, this.min);

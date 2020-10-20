@@ -28,7 +28,7 @@ function FF4LevelProgression(rom) {
     this.selectedPoint = null;
     this.characterStats = null;
     this.levelProgData = null;
-    this.observer = new ROMObserver(rom, this, {sub: true, link: true, array: true});
+    this.observer = new ROMObserver(rom, this);
 
     var levelProg = this;
 //    this.div.onscroll = function() { levelProg.resize() };
@@ -266,27 +266,27 @@ FF4LevelProgression.prototype.statProperties = function(s) {
 }
 
 FF4LevelProgression.highLevelStatsDefiniton = {
-    "key": "highLevelStats",
-    "name": "Random Stats for Level 71-99",
-    "type": "array",
-    "range": "5-13",
-    "array": {
-        "length": 8,
-        "min": 8,
-        "max": 8
+    key: "highLevelStats",
+    name: "Random Stats for Level 71-99",
+    type: "array",
+    range: "5-13",
+    array: {
+        length: 8,
+        min: 8,
+        max: 8
     },
-    "assembly": {
-        "type": "data",
-        "length": 1,
-        "assembly": {
-            "statMod": {
-                "type": "property",
-                "name": "Stat Mod.",
-                "begin": 0,
-                "mask": "0x07",
-                "stringTable": {
-                    "hideIndex": true,
-                    "string": {
+    assembly: {
+        type: "data",
+        length: 1,
+        assembly: {
+            statMod: {
+                type: "property",
+                name: "Stat Mod.",
+                begin: 0,
+                mask: "0x07",
+                stringTable: {
+                    hideIndex: true,
+                    string: {
                         "0": "0",
                         "1": "+1",
                         "2": "+2",
@@ -298,14 +298,14 @@ FF4LevelProgression.highLevelStatsDefiniton = {
                     }
                 }
             },
-            "stats": {
-                "type": "property",
-                "name": "Stats",
-                "begin": 0,
-                "mask": "0xF8",
-                "flag": true,
-                "stringTable": {
-                    "string": {
+            stats: {
+                type: "property",
+                name: "Stats",
+                begin: 0,
+                mask: "0xF8",
+                flag: true,
+                stringTable: {
+                    string: {
                         "4": "Strength",
                         "3": "Agility",
                         "2": "Vitality",
@@ -370,14 +370,16 @@ FF4LevelProgression.prototype.resetObserver = function() {
     if (this.rom.isGBA) {
         for (c = 0; c < this.rom.characterProperties.arrayLength; c++) {
             var characterProperties = this.rom.characterProperties.item(c);
-            this.observer.startObserving(characterProperties.level, changeStartingLevel(c));
-            this.observer.startObserving(characterProperties.hp, changeStartingLevel(c));
-            this.observer.startObserving(characterProperties.mp, changeStartingLevel(c));
-            this.observer.startObserving(characterProperties.strength, changeStartingLevel(c));
-            this.observer.startObserving(characterProperties.agility, changeStartingLevel(c));
-            this.observer.startObserving(characterProperties.stamina, changeStartingLevel(c));
-            this.observer.startObserving(characterProperties.intellect, changeStartingLevel(c));
-            this.observer.startObserving(characterProperties.spirit, changeStartingLevel(c));
+            this.observer.startObserving([
+                characterProperties.level,
+                characterProperties.hp,
+                characterProperties.mp,
+                characterProperties.strength,
+                characterProperties.agility,
+                characterProperties.stamina,
+                characterProperties.intellect,
+                characterProperties.spirit
+            ], changeStartingLevel(c));
         }
     } else {
         for (c = 0; c < this.rom.characterStats.arrayLength; c++) {
@@ -385,10 +387,10 @@ FF4LevelProgression.prototype.resetObserver = function() {
             this.observer.startObserving(characterStats.level, changeStartingLevel(c));
         }
         for (c = 0; c < this.rom.characterPartyAdd.arrayLength; c++) {
-            this.observer.startObserving(this.rom.characterPartyAdd.item(c), this.updatePointerTable);
+            this.observer.startObservingSub(this.rom.characterPartyAdd.item(c), this.updatePointerTable);
         }
         for (c = 0; c < this.rom.characterPartyRemove.arrayLength; c++) {
-            this.observer.startObserving(this.rom.characterPartyRemove.item(c), this.updatePointerTable);
+            this.observer.startObservingSub(this.rom.characterPartyRemove.item(c), this.updatePointerTable);
         }
     }
 }
@@ -402,11 +404,11 @@ FF4LevelProgression.prototype.changeStartingLevel = function(c) {
 
     while (level < (70 - levelStats.arrayLength)) {
         var newLevel = levelStats.blankAssembly();
-        levelStats.array.splice(0, 0, newLevel);
+        levelStats.insertAssembly(newLevel, 0);
     }
 
     while (level > (70 - levelStats.arrayLength)) {
-        levelStats.array.splice(0, 1);
+        levelStats.removeAssembly(0);
     }
     levelStats.markAsDirty();
     levelStats.updateArray();
@@ -517,8 +519,15 @@ FF4LevelProgression.prototype.loadCharacter = function(c) {
     if (!this.levelProgData) return;
     propertyList.select(this.characterStats);
 
-    this.observer.startObserving(this.characterStats, this.updateStats);
-    this.observer.startObserving(this.levelProgData, this.updateStats);
+    this.observer.startObservingSub(this.characterStats, this.updateStats);
+    for (const level of this.levelProgData.iterator()) {
+        this.observer.startObservingSub(level, this.updateStats);
+        if (level.highLevelStats) {
+            for (highLevel of level.highLevelStats.iterator()) {
+                this.observer.startObservingSub(highLevel, this.updateStats);
+            }
+        }
+    }
     this.selectedPoint = null;
 
     this.updateStats();

@@ -60,7 +60,7 @@ function FF4Map(rom) {
     this.showScreen = false;
     this.selectedTrigger = null;
     this.isWorld = false;
-    this.observer = new ROMObserver(rom, this, {sub: true, link: true, array: true});
+    this.observer = new ROMObserver(rom, this);
     this.ppu = new GFX.PPU();
 
     // mask layer stuff
@@ -86,18 +86,6 @@ function FF4Map(rom) {
 
 FF4Map.prototype = Object.create(ROMEditor.prototype);
 FF4Map.prototype.constructor = FF4Map;
-
-FF4Map.prototype.beginAction = function(callback) {
-    this.rom.beginAction();
-    this.rom.doAction(new ROMAction(this.observer, this.observer.wake, this.observer.sleep));
-    if (callback) this.rom.doAction(new ROMAction(this, callback, null));
-}
-
-FF4Map.prototype.endAction = function(callback) {
-    if (callback) this.rom.doAction(new ROMAction(this, null, callback));
-    this.rom.doAction(new ROMAction(this.observer, this.observer.sleep, this.observer.wake));
-    this.rom.endAction();
-}
 
 FF4Map.prototype.initBattleGroups = function() {
 
@@ -962,10 +950,6 @@ FF4Map.prototype.resetControls = function() {
 
 FF4Map.prototype.loadMap = function(m) {
 
-    // var layerButtons = document.getElementsByClassName("toolbox-button");
-    // layerButtons[1].disabled = false;
-    // layerButtons[2].disabled = true;
-
     // set the map index
     if (!isNumber(m)) m = this.m;
 
@@ -978,19 +962,29 @@ FF4Map.prototype.loadMap = function(m) {
     this.observer.stopObservingAll();
     this.isWorld = false;
     this.mapProperties = this.rom.mapProperties.item(this.m);
-    this.observer.startObserving(this.mapProperties, this.loadMap);
-
-    // observe tile properties (redraw map and tileset, don't reload)
-    var self = this;
-    var tp = this.rom.mapTileProperties.item(this.mapProperties.graphics.value);
-    this.observer.startObserving(tp, function() {
-        self.drawMap();
-        self.tileset.redraw();
-    });
 
     // get map properties
     var map = this.mapProperties;
     if (!map) return;
+    this.observer.startObserving([
+        map.graphics,
+        map.palette,
+        map.layout1,
+        map.layout2,
+        map.layoutMSB,
+        map.addition
+    ], this.loadMap);
+
+    // observe tile properties (redraw map and tileset, don't reload)
+    var self = this;
+    const g = this.mapProperties.graphics.value;
+    var tileProperties = this.rom.mapTileProperties.item(g);
+    for (const tp of tileProperties.iterator()) {
+        this.observer.startObservingSub(tp, function() {
+            self.drawMap();
+            self.tileset.redraw();
+        });
+    }
 
     // set the battle background
     var battleEditor = propertyList.getEditor("FF4Battle");
@@ -999,26 +993,26 @@ FF4Map.prototype.loadMap = function(m) {
 
     // load graphics
     var gfx = new Uint8Array(0x10000);
-    if ((map.graphics.value === 0) || (map.graphics.value === 15)) {
+    if ((g === 0) || (g === 15)) {
         // 4bpp graphics
-        var g1 = this.rom["mapGraphics" + map.graphics.value];
-        this.observer.startObserving(g1, this.loadMap);
-        gfx.set(g1.data);
+        var graphics1 = this.rom[`mapGraphics${g}`];
+        this.observer.startObserving(graphics1, this.loadMap);
+        gfx.set(graphics1.data);
     } else {
         // 3bpp graphics
-        var g1 = this.rom["mapGraphics" + map.graphics.value];
-        var g2 = this.rom["mapGraphics" + (map.graphics.value + 1)];
-        this.observer.startObserving(g1, this.loadMap);
-        this.observer.startObserving(g2, this.loadMap);
-        gfx.set(g1.data);
-        gfx.set(g2.data, g1.data.length);
+        var graphics1 = this.rom[`mapGraphics${g}`];
+        var graphics2 = this.rom[`mapGraphics${g + 1}`];
+        this.observer.startObserving(graphics1, this.loadMap);
+        this.observer.startObserving(graphics2, this.loadMap);
+        gfx.set(graphics1.data);
+        gfx.set(graphics2.data, graphics1.data.length);
     }
 
     // load animation graphics
     var animTable = [0, 0, 0, 2, 3, 6, 7, 10, 10, 10, 10, 10, 13, 13, 13, 16];
     var animGfx = this.rom.mapAnimationGraphics.data;
     for (var i = 0; i < 4; i++) {
-        var a = animTable[map.graphics.value] + i;
+        var a = animTable[g] + i;
         var start = a * 0x0400;
         var end = start + 0x0100;
         gfx.set(animGfx.subarray(start, end), 0x4800 + i * 0x0100);
@@ -1026,7 +1020,7 @@ FF4Map.prototype.loadMap = function(m) {
 
     // load palette
     var pal = new Uint32Array(128);
-    if ((map.graphics.value === 0) || (map.graphics.value === 15)) {
+    if ((g === 0) || (g === 15)) {
         // 4bpp graphics
         var pal1 = this.rom.mapPalettes.item(map.palette.value);
         var pal2 = this.rom.mapPalettes.item(map.palette.value + 1);
@@ -1047,7 +1041,7 @@ FF4Map.prototype.loadMap = function(m) {
     pal[0] = 0xFF000000; // set background color to black
 
     var layout, tileset;
-    var tileset = this.rom.mapTilesets.item(map.graphics.value);
+    var tileset = this.rom.mapTilesets.item(g);
     this.observer.startObserving(tileset, this.loadMap);
 
     // load and de-interlace tile layouts
@@ -1129,9 +1123,6 @@ FF4Map.prototype.loadWorldMap = function(m) {
     if (this.selectedLayer && this.selectedLayer.type === "layer2") {
         this.selectLayer(0);
     }
-    // var layerButtons = document.getElementsByClassName("toolbox-button");
-    // layerButtons[1].disabled = true;
-    // layerButtons[2].disabled = true;
 
     this.observer.stopObservingAll();
     this.mapProperties = null;
@@ -1160,14 +1151,18 @@ FF4Map.prototype.loadWorldMap = function(m) {
     var tileProperties = this.rom.worldTileProperties.item(this.w);
 
     var self = this;
-    this.observer.startObserving(graphics, this.loadMap);
-    this.observer.startObserving(palette, this.loadMap);
-    this.observer.startObserving(paletteAssignment, this.loadMap);
-    this.observer.startObserving(tileset, this.loadMap);
-    this.observer.startObserving(tileProperties, function() {
-        self.drawMap();
-        self.tileset.redraw();
-    });
+    this.observer.startObserving([
+        graphics,
+        palette,
+        paletteAssignment,
+        tileset
+    ], this.loadMap);
+    for (const tp of tileProperties.iterator()) {
+        this.observer.startObservingSub(tp, function() {
+            self.drawMap();
+            self.tileset.redraw();
+        });
+    }
 
     var layout = [];
     for (var i = 0; i < size; i++) {
@@ -1175,7 +1170,13 @@ FF4Map.prototype.loadWorldMap = function(m) {
     }
 
     this.layer[0].type = FF4MapLayer.Type.world;
-    this.layer[0].loadLayout({layout: layout, tileset: tileset.data, w: size, h: size, paletteAssignment: paletteAssignment.data});
+    this.layer[0].loadLayout({
+        layout: layout,
+        tileset: tileset.data,
+        w: size,
+        h: size,
+        paletteAssignment: paletteAssignment.data
+    });
 
     // set up the ppu
     this.ppu = new GFX.PPU();
@@ -1295,7 +1296,6 @@ FF4Map.prototype.loadTriggers = function() {
     // load triggers
     var triggers = this.rom.mapTriggers.item(this.m);
     if (this.isWorld) triggers = this.rom.worldTriggers.item(this.m - 0xFB);
-    this.observer.startObserving(triggers, this.reloadTriggers);
     for (i = 0; i < triggers.arrayLength; i++) {
         var trigger = triggers.item(i);
         if (trigger.map.value === 0xFE) {
@@ -1316,6 +1316,7 @@ FF4Map.prototype.loadTriggers = function() {
                 trigger.map.offset = 256;
             }
         }
+        this.observer.startObservingSub([trigger.x, trigger.y], this.reloadTriggers);
         this.triggers.push(trigger);
     }
 
@@ -1329,7 +1330,13 @@ FF4Map.prototype.loadTriggers = function() {
         offset = 256;
     }
     var npcProperties = this.rom.npcProperties.item(npcIndex);
-    this.observer.startObserving(npcProperties, this.reloadTriggers);
+    var npcGraphics = this.rom.npcGraphicsProperties;
+    this.observer.startObserving([
+        this.mapProperties.npc,
+        this.mapProperties.npcMSB,
+        this.mapProperties.npcPalette1,
+        this.mapProperties.npcPalette2
+    ], this.reloadTriggers);
 
     for (i = 0; i < npcProperties.arrayLength; i++) {
         var npc = npcProperties.item(i);
@@ -1337,6 +1344,15 @@ FF4Map.prototype.loadTriggers = function() {
             npc.switch.value += offset;
             npc.switch.offset = offset;
         }
+        const graphics = npcGraphics.item(npc.switch.value).graphics;
+        this.observer.startObserving([
+            graphics,
+            npc.palette,
+            npc.switch,
+            npc.direction,
+            npc.x,
+            npc.y
+        ], this.reloadTriggers);
         this.triggers.push(npc);
     }
 }

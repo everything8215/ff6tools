@@ -7166,7 +7166,7 @@
                     }
                 },
                 "jump": {
-                    "name": "Jump to Subroutine",
+                    "name": "Call Subroutine",
                     "opcode": "0xCD",
                     "length": 3,
                     "assembly": {

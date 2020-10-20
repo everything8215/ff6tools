@@ -58,6 +58,16 @@ class ROMPaletteView {
     }
 
     resize(clientWidth) {
+
+        // calculate the total number of rows
+        this.paletteCount = Math.ceil(this.palette.length / this.colorsPerPalette);
+        if (this.paletteCount > 1) {
+            this.rows = this.paletteCount * this.rowsPerPalette;
+        } else {
+            this.rows = Math.ceil(this.palette.length / this.colorsPerRow);
+        }
+        this.rows = Math.min(this.rows, 16); // max of 16 palettes
+
         if (!isNumber(clientWidth)) clientWidth = this.toolbox.div.clientWidth;
 
         // recalculate element sizes
@@ -150,20 +160,11 @@ class ROMPaletteView {
         // load a palette from the definition
         this.loadPalette(definition);
 
-        // calculate the total number of rows
-        this.paletteCount = Math.ceil(this.palette.length / this.colorsPerPalette);
-        if (this.paletteCount > 1) {
-            this.rows = this.paletteCount * this.rowsPerPalette;
-        } else {
-            this.rows = Math.ceil(this.palette.length / this.colorsPerRow);
-        }
-        this.rows = Math.min(this.rows, 16); // max of 16 palettes
-
-        // set the palette index to zero if it is greater than the number of palettes
-        if (this.p >= this.paletteCount) this.p = 0;
-
-        // resize the toolbox
+        // resize the palette
         this.resize();
+
+        // validate the selected palette index
+        if (this.p >= this.paletteCount) this.p = 0;
     }
 
     loadPalette(definition) {
@@ -342,7 +343,7 @@ class ROMPaletteView {
         // convert to and from the native format to validate the data
         if (object.format) {
             // get the graphics format
-            const formatKey = object.format;
+            let formatKey = object.format;
 
             // for assemblies with multiple formats, the graphics format is the first one
             if (isArray(formatKey)) formatKey = formatKey[0];
