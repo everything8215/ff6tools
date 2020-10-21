@@ -904,6 +904,15 @@ FF4Map.prototype.show = function() {
     this.resetControls();
     this.showControls();
     this.tileset.show();
+
+    // notify on resize
+    const self = this;
+    const editTop = document.getElementById('edit-top');
+    if (!this.resizeSensor) {
+        this.resizeSensor = new ResizeSensor(editTop, function() {
+            self.scroll();
+        });
+    }
 }
 
 FF4Map.prototype.hide = function() {
@@ -943,9 +952,6 @@ FF4Map.prototype.resetControls = function() {
     // add screen mask button
     this.addTwoState("showScreen", function() { map.changeLayer("showScreen"); }, "Screen", this.showScreen);
     this.addZoom(this.zoom, function() { map.changeZoom(); });
-
-    // notify on resize
-    if (!this.resizeSensor) this.resizeSensor = new ResizeSensor(document.getElementById("edit-top"), function() { map.scroll(); });
 }
 
 FF4Map.prototype.loadMap = function(m) {

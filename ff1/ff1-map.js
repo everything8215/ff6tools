@@ -594,7 +594,12 @@ FF1Map.prototype.show = function() {
     this.addTwoState("showScreen", function() { map.changeLayer("showScreen"); }, "Screen", this.showScreen);
     this.addZoom(this.zoom, function() { map.changeZoom(); });
 
-    if (!this.resizeSensor) this.resizeSensor = new ResizeSensor(document.getElementById("edit-top"), function() { map.scroll(); });
+    const editTop = document.getElementById("edit-top");
+    if (!this.resizeSensor) {
+        this.resizeSensor = new ResizeSensor(editTop, function() {
+            map.scroll();
+        });
+    }
     this.tileset.show();
 }
 

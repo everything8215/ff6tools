@@ -243,20 +243,24 @@ class FF4Battle extends ROMEditor_ {
         this.showControls();
         this.closeList();
 
-        // notify on resize
-        const self = this;
-        this.resizeSensor = new ResizeSensor(document.getElementById('edit-top'), function() {
-            self.drawBattle();
-        });
-
         // show the VRAM
         if (this.rom.isSFC && this.showVRAM) this.vram.show();
+
+        // notify on resize
+        const self = this;
+        const editTop = document.getElementById('edit-top');
+        if (!this.resizeSensor) {
+            this.resizeSensor = new ResizeSensor(editTop, function() {
+                self.drawBattle();
+            });
+        }
     }
 
     hide() {
         this.observer.stopObservingAll();
         if (this.resizeSensor) {
-            this.resizeSensor.detach(document.getElementById('edit-top'));
+            const editTop = document.getElementById('edit-top');
+            this.resizeSensor.detach(editTop);
             this.resizeSensor = null;
         }
         if (this.rom.isSFC) this.vram.hide()
@@ -269,7 +273,6 @@ class FF4Battle extends ROMEditor_ {
         this.battleProperties = object;
         this.b = object.i;
         this.loadBattle();
-        // this.loadBattle(object.i);
     }
 
     resetControls() {
@@ -325,10 +328,6 @@ class FF4Battle extends ROMEditor_ {
 
     loadBattle() {
         this.resetControls();
-        // b = Number(b);
-        // if (isNumber(b) && this.b !== b) {
-        //     this.b = b;
-        //     this.battleProperties = this.rom.battleProperties.item(this.b);
             this.backAttack = false;
             if (this.rom.isSFC && this.battleProperties.flags1.value & 0x01) {
                 this.backAttack = true;

@@ -170,15 +170,19 @@ class FF5Battle extends ROMEditor_ {
 
         // notify on resize
         const self = this;
-        this.resizeSensor = new ResizeSensor(document.getElementById('edit-top'), function() {
-            self.drawBattle();
-        });
+        const editTop = document.getElementById('edit-top');
+        if (!this.resizeSensor) {
+            this.resizeSensor = new ResizeSensor(editTop, function() {
+                self.drawBattle();
+            });
+        }
     }
 
     hide() {
         this.observer.stopObservingAll();
         if (this.resizeSensor) {
-            this.resizeSensor.detach(document.getElementById('edit-top'));
+            const editTop = document.getElementById('edit-top');
+            this.resizeSensor.detach(editTop);
             this.resizeSensor = null;
         }
     }

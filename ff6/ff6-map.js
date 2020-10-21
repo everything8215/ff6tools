@@ -240,12 +240,22 @@ class FF6Map extends ROMEditor_ {
     show() {
         this.showControls();
         this.tileset.show();
+
+        // notify on resize
+        const self = this;
+        const editTop = document.getElementById('edit-top');
+        if (!this.resizeSensor) {
+            this.resizeSensor = new ResizeSensor(editTop, function() {
+                self.scroll();
+            });
+        }
     }
 
     hide() {
         this.observer.stopObservingAll();
         if (this.resizeSensor) {
-            this.resizeSensor.detach(document.getElementById('edit-top'));
+            const editTop = document.getElementById('edit-top');
+            this.resizeSensor.detach(editTop);
             this.resizeSensor = null;
         }
         this.tileset.hide();
@@ -271,7 +281,6 @@ class FF6Map extends ROMEditor_ {
     }
 
     resetControls() {
-
         super.resetControls();
 
         const self = this;
@@ -319,14 +328,6 @@ class FF6Map extends ROMEditor_ {
         this.addZoom(this.zoom, function() {
             self.changeZoom();
         });
-
-        // notify on resize
-        const editTop = document.getElementById('edit-top');
-        if (!this.resizeSensor) {
-            this.resizeSensor = new ResizeSensor(editTop, function() {
-                self.scroll();
-            });
-        }
     }
 
     changeZoom() {

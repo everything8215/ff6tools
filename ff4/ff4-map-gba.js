@@ -903,6 +903,15 @@ FF4MapGBA.prototype.selectObject = function(object) {
 FF4MapGBA.prototype.show = function() {
     this.showControls();
     this.tileset.show();
+
+    // notify on resize
+    const self = this;
+    const editTop = document.getElementById('edit-top');
+    if (!this.resizeSensor) {
+        this.resizeSensor = new ResizeSensor(editTop, function() {
+            self.scroll();
+        });
+    }
 }
 
 FF4MapGBA.prototype.resetControls = function() {
@@ -941,8 +950,6 @@ FF4MapGBA.prototype.resetControls = function() {
 
     this.addTwoState("showScreen", function() { map.changeLayer("showScreen"); }, "Screen", this.showScreen);
     this.addZoom(this.zoom, function() { map.changeZoom(); });
-
-    if (!this.resizeSensor) this.resizeSensor = new ResizeSensor(document.getElementById("edit-top"), function() { map.scroll(); });
 }
 
 FF4MapGBA.prototype.hide = function() {
