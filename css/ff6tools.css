@@ -476,11 +476,12 @@ body {
 }
 
 #chart-edit {
+    overflow: hidden;
     background-color: hsl(0, 0%, 95%);
 }
 
 #edit-div {
-/*    overflow: auto;*/
+    overflow: hidden;
     position: relative;
     flex: 1 0 auto;
     width: 100%;

@@ -4982,7 +4982,7 @@
                     "20": "Zozo - Interior",
                     "21": "Caves 2",
                     "22": "Village - Exterior 2 (WoR)",
-                    "23": "Mountains - Exterior",
+                    "23": "Mountains - Exterior (WoB)",
                     "24": "Magitek Factory",
                     "25": "Blackjack - Exterior",
                     "26": "Airship - Interior",
@@ -5005,7 +5005,8 @@
                     "43": "Kefka's Tower - Top",
                     "44": "Solitary Island - Cliff",
                     "45": "Falcon - Exterior",
-                    "46": "Darill's Tomb - Stairway"
+                    "46": "Darill's Tomb - Stairway",
+                    "47": "Mountains - Exterior (WoR)"
                 }
             }
         },

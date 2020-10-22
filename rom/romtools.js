@@ -5547,6 +5547,13 @@ function isArray(value) {
     return value && typeof value === 'object' && value.constructor === Array;
 }
 
+function addCommaSep(number) {
+    number = Number(number);
+    if (!isNumber(number)) return 'Invalid number';
+    const numberString = number.toString();
+    return numberString.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
 function bitCount (value) {
     for (var count = 0, mask = 1; value !== 0; mask <<= 1) {
         if (!(value & mask)) continue;
