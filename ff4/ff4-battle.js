@@ -10,8 +10,7 @@ class FF4Battle extends ROMEditor_ {
         this.name = 'FF4Battle';
         this.vram = new FF4BattleVRAM(rom, this);
 
-        this.div = document.createElement('div');
-        this.div.id = 'map-edit';
+        this.div.classList.add('battle-edit');
 
         // off-screen canvas for drawing the battle
         this.battleCanvas = document.createElement('canvas');
@@ -510,7 +509,6 @@ class FF4Battle extends ROMEditor_ {
 
         const context = this.canvas.getContext('2d');
         context.imageSmoothingEnabled = false;
-        context.webkitImageSmoothingEnabled = false;
         context.globalCompositeOperation = 'copy';
         context.drawImage(this.battleCanvas,
             this.battleRect.l, this.battleRect.t, this.battleRect.w, this.battleRect.h,
@@ -626,7 +624,6 @@ class FF4Battle extends ROMEditor_ {
 
         const context = this.battleCanvas.getContext('2d');
         context.imageSmoothingEnabled = false;
-        context.webkitImageSmoothingEnabled = false;
         context.globalCompositeOperation = 'source-over';
         if (!this.backAttack) {
             context.drawImage(this.monsterCanvas, 0, 0, rect.w, rect.h, rect.l, rect.t, rect.w, rect.h);
@@ -704,7 +701,6 @@ class FF4Battle extends ROMEditor_ {
 
         const context = this.battleCanvas.getContext('2d');
         context.imageSmoothingEnabled = false;
-        context.webkitImageSmoothingEnabled = false;
         context.globalCompositeOperation = 'source-over';
         if (!this.backAttack) {
             context.drawImage(this.monsterCanvas, 0, 0, rect.w, rect.h, rect.l, rect.t, rect.w, rect.h);

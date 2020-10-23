@@ -57,7 +57,7 @@ class ROMGraphicsView extends ROMEditor_ {
         this.canvasDiv.appendChild(this.canvas);
         this.canvasDiv.appendChild(this.cursorCanvas);
 
-        this.div = document.createElement('div');
+        // this.div = document.createElement('div');
         this.div.classList.add('graphics-div');
 
         // add message handlers
@@ -456,7 +456,6 @@ class ROMGraphicsView extends ROMEditor_ {
         // scale image to zoom setting
         context = this.canvas.getContext('2d');
         context.imageSmoothingEnabled = false;
-        context.webkitImageSmoothingEnabled = false;
         context.drawImage(this.graphicsCanvas,
             0, 0, this.graphicsCanvas.width, this.graphicsCanvas.height,
             0, 0, w, h);
@@ -511,7 +510,8 @@ class ROMGraphicsView extends ROMEditor_ {
         this.editorMode = true;
 
         this.div.innerHTML = '';
-        this.div.id = 'map-edit';
+        this.div.classList.add('map-edit');
+        // this.div.id = 'map-edit';
         this.div.tabIndex = 0;
         this.div.style.outline = 'none';
         this.div.appendChild(this.canvasDiv);

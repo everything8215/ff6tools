@@ -269,7 +269,6 @@ class FF4BattleVRAM extends ROMToolbox {
         // copy the monsters to the on-screen canvas
         const context = this.canvas.getContext('2d');
         context.imageSmoothingEnabled = false;
-        context.webkitImageSmoothingEnabled = false;
         context.globalCompositeOperation = 'source-over';
         context.drawImage(this.vramCanvas, 0, 0, w, h);
     }

@@ -8,8 +8,7 @@ function FF4MapGBA(rom) {
     this.name = "FF4MapGBA";
     this.tileset = new FF4MapGBATileset(rom, this);
 
-    this.div = document.createElement('div');
-    this.div.id = 'map-edit';
+    this.div.classList.add('map-edit');
 
     this.scrollDiv = document.createElement('div');
     this.scrollDiv.classList.add('no-select');
@@ -1261,7 +1260,6 @@ FF4MapGBA.prototype.drawMap = function() {
 
     var ctx = this.canvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
-    ctx.webkitImageSmoothingEnabled = false;
     ctx.globalCompositeOperation = 'copy';
     var scaledRect = this.mapRect.scale(1 / this.zoom);
     ctx.drawImage(this.mapCanvas, scaledRect.l, scaledRect.t, scaledRect.w, scaledRect.h, 0, 0, this.mapRect.w, this.mapRect.h);
@@ -1779,7 +1777,6 @@ FF4MapGBA.prototype.drawNPC = function(npc) {
 
     var ctx = this.canvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
-    ctx.webkitImageSmoothingEnabled = false;
     ctx.globalCompositeOperation = 'source-over';
     npcRect = npcRect.offset(-this.mapRect.l, -this.mapRect.t);
     ctx.drawImage(this.npcCanvas, 0, 0, w, h, npcRect.l, npcRect.t, npcRect.w, npcRect.h);

@@ -9,8 +9,7 @@ class FF1Battle extends ROMEditor_ {
 
         this.name = 'FF1Battle';
 
-        this.div = document.createElement('div');
-        this.div.id = 'map-edit';
+        this.div.classList.add('battle-edit');
 
         // off-screen canvas for drawing the battle
         this.battleCanvas = document.createElement('canvas');
@@ -35,13 +34,13 @@ class FF1Battle extends ROMEditor_ {
         this.battleProperties = null;
         this.selectedMonster = null;
         this.showMonsters = true;
+        this.showCharacters = true;
         this.monsterSlot = [];
 
         this.observer = new ROMObserver(rom, this);
 
         const self = this;
         this.canvas.onmousedown = function(e) { self.mouseDown(e); };
-        this.resizeSensor = null;
 
         this.updateBattleStrings();
     }
@@ -113,30 +112,19 @@ class FF1Battle extends ROMEditor_ {
             propertyList.select(this.battleProperties);
         }
 
-        this.drawBattle();
+        this.redraw();
     }
 
     show() {
         this.showControls();
         this.closeList();
-
-        // notify on resize
-        const self = this;
-        const editTop = document.getElementById('edit-top');
-        if (!this.resizeSensor) {
-            this.resizeSensor = new ResizeSensor(editTop, function() {
-                self.drawBattle();
-            });
-        }
+        this.resize();
+        super.show();
     }
 
     hide() {
-        this.observer.stopObservingAll();
-        if (this.resizeSensor) {
-            const editTop = document.getElementById('edit-top');
-            this.resizeSensor.detach(editTop);
-            this.resizeSensor = null;
-        }
+        super.hide();
+        this.battleProperties = null;
     }
 
     selectObject(object) {
@@ -157,6 +145,12 @@ class FF1Battle extends ROMEditor_ {
             self.showMonsters = checked;
             self.loadBattle();
         }, 'Monsters', this.showMonsters);
+
+        // add a control to show/hide characters
+        this.addTwoState('showCharacters', function(checked) {
+            self.showCharacters = checked;
+            self.loadBattle();
+        }, 'Characters', this.showCharacters);
 
         // add a control to change the battle background
         const bgNames = [];
@@ -206,7 +200,7 @@ class FF1Battle extends ROMEditor_ {
             if (monster) this.monsterSlot.push(monster);
         }
 
-        this.drawBattle();
+        this.redraw();
     }
 
     monsterInSlot(slot) {
@@ -371,25 +365,40 @@ class FF1Battle extends ROMEditor_ {
         return null;
     }
 
-    drawBattle() {
+    resize() {
+        const zoomX = this.div.clientWidth / this.battleRect.w;
+        const zoomY = this.div.clientHeight / this.battleRect.h;
+        this.zoom = Math.min(zoomX, zoomY);
+        this.zoom = Math.max(this.zoom, 1.0);
+        this.zoom = Math.min(this.zoom, 4.0);
+    }
+
+    redraw() {
+        // draw the battle background and border
         this.drawBackground();
+
+        // draw monsters
         if (this.showMonsters) {
             for (const monster of this.monsterSlot) this.drawMonster(monster);
         }
 
-        for (let slot = 1; slot <= 4; slot++) this.drawCharacter(slot);
+        // draw characters
+        if (this.showCharacters) {
+            for (let slot = 1; slot <= 4; slot++) this.drawCharacter(slot);
+        }
 
-        this.zoom = Math.min(this.div.clientWidth / this.battleRect.w, this.div.clientHeight / this.battleRect.h);
-        this.zoom = Math.min(Math.max(this.zoom, 1.0), 4.0);
-
+        // update the canvas size
         const scaledRect = this.battleRect.scale(this.zoom);
         this.canvas.width = scaledRect.w;
         this.canvas.height = scaledRect.h;
 
+        // draw the battle to the onscreen canvas
         const context = this.canvas.getContext('2d');
         context.imageSmoothingEnabled = false;
-        context.webkitImageSmoothingEnabled = false;
-        context.drawImage(this.battleCanvas, this.battleRect.l, this.battleRect.t, this.battleRect.w, this.battleRect.h, 0, 0, scaledRect.w, scaledRect.h);
+        context.drawImage(this.battleCanvas,
+            this.battleRect.l, this.battleRect.t, this.battleRect.w, this.battleRect.h,
+            0, 0, scaledRect.w, scaledRect.h
+        );
     }
 
     drawMonster(monster) {
@@ -466,7 +475,6 @@ class FF1Battle extends ROMEditor_ {
 
         const context = this.battleCanvas.getContext('2d');
         context.imageSmoothingEnabled = false;
-        context.webkitImageSmoothingEnabled = false;
         context.drawImage(this.monsterCanvas,
             0, 0, monster.rect.w, monster.rect.h,
             monster.rect.l, monster.rect.t, monster.rect.w, monster.rect.h);
@@ -498,7 +506,6 @@ class FF1Battle extends ROMEditor_ {
         // draw on the battle canvas
         const context = this.battleCanvas.getContext('2d');
         context.imageSmoothingEnabled = false;
-        context.webkitImageSmoothingEnabled = false;
         context.drawImage(this.monsterCanvas,
             0, 0, rect.w, rect.h,
             rect.l, rect.t, rect.w, rect.h);

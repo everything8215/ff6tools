@@ -15,8 +15,9 @@ class ROMTilemapView extends ROMEditor_ {
         this.paletteView.tilemapView = this;
         this.toolbox = this.paletteView.toolbox;
 
-        this.div = document.createElement('div');
-        this.div.id = 'map-edit';
+        // this.div = document.createElement('div');
+        this.div.classList.add('map-edit');
+        // this.div.id = 'map-edit';
         this.div.tabIndex = 0;
         this.div.style.outline = 'none';
 
@@ -537,7 +538,6 @@ class ROMTilemapView extends ROMEditor_ {
         this.canvas.height = ppu.height * this.zoom;
         ctx = this.canvas.getContext('2d');
         ctx.imageSmoothingEnabled = false;
-        ctx.webkitImageSmoothingEnabled = false;
         ctx.drawImage(this.layoutCanvas,
             0, 0, this.layoutCanvas.width, this.layoutCanvas.height,
             0, 0, this.canvas.width, this.canvas.height);

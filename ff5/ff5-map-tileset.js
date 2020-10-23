@@ -260,7 +260,6 @@ class FF5MapTileset extends ROMToolbox {
         // draw tileset image
         const ctx = this.canvas.getContext('2d');
         ctx.imageSmoothingEnabled = false;
-        ctx.webkitImageSmoothingEnabled = false;
         ctx.globalCompositeOperation = 'copy';
         ctx.drawImage(this.tilesetCanvas, 0, 0, w, h);
     }

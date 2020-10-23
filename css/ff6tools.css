@@ -462,20 +462,20 @@ body {
     text-align: center;
 }
 
-#map-edit {
+.map-edit {
     width: 100%;
     height: 100%;
     overflow: auto;
     position: relative;
 }
 
-#battle-edit {
+.battle-edit {
     width: 100%;
     height: 100%;
     position: relative;
 }
 
-#chart-edit {
+.chart-edit {
     overflow: hidden;
     background-color: hsl(0, 0%, 95%);
 }

@@ -9,8 +9,7 @@ class FF1LevelProgression extends ROMEditor_ {
 
         this.name = 'FF1LevelProgression';
 
-        this.div = document.createElement('div');
-        this.div.id = 'chart-edit';
+        this.div.classList.add('chart-edit');
 
         this.canvas = document.createElement('canvas');
         this.canvas.width = 256;
@@ -27,10 +26,10 @@ class FF1LevelProgression extends ROMEditor_ {
         this.showLegend = true;
 
         this.c = 0;
-        this.selectedPoint = null;
         this.classProperties = null;
         this.classStats = null;
-        this.observer = new ROMObserver(rom, this);
+        this.selectedPoint = null;
+        this.mousePoint = null;
 
         const self = this;
         this.div.onmousedown = function(e) { self.mouseDown(e); };
@@ -46,138 +45,38 @@ class FF1LevelProgression extends ROMEditor_ {
     }
 
     mouseLeave(e) {
+        this.mousePoint = null;
         this.selectedPoint = null;
-        this.drawChart();
-        this.tooltip.removeAttribute('data-balloon-visible');
+        this.redraw();
     }
 
     mouseMove(e) {
-
-        this.selectedPoint = null;
-        const mousePoint = this.canvasToPoint(e.offsetX, e.offsetY);
-        if (!mousePoint) {
-            this.drawChart();
-            this.tooltip.removeAttribute('data-balloon-visible');
-            return;
-        }
-
-        if (mousePoint.x < this.chartData[0].level) {
-            this.selectedPoint = this.chartData[0];
-        } else {
-            for (const dataPoint of this.chartData) {
-                if (dataPoint.level !== mousePoint.x) continue;
-                this.selectedPoint = dataPoint;
-                break;
-            }
-        }
-
-        if (!this.selectedPoint) return;
-
-        this.drawChart();
-
-        // generate the tooltip string
-        const level = this.selectedPoint.level;
-        let statLabel = `Level: ${level}`;
-
-        // it would be cool to make the selected stat bold, but unfortunately
-        // the text for tooltips is set via the css content property, and
-        // css can't contain html markup
-
-        // find the closest stat
-        let closestValue;
-        for (const [s, stat] of FF1LevelProgression.stats.entries()) {
-            if (!this.showStat[s]) continue;
-
-            const avgValue = Math.round(this.selectedPoint[stat.key].avg);
-            const minValue = this.selectedPoint[stat.key].min;
-            const maxValue = this.selectedPoint[stat.key].max;
-
-            // add a comma separate to numbers larger than 10000
-            if (avgValue >= 10000) {
-                statLabel += `\n${stat.name}: ${addCommaSep(avgValue)}`;
-            } else {
-                statLabel += `\n${stat.name}: ${avgValue}`;
-            }
-
-            // show stat range
-            if (minValue !== maxValue) {
-                statLabel += ` (${minValue}–${maxValue})`;
-            }
-
-            // check if this is the closest value
-            const oldDistance = Math.abs(closestValue - mousePoint.y);
-            const newDistance = Math.abs(avgValue / stat.multiplier - mousePoint.y);
-            if (closestValue === undefined || newDistance < oldDistance) {
-                closestValue = avgValue / stat.multiplier;
-            }
-        }
-
-        // add mp
-        statLabel += '\nMP: ';
-        for (let l = 0; l < 8; l++) {
-            statLabel += this.selectedPoint.mp[l];
-            if (l !== 7) statLabel += '/';
-        }
-
-        // show the tooltip
-        this.tooltip.setAttribute('aria-label', statLabel);
-        const statPoint = this.pointToCanvas(level, closestValue);
-        this.tooltip.style.display = 'inline-block';
-        this.tooltip.setAttribute('data-balloon-visible', '');
-        if (closestValue > 70 && level > 40) {
-            statPoint.x += 17;
-            statPoint.y += 15;
-            this.tooltip.setAttribute('data-balloon-pos', 'down-right');
-        } else if (closestValue > 70) {
-            statPoint.y += 15;
-            this.tooltip.setAttribute('data-balloon-pos', 'down');
-        } else if (closestValue < 10 && level > 40) {
-            statPoint.x += 17;
-            statPoint.y -= this.tooltip.clientHeight + 15;
-            this.tooltip.setAttribute('data-balloon-pos', 'up-right');
-        } else if (level > 40) {
-            statPoint.x -= 15;
-            statPoint.y -= this.tooltip.clientHeight;
-            this.tooltip.setAttribute('data-balloon-pos', 'left');
-        } else {
-            statPoint.y -= this.tooltip.clientHeight + 15;
-            this.tooltip.setAttribute('data-balloon-pos', 'up');
-        }
-        this.tooltip.style.left = `${statPoint.x}px`;
-        this.tooltip.style.top = `${statPoint.y}px`;
+        this.mousePoint = this.canvasToPoint(e.offsetX, e.offsetY);
+        this.redraw();
     }
 
     show() {
         this.showControls();
         this.closeList();
         this.resize();
-
-        const self = this;
-        const editTop = document.getElementById('edit-top');
-        if (!this.resizeSensor) {
-            this.resizeSensor = new ResizeSensor(editTop, function() {
-                self.resize();
-                self.drawChart();
-            });
-        }
+        super.show();
     }
 
     hide() {
-        this.observer.stopObservingAll();
-        if (this.resizeSensor) {
-            const editTop = document.getElementById('edit-top');
-            this.resizeSensor.detach(editTop);
-            this.resizeSensor = null;
-        }
+        super.hide();
+        this.classProperties = null;
     }
 
     selectObject(object) {
 
         if (this.classProperties === object) return;
 
+        this.tooltip.removeAttribute('data-balloon-visible');
         this.classProperties = object;
         this.c = object.i;
         this.classStats = this.rom.classStats.item(this.c);
+        this.selectedPoint = null;
+        this.mousePoint = null;
         this.loadClass();
     }
 
@@ -188,30 +87,28 @@ class FF1LevelProgression extends ROMEditor_ {
         function statFunction(s) {
             return function(checked) {
                 self.showStat[s] = checked;
-                self.drawChart();
+                self.redraw();
             }
         }
-
         for (const [s, stat] of FF1LevelProgression.stats.entries()) {
             this.addTwoState(`show${stat.name}`, statFunction(s), stat.name, this.showStat[s]);
         }
 
         this.addTwoState('showRange', function(checked) {
             self.showRange = checked;
-            self.drawChart();
+            self.redraw();
         }, 'Min/Max', this.showRange);
 
         this.addTwoState('showLegend', function(checked) {
             self.showLegend = checked;
-            self.drawChart();
+            self.redraw();
         }, 'Legend', this.showLegend);
 
     }
 
-    loadClass(c) {
+    loadClass() {
         this.resetControls();
 
-        this.tooltip.removeAttribute('data-balloon-visible');
         this.observer.stopObservingAll();
 
         if (!this.classProperties) return;
@@ -222,20 +119,18 @@ class FF1LevelProgression extends ROMEditor_ {
             this.classProperties.vitality,
             this.classProperties.intelligence,
             this.classProperties.luck,
-        ], this.updateStats);
+        ], this.loadClass);
         for (const level of this.classStats.iterator()) {
             this.observer.startObserving([
                 level.exp, level.stats, level.mp
-            ], this.updateStats);
+            ], this.loadClass);
         }
-        this.selectedPoint = null;
 
         this.updateStats();
-        this.drawChart();
+        this.redraw();
     }
 
     getStats(level) {
-
         return this.classStats.item(level - 2);
     }
 
@@ -271,9 +166,9 @@ class FF1LevelProgression extends ROMEditor_ {
                 level: previousStats.level + 1
             };
 
+            // update hp, mp, and stats
             const levelStats = this.getStats(currentStats.level);
             currentStats.object = levelStats;
-
             for (const stat of FF1LevelProgression.stats) {
 
                 // copy the previous stat value
@@ -309,6 +204,8 @@ class FF1LevelProgression extends ROMEditor_ {
                 value.avg = Math.min(value.avg, stat.max);
                 currentStats[stat.key] = value;
             }
+
+            // update mp
             const mp = previousStats.mp.slice();
             for (let l = 0; l < 8; l++) {
                 if (mp[l] >= maxMP) continue;
@@ -335,13 +232,52 @@ class FF1LevelProgression extends ROMEditor_ {
         this.chartRect = new Rect(l, r, t, b);
     }
 
-    drawChart() {
+    redraw() {
 
+        // update the selected point
+        if (!this.mousePoint) {
+            // mouse point not valid
+            this.selectedPoint = null;
+
+        } else if (this.mousePoint.x < this.chartData[0].level) {
+            // mouse is to the left of starting level
+            this.selectedPoint = this.chartData[0];
+
+        } else {
+            // get closest level
+            this.selectedPoint = null;
+            for (const dataPoint of this.chartData) {
+                if (dataPoint.level !== this.mousePoint.x) continue;
+                this.selectedPoint = dataPoint;
+                break;
+            }
+        }
+
+        // update the canvas size
         this.canvas.width = this.div.clientWidth;
         this.canvas.height = this.div.clientHeight;
-
         const context = this.canvas.getContext('2d');
-        context.textBaseline = 'middle';
+
+        // draw the chart
+        this.drawChart(context);
+
+        // update the tooltip
+        this.updateTooltip();
+
+        // draw stats
+        for (const [s, stat] of FF1LevelProgression.stats.entries()) {
+            if (!this.showStat[s]) continue;
+            this.drawStat(stat, context);
+            if (this.showRange) this.drawStatRange(stat, context);
+        }
+
+        // draw legend
+        if (this.showLegend) {
+            this.drawLegend(context);
+        }
+    }
+
+    drawChart(context) {
 
         // draw the chart area
         context.fillStyle = 'white';
@@ -358,12 +294,12 @@ class FF1LevelProgression extends ROMEditor_ {
         context.closePath();
         context.stroke();
 
-        // draw gridlines and labels
+        // draw vertical gridlines and labels
         context.textAlign = 'center';
+        context.textBaseline = 'middle';
         context.font = '12px sans-serif';
         context.lineWidth = 0.5;
         for (let x = 0; x <= 50; x += 5) {
-            // vertical gridlines
             const startPoint = this.pointToCanvas(x, 0);
             const endPoint = this.pointToCanvas(x, 100);
             context.fillStyle = 'black';
@@ -380,10 +316,10 @@ class FF1LevelProgression extends ROMEditor_ {
         context.fillStyle = 'black';
         context.fillText('Level', labelPoint.x, labelPoint.y + 45);
 
+        // draw horizontal gridlines and labels
         context.textAlign = 'right';
         context.font = '12px sans-serif';
         for (let y = 0; y <= 100; y += 10) {
-            // horizontal gridlines
             const startPoint = this.pointToCanvas(0, y);
             const endPoint = this.pointToCanvas(50, y);
             context.fillStyle = 'black';
@@ -395,22 +331,10 @@ class FF1LevelProgression extends ROMEditor_ {
             context.lineTo(endPoint.x, endPoint.y + 0.5);
             context.stroke();
         }
-
-        // draw stats
-        for (const [s, stat] of FF1LevelProgression.stats.entries()) {
-            if (!this.showStat[s]) continue;
-            this.drawStat(stat, context);
-            if (this.showRange) this.drawStatRange(stat, context);
-        }
-
-        // draw legend
-        if (this.showLegend) {
-            this.drawLegend(context);
-        }
     }
 
     drawStatRange(stat, context) {
-        // draw the data
+
         const y = this.chartData[0][stat.key].min / stat.multiplier;
         const startPoint = this.pointToCanvas(this.chartData[0].level, y);
 
@@ -432,7 +356,7 @@ class FF1LevelProgression extends ROMEditor_ {
     }
 
     drawStat(stat, context) {
-        // draw the data
+
         const y = this.chartData[0][stat.key].avg / stat.multiplier;
         const startPoint = this.pointToCanvas(this.chartData[0].level, y);
 
@@ -511,6 +435,83 @@ class FF1LevelProgression extends ROMEditor_ {
             context.fillText(name, x + 15, y + 9);
             y += lineHeight;
         }
+    }
+
+    updateTooltip() {
+
+        this.tooltip.removeAttribute('data-balloon-visible');
+        if (!this.selectedPoint) return;
+
+        // generate the tooltip string
+        const level = this.selectedPoint.level;
+        let statLabel = `Level: ${level}`;
+
+        // it would be cool to make the selected stat bold, but unfortunately
+        // the text for tooltips is set via the css content property, and
+        // css can't contain html markup
+
+        // find the closest stat
+        let closestValue;
+        for (const [s, stat] of FF1LevelProgression.stats.entries()) {
+            if (!this.showStat[s]) continue;
+
+            const avgValue = Math.round(this.selectedPoint[stat.key].avg);
+            const minValue = this.selectedPoint[stat.key].min;
+            const maxValue = this.selectedPoint[stat.key].max;
+
+            // add a comma separate to numbers larger than 10000
+            if (avgValue >= 10000) {
+                statLabel += `\n${stat.name}: ${addCommaSep(avgValue)}`;
+            } else {
+                statLabel += `\n${stat.name}: ${avgValue}`;
+            }
+
+            // show stat range
+            if (minValue !== maxValue) {
+                statLabel += ` (${minValue}–${maxValue})`;
+            }
+
+            // check if this is the closest value
+            const oldDistance = Math.abs(closestValue - this.mousePoint.y);
+            const newDistance = Math.abs(avgValue / stat.multiplier - this.mousePoint.y);
+            if (closestValue === undefined || newDistance < oldDistance) {
+                closestValue = avgValue / stat.multiplier;
+            }
+        }
+
+        // add mp
+        statLabel += '\nMP: ';
+        for (let l = 0; l < 8; l++) {
+            statLabel += this.selectedPoint.mp[l];
+            if (l !== 7) statLabel += '/';
+        }
+
+        // show the tooltip
+        this.tooltip.setAttribute('aria-label', statLabel);
+        const statPoint = this.pointToCanvas(level, closestValue);
+        this.tooltip.style.display = 'inline-block';
+        this.tooltip.setAttribute('data-balloon-visible', '');
+        if (closestValue > 70 && level > 40) {
+            statPoint.x += 17;
+            statPoint.y += 15;
+            this.tooltip.setAttribute('data-balloon-pos', 'down-right');
+        } else if (closestValue > 70) {
+            statPoint.y += 15;
+            this.tooltip.setAttribute('data-balloon-pos', 'down');
+        } else if (closestValue < 10 && level > 40) {
+            statPoint.x += 17;
+            statPoint.y -= this.tooltip.clientHeight + 15;
+            this.tooltip.setAttribute('data-balloon-pos', 'up-right');
+        } else if (level > 40) {
+            statPoint.x -= 15;
+            statPoint.y -= this.tooltip.clientHeight;
+            this.tooltip.setAttribute('data-balloon-pos', 'left');
+        } else {
+            statPoint.y -= this.tooltip.clientHeight + 15;
+            this.tooltip.setAttribute('data-balloon-pos', 'up');
+        }
+        this.tooltip.style.left = `${statPoint.x}px`;
+        this.tooltip.style.top = `${statPoint.y}px`;
     }
 
     pointToCanvas(x, y) {

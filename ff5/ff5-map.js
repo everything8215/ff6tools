@@ -10,8 +10,7 @@ class FF5Map extends ROMEditor_ {
         this.name = 'FF5Map';
         this.tileset = new FF5MapTileset(rom, this);
 
-        this.div = document.createElement('div');
-        this.div.id = 'map-edit';
+        this.div.classList.add('map-edit');
 
         this.scrollDiv = document.createElement('div');
         this.scrollDiv.classList.add('no-select');
@@ -213,6 +212,7 @@ class FF5Map extends ROMEditor_ {
         const w = this.div.clientWidth;
         const h = this.div.clientHeight;
         const oldRect = new Rect(l, l + w, t, t + h);
+        const oldZoom = this.zoom;
 
         // update zoom
         this.zoom = Math.pow(2, Number(document.getElementById('zoom').value));
@@ -226,8 +226,8 @@ class FF5Map extends ROMEditor_ {
         this.scrollDiv.style.height = `${parentHeight}px`;
 
         // calculate the new scroll location
-        const x = Math.round(oldRect.centerX / this.zoom) * this.zoom;
-        const y = Math.round(oldRect.centerY / this.zoom) * this.zoom;
+        const x = Math.round(oldRect.centerX / oldZoom) * this.zoom;
+        const y = Math.round(oldRect.centerY / oldZoom) * this.zoom;
         let newRect = new Rect(x - w / 2, x + w / 2, y - h / 2, y + h / 2);
         if (newRect.r > parentWidth) newRect = newRect.offset(parentWidth - newRect.r, 0);
         if (newRect.b > parentHeight) newRect = newRect.offset(0, parentHeight - newRect.b);
@@ -405,6 +405,7 @@ class FF5Map extends ROMEditor_ {
                 this.selectedTrigger.y.setValue(y);
                 this.endAction(this.reloadTriggers);
             }
+
         } else if (this.rom.action && this.isDragging) {
             this.rom.doAction(new ROMAction(this.selectedLayer, null, this.selectedLayer.decodeLayout, 'Decode Layout'));
             this.rom.pushAction(new ROMAction(this, null, this.drawMap, 'Redraw Map'));
@@ -438,11 +439,7 @@ class FF5Map extends ROMEditor_ {
         if (this.l !== 3) return; // no menu unless editing triggers
         this.updateMenu();
 
-        this.clickPoint = {
-            x: ((e.offsetX / this.zoom + this.ppu.layers[this.l].x) % this.ppu.width) >> 4,
-            y: ((e.offsetY / this.zoom + this.ppu.layers[this.l].y) % this.ppu.height) >> 4,
-            button: e.button
-        };
+        this.clickPoint = this.getEventPoint(e);
 
         this.menu.classList.add('menu-active');
         this.menu.style.left = `${e.x}px`;
@@ -552,16 +549,17 @@ class FF5Map extends ROMEditor_ {
 
         // select tile properties
         const tileProperties = this.tilePropertiesAtTile(t);
-        if (tileProperties) propertyList.select(tileProperties.item(t));
+        if (tileProperties) propertyList.select(tileProperties);
     }
 
     tilePropertiesAtTile(t) {
         if (this.selectedLayer.type === FF5MapLayer.Type.layer1) {
             // layer 1 tile properties determined by graphics index
-            return this.rom.mapTileProperties.item(this.mapProperties.tileProperties.value);
+            const tp = this.mapProperties.tileProperties.value;
+            return this.rom.mapTileProperties.item(tp).item(t);
         } else if (this.selectedLayer.type === FF5MapLayer.Type.world) {
             // world map tile properties
-            return this.rom.worldTileProperties.item(this.world);
+            return this.rom.worldTileProperties.item(this.world).item(t);
         }
         return null;
     }
@@ -971,7 +969,6 @@ class FF5Map extends ROMEditor_ {
 
         const context = this.canvas.getContext('2d');
         context.imageSmoothingEnabled = false;
-        context.webkitImageSmoothingEnabled = false;
         context.globalCompositeOperation = 'copy';
         const scaledRect = this.mapRect.scale(1 / this.zoom);
         context.drawImage(this.mapCanvas,
@@ -1372,7 +1369,6 @@ class FF5Map extends ROMEditor_ {
 
         const context = this.canvas.getContext('2d');
         context.imageSmoothingEnabled = false;
-        context.webkitImageSmoothingEnabled = false;
         context.globalCompositeOperation = 'source-over';
         npcRect = npcRect.offset(-this.mapRect.l, -this.mapRect.t);
         context.drawImage(this.npcCanvas, 0, 0, w, h, npcRect.l, npcRect.t, npcRect.w, npcRect.h);

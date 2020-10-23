@@ -790,27 +790,32 @@
                     "strength": {
                         "type": "property",
                         "name": "Strength",
-                        "begin": 2
+                        "begin": 2,
+                        "max": 99
                     },
                     "agility": {
                         "type": "property",
                         "name": "Agility",
-                        "begin": 3
+                        "begin": 3,
+                        "max": 99
                     },
                     "intelligence": {
                         "type": "property",
                         "name": "Intelligence",
-                        "begin": 4
+                        "begin": 4,
+                        "max": 99
                     },
                     "vitality": {
                         "type": "property",
                         "name": "Vitality",
-                        "begin": 5
+                        "begin": 5,
+                        "max": 99
                     },
                     "luck": {
                         "type": "property",
                         "name": "Luck",
-                        "begin": 6
+                        "begin": 6,
+                        "max": 99
                     },
                     "damage": {
                         "type": "property",

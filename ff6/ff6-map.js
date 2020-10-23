@@ -10,8 +10,7 @@ class FF6Map extends ROMEditor_ {
         this.name = 'FF6Map';
         this.tileset = new FF6MapTileset(rom, this);
 
-        this.div = document.createElement('div');
-        this.div.id = 'map-edit';
+        this.div.classList.add('map-edit');
 
         this.scrollDiv = document.createElement('div');
         this.scrollDiv.classList.add('no-select');
@@ -338,6 +337,7 @@ class FF6Map extends ROMEditor_ {
         const w = this.div.clientWidth;
         const h = this.div.clientHeight;
         const oldRect = new Rect(l, l + w, t, t + h);
+        const oldZoom = this.zoom;
 
         // update zoom
         this.zoom = Math.pow(2, Number(document.getElementById('zoom').value));
@@ -351,8 +351,8 @@ class FF6Map extends ROMEditor_ {
         this.scrollDiv.style.height = `${parentHeight}px`;
 
         // calculate the new scroll location
-        const x = Math.round(oldRect.centerX / this.zoom) * this.zoom;
-        const y = Math.round(oldRect.centerY / this.zoom) * this.zoom;
+        const x = Math.round(oldRect.centerX / oldZoom) * this.zoom;
+        const y = Math.round(oldRect.centerY / oldZoom) * this.zoom;
         let newRect = new Rect(x - w / 2, x + w / 2, y - h / 2, y + h / 2);
         if (newRect.r > parentWidth) newRect = newRect.offset(parentWidth - newRect.r, 0);
         if (newRect.b > parentHeight) newRect = newRect.offset(0, parentHeight - newRect.b);
@@ -572,11 +572,7 @@ class FF6Map extends ROMEditor_ {
         if (this.l !== 3) return; // no menu unless editing triggers
         this.updateMenu();
 
-        this.clickPoint = {
-            x: ((e.offsetX / this.zoom + this.ppu.layers[this.l].x) % this.ppu.width) >> 4,
-            y: ((e.offsetY / this.zoom + this.ppu.layers[this.l].y) % this.ppu.height) >> 4,
-            button: e.button
-        };
+        this.clickPoint = this.getEventPoint(e);
 
         this.menu.classList.add('menu-active');
         this.menu.style.left = `${e.x}px`;
@@ -1127,7 +1123,6 @@ class FF6Map extends ROMEditor_ {
 
         const context = this.canvas.getContext('2d');
         context.imageSmoothingEnabled = false;
-        context.webkitImageSmoothingEnabled = false;
         context.globalCompositeOperation = 'copy';
         const scaledRect = this.mapRect.scale(1 / this.zoom);
         context.drawImage(this.mapCanvas,
@@ -1815,7 +1810,6 @@ class FF6Map extends ROMEditor_ {
 
         const context = this.canvas.getContext('2d');
         context.imageSmoothingEnabled = false;
-        context.webkitImageSmoothingEnabled = false;
         context.globalCompositeOperation = 'source-over';
         context.drawImage(this.npcCanvas, 0, 0, w, h, rect.l, rect.t, rect.w, rect.h);
     }
@@ -1941,7 +1935,6 @@ class FF6Map extends ROMEditor_ {
 
         const context = this.canvas.getContext('2d');
         context.imageSmoothingEnabled = false;
-        context.webkitImageSmoothingEnabled = false;
         context.globalCompositeOperation = 'source-over';
         context.drawImage(this.npcCanvas, 0, 0, w, h, rect.l, rect.t, rect.w, rect.h);
     }
@@ -2121,7 +2114,6 @@ class FF6Map extends ROMEditor_ {
 
         const context = this.canvas.getContext('2d');
         context.imageSmoothingEnabled = false;
-        context.webkitImageSmoothingEnabled = false;
         context.globalCompositeOperation = 'source-over';
         context.drawImage(this.npcCanvas, 0, 0, w, h, rect.l, rect.t, rect.w, rect.h);
     }

@@ -7,8 +7,7 @@ function FF6LevelProgression(rom) {
     ROMEditor.call(this, rom);
     this.name = "FF6LevelProgression";
 
-    this.div = document.createElement('div');
-    this.div.id = 'chart-edit';
+    this.div.classList.add('chart-edit');
 
     this.canvas = document.createElement('canvas');
     this.canvas.width = 256;

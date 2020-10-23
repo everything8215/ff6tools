@@ -272,7 +272,6 @@ class FF6MapTileset extends ROMToolbox {
         // draw tileset image
         const context = this.canvas.getContext('2d');
         context.imageSmoothingEnabled = false;
-        context.webkitImageSmoothingEnabled = false;
         context.globalCompositeOperation = 'copy';
         context.drawImage(this.tilesetCanvas, 0, 0, w, h);
     }

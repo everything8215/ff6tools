@@ -30,8 +30,7 @@ class FF5Battle extends ROMEditor_ {
         // on-screen canvas
         this.canvas = document.createElement('canvas');
 
-        this.div = document.createElement('div');
-        this.div.id = 'map-edit';
+        this.div.classList.add('battle-edit');
         this.div.appendChild(this.canvas);
 
         this.battleRect = new Rect(8, 248, this.rom.isSFC ? 1 : 8, this.rom.isSFC ? 160 : 128);
@@ -416,7 +415,6 @@ class FF5Battle extends ROMEditor_ {
 
         const context = this.canvas.getContext('2d');
         context.imageSmoothingEnabled = false;
-        context.webkitImageSmoothingEnabled = false;
         context.globalCompositeOperation = 'copy';
         context.drawImage(this.battleCanvas,
             this.battleRect.l, this.battleRect.t, this.battleRect.w, this.battleRect.h,
@@ -473,7 +471,6 @@ class FF5Battle extends ROMEditor_ {
         const rect = this.rectForMonster(monster);
         const context = this.battleCanvas.getContext('2d');
         context.imageSmoothingEnabled = false;
-        context.webkitImageSmoothingEnabled = false;
         context.drawImage(this.monsterCanvas, 0, 0, rect.w, rect.h, rect.l, rect.t, rect.w, rect.h);
     }
 
