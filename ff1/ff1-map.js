@@ -56,6 +56,7 @@ class FF1Map extends ROMEditor_ {
         this.showTriggers = true;
         this.selectedTrigger = null;
         this.isWorld = false;
+        this.tileMask = FF1Map.TileMask[0];
         this.ppu = new GFX.PPU();
 
         // mask layer stuff
@@ -137,18 +138,48 @@ class FF1Map extends ROMEditor_ {
 
         const self = this;
 
+        // add a control to hide the map background
         this.addTwoState('showBackground', function() {
             self.changeLayer('showBackground');
         }, 'Background', this.showBackground);
-        this.addTwoState('showRooms', function() {
-            self.changeLayer('showRooms');
-        }, 'Rooms', this.showRooms);
-        this.addTwoState('showTriggers', function() {
-            self.changeLayer('showTriggers');
-        }, 'Triggers', this.showTriggers);
+
+        if (!this.isWorld) {
+            // add a control to show/hide rooms
+            this.addTwoState('showRooms', function() {
+                self.changeLayer('showRooms');
+            }, 'Rooms', this.showRooms);
+
+            // add a control to show/hide triggers
+            this.addTwoState('showTriggers', function() {
+                self.changeLayer('showTriggers');
+            }, 'Triggers', this.showTriggers);
+        }
+
+        // add tile mask button
+        const maskArray = this.isWorld ? FF1Map.WorldTileMask : FF1Map.TileMask;
+        const maskNames = [];
+        const prevTileMask = this.tileMask;
+        this.tileMask = maskArray[0];
+        for (const maskType of maskArray) {
+            maskNames.push(maskType.name);
+            if (maskType.key === prevTileMask.key) this.tileMask = maskType;
+        }
+        function onChangeMask(mask) {
+            self.tileMask = maskArray[mask];
+            self.redraw();
+            self.tileset.redraw();
+        };
+        function maskSelected(mask) {
+            return self.tileMask === maskArray[mask];
+        };
+        this.addList('showMask', 'Mask', maskNames, onChangeMask, maskSelected);
+
+        // add a control to show the visible screen area
         this.addTwoState('showScreen', function() {
             self.changeLayer('showScreen');
         }, 'Screen', this.showScreen);
+
+        // add a zoom control
         this.addZoom(this.zoom, function() {
             self.changeZoom();
         });
@@ -283,7 +314,7 @@ class FF1Map extends ROMEditor_ {
 
         } else {
             this.beginAction(this.redraw);
-    //        this.rom.pushAction(new ROMAction(this, this.redraw, null, 'Redraw Map'));
+            // this.rom.pushAction(new ROMAction(this, this.redraw, null, 'Redraw Map'));
             this.rom.doAction(new ROMAction(this.selectedLayer, this.selectedLayer.decodeLayout, null, 'Decode Layout'));
             this.setTiles();
             this.isDragging = true;
@@ -451,7 +482,9 @@ class FF1Map extends ROMEditor_ {
 
         this.selectedLayer.setLayout(this.selection);
         const self = this;
-        function invalidate() { self.invalidateMap(rect); };
+        function invalidate() {
+            self.invalidateMap(rect);
+        }
         this.rom.doAction(new ROMAction(this, invalidate, invalidate, 'Invalidate Map'));
         this.redraw();
     }
@@ -487,26 +520,29 @@ class FF1Map extends ROMEditor_ {
 
         if (this.l !== 0) return;
 
+        if (this.isWorld) {
+            // set battle background
+            const battleEditor = propertyList.getEditor('FF1Battle');
+            const bg = this.rom.worldBattleBackground.item(t).background.value;
+            if (bg !== 255) battleEditor.bg = bg;
+        }
+
         // select tile properties
         const tileProperties = this.tilePropertiesAtTile(t);
+
         if (tileProperties) propertyList.select(tileProperties);
     }
 
     tilePropertiesAtTile(t) {
-        if (this.selectedLayer.type === FF1MapLayer.Type.layer1) {
+        if (this.isWorld) {
+            // world map tile properties
+            return this.rom.worldTileProperties.item(t);
+
+        } else {
             // layer 1 tile properties determined by graphics index
             const tp = this.mapProperties.tileset.value;
             return this.rom.mapTileProperties.item(tp).item(t);
-
-        } else if (this.selectedLayer.type === FF1MapLayer.Type.world) {
-            // set battle background
-            const battleEditor = propertyList.getEditor('FF1Battle');
-            battleEditor.bg = this.rom.worldBattleBackground.item(t).background.value;
-
-            // world map tile properties
-            return this.rom.worldTileProperties.item(t);
         }
-        return null;
     }
 
     selectLayer(l) {
@@ -539,8 +575,18 @@ class FF1Map extends ROMEditor_ {
 
     changeLayer(id) {
         this[id] = document.getElementById(id).checked;
-        this.ppu.layers[0].main = this.showBackground;
-        this.loadMap();
+        if (id === "showRooms" && !this.isWorld) {
+            const paletteObject = this.rom.mapPalette.item(this.m);
+            const palette = paletteObject.data.subarray(this.showRooms ? 32 : 0);
+            this.ppu.pal = this.rom.gammaCorrectedPalette(palette);
+            this.tileset.ppu.pal = this.ppu.pal;
+            this.tileset.redraw();
+            this.invalidateMap();
+        } else if (id === "showBackground") {
+            this.ppu.layers[0].main = this.showBackground;
+            this.invalidateMap();
+        }
+        this.redraw();
     }
 
     loadMap() {
@@ -564,6 +610,15 @@ class FF1Map extends ROMEditor_ {
             this.mapProperties.tileset,
             tileset, tilesetPalette, paletteObject, gfx
         ], this.loadMap);
+
+        // observe tile properties (redraw map and tileset, don't reload map)
+        const self = this;
+        for (const tile of this.rom.mapTileProperties.item(t).iterator()) {
+            this.observer.startObservingSub(tile, function() {
+                self.redraw();
+                self.tileset.redraw();
+            });
+        }
 
         // load the tile layout
         const layout = this.rom.mapLayout.item(this.m);
@@ -636,6 +691,15 @@ class FF1Map extends ROMEditor_ {
             gfx, pal, paletteAssignment, tileset
         ], this.loadWorldMap);
 
+        // observe tile properties (redraw map and tileset, don't reload map)
+        const self = this;
+        for (const tile of this.rom.worldTileProperties.iterator()) {
+            this.observer.startObservingSub(tile, function() {
+                self.redraw();
+                self.tileset.redraw();
+            });
+        }
+
         // set up the ppu
         this.ppu = new GFX.PPU();
         this.ppu.pal = this.rom.gammaCorrectedPalette(pal.data);
@@ -692,6 +756,7 @@ class FF1Map extends ROMEditor_ {
 
     redraw() {
         this.drawMap();
+        this.drawMask();
         this.drawTriggers();
         this.drawScreen();
         this.drawCursor();
@@ -747,11 +812,122 @@ class FF1Map extends ROMEditor_ {
             scaledRect.l, scaledRect.t, scaledRect.w, scaledRect.h,
             0, 0, this.mapRect.w, this.mapRect.h
         );
+    }
 
-        // this.drawMask();
-        // this.drawTriggers();
-        // this.drawScreen();
-        // this.drawCursor();
+    drawMask() {
+        if (!this.tileMask.key === 'none') return;
+
+        const context = this.canvas.getContext('2d');
+        context.globalCompositeOperation = 'source-over';
+
+        // calculate coordinates on the map rect
+        const xStart = (this.mapRect.l / this.zoom) >> 4;
+        const xEnd = (this.mapRect.r / this.zoom) >> 4;
+        const yStart = (this.mapRect.t / this.zoom) >> 4;
+        const yEnd = (this.mapRect.b / this.zoom) >> 4;
+        const xOffset = (this.mapRect.l / this.zoom) % 16;
+        const yOffset = (this.mapRect.t / this.zoom) % 16;
+        const w = this.layer[0].w;
+        const h = this.layer[0].h;
+
+        // draw the mask at each tile
+        for (let y = yStart; y <= yEnd; y++) {
+            for (let x = xStart; x <= xEnd; x++) {
+
+                const tile = this.layer[0].getLayout(x, y, 1, 1);
+                const color = this.maskColorAtTile(tile.tilemap[0]);
+                if (!color) continue;
+                context.fillStyle = color;
+
+                const left = (((x - xStart) << 4) - xOffset) * this.zoom;
+                const top = (((y - yStart) << 4) - yOffset) * this.zoom;
+                const size = 16 * this.zoom;
+
+                context.fillRect(left, top, size, size);
+            }
+        }
+    }
+
+    maskColorAtTile(t) {
+        const tp = this.tilePropertiesAtTile(t);
+        if (!tp) return null;
+
+        if (this.tileMask.key === 'passability') {
+            if (tp.entrance.value) {
+                // entrance (red)
+                return 'rgba(255, 0, 0, 0.5)';
+            } else if (tp.specialTile.value === 4) {
+                // treasure (yellow)
+                return 'rgba(255, 255, 0, 0.5)';
+            } else if (tp.specialTile.value === 0 && tp.dialog.value) {
+                // dialog message (magenta)
+                return 'rgba(255, 0, 255, 0.5)';
+            } else if (tp.specialTile.value) {
+                // don't show battles
+                if (tp.specialTile.value === 5) return null;
+                if (tp.specialTile.value === 6) return null;
+                // other special tiles (green)
+                return 'rgba(0, 255, 0, 0.5)';
+            } else if (tp.impassable.value) {
+                // impassable (blue)
+                return 'rgba(0, 0, 255, 0.5)';
+            } else {
+                return null;
+            }
+        } else if (this.tileMask.key === 'battle') {
+            if (tp.specialTile.value === 5) {
+                // random battle (blue)
+                if (tp.battle.value === 0x80) return 'rgba(0, 0, 255, 0.5)';
+                // special battle (green)
+                return 'rgba(0, 255, 0, 0.5)';
+            } else if (tp.specialTile.value === 6) {
+                // step damage (red)
+                return 'rgba(255, 0, 0, 0.5)';
+            }
+        } else if (this.tileMask.key === 'worldPassability') {
+            if (tp.passability.value & 1) {
+                // impassable on foot (blue)
+                return 'rgba(0, 0, 255, 0.5)';
+            } else if (tp.trigger.value === 2) {
+                // entrance (red)
+                return 'rgba(255, 0, 0, 0.5)';
+            }
+        } else if (this.tileMask.key === 'canoe') {
+            if (tp.passability.value & 2) {
+                // impassable in canoe (red)
+                return 'rgba(255, 0, 0, 0.5)';
+            }
+        } else if (this.tileMask.key === 'ship') {
+            if (tp.passability.value & 0x20) {
+                // ship can dock (yellow)
+                return 'rgba(255, 255, 0, 0.5)';
+            } else if (tp.passability.value & 4) {
+                // impassable in ship (red)
+                return 'rgba(255, 0, 0, 0.5)';
+            }
+        } else if (this.tileMask.key === 'airship') {
+            if (tp.specialTile.value === 3) {
+                // floater (blue)
+                return 'rgba(0, 0, 255, 0.5)';
+            } else if (tp.passability.value & 8) {
+                // airship can't land (red)
+                return 'rgba(255, 0, 0, 0.5)';
+            }
+        } else if (this.tileMask.key === 'worldBattle') {
+            if (tp.trigger.value === 1) {
+                // battles enabled (red)
+                return 'rgba(255, 0, 0, 0.5)';
+            }
+        } else if (this.tileMask.key === 'misc') {
+            if (tp.specialTile.value === 1 || tp.specialTile.value === 2) {
+                // chime, caravan (red)
+                return 'rgba(255, 0, 0, 0.5)';
+            } else if (tp.passability.value & 0x10) {
+                // forest (green)
+                return 'rgba(0, 255, 0, 0.5)';
+            }
+        }
+        return null;
     }
 
     drawScreen() {
@@ -1041,3 +1217,41 @@ class FF1Map extends ROMEditor_ {
 
     }
 }
+
+FF1Map.TileMask = [
+    {
+        key: 'none',
+        name: 'None'
+    }, {
+        key: 'passability',
+        name: 'Passability/Triggers'
+    }, {
+        key: 'battle',
+        name: 'Battles/Step Damage'
+    }
+];
+
+FF1Map.WorldTileMask = [
+    {
+        key: 'none',
+        name: 'None'
+    }, {
+        key: 'worldPassability',
+        name: 'Passability/Triggers'
+    }, {
+        key: 'canoe',
+        name: 'Canoe Passability'
+    }, {
+        key: 'ship',
+        name: 'Ship Passability'
+    }, {
+        key: 'airship',
+        name: 'Airship/Floater'
+    }, {
+        key: 'worldBattle',
+        name: 'Battles Enabled'
+    }, {
+        key: 'misc',
+        name: 'Forest/Chime/Caravan'
+    }
+];

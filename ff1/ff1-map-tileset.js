@@ -4,7 +4,6 @@
 //
 
 class FF1MapTileset extends ROMToolbox {
-
     constructor(rom, map) {
 
         super(rom);
@@ -182,6 +181,7 @@ class FF1MapTileset extends ROMToolbox {
         if (this.map.l === 3) return;
 
         this.drawTileset();
+        this.drawMask();
         this.drawCursor();
     }
 
@@ -205,6 +205,30 @@ class FF1MapTileset extends ROMToolbox {
         ctx.imageSmoothingEnabled = false;
         ctx.globalCompositeOperation = 'copy';
         ctx.drawImage(this.tilesetCanvas, 0, 0, w, h);
+    }
+
+    drawMask() {
+        if (this.map.tileMask.key === 'none') return;
+
+        const context = this.canvas.getContext('2d');
+        context.globalCompositeOperation = 'source-over';
+
+        // draw the mask at each tile
+        for (let y = 0; y < 16; y++) {
+            for (let x = 0; x < 16; x++) {
+
+                const tile = x + y * 16;
+                const color = this.map.maskColorAtTile(tile);
+                if (!color) continue;
+                context.fillStyle = color;
+
+                const left = x * 16 * this.zoom;
+                const top = y * 16 * this.zoom;
+                const size = 16 * this.zoom;
+
+                context.fillRect(left, top, size, size);
+            }
+        }
     }
 
     drawCursor() {

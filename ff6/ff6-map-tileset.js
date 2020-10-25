@@ -250,6 +250,9 @@ class FF6MapTileset extends ROMToolbox {
     }
 
     redraw() {
+        // don't draw if triggers are selected
+        if (this.map.l === 3) return;
+
         this.drawTileset();
         if (this.map.l === 0) this.drawMask();
         this.drawCursor();

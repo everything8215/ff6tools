@@ -640,7 +640,9 @@ class FF6Map extends ROMEditor_ {
             this.layer[3].setLayout(this.selection);
         }
         const self = this;
-        function invalidate() { self.invalidateMap(rect); };
+        function invalidate() {
+            self.invalidateMap(rect);
+        }
         this.rom.doAction(new ROMAction(this, invalidate, invalidate, 'Invalidate Map'));
         this.drawMap();
     }
@@ -2127,7 +2129,7 @@ FF6Map.TileMasks = {
     npcPassability: 'NPC Passability',
     spritePriority: 'Sprite Priority',
     misc: 'Misc.'
-}
+};
 
 FF6Map.WorldTileMasks = {
     none: 'None',
@@ -2136,4 +2138,4 @@ FF6Map.WorldTileMasks = {
     airshipPassability: 'Airship Can Land',
     battle: 'Battles Enabled',
     misc: `Forest/Veldt/Kefka's Tower/Phoenix Cave`
-}
+};
