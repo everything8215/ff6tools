@@ -1828,6 +1828,7 @@ ROM.dataFormat = {
     "gba8bppTile": GFX.tileFormat.gba8bppTile,
     "gba4bppTile": GFX.tileFormat.gba4bppTile,
     "gba2bppTile": GFX.tileFormat.gba2bppTile,
+    "nesNameTable": GFX.tileFormat.nesNameTable,
     "snes4bppTile": GFX.tileFormat.snes4bppTile,
     "snes3bppTile": GFX.tileFormat.snes3bppTile,
     "snes2bppTile": GFX.tileFormat.snes2bppTile,

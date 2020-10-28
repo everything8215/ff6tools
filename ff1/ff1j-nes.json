@@ -96,6 +96,28 @@
                     "path": "battleSpriteGraphics"
                 }
             ]
+        }, {
+            "name": "Cinematic",
+            "list": [
+                {
+                    "name": "Prologue Background",
+                    "path": "introTilemap"
+                }, {
+                    "name": "Epilogue Background",
+                    "path": "endingTilemap"
+                }, {
+                    "name": "Prophecy Text",
+                    "path": "introText"
+                }, {
+                    "path": "endingText"
+                }, {
+                    "path": "minimapDragon"
+                }, {
+                    "path": "minimapTitle1"
+                }, {
+                    "path": "minimapTitle2"
+                }
+            ]
         }
     ],
     "assembly": {
@@ -1284,6 +1306,97 @@
                 "default": "<dialog[%i]>"
             }
         },
+        "endingGraphics": {
+            "type": "graphics",
+            "name": "Epilogue Graphics",
+            "range": "0x0BA800-0x0BB000",
+            "format": "nes2bpp"
+        },
+        "endingPalette": {
+            "type": "assembly",
+            "name": "Epilogue Palette",
+            "range": "0x0DBF10-0x0DBF20",
+            "format": "nesPalette"
+        },
+        "endingText": {
+            "type": "array",
+            "name": "Prologue/Epilogue Text",
+            "range": "0x0DA832-0x0DAD10",
+            "array": {
+                "length": 25
+            },
+            "assembly": {
+                "type": "text",
+                "encoding": "dialog",
+                "multiLine": true
+            },
+            "pointerTable": {
+                "range": "0x0DA800-0x0DA832",
+                "offset": "0x0D0000",
+                "isMapped": true
+            },
+            "stringTable": {
+                "length": 25,
+                "default": "<endingText[%i]>"
+            }
+        },
+        "endingTilemap": {
+            "type": "tilemap",
+            "name": "Epilogue Tilemap",
+            "range": "0x0BB000-0x0BB400",
+            "format": "nesNameTable",
+            "width": 32,
+            "height": 30,
+            "backColor": true,
+            "graphics": [[{
+                "path": "endingGraphics",
+                "offset": "0x0000"
+            }, {
+                "path": "textGraphics",
+                "offset": "0x2000"
+            }]],
+            "palette": {
+                "path": "endingPalette"
+            }
+        },
+        "introGraphics": {
+            "type": "graphics",
+            "name": "Prologue Graphics",
+            "range": "0x0BB400-0x0BBC00",
+            "format": "nes2bpp"
+        },
+        "introPalette": {
+            "type": "assembly",
+            "name": "Prologue Palette",
+            "range": "0x0DBF00-0x0DBF10",
+            "format": "nesPalette"
+        },
+        "introText": {
+            "type": "text",
+            "name": "Prophecy Text",
+            "range": "0x0DBF20-0x0E8000",
+            "encoding": "dialog",
+            "multiLine": true
+        },
+        "introTilemap": {
+            "type": "tilemap",
+            "name": "Prologue Tilemap",
+            "range": "0x0BBC00-0x0C8000",
+            "format": "nesNameTable",
+            "width": 32,
+            "height": 30,
+            "backColor": true,
+            "graphics": [[{
+                "path": "introGraphics",
+                "offset": "0x0000"
+            }, {
+                "path": "textGraphics",
+                "offset": "0x2000"
+            }]],
+            "palette": {
+                "path": "introPalette"
+            }
+        },
         "itemClass": {
             "type": "array",
             "name": "Item Class",
@@ -2114,6 +2227,56 @@
                     "28": "Titan",
                     "29": "Vampire"
                 }
+            }
+        },
+        "minimapDragon": {
+            "type": "graphics",
+            "name": "Mini-Map Dragon Graphics",
+            "range": "0x09B400-0x09B700",
+            "format": "nes2bpp",
+            "width": 6,
+            "palette": {
+                "path": "minimapPalette",
+                "range": "8-12"
+            }
+        },
+        "minimapPalette": {
+            "type": "assembly",
+            "name": "Mini-Map Palette",
+            "range": "0x09BF20-0x09BF30",
+            "format": "nesPalette"
+        },
+        "minimapBGTilemap": {
+            "type": "tilemap",
+            "name": "Mini-Map Background Tilemap",
+            "range": "0x09B000-0x09B400",
+            "format": "nesNameTable",
+            "width": 32,
+            "height": 30,
+            "backColor": true,
+            "graphics": "minimapBackgroundGraphics",
+            "palette": "minimapPalette"
+        },
+        "minimapTitle1": {
+            "type": "graphics",
+            "name": "Mini-Map Title Graphics 1",
+            "range": "0x09B700-0x09B800",
+            "format": "nes2bpp",
+            "width": 8,
+            "palette": {
+                "path": "minimapPalette",
+                "range": "4-8"
+            }
+        },
+        "minimapTitle2": {
+            "type": "graphics",
+            "name": "Mini-Map Title Graphics 2",
+            "range": "0x09B800-0x09B980",
+            "format": "nes2bpp",
+            "width": 12,
+            "palette": {
+                "path": "minimapPalette",
+                "range": "4-8"
             }
         },
         "monsterAI": {

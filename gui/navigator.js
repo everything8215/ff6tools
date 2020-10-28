@@ -90,7 +90,7 @@ class ROMNavigator {
         const p = document.createElement('p');
         let name = options.name;
         if (!isString(name)) name = object.name;
-        if (object instanceof ROMText) name = object.htmlText;
+        if (!isString(name) && object instanceof ROMText) name = object.htmlText;
         if (!isString(name)) name = 'Unnamed Object';
         if (!/\S/.test(name)) name = '&nbsp;';
         p.innerHTML = name;

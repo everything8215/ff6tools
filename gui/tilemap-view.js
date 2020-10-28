@@ -767,7 +767,7 @@ class ROMTilemapView extends ROMEditor_ {
 
         // recursively load array definitions
         if (isArray(definition)) {
-            for (const def of definition) this.loadColorOffset(def, tilemap);
+            for (const def of definition) this.setColorOffset(def, tilemap);
             return;
         }
 

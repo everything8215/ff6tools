@@ -1068,6 +1068,106 @@ var GFX = {
                 return [dest, data.byteLength];
             }
         },
+        nesNameTable: {
+            //                            tttttttt
+            // -------- ----pp-- -------- tttttttt
+            // (palette from attribute table)
+            key: "nesNameTable",
+            name: "NES Name Table",
+            maxTiles: 256,
+            colorsPerPalette: 4,
+            maxZ: 0,
+            hFlip: false,
+            vFlip: false,
+            encode: function(data) {
+                // 32-bit source (960 tiles)
+                // 8-bit destination (1024 bytes)
+                var srcLength = Math.min(data.byteLength >> 2, 960);
+                var src32 = new Uint32Array(data.buffer, data.byteOffset, srcLength);
+                var src = new Uint32Array(960);
+                src.set(src32.subarray(0, srcLength));
+                var dest = new Uint8Array(1024);
+
+                var s = 0;
+                var d = 0;
+                var t, tile;
+
+                // encode tile index (name table)
+                while (s < src.length) {
+                    dest[d++] = src[s++] & 0xFF;
+                }
+
+                // encode palette index (attribute table)
+                var n = 0;
+                var attr;
+                while (n < 64) {
+                    s = (n & 0x07) * 4 + (n >> 3) * 128;
+                    // use the top left 8x8 subtile of each 16x16 tile
+                    attr = (src[s] & 0x000C0000) >> 18;
+                    attr |= (src[s+2] & 0x000C0000) >> 16;
+                    if (n < 56) {
+                        attr |= (src[s+64] & 0x000C0000) >> 14;
+                        attr |= (src[s+66] & 0x000C0000) >> 12;
+                    }
+                    dest[960 + n++] = attr;
+                }
+
+                return [dest, src.byteLength];
+            },
+            decode: function(data) {
+                // 8-bit source (1024 bytes)
+                // 32-bit destination (960 tiles)
+                var srcLength = Math.min(data.byteLength, 1024);
+                var src8 = new Uint8Array(data.buffer, data.byteOffset, srcLength);
+                var src = new Uint32Array(1024);
+                src.set(src8.subarray(0, srcLength));
+                var dest = new Uint32Array(960);
+
+                var s = 0;
+                var d = 0;
+                var t, tile;
+
+                // decode tile index (name table)
+                while (s < 960) {
+                    dest[d++] = src[s++];
+                }
+
+                // decode palette index (attribute table)
+                var attr, p, n;
+                while (s < 1024) {
+                    n = s - 960;
+                    attr = src[s++];
+                    d = (n & 0x07) * 4 + (n >> 3) * 128;
+
+                    p = (attr & 3) << 18; attr >>= 2;
+                    dest[d] |= p;
+                    dest[d+1] |= p;
+                    dest[d+32] |= p;
+                    dest[d+33] |= p;
+
+                    p = (attr & 3) << 18; attr >>= 2;
+                    dest[d+2] |= p;
+                    dest[d+3] |= p;
+                    dest[d+34] |= p;
+                    dest[d+35] |= p;
+
+                    d += 64;
+
+                    p = (attr & 3) << 18; attr >>= 2;
+                    dest[d] |= p;
+                    dest[d+1] |= p;
+                    dest[d+32] |= p;
+                    dest[d+33] |= p;
+
+                    p = (attr & 3) << 18;
+                    dest[d+2] |= p;
+                    dest[d+3] |= p;
+                    dest[d+34] |= p;
+                    dest[d+35] |= p;
+                }
+                return [dest, src.byteLength];
+            }
+        },
         snes4bppTile: {
             //                   vhzppptt tttttttt
             // --vh---z -ppp---- ------tt tttttttt
