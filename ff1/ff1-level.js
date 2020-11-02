@@ -35,7 +35,6 @@ class FF1LevelProgression extends ROMEditor_ {
         this.div.onmousedown = function(e) { self.mouseDown(e); };
         this.div.onmouseleave = function(e) { self.mouseLeave(e); };
         this.div.onmousemove = function(e) { self.mouseMove(e); };
-        this.resizeSensor = null;
     }
 
     mouseDown(e) {
@@ -112,6 +111,9 @@ class FF1LevelProgression extends ROMEditor_ {
         this.observer.stopObservingAll();
 
         if (!this.classProperties) return;
+        if (!this.classStats) return;
+
+        // update stats and redraw if stats change
         this.observer.startObserving([
             this.classProperties.hp,
             this.classProperties.strength,
@@ -119,15 +121,14 @@ class FF1LevelProgression extends ROMEditor_ {
             this.classProperties.vitality,
             this.classProperties.intelligence,
             this.classProperties.luck,
-        ], this.loadClass);
+        ], this.updateStats);
         for (const level of this.classStats.iterator()) {
             this.observer.startObserving([
                 level.exp, level.stats, level.mp
-            ], this.loadClass);
+            ], this.updateStats);
         }
 
         this.updateStats();
-        this.redraw();
     }
 
     getStats(level) {
@@ -215,6 +216,7 @@ class FF1LevelProgression extends ROMEditor_ {
 
             this.chartData.push(currentStats);
         }
+        this.redraw();
     }
 
     resize() {
@@ -256,148 +258,153 @@ class FF1LevelProgression extends ROMEditor_ {
         // update the canvas size
         this.canvas.width = this.div.clientWidth;
         this.canvas.height = this.div.clientHeight;
-        const context = this.canvas.getContext('2d');
+        const ctx = this.canvas.getContext('2d');
 
         // draw the chart
-        this.drawChart(context);
+        this.drawChart(ctx);
 
         // update the tooltip
         this.updateTooltip();
 
+        // draw stat ranges
+        if (this.showRange) {
+            for (const [s, stat] of FF1LevelProgression.stats.entries()) {
+                if (this.showStat[s]) this.drawStatRange(stat, ctx);
+            }
+        }
+
         // draw stats
         for (const [s, stat] of FF1LevelProgression.stats.entries()) {
-            if (!this.showStat[s]) continue;
-            this.drawStat(stat, context);
-            if (this.showRange) this.drawStatRange(stat, context);
+            if (this.showStat[s]) this.drawStat(stat, ctx);
         }
 
         // draw legend
         if (this.showLegend) {
-            this.drawLegend(context);
+            this.drawLegend(ctx);
         }
     }
 
-    drawChart(context) {
+    drawChart(ctx) {
 
         // draw the chart area
-        context.fillStyle = 'white';
-        context.fillRect(this.chartRect.l, this.chartRect.t, this.chartRect.w, this.chartRect.h);
+        ctx.fillStyle = 'white';
+        ctx.fillRect(this.chartRect.l, this.chartRect.t, this.chartRect.w, this.chartRect.h);
 
         // draw the axes
-        context.beginPath();
-        context.strokeStyle = 'black';
-        context.lineWidth = 1.0;
-        context.moveTo(this.chartRect.l - 0.5, this.chartRect.t - 0.5);
-        context.lineTo(this.chartRect.l - 0.5, this.chartRect.b + 0.5);
-        context.lineTo(this.chartRect.r + 0.5, this.chartRect.b + 0.5);
-        context.lineTo(this.chartRect.r + 0.5, this.chartRect.t - 0.5);
-        context.closePath();
-        context.stroke();
+        ctx.beginPath();
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 1.0;
+        ctx.moveTo(this.chartRect.l - 0.5, this.chartRect.t - 0.5);
+        ctx.lineTo(this.chartRect.l - 0.5, this.chartRect.b + 0.5);
+        ctx.lineTo(this.chartRect.r + 0.5, this.chartRect.b + 0.5);
+        ctx.lineTo(this.chartRect.r + 0.5, this.chartRect.t - 0.5);
+        ctx.closePath();
+        ctx.stroke();
 
         // draw vertical gridlines and labels
-        context.textAlign = 'center';
-        context.textBaseline = 'middle';
-        context.font = '12px sans-serif';
-        context.lineWidth = 0.5;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = '12px sans-serif';
+        ctx.lineWidth = 0.5;
         for (let x = 0; x <= 50; x += 5) {
             const startPoint = this.pointToCanvas(x, 0);
             const endPoint = this.pointToCanvas(x, 100);
-            context.fillStyle = 'black';
-            context.fillText(x.toString(), startPoint.x, startPoint.y + 20);
+            ctx.fillStyle = 'black';
+            ctx.fillText(x.toString(), startPoint.x, startPoint.y + 20);
             if (x === 0 || x === 50) continue;
-            context.strokeStyle = 'gray';
-            context.beginPath();
-            context.moveTo(startPoint.x + 0.5, startPoint.y);
-            context.lineTo(endPoint.x + 0.5, endPoint.y);
-            context.stroke();
+            ctx.strokeStyle = 'gray';
+            ctx.beginPath();
+            ctx.moveTo(startPoint.x + 0.5, startPoint.y);
+            ctx.lineTo(endPoint.x + 0.5, endPoint.y);
+            ctx.stroke();
         }
         const labelPoint = this.pointToCanvas(25, 0);
-        context.font = '16px sans-serif';
-        context.fillStyle = 'black';
-        context.fillText('Level', labelPoint.x, labelPoint.y + 45);
+        ctx.font = '16px sans-serif';
+        ctx.fillStyle = 'black';
+        ctx.fillText('Level', labelPoint.x, labelPoint.y + 45);
 
         // draw horizontal gridlines and labels
-        context.textAlign = 'right';
-        context.font = '12px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.font = '12px sans-serif';
         for (let y = 0; y <= 100; y += 10) {
             const startPoint = this.pointToCanvas(0, y);
             const endPoint = this.pointToCanvas(50, y);
-            context.fillStyle = 'black';
-            context.fillText(y.toString(), startPoint.x - 20, startPoint.y);
+            ctx.fillStyle = 'black';
+            ctx.fillText(y.toString(), startPoint.x - 20, startPoint.y);
             if (y === 0 || y === 100) continue;
-            context.strokeStyle = 'gray';
-            context.beginPath();
-            context.moveTo(startPoint.x, startPoint.y + 0.5);
-            context.lineTo(endPoint.x, endPoint.y + 0.5);
-            context.stroke();
+            ctx.strokeStyle = 'gray';
+            ctx.beginPath();
+            ctx.moveTo(startPoint.x, startPoint.y + 0.5);
+            ctx.lineTo(endPoint.x, endPoint.y + 0.5);
+            ctx.stroke();
         }
     }
 
-    drawStatRange(stat, context) {
+    drawStatRange(stat, ctx) {
 
         const y = this.chartData[0][stat.key].min / stat.multiplier;
         const startPoint = this.pointToCanvas(this.chartData[0].level, y);
 
-        context.fillStyle = stat.fillColor;
-        context.beginPath();
-        context.moveTo(startPoint.x, startPoint.y)
+        ctx.fillStyle = stat.fillColor;
+        ctx.beginPath();
+        ctx.moveTo(startPoint.x, startPoint.y)
 
         for (const dataValue of this.chartData.slice(1)) {
             const y = dataValue[stat.key].min / stat.multiplier;
             const point = this.pointToCanvas(dataValue.level, y);
-            context.lineTo(point.x, point.y);
+            ctx.lineTo(point.x, point.y);
         }
         for (const dataValue of this.chartData.slice().reverse()) {
             const y = dataValue[stat.key].max / stat.multiplier;
             const point = this.pointToCanvas(dataValue.level, y);
-            context.lineTo(point.x, point.y);
+            ctx.lineTo(point.x, point.y);
         }
-        context.fill();
+        ctx.fill();
     }
 
-    drawStat(stat, context) {
+    drawStat(stat, ctx) {
 
         const y = this.chartData[0][stat.key].avg / stat.multiplier;
         const startPoint = this.pointToCanvas(this.chartData[0].level, y);
 
-        context.strokeStyle = stat.color;
-        context.lineCap = 'round';
-        context.lineJoin = 'round';
-        context.lineWidth = 2.5;
-        context.beginPath();
-        context.moveTo(startPoint.x, startPoint.y)
+        ctx.strokeStyle = stat.color;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(startPoint.x, startPoint.y)
 
         for (const dataValue of this.chartData) {
             const y = dataValue[stat.key].avg / stat.multiplier;
             const point = this.pointToCanvas(dataValue.level, y);
-            context.lineTo(point.x, point.y);
+            ctx.lineTo(point.x, point.y);
         }
-        context.stroke();
+        ctx.stroke();
 
         // draw the selected point
         if (this.selectedPoint) {
             const y = this.selectedPoint[stat.key].avg / stat.multiplier;
             const point = this.pointToCanvas(this.selectedPoint.level, y);
-            context.beginPath();
-            context.fillStyle = stat.color;
-            context.arc(point.x, point.y, 5, 0, 2 * Math.PI);
-            context.fill();
+            ctx.beginPath();
+            ctx.fillStyle = stat.color;
+            ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI);
+            ctx.fill();
         }
     }
 
-    drawLegend(context) {
+    drawLegend(ctx) {
 
         // find the legend height and widest stat
         let width = 0;
         let height = 10;
         const lineHeight = 15;
-        context.font = '12px sans-serif';
-        context.textAlign = 'left';
-        context.textBaseline = 'alphabetic';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
         for (const [s, stat] of FF1LevelProgression.stats.entries()) {
             if (!this.showStat[s]) continue;
             const name = stat.axis || stat.name;
-            const size = context.measureText(name);
+            const size = ctx.measureText(name);
             width = Math.max(Math.round(size.width) + 15, width);
             height += lineHeight;
         }
@@ -411,13 +418,13 @@ class FF1LevelProgression extends ROMEditor_ {
         const rect = new Rect(l, r, t, b);
 
         // draw the legend box
-        context.fillStyle = 'white';
-        context.fillRect(rect.l, rect.t, rect.w, rect.h);
+        ctx.fillStyle = 'white';
+        ctx.fillRect(rect.l, rect.t, rect.w, rect.h);
 
-        // context.beginPath();
-        context.strokeStyle = 'black';
-        context.lineWidth = 1.0;
-        context.strokeRect(rect.l - 0.5, rect.t - 0.5, rect.w + 1, rect.h + 1);
+        // ctx.beginPath();
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 1.0;
+        ctx.strokeRect(rect.l - 0.5, rect.t - 0.5, rect.w + 1, rect.h + 1);
 
         // draw stat names and color blobs
         let x = l + 8;
@@ -425,14 +432,14 @@ class FF1LevelProgression extends ROMEditor_ {
         for (const [s, stat] of FF1LevelProgression.stats.entries()) {
             if (!this.showStat[s]) continue;
 
-            context.fillStyle = stat.color;
-            context.fillRect(x, y, 9, 9);
-            context.strokeStyle = 'black';
-            context.strokeRect(x - 0.5, y - 0.5, 10, 10);
+            ctx.fillStyle = stat.color;
+            ctx.fillRect(x, y, 9, 9);
+            ctx.strokeStyle = 'black';
+            ctx.strokeRect(x - 0.5, y - 0.5, 10, 10);
 
-            context.fillStyle = 'black';
+            ctx.fillStyle = 'black';
             const name = stat.axis || stat.name;
-            context.fillText(name, x + 15, y + 9);
+            ctx.fillText(name, x + 15, y + 9);
             y += lineHeight;
         }
     }

@@ -191,10 +191,11 @@ ROMObject.prototype.copy = function(parent) {
     return ROMObject.create(this.rom, this.definition, parent);
 }
 
-ROMObject.prototype.addObserver = function(object, callback, args) {
+ROMObject.prototype.addObserver = function(object, target, callback, args) {
     if (this.getObserver(object)) return;
     this.observers.push({
         object: object,
+        target: target,
         callback: callback,
         args: args,
         asleep: false
@@ -210,7 +211,7 @@ ROMObject.prototype.removeObserver = function(object) {
 ROMObject.prototype.notifyObservers = function() {
     for (const observer of this.observers) {
         if (observer.asleep) continue;
-        observer.callback.apply(observer.object, observer.args);
+        observer.callback.apply(observer.target, observer.args);
     }
 }
 

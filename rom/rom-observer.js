@@ -4,7 +4,7 @@
 //
 
 class ROMObserver {
-    constructor(rom, parent, options = {}) {
+    constructor(rom, parent) {
         this.rom = rom;
         this.parent = parent;
         this.observees = [];
@@ -12,7 +12,7 @@ class ROMObserver {
 
     sleep() {
         for (const object of this.observees) {
-            const observer = object.getObserver(this.parent);
+            const observer = object.getObserver(this);
             if (!observer) continue;
             observer.asleep = true;
         }
@@ -20,7 +20,7 @@ class ROMObserver {
 
     wake() {
         for (const object of this.observees) {
-            const observer = object.getObserver(this.parent);
+            const observer = object.getObserver(this);
             if (!observer) continue;
             observer.asleep = false;
         }
@@ -37,12 +37,12 @@ class ROMObserver {
 
         // start observing the object and add it to the array of observees
         if (this.observees.indexOf(object) === -1) this.observees.push(object);
-        if (object.addObserver) object.addObserver(this.parent, callback, args);
+        if (object.addObserver) object.addObserver(this, this.parent, callback, args);
     }
 
     stopObservingAll() {
         for (const object of this.observees) {
-            if (object.removeObserver) object.removeObserver(this.parent);
+            if (object.removeObserver) object.removeObserver(this);
         }
         this.observees = [];
     }
