@@ -3726,12 +3726,18 @@ ROMArray.prototype.disassemble = function(data) {
             end = Math.max(pointer, unsorted[i + 1]);
             var range = new ROMRange(pointer, end);
             itemRanges.push(range);
-            pointerRanges[begin] = {range: range};
+            pointerRanges[pointer] = {
+                range: range,
+                i: i
+            };
         }
         pointer = unsorted[i];
         var range = new ROMRange(pointer, this.range.end);
         itemRanges.push(range);
-        pointerRanges[begin] = {range: range};
+        pointerRanges[pointer] = {
+            range: range,
+            i: i
+        };
 
     } else {
         // read pointers
@@ -3830,19 +3836,25 @@ ROMArray.prototype.disassemble = function(data) {
     if (this.pointerObject) {
         for (i = 0; i < this.pointers.length; i++) {
             var pointer = this.pointers[i];
-            var pointerValue = pointer.value;
-            if (this.parent.mapAddress) pointerValue = this.parent.mapAddress(pointerValue);
-            pointerValue -= this.relativeTo.range.begin;
-            var pointerRange = pointerRanges[pointerValue];
-            if (!pointerRange) continue;
-            var assembly = this.item(pointerRange.i);
+            var assembly;
+            if (this.isSequential) {
+                assembly = this.item(i);
+            } else {
+                var pointerValue = pointer.value;
+                if (this.parent.mapAddress) {
+                    pointerValue = this.parent.mapAddress(pointerValue);
+                }
+                pointerValue -= this.relativeTo.range.begin;
+                var pointerRange = pointerRanges[pointerValue];
+                if (!pointerRange) continue;
+                assembly = this.item(pointerRange.i);
+            }
             pointer.target = assembly;
-            var pointerDefinition = {
+            var pointerReference = new ROMReference(this.rom, {
                 target: pointer,
                 relativeTo: this.relativeTo,
                 isMapped: this.isMapped
-            }
-            var pointerReference = new ROMReference(this.rom, pointerDefinition, assembly);
+            }, assembly);
             assembly.reference.push(pointerReference);
         }
     }
