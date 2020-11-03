@@ -145,6 +145,9 @@
                 }, {
                     "name": "Animal Graphics",
                     "path": "attackTilemap5"
+                }, {
+                    "name": "Level Progression",
+                    "path": "characterLevelProgression"
                 }
             ]
         }, {
@@ -1443,6 +1446,80 @@
             "stringTable": {
                 "length": 512,
                 "default": "Battle %i"
+            }
+        },
+        "characterExpProgression": {
+            "type": "array",
+            "name": "Character Experience Progression",
+            "editor": "FF5LevelProgression",
+            "range": "0xD15000-0xD15129",
+            "array": {
+                "length": 99,
+                "max": 99
+            },
+            "assembly": {
+                "type": "data",
+                "length": 3,
+                "assembly": {
+                    "exp": {
+                        "type": "property",
+                        "name": "Experience",
+                        "mask": "0xFFFFFF"
+                    },
+                    "hp": {
+                        "type": "assembly",
+                        "external": "characterHPProgression[%i].hp"
+                    },
+                    "mp": {
+                        "type": "assembly",
+                        "external": "characterMPProgression[%i].mp"
+                    }
+                }
+            }
+        },
+        "characterHPProgression": {
+            "type": "array",
+            "name": "Character HP Progression",
+            "range": "0xD15129-0xD151EF",
+            "array": {
+                "length": 99,
+                "max": 99
+            },
+            "assembly": {
+                "type": "data",
+                "length": 2,
+                "assembly": {
+                    "hp": {
+                        "type": "property",
+                        "name": "Base HP",
+                        "mask": "0xFFFF"
+                    }
+                }
+            }
+        },
+        "characterLevelProgression": {
+            "type": "assembly",
+            "name": "characterLevelProgression",
+            "editor": "FF5LevelProgression"
+        },
+        "characterMPProgression": {
+            "type": "array",
+            "name": "Character MP Progression",
+            "range": "0xD151EF-0xD152B5",
+            "array": {
+                "length": 99,
+                "max": 99
+            },
+            "assembly": {
+                "type": "data",
+                "length": 2,
+                "assembly": {
+                    "mp": {
+                        "type": "property",
+                        "name": "Base MP",
+                        "mask": "0xFFFF"
+                    }
+                }
             }
         },
         "characterNames": {
