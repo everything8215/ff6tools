@@ -148,7 +148,7 @@ class ROMEditor_ {
         // for (let i = 0; i < list.names.length; i++) {
             const li = document.createElement('li');
             li.value = i;
-            li.innerHTML = name;
+            li.innerHTML = name || '&nbsp;';
             li.classList.add('menu-item');
             li.onclick = function() {
                 self.closeList();

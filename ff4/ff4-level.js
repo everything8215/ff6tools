@@ -849,18 +849,18 @@ class FF4LevelProgression extends ROMEditor_ {
         const statPoint = this.pointToCanvas(level, closestValue);
         this.tooltip.style.display = 'inline-block';
         this.tooltip.setAttribute('data-balloon-visible', '');
-        if (closestValue > 70 && level > 40) {
+        if (closestValue > 70 && level > 80) {
             statPoint.x += 17;
             statPoint.y += 15;
             this.tooltip.setAttribute('data-balloon-pos', 'down-right');
         } else if (closestValue > 70) {
             statPoint.y += 15;
             this.tooltip.setAttribute('data-balloon-pos', 'down');
-        } else if (closestValue < 10 && level > 40) {
+        } else if (closestValue < 10 && level > 80) {
             statPoint.x += 17;
             statPoint.y -= this.tooltip.clientHeight + 15;
             this.tooltip.setAttribute('data-balloon-pos', 'up-right');
-        } else if (level > 40) {
+        } else if (level > 80) {
             statPoint.x -= 15;
             statPoint.y -= this.tooltip.clientHeight;
             this.tooltip.setAttribute('data-balloon-pos', 'left');
