@@ -10,6 +10,8 @@ https://www.ff6hacking.com/forums/thread-3321.html
 
 - Final Fantasy (U)
 - Final Fantasy (J)
+- Final Fantasy III (Translation by Alex W. Jackson, Neill Corlett, SoM2Freak)
+- Final Fantasy III (J)
 - Final Fantasy II (U)
 - Final Fantasy IV (J)
 - Final Fantasy IV Advance (U)

@@ -64,6 +64,5 @@ wish list
  * cinematic sprite editor
  * music editor
  * ff1 and ff2 nes/wsc/gba/psp
- * ff3 nes
  * ff4 wsc and psp
  * psx versions

@@ -1,0 +1,702 @@
+{
+    "type": "rom",
+    "key": "ff3j-nes",
+    "name": "Final Fantasy III (J)",
+    "length": "0x080010",
+    "crc32": "0x99F5DB31",
+    "system": "nes",
+    "mode": "mmc3",
+    "pad": "0x00",
+    "hierarchy": [
+        {
+            "name": "Map",
+            "list": [
+                {
+                    "name": "Maps",
+                    "path": "mapProperties"
+                }, {
+                    "path": "mapGraphics"
+                }
+            ]
+        }, {
+            "name": "Text",
+            "list": [
+                {
+                    "name": "Text",
+                    "path": "text"
+                }
+            ]
+        }
+    ],
+    "assembly": {
+        "mapGraphics": {
+            "type": "graphics",
+            "name": "Map Graphics",
+            "range": "0x03A000-0x068C00",
+            "format": "nes2bpp",
+            "backColor": true
+        },
+        "mapGraphicsSet": {
+            "type": "array",
+            "name": "Map Graphics Pointers",
+            "range": "0x008E00-0x009100",
+            "array": {
+                "length": 48
+            },
+            "assembly": {
+                "type": "data",
+                "length": 16,
+                "assembly": {
+                    "graphics1": {
+                        "type": "property",
+                        "name": "Graphics 1",
+                        "begin": 0,
+                        "mask": "0xFFFF"
+                    },
+                    "graphics2": {
+                        "type": "property",
+                        "name": "Graphics 2",
+                        "begin": 2,
+                        "mask": "0xFFFF"
+                    },
+                    "graphics3": {
+                        "type": "property",
+                        "name": "Graphics 3",
+                        "begin": 4,
+                        "mask": "0xFFFF"
+                    },
+                    "graphics4": {
+                        "type": "property",
+                        "name": "Graphics 4",
+                        "begin": 6,
+                        "mask": "0xFFFF"
+                    },
+                    "graphics5": {
+                        "type": "property",
+                        "name": "Graphics 5",
+                        "begin": 8,
+                        "mask": "0xFFFF"
+                    },
+                    "graphics6": {
+                        "type": "property",
+                        "name": "Graphics 6",
+                        "begin": 10,
+                        "mask": "0xFFFF"
+                    },
+                    "graphics7": {
+                        "type": "property",
+                        "name": "Graphics 7",
+                        "begin": 12,
+                        "mask": "0xFFFF"
+                    },
+                    "graphics8": {
+                        "type": "property",
+                        "name": "Graphics 8",
+                        "begin": 14,
+                        "mask": "0xFFFF"
+                    }
+                }
+            }
+        },
+        "mapGraphicsID": {
+            "type": "array",
+            "name": "Map Graphics Set ID",
+            "range": "0x008C00-0x008E00",
+            "array": {
+                "length": 512
+            },
+            "assembly": {
+                "type": "data",
+                "length": 1,
+                "assembly": {
+                    "graphicsSet": {
+                        "type": "property",
+                        "name": "Graphics Set",
+                        "begin": 0,
+                        "mask": "0xFF"
+                    }
+                }
+            }
+        },
+        "mapLayout": {
+            "type": "array",
+            "name": "Map Layout",
+            "range": "0x11A200-0x17BFD4",
+            "array": {
+                "length": 512
+            },
+            "assembly": {
+                "format": "ff1-map"
+            },
+            "pointerTable": {
+                "range": "0x11A000-0x11A200",
+                "offset": "0x11A000"
+            }
+        },
+        "mapNameTable": {
+            "type": "array",
+            "name": "Map Tileset Name Table",
+            "range": "0x01B180-0x01B500",
+            "array": {
+                "length": 7
+            },
+            "assembly": {
+                "type": "assembly",
+                "length": 128,
+                "format": ["interlace(2,16,2)", "linear2bpp"]
+            }
+        },
+        "mapPaletteBase": {
+            "type": "assembly",
+            "name": "Map Palette (Base)",
+            "range": "0x009640-0x009670",
+            "format": "nesPalette"
+        },
+        "mapPaletteBG": {
+            "type": "assembly",
+            "name": "Map Palette (Background)",
+            "range": "0x009100-0x009400",
+            "format": "nesPalette"
+        },
+        "mapProperties": {
+            "type": "array",
+            "name": "Map Properties",
+            "range": "0x028000-0x03A000",
+            "array": {
+                "length": 512
+            },
+            "assembly": {
+                "type": "data",
+                "length": 16,
+                "editor": "FF3Map",
+                "assembly": {
+                    "tileset": {
+                        "type": "property",
+                        "name": "Tileset",
+                        "begin": 0,
+                        "mask": "0xE0"
+                    },
+                    "tilemap": {
+                        "type": "assembly",
+                        "external": "mapTilemap[%i].tilemap"
+                    },
+                    "graphicsSet": {
+                        "type": "assembly",
+                        "external": "mapGraphicsID[%i].graphicsSet"
+                    },
+                    "unknown1": {
+                        "type": "property",
+                        "name": "Unknown 1",
+                        "begin": 1,
+                        "mask": "0xFF"
+                    },
+                    "title": {
+                        "type": "property",
+                        "name": "Map Title",
+                        "begin": 2,
+                        "mask": "0xFF",
+                        "stringTable": {
+                            "length": 256,
+                            "default": "<stringTable.text[%i+256]>",
+                            "string": {
+                                "0xFF": "None"
+                            }
+                        }
+                    },
+                    "fillTile": {
+                        "type": "property",
+                        "name": "Fill Tile",
+                        "begin": 3,
+                        "mask": "0xFF"
+                    },
+                    "npc": {
+                        "type": "property",
+                        "name": "NPCs",
+                        "begin": 4,
+                        "mask": "0xFF"
+                    },
+                    "palette0": {
+                        "type": "property",
+                        "name": "Palette 0",
+                        "begin": 5,
+                        "mask": "0xFF"
+                    },
+                    "palette1": {
+                        "type": "property",
+                        "name": "Palette 1",
+                        "begin": 6,
+                        "mask": "0xFF"
+                    },
+                    "palette2": {
+                        "type": "property",
+                        "name": "Palette 2",
+                        "begin": 7,
+                        "mask": "0xFF"
+                    },
+                    "palette6": {
+                        "type": "property",
+                        "name": "Palette 6",
+                        "begin": 8,
+                        "mask": "0xFF"
+                    },
+                    "palette7": {
+                        "type": "property",
+                        "name": "Palette 7",
+                        "begin": 9,
+                        "mask": "0xFF"
+                    },
+                    "unknown10": {
+                        "type": "property",
+                        "name": "Unknown 10",
+                        "begin": 10,
+                        "mask": "0xFF"
+                    },
+                    "unknown11": {
+                        "type": "property",
+                        "name": "Unknown 11",
+                        "begin": 11,
+                        "mask": "0xFF"
+                    },
+                    "entrances": {
+                        "type": "property",
+                        "name": "Entrances",
+                        "begin": 12,
+                        "mask": "0xFFFF"
+                    },
+                    "treasures": {
+                        "type": "property",
+                        "name": "Treasures",
+                        "begin": 14,
+                        "mask": "0xFF"
+                    },
+                    "triggers": {
+                        "type": "property",
+                        "name": "Triggers",
+                        "begin": 15,
+                        "mask": "0xFF"
+                    }
+                }
+            },
+            "stringTable": {
+                "default": "Map %i",
+                "length": 512,
+                "string": {
+                    "0x000A": "Kazus",
+                    "0x0012": "Castle Sasune",
+                    "0x0016": "Altar Cave",
+                    "0x001F": "Canaan",
+                    "0x002B": "Tozus",
+                    "0x0037": "Tokkul",
+                    "0x003C": "Village of the Ancients",
+                    "0x0045": "Gysahl",
+                    "0x004E": "Argus Castle",
+                    "0x0055": "Dwarf Cave",
+                    "0x005D": "Chocobo Forest",
+                    "0x0067": "Sealed Cave",
+                    "0x006B": "Molten Cave",
+                    "0x006F": "Altar Cave",
+                    "0x0072": "Ur",
+                    "0x0074": "Underground Lake",
+                    "0x0078": "Tozus Tunnel",
+                    "0x007C": "Tower of Owen",
+                    "0x0087": "Castle Hein",
+                    "0x00A0": "Viking Base",
+                    "0x0100": "Amur",
+                    "0x010D": "Duster",
+                    "0x0111": "Replito",
+                    "0x0116": "Saronia Castle",
+                    "0x0120": "Southwest Saronia",
+                    "0x0124": "Southeast Saronia",
+                    "0x0131": "Falgabard"
+                }
+            }
+        },
+        "mapTilemap": {
+            "type": "array",
+            "name": "Map Tilemap",
+            "range": "0x008A00-0x008C00",
+            "array": {
+                "length": 512
+            },
+            "assembly": {
+                "type": "data",
+                "length": 1,
+                "assembly": {
+                    "tilemap": {
+                        "type": "property",
+                        "name": "Tilemap",
+                        "begin": 0,
+                        "mask": "0xFF"
+                    }
+                }
+            }
+        },
+        "mapTileset": {
+            "type": "array",
+            "name": "Map Tileset",
+            "range": "0x01A380-0x01B180",
+            "array": {
+                "length": 7
+            },
+            "assembly": {
+                "type": "tilemap",
+                "length": 512,
+                "format": ["generic2bppTile", "interlace(2,16,2)", "interlace(1,4,128)"],
+                "width": 32,
+                "height": 16,
+                "backColor": true,
+                "graphics": "mapGraphics",
+                "palette": [
+                    {
+                        "path": "mapPalette",
+                        "range": "32-48"
+                    }, {
+                        "path": "mapPalette",
+                        "range": "0-16"
+                    }
+                ],
+                "colorOffset": {
+                    "path": "tilesetPalette[%i]",
+                    "multiplier": 4
+                }
+            },
+            "stringTable": {
+                "length": 7,
+                "string": {
+                    "0": "Cave/Airship",
+                    "1": "Forest/Shrine",
+                    "2": "Sylx/Hyne",
+                    "3": "Castle Exterior",
+                    "4": "Town Exterior",
+                    "5": "Town Interior",
+                    "6": "Castle Interior"
+                }
+            }
+        },
+        "npcProperties": {
+            "type": "array",
+            "name": "NPC Properties",
+            "range": "0x2C8A80-0x2C9944",
+            "isSequential": true,
+            "array": {
+                "length": 512
+            },
+            "assembly": {
+                "type": "array",
+                "format": "terminated(0,4)",
+                "assembly": {
+                    "type": "data",
+                    "length": 4,
+                    "assembly": {
+                        "npcID": {
+                            "type": "property",
+                            "name": "NPC ID",
+                            "begin": 0,
+                            "mask": "0xFF"
+                        },
+                        "x": {
+                            "type": "property",
+                            "name": "X Position",
+                            "begin": 1,
+                            "mask": "0x3F"
+                        },
+                        "y": {
+                            "type": "property",
+                            "name": "Y Position",
+                            "begin": 2,
+                            "mask": "0x3F"
+                        },
+                        "unknown3": {
+                            "type": "property",
+                            "name": "Unknown 3",
+                            "begin": 3,
+                            "mask": "0xFF"
+                        }
+                    }
+                }
+            },
+            "pointerTable": {
+                "range": "0x2C8000-0x2C8200",
+                "offset": "0x2C0000",
+                "isMapped": true
+            }
+        },
+        "text": {
+            "type": "array",
+            "name": "Text",
+            "range": "0x188D60-0x1FA000",
+            "array": {
+                "length": 1712
+            },
+            "assembly": {
+                "type": "text",
+                "encoding": "text",
+                "multiLine": true
+            },
+            "pointerTable": {
+                "range": "0x188000-0x188D60",
+                "offset": "0x188000"
+            },
+            "stringTable": {
+                "length": 1712,
+                "default": "<text[%i]>"
+            }
+        }
+    },
+    "charTable": {
+        "fixedLength": {
+            "name": "Fixed Length",
+            "char": {
+                "0xFF": "\\pad"
+            }
+        },
+        "nullTerminated": {
+            "name": "Null-Terminated",
+            "char": {
+                "0x00": "\\0",
+                "0x01": "\\n",
+                "0xFF": "　"
+            }
+        },
+        "text": {
+            "name": "Text",
+            "char": {
+                "0x02": "\\item",
+                "0x03": "\\spell",
+                "0x04": "\\gil",
+                "0x05": "\\partygil",
+                "0x08": "\\cp",
+                "0x0C": "\\xchar",
+                "0x0F": "\\trash",
+                "0x10": "\\char1[",
+                "0x11": "\\char2[",
+                "0x12": "\\char3[",
+                "0x13": "\\char4[",
+                "0x14": "\\t[",
+                "0x15": "\\choice[",
+                "0x17": "\\x17[",
+                "0x29": "が",
+                "0x2A": "ぎ",
+                "0x2B": "ぐ",
+                "0x2C": "げ",
+                "0x2D": "ご",
+                "0x2E": "ざ",
+                "0x2F": "じ",
+                "0x30": "ず",
+                "0x31": "ぜ",
+                "0x32": "ぞ",
+                "0x33": "だ",
+                "0x34": "ぢ",
+                "0x35": "づ",
+                "0x36": "で",
+                "0x37": "ど",
+                "0x38": "ば",
+                "0x39": "び",
+                "0x3A": "ぶ",
+                "0x3B": "べ",
+                "0x3C": "ぼ",
+                "0x3D": "ぱ",
+                "0x3E": "ぴ",
+                "0x3F": "ぷ",
+                "0x40": "ぺ",
+                "0x41": "ぽ",
+                "0x42": "ヴ",
+                "0x43": "ガ",
+                "0x44": "ギ",
+                "0x45": "グ",
+                "0x46": "ゲ",
+                "0x47": "ゴ",
+                "0x48": "ザ",
+                "0x49": "ジ",
+                "0x4A": "ズ",
+                "0x4B": "ゼ",
+                "0x4C": "ゾ",
+                "0x4D": "ダ",
+                "0x4E": "ヂ",
+                "0x4F": "ヅ",
+                "0x50": "デ",
+                "0x51": "ド",
+                "0x52": "バ",
+                "0x53": "ビ",
+                "0x54": "ブ",
+                "0x55": "ベ",
+                "0x56": "ボ",
+                "0x57": "パ",
+                "0x58": "ピ",
+                "0x59": "プ",
+                "0x5A": "ペ",
+                "0x5B": "ポ",
+                "0x5C": "Ｃ",
+                "0x5D": "Ｇ",
+                "0x5E": "Ｌ",
+                "0x5F": "Ｖ",
+                "0x60": "\\shield",
+                "0x61": "\\armor",
+                "0x62": "\\helm",
+                "0x63": "\\glove",
+                "0x64": "\\nunchucks",
+                "0x65": "\\book",
+                "0x66": "\\rod",
+                "0x67": "\\hammer",
+                "0x68": "\\spear",
+                "0x69": "\\knife",
+                "0x6A": "\\axe",
+                "0x6B": "\\sword",
+                "0x6C": "\\darksword",
+                "0x6D": "\\harp",
+                "0x6E": "\\bow",
+                "0x6F": "\\bell",
+                "0x70": "\\boomerang",
+                "0x71": "\\shuriken",
+                "0x72": "\\summon",
+                "0x73": "\\x",
+                "0x74": "\\white",
+                "0x75": "\\black",
+                "0x76": "Ｅ",
+                "0x77": "Ｈ",
+                "0x78": "Ｍ",
+                "0x79": "Ｐ",
+                "0x7A": "Ｘ",
+                "0x7B": "を",
+                "0x7C": "っ",
+                "0x7D": "ゃ",
+                "0x7E": "ゅ",
+                "0x7F": "ょ",
+                "0x80": "０",
+                "0x81": "１",
+                "0x82": "２",
+                "0x83": "３",
+                "0x84": "４",
+                "0x85": "５",
+                "0x86": "６",
+                "0x87": "７",
+                "0x88": "８",
+                "0x89": "９",
+                "0x8A": "あ",
+                "0x8B": "い",
+                "0x8C": "う",
+                "0x8D": "え",
+                "0x8E": "お",
+                "0x8F": "か",
+                "0x90": "き",
+                "0x91": "く",
+                "0x92": "け",
+                "0x93": "こ",
+                "0x94": "さ",
+                "0x95": "し",
+                "0x96": "す",
+                "0x97": "せ",
+                "0x98": "そ",
+                "0x99": "た",
+                "0x9A": "ち",
+                "0x9B": "つ",
+                "0x9C": "て",
+                "0x9D": "と",
+                "0x9E": "な",
+                "0x9F": "に",
+                "0xA0": "ぬ",
+                "0xA1": "ね",
+                "0xA2": "の",
+                "0xA3": "は",
+                "0xA4": "ひ",
+                "0xA5": "ふ",
+                "0xA6": "へ",
+                "0xA7": "ほ",
+                "0xA8": "ま",
+                "0xA9": "み",
+                "0xAA": "む",
+                "0xAB": "め",
+                "0xAC": "も",
+                "0xAD": "や",
+                "0xAE": "ゆ",
+                "0xAF": "よ",
+                "0xB0": "ら",
+                "0xB1": "り",
+                "0xB2": "る",
+                "0xB3": "れ",
+                "0xB4": "ろ",
+                "0xB5": "わ",
+                "0xB6": "ん",
+                "0xB7": "ァ",
+                "0xB8": "ィ",
+                "0xB9": "。",
+                "0xBA": "ェ",
+                "0xBB": "ォ",
+                "0xBC": "ッ",
+                "0xBD": "ャ",
+                "0xBE": "ュ",
+                "0xBF": "ョ",
+                "0xC0": "、",
+                "0xC1": "。",
+                "0xC2": "ー",
+                "0xC3": "…",
+                "0xC4": "！",
+                "0xC5": "？",
+                "0xC6": "％",
+                "0xC7": "／",
+                "0xC8": "：",
+                "0xC9": "『",
+                "0xCA": "ア",
+                "0xCB": "イ",
+                "0xCC": "ウ",
+                "0xCD": "エ",
+                "0xCE": "オ",
+                "0xCF": "カ",
+                "0xD0": "キ",
+                "0xD1": "ク",
+                "0xD2": "ケ",
+                "0xD3": "コ",
+                "0xD4": "サ",
+                "0xD5": "シ",
+                "0xD6": "ス",
+                "0xD7": "セ",
+                "0xD8": "ソ",
+                "0xD9": "タ",
+                "0xDA": "チ",
+                "0xDB": "ツ",
+                "0xDC": "テ",
+                "0xDD": "ト",
+                "0xDE": "ナ",
+                "0xDF": "ニ",
+                "0xE0": "ヌ",
+                "0xE1": "ネ",
+                "0xE2": "ノ",
+                "0xE3": "ハ",
+                "0xE4": "ヒ",
+                "0xE5": "フ",
+                "0xE6": "「",
+                "0xE7": "ホ",
+                "0xE8": "マ",
+                "0xE9": "ミ",
+                "0xEA": "ム",
+                "0xEB": "メ",
+                "0xEC": "モ",
+                "0xED": "ヤ",
+                "0xEE": "ユ",
+                "0xEF": "ヨ",
+                "0xF0": "ラ",
+                "0xF1": "リ",
+                "0xF2": "ル",
+                "0xF3": "レ",
+                "0xF4": "ロ",
+                "0xF5": "ワ",
+                "0xF6": "ン",
+                "0xFF": "　"
+            }
+        }
+    },
+    "textEncoding": {
+        "text": {
+            "name": "Text",
+            "charTable": [
+                "text",
+                "nullTerminated"
+            ]
+        }
+    },
+    "stringTable": {
+    },
+    "freeSpace": [
+        "0x17BFD4-0x188000"
+    ]
+}

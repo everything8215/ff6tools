@@ -1444,6 +1444,7 @@ Object.defineProperty(ROM.prototype, "isPSX", { get: function() { return this.sy
 ROM.MapMode = {
     none: "none",
     mmc1: "mmc1",
+    mmc3: "mmc3",
     loROM: "loROM",
     hiROM: "hiROM",
     gba: "gba",
@@ -1454,6 +1455,7 @@ ROM.MapMode = {
 ROM.prototype.bankSize = function() {
     switch (this.mode) {
         case ROM.MapMode.mmc1: return 0x4000;
+        case ROM.MapMode.mmc3: return 0x2000;
         case ROM.MapMode.loROM: return 0x8000;
         case ROM.MapMode.hiROM: return 0x10000;
         case ROM.MapMode.x16: return 0x2000;
@@ -1466,6 +1468,10 @@ ROM.prototype.mapAddress = function(address) {
         case ROM.MapMode.mmc1:
             var bank = address & 0xFF0000;
             return (bank >> 2) + (address & 0x3FFF) + 0x10;
+
+        case ROM.MapMode.mmc3:
+            var bank = address & 0xFF0000;
+            return (bank >> 3) + (address & 0x1FFF) + 0x10;
 
         case ROM.MapMode.loROM:
             var bank = address & 0xFF0000;
@@ -1507,9 +1513,18 @@ ROM.prototype.mapRange = function(range) {
 ROM.prototype.unmapAddress = function(address) {
     switch (this.mode) {
         case ROM.MapMode.mmc1:
-            address -= 0x10; // header
+            address -= 0x10; // iNES header
             var bank = (address << 2) & 0xFF0000;
             return bank | (address & 0x3FFF) | 0x8000;
+
+        case ROM.MapMode.mmc3:
+            address -= 0x10; // iNES header
+            var bank = (address << 3) & 0xFF0000;
+            if (bank & 0x010000) {
+                return bank | (address & 0x1FFF) | 0xA000;
+            } else {
+                return bank | (address & 0x1FFF) | 0x8000;
+            }
 
         case ROM.MapMode.loROM:
             var bank = (address << 1) & 0xFF0000;

@@ -3,6 +3,7 @@
         "name": "Final Fantasy (J)",
         "url": "ff1/ff1j-nes.json",
         "crc32": [
+            "0x23C13B15",
             "0x8328E614"
         ]
     },
@@ -11,6 +12,20 @@
         "url": "ff1/ff1u-nes.json",
         "crc32": [
             "0xAB12ECE6"
+        ]
+    },
+    "ff3j-nes": {
+        "name": "Final Fantasy III (J)",
+        "url": "ff3/ff3j-nes.json",
+        "crc32": [
+            "0x99F5DB31"
+        ]
+    },
+    "ff3u-nes": {
+        "name": "Final Fantasy III (U)",
+        "url": "ff3/ff3u-nes.json",
+        "crc32": [
+            "0xFA04837F"
         ]
     },
     "ff2u-sfc": {
