@@ -1208,6 +1208,7 @@ function ROM(rom, definition) {
     this.numberBase = definition.numberBase || 10;
     this.noChecksumFix = definition.noChecksumFix || false;
     this.gammaCorrection = definition.gammaCorrection || false;
+    this.definitionFormat = definition.definitionFormat || 'json';
 
     var i, key, keys;
 
@@ -1284,6 +1285,7 @@ Object.defineProperty(ROM.prototype, "definition", { get: function() {
     if (this.numberBase !== 10) definition.numberBase = this.numberBase;
     if (this.noChecksumFix) definition.noChecksumFix = true;
     if (this.gammaCorrection) definition.gammaCorrection = true;
+    if (this.definitionFormat !== 'json') definition.definitionFormat = this.definitionFormat;
 
     var keys, key;
 
@@ -3068,6 +3070,35 @@ ROM.prototype.showSettings = function() {
         romNavigator.resetList();
     }
 
+    var defFormatDiv = document.createElement('div');
+    defFormatDiv.classList.add("property-div");
+    content.appendChild(defFormatDiv);
+    var defFormatLabel = document.createElement('label');
+    defFormatLabel.innerHTML = "Definition File Format: ";
+    defFormatLabel.htmlFor = "settings-def-format-control";
+    defFormatLabel.classList.add("property-label");
+    defFormatDiv.appendChild(defFormatLabel);
+    var defFormatControl = document.createElement('select');
+    defFormatDiv.appendChild(defFormatControl);
+    defFormatControl.id = "settings-def-format-control";
+    defFormatControl.classList.add("property-control");
+    var defFormatOption1 = document.createElement('option');
+    defFormatOption1.value = 0;
+    defFormatOption1.innerHTML = "JSON";
+    defFormatControl.appendChild(defFormatOption1);
+    var defFormatOption2 = document.createElement('option');
+    defFormatOption2.value = 1;
+    defFormatOption2.innerHTML = "YAML";
+    defFormatControl.appendChild(defFormatOption2);
+    defFormatControl.value = rom.definitionFormat === "yaml" ? 1 : 0;
+    defFormatControl.onchange = function() {
+        if (Number(this.value) === 1) {
+            rom.definitionFormat = "yaml";
+        } else {
+            rom.definitionFormat = "json";
+        }
+    }
+
     if (rom.isSFC) {
         var checksumDiv = document.createElement('div');
         checksumDiv.classList.add("property-div");
@@ -3168,16 +3199,17 @@ function ROMProperty(rom, definition, parent) {
         this.special[index] = special[key];
     }
 
-    // calculate the bit index
+    // calculate the index of the first bit
     for (var b = 0; b < 32; b++) {
-        if (((1 << b) & this.mask) === 0) continue;
-        this.bit = b;
-        break;
+        if ((1 << b) & this.mask) {
+            this.bit = b;
+            break;
+        }
     }
 
     // calculate the mask width
     this.width = 0;
-    for (var m = this.mask >> this.bit; m !== 0; m >>= 1) this.width++;
+    while (this.mask >> (this.width + this.bit)) this.width++;
 
     // set minimum and maximum values
     this.min = Number(definition.min);
@@ -5286,6 +5318,20 @@ Object.defineProperty(ROMStringTable.prototype, "definition", { get: function() 
     this.string.forEach(function(s, i) {
         if (s.value !== defaultString) definition.string[i] = s.value;
     })
+
+    // combine identical consecutive strings
+    for (const key in definition.string) {
+        const string = definition.string[key];
+        if (!string) continue;
+        const s = Number(key);
+        if (definition.string[s + 1] !== string) continue;
+        let run = 0;
+        while (definition.string[s + run] === string) {
+            delete definition.string[s + run];
+            run++;
+        }
+        definition.string[`${s}-${s+run}`] = string;
+    }
 
     // delete the string list if there were no custom strings
     if (Object.keys(definition.string).length === 0) definition.string = null;

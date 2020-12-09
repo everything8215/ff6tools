@@ -614,9 +614,9 @@ class FF6Map extends ROMEditor_ {
         appendMenuItem('Insert NPC', this.isWorld ? null : function() {
             self.insertTrigger('npcProperties');
         });
-        appendMenuItem('Delete Trigger', !this.selectedTrigger ? null : function() {
+        appendMenuItem('Delete Trigger', this.selectedTrigger ? function() {
             self.deleteTrigger();
-        });
+        } : null);
     }
 
     setTiles() {

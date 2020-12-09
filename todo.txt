@@ -15,7 +15,6 @@ general
  * add a multi-bank option for assemblies that can span multiple banks
  * emulate parallax scrolling when screen mask is on
  * improve fragmented assemblies
- * organize source/definition files in github folder
  * add delegates for objects to intercept assembly methods
  * nes mode for tilemap view (16x16 attr table)
  * add some way to show valid text escape sequences and odd unicode characters
@@ -24,7 +23,7 @@ gui
 ---
  * custom property controls (entrance trigger destination, rendered text, colosseum battle, fill tile)
  * grid controls (for element/status, esper/natural magic)
- * tile mask layers for map editor (ff1, ff2, ff5)
+ * tile mask layers for map editor (ff3, ff5)
  * add directional passability masks for ff6
  * legend for tile mask colors
  * allow multiple selection, cut/copy/paste in script list
@@ -33,7 +32,7 @@ gui
  * script list/trigger double click functionality
  * navigator labels should update automatically
  * find a better way to auto-populate battle names
- * array insert/remove
+ * controls for array insert/remove
  * arrayPath/objectPath in navigator
  * make menu close any time you click outside of it
  * graphics export selection only

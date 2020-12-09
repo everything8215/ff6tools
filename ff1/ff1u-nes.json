@@ -1,7 +1,7 @@
 {
     "type": "rom",
     "key": "ff1u-nes",
-    "name": "Final Fantasy (US)",
+    "name": "Final Fantasy (U)",
     "length": "0x040010",
     "crc32": "0xAB12ECE6",
     "system": "nes",

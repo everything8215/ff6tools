@@ -90,6 +90,7 @@ class FF1Map extends ROMEditor_ {
             const t = mapProperties.tileset.value;
             const name = mapStringTable.string[m].fString(40);
             const tileset = this.rom.mapTileset.item(t);
+            if (!tileset) continue;
             tileset.palette.push({
                 name: `${name} (Inside)`,
                 path: `mapPalette[${m}]`,

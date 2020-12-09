@@ -134,6 +134,9 @@
                     "name": "Long Attack Names",
                     "path": "attackNameLong"
                 }, {
+                    "name": "Attack Animation Properties",
+                    "path": "attackAnimationProperties"
+                }, {
                     "name": "Spell Graphics 1",
                     "path": "attackTilemap1"
                 }, {
@@ -236,6 +239,76 @@
             "stringTable": {
                 "length": 33,
                 "default": "<abilityNameInnate[%i]>"
+            }
+        },
+        "attackAnimationProperties": {
+            "type": "array",
+            "name": "Attack Animation Properties",
+            "range": "0xD838EC-0xD84157",
+            "array": {
+                "length": 431
+            },
+            "assembly": {
+                "type": "data",
+                "length": 5,
+                "assembly": {
+                    "graphicsBank": {
+                        "type": "property",
+                        "name": "Graphics Bank",
+                        "begin": 0,
+                        "mask": "0xE0",
+                        "stringTable": {
+                            "string": {
+                                "0": "Spell Graphics 1",
+                                "1": "Spell Graphics 2",
+                                "2": "Spell Graphics 3",
+                                "3": "Weapon Hit",
+                                "4": "Animals",
+                                "5": "No Graphics",
+                                "6": "No Graphics",
+                                "7": "No Graphics"
+                            }
+                        }
+                    },
+                    "graphics": {
+                        "type": "property",
+                        "name": "Graphics",
+                        "begin": 0,
+                        "mask": "0x1F"
+                    },
+                    "palette": {
+                        "type": "property",
+                        "name": "Palette",
+                        "begin": 1,
+                        "mask": "0x7F"
+                    },
+                    "unknown": {
+                        "type": "property",
+                        "name": "Unknown",
+                        "begin": 1,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "script": {
+                        "type": "property",
+                        "name": "Script",
+                        "begin": 2
+                    },
+                    "initFunction": {
+                        "type": "property",
+                        "name": "Init. Function",
+                        "begin": 3
+                    },
+                    "soundEffect": {
+                        "type": "property",
+                        "name": "Sound Effect",
+                        "begin": 4
+                    }
+                }
+            },
+            "stringTable": {
+                "length": 431,
+                "default": "Attack Animation %i"
             }
         },
         "attackGraphics1": {

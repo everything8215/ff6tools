@@ -1,65 +1,67 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html lang="en-US">
     <head>
         <meta charset="UTF-8">
         <title>FF6Tools</title>
         <meta name="description" content="Browser-Based Editor for Final Fantasy ROMs">
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
-        <link rel="stylesheet" type="text/css" href="css/balloon.css" />
-        <link rel="stylesheet" type="text/css" href="css/ff6tools.css" />
+        <link rel="stylesheet" href="css/balloon.css" />
+        <link rel="stylesheet" href="css/ff6tools.css" />
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/split.js/1.5.11/split.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/1.0.10/pako.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/css-element-queries/1.2.3/ResizeSensor.min.js"></script>
-        <script type="text/javascript" src="lib/pzntg.js"></script>
-        <script type="text/javascript" src="lib/rgbquant.js"></script>
-        <script type="text/javascript" src="rom/gfx.js"></script>
-        <script type="text/javascript" src="rom/tose70.js"></script>
-        <script type="text/javascript" src="rom/romtools.js"></script>
-        <script type="text/javascript" src="rom/rom-observer.js"></script>
-        <script type="text/javascript" src="gui/romgui.js"></script>
-        <script type="text/javascript" src="gui/editor.js"></script>
-        <script type="text/javascript" src="gui/navigator.js"></script>
-        <script type="text/javascript" src="gui/palette-view.js"></script>
-        <script type="text/javascript" src="gui/graphics-view.js"></script>
-        <script type="text/javascript" src="gui/tilemap-view.js"></script>
-        <script type="text/javascript" src="gui/property-list.js"></script>
-        <script type="text/javascript" src="gui/toolbox.js"></script>
-        <script type="text/javascript" src="ff1/ff1-map.js"></script>
-        <script type="text/javascript" src="ff1/ff1-map-layer.js"></script>
-        <script type="text/javascript" src="ff1/ff1-map-tileset.js"></script>
-        <script type="text/javascript" src="ff1/ff1-battle.js"></script>
-        <script type="text/javascript" src="ff1/ff1-level.js"></script>
-        <script type="text/javascript" src="ff4/ff4-map.js"></script>
-        <script type="text/javascript" src="ff4/ff4-map-tileset.js"></script>
-        <script type="text/javascript" src="ff4/ff4-map-gba.js"></script>
-        <script type="text/javascript" src="ff4/ff4-map-gba-tileset.js"></script>
-        <script type="text/javascript" src="ff4/ff4-battle.js"></script>
-        <script type="text/javascript" src="ff4/ff4-battle-bg-editor.js"></script>
-        <script type="text/javascript" src="ff4/ff4-battle-vram.js"></script>
-        <script type="text/javascript" src="ff4/ff4-script.js"></script>
-        <script type="text/javascript" src="ff4/ff4-level.js"></script>
-        <script type="text/javascript" src="ff5/ff5-map.js"></script>
-        <script type="text/javascript" src="ff5/ff5-map-layer.js"></script>
-        <script type="text/javascript" src="ff5/ff5-map-tileset.js"></script>
-        <script type="text/javascript" src="ff5/ff5-battle.js"></script>
-        <script type="text/javascript" src="ff5/ff5-battle-bg-editor.js"></script>
-        <script type="text/javascript" src="ff5/ff5-script.js"></script>
-        <script type="text/javascript" src="ff5/ff5-level.js"></script>
-        <script type="text/javascript" src="ff6/ff6-map.js"></script>
-        <script type="text/javascript" src="ff6/ff6-map-layer.js"></script>
-        <script type="text/javascript" src="ff6/ff6-map-tileset.js"></script>
-        <script type="text/javascript" src="ff6/ff6-battle.js"></script>
-        <script type="text/javascript" src="ff6/ff6-battle-bg-editor.js"></script>
-        <script type="text/javascript" src="ff6/ff6-battle-vram.js"></script>
-        <script type="text/javascript" src="ff6/ff6-script.js"></script>
-        <script type="text/javascript" src="ff6/ff6-level.js"></script>
-        <script type="text/javascript">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/3.14.0/js-yaml.min.js"></script>
+        <script src="lib/pzntg.js"></script>
+        <script src="lib/rgbquant.js"></script>
+        <script src="rom/gfx.js"></script>
+        <script src="rom/tose70.js"></script>
+        <script src="rom/romtools.js"></script>
+        <script src="rom/rom-observer.js"></script>
+        <script src="gui/romgui.js"></script>
+        <script src="gui/editor.js"></script>
+        <script src="gui/navigator.js"></script>
+        <script src="gui/palette-view.js"></script>
+        <script src="gui/graphics-view.js"></script>
+        <script src="gui/tilemap-view.js"></script>
+        <script src="gui/property-list.js"></script>
+        <script src="gui/toolbox.js"></script>
+        <script src="ff1/ff1-map.js"></script>
+        <script src="ff1/ff1-map-layer.js"></script>
+        <script src="ff1/ff1-map-tileset.js"></script>
+        <script src="ff1/ff1-battle.js"></script>
+        <script src="ff1/ff1-level.js"></script>
         <script src="ff3/ff3-map.js"></script>
         <script src="ff3/ff3-map-layer.js"></script>
         <script src="ff3/ff3-map-tileset.js"></script>
+        <script src="ff4/ff4-map.js"></script>
+        <script src="ff4/ff4-map-layer.js"></script>
+        <script src="ff4/ff4-map-tileset.js"></script>
+        <script src="ff4/ff4-map-gba.js"></script>
+        <script src="ff4/ff4-map-gba-tileset.js"></script>
+        <script src="ff4/ff4-battle.js"></script>
+        <script src="ff4/ff4-battle-bg-editor.js"></script>
+        <script src="ff4/ff4-battle-vram.js"></script>
+        <script src="ff4/ff4-script.js"></script>
+        <script src="ff4/ff4-level.js"></script>
+        <script src="ff5/ff5-map.js"></script>
+        <script src="ff5/ff5-map-layer.js"></script>
+        <script src="ff5/ff5-map-tileset.js"></script>
+        <script src="ff5/ff5-battle.js"></script>
+        <script src="ff5/ff5-battle-bg-editor.js"></script>
+        <script src="ff5/ff5-script.js"></script>
+        <script src="ff5/ff5-level.js"></script>
+        <script src="ff6/ff6-map.js"></script>
+        <script src="ff6/ff6-map-layer.js"></script>
+        <script src="ff6/ff6-map-tileset.js"></script>
+        <script src="ff6/ff6-battle.js"></script>
+        <script src="ff6/ff6-battle-bg-editor.js"></script>
+        <script src="ff6/ff6-battle-vram.js"></script>
+        <script src="ff6/ff6-script.js"></script>
+        <script src="ff6/ff6-level.js"></script>
+        <script>
 
             var rom, definition, data, modal, definitions;
 
@@ -72,21 +74,22 @@
                     definitions = JSON.parse(xhr.responseText);
                 };
                 xhr.onerror = function() {
-                    console.log("Unable to load ROM definitions");
+                    console.log('Unable to load ROM definitions');
                 };
-                xhr.open("get", "rom/def.json");
+                xhr.open('get', 'rom/def.json');
                 xhr.send();
 
                 modal = document.getElementById('modal');
 
-                var romFile = document.getElementById("rom-file");
+                var romFile = document.getElementById('rom-file');
                 romFile.onchange = selectROM;
 
-                // When the user clicks on <span> (x), close the modal
-                var closeButton = document.getElementById("modal-close");
+                // close the modal when the user clicks on <span> (x)
+                var closeButton = document.getElementById('modal-close');
                 closeButton.onclick = closeModal;
 
-                Split(["#left-pane", "#center-pane", "#right-pane"], {
+                // set up splitter for main panes
+                Split(['#left-pane', '#center-pane', '#right-pane'], {
                     sizes: [5, 80, 5],
                     minSize: [256, 0, 256],
                     gutterSize: 5,
@@ -95,19 +98,20 @@
                     elementStyle: function (dimension, size, gutterSize) {
                         return {
                             'flex-shrink': 1,
-                            'flex-basis': 'calc(' + size + '% - ' + gutterSize + 'px)'
+                            'flex-basis': `calc(${size}% - ${gutterSize}px)`
                         }
                     },
                     gutterStyle: function (dimension, gutterSize) {
                         return {
                             'flex-shrink': 0,
-                            'flex-basis':  gutterSize + 'px',
+                            'flex-basis': `${gutterSize}px`,
                             'background-color': 'hsl(0, 0%, 30%)'
                         }
                     }
                 });
 
-                Split(["#edit-top", "#edit-bottom"], {
+                // set up splitter for center pane (edit)
+                Split(['#edit-top', '#edit-bottom'], {
                     sizes: [50, 50],
                     minSize: [28, 43],
                     gutterSize: 5,
@@ -115,19 +119,20 @@
                     direction: 'vertical',
                     elementStyle: function (dimension, size, gutterSize) {
                         return {
-                            'flex-basis': 'calc(' + size + '% - ' + gutterSize + 'px)'
+                            'flex-basis': `calc(${size}% - ${gutterSize}px)`
                         }
                     },
                     gutterStyle: function (dimension, gutterSize) {
                         return {
                             'flex-shrink': 0,
-                            'flex-basis':  gutterSize + 'px',
+                            'flex-basis': `${gutterSize}px`,
                             'background-color': 'hsl(0, 0%, 30%)'
                         }
                     }
                 });
 
-                Split(["#right-pane-top", "#right-pane-bottom"], {
+                // set up splitter for right pane (toolbox/properties)
+                Split(['#right-pane-top', '#right-pane-bottom'], {
                     sizes: [25, 75],
                     minSize: [0, 0],
                     gutterSize: 5,
@@ -169,7 +174,7 @@
             }
 
             window.onbeforeunload = function() {
-                return "Are you sure you want to leave?";
+                return 'Are you sure you want to leave?';
             };
 
             // When the user clicks anywhere outside of the modal, close it
@@ -180,23 +185,23 @@
             }
 
             function openModal(title) {
-                modal.style.display = "flex";
+                modal.style.display = 'flex';
 
                 var modalTitle = document.getElementById('modal-title');
                 modalTitle.innerHTML = title;
 
                 var content = document.getElementById('modal-content');
-                content.innerHTML = "";
+                content.innerHTML = '';
                 return content;
             }
 
             function closeModal() {
-                modal.style.display = "none";
+                modal.style.display = 'none';
             }
 
             function selectROM() {
 
-                var romfile = document.getElementById("rom-file");
+                var romfile = document.getElementById('rom-file');
                 if (!romfile || !romfile.files[0]) return;
                 var file = romfile.files[0];
                 romfile.value = null;
@@ -218,12 +223,12 @@
                     }
 
                     // prompt the user to load their own definition
-                    var content = openModal("Select Definition");
+                    var content = openModal('Select Definition');
                     var p = document.createElement('p');
-                    p.innerHTML = "The CRC32 of this ROM does not match any " +
-                        "built-in definitions. Please select a built-in " +
-                        "definition manually from the list or choose a " +
-                        "custom definition file.";
+                    p.innerHTML = 'The CRC32 of this ROM does not match any ' +
+                        'built-in definitions. Please select a built-in ' +
+                        'definition manually from the list or choose a ' +
+                        'custom definition file.';
                     content.appendChild(p);
 
                     var ul = document.createElement('ul');
@@ -276,14 +281,18 @@
                 var xhr = new XMLHttpRequest();
                 xhr.onreadystatechange = function() {
                     if (xhr.readyState != 4 || xhr.status !== 200) return;
-                    definition = JSON.parse(xhr.responseText);
+                    if (url.endsWith('yaml') || url.endsWith('yml')) {
+                        definition = jsyaml.safeLoad(xhr.responseText);
+                    } else {
+                        definition = JSON.parse(xhr.responseText);
+                    }
 
                     loadROM();
                 };
                 xhr.onerror = function() {
-                    console.log("Error opening ROM definition: " + url);
+                    console.log(`Error opening ROM definition: ${url}`);
                 };
-                xhr.open("get", url);
+                xhr.open('get', url);
                 xhr.send();
 
                 return true;
@@ -293,7 +302,7 @@
 
                 closeModal();
 
-                var definitionfile = document.getElementById("definition-file");
+                var definitionfile = document.getElementById('definition-file');
                 if (!definitionfile || !definitionfile.files[0]) return;
                 var file = definitionfile.files[0];
                 definitionfile.value = null;
@@ -303,7 +312,11 @@
 
                     // get the file as a byte array
                     var textBuffer = filereader.result;
-                    definition = JSON.parse(textBuffer);
+                    if (file.name.endsWith('yaml') || file.name.endsWith('yml')) {
+                        definition = jsyaml.safeLoad(textBuffer);
+                    } else {
+                        definition = JSON.parse(textBuffer);
+                    }
 
                     loadROM();
                 };
@@ -317,8 +330,8 @@
                 rom = ROMObject.create(null, definition);
                 rom.disassemble(data);
 
-                console.log("CRC32: " + hexString(ROM.crc32(data), 8));
-                if (rom.isSFC) console.log("SNES Checksum: " + hexString(ROM.checksum(data), 4));
+                console.log(`CRC32: ${hexString(ROM.crc32(data), 8)}`);
+                if (rom.isSFC) console.log(`SNES Checksum: ${hexString(ROM.checksum(data), 4)}`);
 
                 // create gui objects
                 if (propertyList) {
@@ -332,67 +345,69 @@
                 romNavigator = new ROMNavigator(rom);
                 scriptList = new ROMScriptList(rom);
 
-//                rom.expandMode = "optimize";
-
-//                // test compression
-//                // 59, 232, 278 fail
-//                var encoder = new FF5AdvanceEncoder();
-//                var decoder = new FF5AdvanceDecoder();
-//                for (var i = 59; i < this.rom.mapGraphicsData.arrayLength; i++) {
-//                    var layout = this.rom.mapGraphicsData.item(i);
-//                    for (var m1 = 0; m1 < 5; m1++) {
-//                        for (var m3 = 0; m3 < 5; m3++) {
-//                            encoder.m1 = m1;
-//                            encoder.m3 = m3;
-//                            var testData = encoder.compress(layout.data);
-//                            testData = decoder.decode(testData)[0];
-//                            var pass = compareTypedArrays(testData, layout.data);
-//                            console.log("Layout " + i + ", (" + m1 + "," + m3 + "): " + (pass ? "Pass" : "**Fail**"));
-//                        }
-//                    }
-//                }
-
                 // select the first map
-                propertyList.select(rom.mapProperties.item(0));
-//                propertyList.select(rom.battleProperties.item(0));
+                if (rom.mapProperties) {
+                    propertyList.select(rom.mapProperties.item(0));
+                }
 
-//                // output strings to the console
-//                var bigString = "";
-//                for (var d = 0; d < rom.text.arrayLength; d++) {
-//                    var dialogString = rom.text.item(d).text;
-//                    bigString += hexString(d, 4) + ": " + dialogString.replace(/\\n/g, "\n        ").replace(/\\page/g, "\n        ") + "\n";
-//                }
-//                console.log(bigString);
+                // rom.expandMode = 'optimize';
+                //
+                // // test compression
+                // // 59, 232, 278 fail
+                // var encoder = new FF5AdvanceEncoder();
+                // var decoder = new FF5AdvanceDecoder();
+                // for (var i = 59; i < this.rom.mapGraphicsData.arrayLength; i++) {
+                //    var layout = this.rom.mapGraphicsData.item(i);
+                //    for (var m1 = 0; m1 < 5; m1++) {
+                //        for (var m3 = 0; m3 < 5; m3++) {
+                //            encoder.m1 = m1;
+                //            encoder.m3 = m3;
+                //            var testData = encoder.compress(layout.data);
+                //            testData = decoder.decode(testData)[0];
+                //            var pass = compareTypedArrays(testData, layout.data);
+                //            console.log("Layout " + i + ", (" + m1 + "," + m3 + "): " + (pass ? "Pass" : "**Fail**"));
+                //        }
+                //    }
+                // }
 
-//                // output script to the console
-//                var bigString = "";
-//                for (var s = 0; s < rom.eventScript.arrayLength; s++) {
-//                    var scriptString = "Event " + hexString(s, 4, "") + "\n----------\n";
-//                    var script = rom.eventScript.item(s);
-//                    for (var c = 0; c < script.command.length; c++) {
-//                        var command = script.command[c];
-//                        scriptString += hexString(command.range.begin, 4, "") + ": ";
-//                        for (var b = 0; b < 18; b++) {
-//                            if (b < command.data.length) {
-//                                scriptString += hexString(command.data[b], 2, "") + " ";
-//                            } else {
-//                                scriptString += "   ";
-//                            }
-//                        }
-//                        scriptString += " " + command.description + "\n";
-//                        if (command.key.startsWith("dialog")) {
-//                            var d = command.dialog.value & 0x7FFF;
-//                            var dialog = rom.text.item(d);
-//                            if (dialog) {
-//                                scriptString += "                                                             " + dialog.formattedText.replace(/\n/g, "\n                                                             ") + "\n";
-//                            } else {
-//                                scriptString += " (Invalid Dialog)";
-//                            }
-//                        }
-//                    }
-//                    bigString += scriptString + "\n";
-//                }
-//                console.log(bigString);
+                // // output strings to the console
+                // var bigString = "";
+                // for (var d = 0; d < rom.text.arrayLength; d++) {
+                //    var dialogString = rom.text.item(d).text;
+                //    bigString += hexString(d, 4) + ": " + dialogString.replace(/\\n/g, "\n        ").replace(/\\page/g, "\n        ") + "\n";
+                // }
+                // console.log(bigString);
+
+                // // output script to the console
+                // var bigString = "";
+                // for (var s = 0; s < rom.eventScript.arrayLength; s++) {
+                //     var scriptString = "Event " + hexString(s, 4, "") + "\n----------\n";
+                //     var script = rom.eventScript.item(s);
+                //     for (var c = 0; c < script.command.length; c++) {
+                //         var command = script.command[c];
+                //         scriptString += hexString(command.range.begin, 4, "") + ": ";
+                //         for (var b = 0; b < 18; b++) {
+                //             if (b < command.data.length) {
+                //                 scriptString += hexString(command.data[b], 2, "") + " ";
+                //             } else {
+                //                 scriptString += "   ";
+                //             }
+                //         }
+                //         scriptString += " " + command.description + "\n";
+                //         if (command.key.startsWith("dialog")) {
+                //             var d = command.dialog.value & 0x7FFF;
+                //             var dialog = rom.text.item(d);
+                //             if (dialog) {
+                //                 scriptString += "                                                             " + dialog.formattedText.replace(/\n/g, "\n                                                             ") + "\n";
+                //             } else {
+                //                 scriptString += " (Invalid Dialog)";
+                //             }
+                //         }
+                //     }
+                //     bigString += scriptString + "\n";
+                // }
+                // console.log(bigString);
+
                 // removePortraits();
             }
 
@@ -400,8 +415,8 @@
 
                 if (!rom) return;
 
-//                rom.npcProperties.markAsDirty();
-//                rom.worldLayout_0.markAsDirty();
+                // rom.npcProperties.markAsDirty();
+                // rom.worldLayout_0.markAsDirty();
 
                 if (!rom.assemble()) {
                     if (forceSave) {
@@ -412,20 +427,31 @@
                     }
                 }
 
-                var definition = JSON.stringify(rom.definition, null, 4);
+                var definition;
+                var definitionFilename;
+                if (rom.definitionFormat === 'yaml') {
+                    definition = jsyaml.safeDump(rom.definition, {
+                        indent: 4,
+                        skipInvalid: true
+                    });
+                    definitionFilename = rom.name + '.yaml';
+                } else {
+                    definition = JSON.stringify(rom.definition, null, 4);
+                    definitionFilename = rom.name + '.json';
+                }
 
                 // update the script list since the script references will change
                 scriptList.update();
 
                 // create a zip file with the rom and the definition file
                 var zip = new JSZip();
-                zip.file(rom.name + '.' + rom.system, rom.data);
-                zip.file(rom.name + '.json', definition);
+                zip.file(`${rom.name}.${rom.system}`, rom.data);
+                zip.file(definitionFilename, definition);
                 zip.file('ROM Map.txt', rom.romMapText());
 
-                zip.generateAsync({ type:"blob" }).then(function(content) {
+                zip.generateAsync({ type: 'blob' }).then(function(content) {
                     // see FileSaver.js
-                    saveAs(content, rom.name + ".zip");
+                    saveAs(content, `${rom.name}.zip`);
                 });
             }
 
@@ -433,17 +459,19 @@
                 var content = openModal("Save ROM");
 
                 var p = document.createElement('p');
-                p.innerHTML = "Some data has increased in size and no longer fits in its alotted range. What would you like to do?";
+                p.innerHTML = 'Some data has increased in size and no ' +
+                    'longer fits in its alotted range. What would you like ' +
+                    'to do?';
                 content.appendChild(p);
 
                 function createExpandRadio(expandMode, description) {
                     var div = document.createElement('div');
-                    div.classList.add("expand-div");
+                    div.classList.add('expand-div');
                     var button = document.createElement('input');
-                    button.type = "radio";
-                    button.id = "expand-" + expandMode;
-                    button.classList.add("expand-radio");
-                    button.name = "expandMode";
+                    button.type = 'radio';
+                    button.id = `expand-${expandMode}`;
+                    button.classList.add('expand-radio');
+                    button.name = 'expandMode';
                     button.value = expandMode;
                     button.checked = (rom.expandMode === button.value);
                     div.appendChild(button);
@@ -454,14 +482,30 @@
                     content.appendChild(div);
                 }
 
-                createExpandRadio(ROMData.ExpandMode.truncate, "<b>Truncate:</b> Data will be truncated to fit its range (Default behavior, may result in loss of data)");
-                createExpandRadio(ROMData.ExpandMode.overwrite, "<b>Overwrite:</b> Data will overwrite adjacent data (May result in corruption of data, not recommended unless using Steam ROM)");
-                createExpandRadio(ROMData.ExpandMode.relocate, "<b>Relocate:</b> Modified data will be relocated automatically if space is available elsewhere (Recommended, may result in loss of compatibility with patches and other utilities)");
-                createExpandRadio(ROMData.ExpandMode.optimize, "<b>Optimize:</b> All possible data will be relocated to optimize use of free space (Recommended if unable to relocate, may result in loss of compatibility with patches and other utilities)");
-                if (rom.isSFC) createExpandRadio(ROMData.ExpandMode.expand, "<b>Expand:</b> The ROM will be expanded and data will be relocated to the expanded area automatically (SNES/SFC only)");
+                createExpandRadio(ROMData.ExpandMode.truncate,
+                    '<b>Truncate:</b> Data will be truncated to fit its ' +
+                    'range (Default behavior, may result in loss of data)');
+                createExpandRadio(ROMData.ExpandMode.overwrite,
+                    '<b>Overwrite:</b> Data will overwrite adjacent data ' +
+                    '(May result in corruption of data, not recommended ' +
+                    'unless using Steam ROM)');
+                createExpandRadio(ROMData.ExpandMode.relocate,
+                    '<b>Relocate:</b> Modified data will be relocated ' +
+                    'automatically if space is available elsewhere ' +
+                    '(Recommended, may result in loss of compatibility ' +
+                    'with patches and other utilities)');
+                createExpandRadio(ROMData.ExpandMode.optimize,
+                    '<b>Optimize:</b> All possible data will be relocated ' +
+                    'to optimize use of free space (Recommended if unable ' +
+                    'to relocate, may result in loss of compatibility with ' +
+                    'patches and other utilities)');
+                if (rom.isSFC) createExpandRadio(ROMData.ExpandMode.expand,
+                    '<b>Expand:</b> The ROM will be expanded and data will ' +
+                    'be relocated to the expanded area automatically ' +
+                    '(SNES/SFC only)');
 
                 var okay = document.createElement('button');
-                okay.innerHTML = "Okay";
+                okay.innerHTML = 'Okay';
                 okay.onclick = function() {
                     closeModal();
                     var radioButtons = document.getElementsByClassName('expand-radio');
@@ -481,32 +525,34 @@
                 content.appendChild(okay);
 
                 var cancel = document.createElement('button');
-                cancel.innerHTML = "Cancel";
+                cancel.innerHTML = 'Cancel';
                 cancel.onclick = function() { closeModal(); };
                 content.appendChild(cancel);
             }
 
             function showOrphans() {
-                var content = openModal("Save ROM");
+                var content = openModal('Save ROM');
                 var p = document.createElement('p');
                 content.appendChild(p);
                 if (!rom.orphans || !rom.orphans.length) {
-                    p.innerHTML = "Unable to save ROM. Try optimizing or expanding.";
+                    p.innerHTML = 'Unable to save ROM. ' +
+                        'Try optimizing or expanding.';
                     return;
                 }
-                p.innerHTML = "Failed to save the data listed below. Try optimizing or expanding.";
+                p.innerHTML = 'Failed to save the data listed below. ' +
+                    'Try optimizing or expanding.';
 
                 var ul = document.createElement('ul');
                 content.appendChild(ul);
-                ul.classList.add("modal-list");
+                ul.classList.add('modal-list');
                 for (var i = 0; i < rom.orphans.length; i++) {
                     var assembly = rom.orphans[i];
                     var li = document.createElement('li');
                     li.innerHTML = assembly.name || assembly.key;
                     if (!assembly.canRelocate) {
-                        li.innerHTML += " (cannot relocate)";
+                        li.innerHTML += ' (cannot relocate)';
                     } else {
-                        li.innerHTML += " (" + assembly.assembledLength + " bytes)";
+                        li.innerHTML += ` (${assembly.assembledLength} bytes)`;
                     }
                     ul.appendChild(li);
                 }
@@ -525,52 +571,59 @@
             }
 
             function showAbout() {
-                var content = openModal("About FF6Tools");
+                var content = openModal('About FF6Tools');
                 var p = document.createElement('p');
                 content.appendChild(p);
-                p.innerHTML = "FF6 Tools is a web-based editor for Final Fantasy ROMs.";
+                p.innerHTML = 'FF6 Tools is a web-based editor for ' +
+                    'Final Fantasy ROMs.';
 
                 p = document.createElement('p');
                 content.appendChild(p);
-                p.innerHTML = "More information, including the current list of supported ROMs, can be found in the readme file on GitHub. If you find any bugs or have ideas for new features, please feel free to open an issue on GitHub.";
+                p.innerHTML = 'More information, including the current list ' +
+                    'of supported ROMs, can be found in the readme file on ' +
+                    'GitHub. If you find any bugs or have ideas for new ' +
+                    'features, please feel free to open an issue on GitHub.';
 
                 var a = document.createElement('a');
                 content.appendChild(a);
-                a.innerHTML = "FF6Tools GitHub Repository"
-                a.href = "https://github.com/everything8215/ff6tools";
+                a.innerHTML = 'FF6Tools GitHub Repository'
+                a.href = 'https://github.com/everything8215/ff6tools';
 
                 p = document.createElement('p');
                 content.appendChild(p);
-                p.innerHTML = "FF6Tools is licensed under the GNU General Public License v3.0.";
+                p.innerHTML = 'FF6Tools is licensed under the GNU General ' +
+                    'Public License v3.0.';
 
                 p = document.createElement('p');
                 content.appendChild(p);
-                p.innerHTML = "FINAL FANTASY, all characters and related articles belong solely to Square Enix Holdings Co., Ltd. No breach of copyright intended.";
+                p.innerHTML = 'FINAL FANTASY, all characters and related ' +
+                    'articles belong solely to Square Enix Holdings Co., ' +
+                    'Ltd. No breach of copyright intended.';
             }
 
             function twoState(obj) {
                 if (obj.checked){
-                    // if checkbox is being checked, add a "checked" class
-                    obj.parentNode.classList.add("checked");
+                    // if checkbox is being checked, add a 'checked' class
+                    obj.parentNode.classList.add('checked');
                 } else {
                     // else remove it
-                    obj.parentNode.classList.remove("checked");
+                    obj.parentNode.classList.remove('checked');
                 }
             }
 
             function togglePane(p) {
                 var pane = document.getElementById(p);
-                if (pane.classList.contains("hidden")) {
-                    pane.classList.remove("hidden");
+                if (pane.classList.contains('hidden')) {
+                    pane.classList.remove('hidden');
                 } else {
-                    pane.classList.add("hidden");
+                    pane.classList.add('hidden');
                 }
             }
 
             function removePortraits() {
                 for (var d = 0; d < rom.text.arrayLength; d++) {
                     var dialog = rom.text.item(d);
-                    dialog.setText(dialog.text.replace(/\\portrait[0-9][0-9]/g, ""));
+                    dialog.setText(dialog.text.replace(/\\portrait[0-9][0-9]/g, ''));
                 }
             }
 
@@ -581,33 +634,63 @@
         <div id="outer">
 
             <div id="topbar">
-                <button class="icon-btn float-left" onclick="document.getElementById('rom-file').click();" aria-label="Open ROM" data-balloon-pos="down-left">
+                <button class="icon-btn float-left"
+                        onclick="document.getElementById('rom-file').click();"
+                        aria-label="Open ROM"
+                        data-balloon-pos="down-left">
                     <i class="fas fa-folder-open"></i>
                 </button>
-                <input type="file" style="display:none;" id="rom-file" name="file"/>
-                <button class="icon-btn float-left" onclick="saveROM()" aria-label="Save ROM" data-balloon-pos="down">
+                <input id="rom-file"
+                       type="file"
+                       style="display:none;"
+                       name="file"/>
+                <button class="icon-btn float-left"
+                        onclick="saveROM()"
+                        aria-label="Save ROM"
+                        data-balloon-pos="down">
                     <i class="fas fa-save"></i>
                 </button>
-                <button class="icon-btn float-left" onclick="undo()" aria-label="Undo" data-balloon-pos="down">
+                <button class="icon-btn float-left"
+                        onclick="undo()"
+                        aria-label="Undo"
+                        data-balloon-pos="down">
                     <i class="fas fa-undo"></i>
                 </button>
-                <button class="icon-btn float-left" onclick="redo()" aria-label="Redo" data-balloon-pos="down">
+                <button class="icon-btn float-left"
+                        onclick="redo()"
+                        aria-label="Redo"
+                        data-balloon-pos="down">
                     <i class="fas fa-redo"></i>
                 </button>
-                <button class="icon-btn float-left" onclick="showSettings()" aria-label="ROM Settings" data-balloon-pos="down">
+                <button class="icon-btn float-left"
+                        onclick="showSettings()"
+                        aria-label="ROM Settings"
+                        data-balloon-pos="down">
                     <i class="fas fa-cog"></i>
                 </button>
-                <button class="icon-btn float-left" onclick="showAbout()" aria-label="About FF6Tools" data-balloon-pos="down">
+                <button class="icon-btn float-left"
+                        onclick="showAbout()"
+                        aria-label="About FF6Tools"
+                        data-balloon-pos="down">
                     <i class="fas fa-question"></i>
                 </button>
 
-                <button class="icon-btn float-right" onclick="togglePane('right-pane')" aria-label="Show/Hide Toolbox/Properties" data-balloon-pos="down-right">
+                <button class="icon-btn float-right"
+                        onclick="togglePane('right-pane')"
+                        aria-label="Show/Hide Toolbox/Properties"
+                        data-balloon-pos="down-right">
                     <i class="fas fa-angle-double-right"></i>
                 </button>
-                <button class="icon-btn float-right" onclick="togglePane('edit-bottom')" aria-label="Show/Hide Script" data-balloon-pos="down-right">
+                <button class="icon-btn float-right"
+                        onclick="togglePane('edit-bottom')"
+                        aria-label="Show/Hide Script"
+                        data-balloon-pos="down-right">
                     <i class="fas fa-angle-double-down"></i>
                 </button>
-                <button class="icon-btn float-right" onclick="togglePane('left-pane')" aria-label="Show/Hide Navigator" data-balloon-pos="down">
+                <button class="icon-btn float-right"
+                        onclick="togglePane('left-pane')"
+                        aria-label="Show/Hide Navigator"
+                        data-balloon-pos="down">
                     <i class="fas fa-angle-double-left"></i>
                 </button>
             </div>
@@ -664,12 +747,16 @@
 
                     <div id="right-pane-bottom">
                         <div id="properties-bar">
-                            <button class="icon-btn" disabled onclick="propertyList.selectPrevious()"
-                                aria-label="Select Previous" data-balloon-pos="down-left">
+                            <button class="icon-btn"
+                                    disabled onclick="propertyList.selectPrevious()"
+                                    aria-label="Select Previous"
+                                    data-balloon-pos="down-left">
                                 <i class="fas fa-arrow-left"></i>
                             </button>
-                            <button class="icon-btn" disabled onclick="propertyList.selectNext()"
-                                aria-label="Select Next" data-balloon-pos="down">
+                            <button class="icon-btn"
+                                    disabled onclick="propertyList.selectNext()"
+                                    aria-label="Select Next"
+                                    data-balloon-pos="down">
                                 <i class="fas fa-arrow-right"></i>
                             </button>
                         </div>
@@ -682,7 +769,9 @@
 
         <div id="modal">
             <div id="modal-window">
-                <span id="modal-close"><i class="fas fa-times"></i></span>
+                <span id="modal-close">
+                    <i class="fas fa-times"></i>
+                </span>
                 <p id="modal-title"></p>
                 <div id="modal-content"></div>
             </div>

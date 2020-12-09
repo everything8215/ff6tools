@@ -1,7 +1,7 @@
 {
     "type": "rom",
     "key": "ff2u-sfc",
-    "name": "Final Fantasy II 1.0 (US)",
+    "name": "Final Fantasy II 1.0 (U)",
     "length": "0x100000",
     "crc32": "0x65D0A825",
     "system": "sfc",

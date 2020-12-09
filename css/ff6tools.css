@@ -1,9 +1,7 @@
-/*
-
-ff6tools.css
-created 1/11/2018
-
-*/
+/**
+ * ff6tools.css
+ * created 1/11/2018
+ */
 
 :root {
     --control-color-selected: hsl(210, 100%, 50%);
@@ -42,32 +40,46 @@ body {
 }
 
 .no-select {
-    -moz-user-select: none;
+       -moz-user-select: none;
     -webkit-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
+        -ms-user-select: none;
+            user-select: none;
 }
 
 .background-gradient {
     background-color: #333;
     background-image:
-    linear-gradient(45deg, rgba(0,0,0,.1) 25%, transparent 25%, transparent 75%, rgba(0,0,0,.1) 75%, rgba(0,0,0,.1)),
-    linear-gradient(135deg, rgba(0,0,0,.1) 25%, transparent 25%, transparent 75%, rgba(0,0,0,.1) 75%, rgba(0,0,0,.1));
+        linear-gradient(
+            45deg,
+            rgba(0,0,0,.1) 25%,
+            transparent 25%,
+            transparent 75%,
+            rgba(0,0,0,.1) 75%,
+            rgba(0,0,0,.1)
+        ),
+        linear-gradient(
+            135deg,
+            rgba(0,0,0,.1) 25%,
+            transparent 25%,
+            transparent 75%,
+            rgba(0,0,0,.1) 75%,
+            rgba(0,0,0,.1)
+        );
     background-size: 16px 16px;
 }
 
 .icon-btn {
+    align-content: center;
     background-color: transparent;
     border-radius: 5px;
     border-color: transparent;
     color: inherit;
-    width: 36px;
+    cursor: default;
+    font-size: 20px;
     height: 36px;
     margin: 3px;
-    font-size: 20px;
-    cursor: default;
     outline: none;
-    align-content: center;
+    width: 36px;
 }
 
 .icon-btn.selected {
@@ -89,7 +101,7 @@ body {
 }
 
 /*  buttons in top bar don't get as dark when compressed
-    because they are on a dark background */
+ *  because they are on a dark background */
 #topbar .icon-btn:active {
     background-color: var(--list-color-selected);
 }
@@ -104,17 +116,16 @@ body {
 }
 
 .two-state {
-/*    float: left;*/
-    display: inline-block;
-    height: auto;
-    padding: 2px 10px;
-    margin: 4px 3px;
     border-radius: 5px;
-    width: auto;
-    font-size: 12px;
     color: black;
-    transition: 0.2s;
+    display: inline-block;
     flex-shrink: 0;
+    font-size: 12px;
+    height: auto;
+    margin: 4px 3px;
+    padding: 2px 10px;
+    transition: 0.2s;
+    width: auto;
 }
 
 .two-state.checked {
@@ -148,33 +159,37 @@ body {
 /******************************************************************************/
 
 #outer {
-    position: absolute;
-    width: 100%;
-    height: 100%;
+    align-content: stretch;
+    align-items: stretch;
     display: flex;
     flex-direction: column;
-    align-items: stretch;
-    align-content: stretch;
+    height: 100%;
+    position: absolute;
+    width: 100%;
 }
 
 #topbar {
+    background: linear-gradient(
+        to top,
+        hsl(0, 0%, 30%),
+        hsl(0, 0%, 40%)
+    );
+    color: hsl(0, 0%, 95%);
+    flex-shrink: 0;
     margin: 0px;
     padding: 0px;
-    flex-shrink: 0;
-    background: linear-gradient(to top, hsl(0, 0%, 30%), hsl(0, 0%, 40%));
-    color: hsl(0, 0%, 95%);
 }
 
 #main {
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
     align-content: stretch;
-    position: relative;
-    height: 100%;
-    width: 100%;
-    overflow: auto;
+    align-items: stretch;
+    display: flex;
     flex: 2 1 auto;
+    flex-direction: row;
+    height: 100%;
+    overflow: auto;
+    position: relative;
+    width: 100%;
 }
 
 /******************************************************************************/
@@ -182,18 +197,18 @@ body {
 /******************************************************************************/
 
 #left-pane {
-    width: 256px;
-    height: 100%;
     display: flex;
+    flex: 0 0 auto;
     flex-direction: column;
     position: relative;
+    height: 100%;
     min-width: 256px;
-    flex: 0 0 auto;
     overflow: hidden;
     -moz-user-select: none;
     -webkit-user-select: none;
     -ms-user-select: none;
     user-select: none;
+    width: 256px;
 }
 
 #left-pane.hidden {
@@ -202,24 +217,24 @@ body {
 
 .nav-list {
     background-color: white;
-    margin: 0px;
-    padding: 0px;
-    overflow-y: visible;
-    overflow-x: hidden;
-    height: 100%;
     cursor: default;
+    height: 100%;
+    margin: 0px;
+    overflow-x: hidden;
+    overflow-y: visible;
+    padding: 0px;
 }
 
 .nav-category {
-    padding: 0px;
-    font-size: 14px;
     background-color: hsl(0, 0%, 95%);
     border-bottom: 1px solid hsl(0, 0%, 80%);
     color: black;
+    cursor: default;
+    font-size: 14px;
     font-weight: bold;
     overflow: hidden;
+    padding: 0px;
     white-space: nowrap;
-    cursor: default;
 }
 
 .nav-category > p {
@@ -240,20 +255,20 @@ body {
 }
 
 .nav-category > p:after {
+    content: '+';
+    float: right;
     font-size: 14px;
     margin: 0px;
     padding: 0px;
-    float: right;
-    content: "+";
 }
 
 .nav-category.shown > p:after {
-    content: "−";
+    content: '−';
 }
 
 .nav-category > ul {
-    list-style-type: none;
     display: none;
+    list-style-type: none;
     margin-left: 0;
 }
 
@@ -262,18 +277,18 @@ body {
 }
 
 .nav-array {
-    padding: 0px;
-    font-size: 12px;
     background-color: white;
     color: black;
-    font-weight: normal;
-    white-space: nowrap;
     cursor: default;
+    font-size: 12px;
+    font-weight: normal;
+    padding: 0px;
+    white-space: nowrap;
 }
 
 .nav-array > ul {
-    list-style-type: none;
     display: none;
+    list-style-type: none;
     margin-left: 0;
 }
 
@@ -306,11 +321,11 @@ body {
 }
 
 .nav-array > p:before {
+    content: "\25B8";
     display: inline-block;
     font-size: 12px;
     margin: 0px;
     width: 1em;
-    content: "\25B8";
 }
 
 .nav-array.shown > p:before {
@@ -318,19 +333,19 @@ body {
 }
 
 .nav-object {
+    background-color: white;
+    color: black;
+    cursor: default;
     display: block;
-    overflow-y: visible;
+    font-size: 12px;
+    font-weight: normal;
     overflow-x: hidden;
+    overflow-y: visible;
     padding-top: 1px;
     padding-bottom: 1px;
     padding-left: 1em;
     padding-right: 0px;
-    font-size: 12px;
-    background-color: white;
-    color: black;
-    font-weight: normal;
     white-space: nowrap;
-    cursor: default;
 }
 
 .nav-object:hover {
@@ -352,37 +367,37 @@ body {
 .nav-object p {
     display: block;
     margin: 0px 1em;
-    padding: 0px;
     overflow-x: hidden;
+    padding: 0px;
 }
 
 .nav-object-index {
     display: block;
-    width: 2em;
-    height: 100%;
     float: left;
-    text-align: right;
+    height: 100%;
     padding-right: 0.5em;
+    text-align: right;
+    width: 2em;
 }
 
 .nav-object-index.hex2 {
-    width: 2.5em;
     text-align: left;
+    width: 2.5em;
 }
 
 .nav-object-index.hex4 {
-    width: 3.5em;
     text-align: left;
+    width: 3.5em;
 }
 
 .nav-object-index.hex6 {
-    width: 4.5em;
     text-align: left;
+    width: 4.5em;
 }
 
 .nav-object-index.hex8 {
-    width: 5.5em;
     text-align: left;
+    width: 5.5em;
 }
 
 /******************************************************************************/
@@ -390,46 +405,46 @@ body {
 /******************************************************************************/
 
 #center-pane {
-    margin: 0px;
-    padding: 0px;
-    align-items: stretch;
     align-content: stretch;
-    position: relative;
+    align-items: stretch;
     display: flex;
+    flex: 2 1 auto;
     flex-direction: column;
     height: 100%;
-    flex: 2 1 auto;
-    width: 0;
+    margin: 0px;
     overflow: hidden;
+    padding: 0px;
+    position: relative;
+    width: 0;
 }
 
 #edit-top {
-    flex: 1 0 auto;
-    position: relative;
-    height: 100%;
-    width: 100%;
-    overflow: auto;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
     align-content: stretch;
+    align-items: stretch;
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+    height: 100%;
+    overflow: auto;
+    position: relative;
+    width: 100%;
 }
 
 #edit-controls {
-    padding: 0px;
-    display: flex;
-    flex-direction: row;
     align-items: center;
-    flex: 0 0 auto;
-    height: auto;
-    min-height: 27px;
     background: linear-gradient(#fff,#ddd);
     border-bottom: 1px solid #ccc;
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 27px;
+    padding: 0px;
     -moz-user-select: none;
     -webkit-user-select: none;
     -ms-user-select: none;
     user-select: none;
-    flex-wrap: wrap;
 }
 
 #edit-controls.hidden {
@@ -441,75 +456,75 @@ body {
 }
 
 #zoom {
-    order: 98;
     margin: 4px 3px;
+    order: 98;
 }
 
 #zoom-value {
-    order: 97;
-    margin: 2px 0px;
-    padding: 4px 3px;
-    margin-left: auto;
     font-size: 12px;
+    margin: 2px 0px;
+    margin-left: auto;
+    order: 97;
+    padding: 4px 3px;
 }
 
 #coordinates {
-    order: 99;
+    text-align: center;
+    font-size: 12px;
     margin: 2px 0px;
+    order: 99;
     padding: 4px 3px;
     width: 72px;
-    font-size: 12px;
-    text-align: center;
 }
 
 .map-edit {
-    width: 100%;
     height: 100%;
     overflow: auto;
     position: relative;
+    width: 100%;
 }
 
 .battle-edit {
-    width: 100%;
     height: 100%;
     position: relative;
+    width: 100%;
 }
 
 .chart-edit {
-    overflow: hidden;
     background-color: hsl(0, 0%, 95%);
+    overflow: hidden;
 }
 
 #edit-div {
+    flex: 1 0 auto;
+    height: 0;
     overflow: hidden;
     position: relative;
-    flex: 1 0 auto;
     width: 100%;
-    height: 0;
 }
 
 #map {
-    z-index: 1;
-    position: absolute;
     pointer-events: none;
+    position: absolute;
+    z-index: 1;
 }
 
 #map-mask {
-    z-index: 3;
-    position: absolute;
     pointer-events: none;
+    position: absolute;
+    z-index: 3;
 }
 
 #map-screen {
-    z-index: 4;
-    position: absolute;
     pointer-events: none;
+    position: absolute;
+    z-index: 4;
 }
 
 #map-cursor {
-    z-index: 5;
-    position: absolute;
     pointer-events: none;
+    position: absolute;
+    z-index: 5;
 }
 
 #map-cursor.hidden {
@@ -521,16 +536,16 @@ body {
 /******************************************************************************/
 
 #edit-bottom {
-    margin: 0px;
-    padding: 0px;
+    align-content: stretch;
+    align-items: stretch;
     display: flex;
-    overflow: auto;
-    height: 100%;
-    min-height: 44px;
     flex: 1;
     flex-direction: column;
-    align-items: stretch;
-    align-content: stretch;
+    height: 100%;
+    margin: 0px;
+    min-height: 44px;
+    overflow: auto;
+    padding: 0px;
 }
 
 #edit-bottom.hidden {
@@ -538,18 +553,18 @@ body {
 }
 
 #script-bar {
-    flex: 0;
     background: linear-gradient(#fff,#ddd);
     border-bottom: 1px solid #ccc;
+    flex: 0;
 }
 
 #script-div {
+    background-color: white;
     display: block;
     flex: 1;
-    overflow-y: auto;
     margin: 0px;
+    overflow-y: auto;
     padding: 0px;
-    background-color: white;
 }
 
 #script-list {
@@ -559,20 +574,20 @@ body {
 }
 
 #script-list li {
+    cursor: default;
     font-size: 12px;
     list-style: none;
-    cursor: default;
-    overflow-x: hidden;
-    white-space: nowrap;
-    padding: 1px 4px;
     margin: 0px;
+    overflow-x: hidden;
+    padding: 1px 4px;
+    white-space: nowrap;
 }
 
 #script-list p {
-    margin: 0px;
     float: left;
-    width: 75%;
+    margin: 0px;
     user-select: none;
+    width: 75%;
 }
 
 #script-list li:hover {
@@ -597,12 +612,12 @@ body {
 }
 
 .script-offset {
-    display: inline-block;
-    width: 25%;
-    overflow-x: hidden;
-    float: left;
     clear: left;
+    display: inline-block;
+    float: left;
+    overflow-x: hidden;
     user-select: none;
+    width: 25%;
 }
 
 /******************************************************************************/
@@ -610,18 +625,18 @@ body {
 /******************************************************************************/
 
 #right-pane {
-    margin: 0px 0px;
-    padding: 0px 0px;
-    min-width: 256px;
-    position: relative;
-    flex: 0 0 auto;
-    overflow-y: hidden;
-    overflow-x: hidden;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
     align-content: flex-start;
+    align-items: stretch;
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
     justify-content: flex-start;
+    margin: 0px 0px;
+    min-width: 256px;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    padding: 0px 0px;
+    position: relative;
 }
 
 #right-pane.hidden {
@@ -630,21 +645,21 @@ body {
 
 #right-pane-top {
     display: flex;
-    flex-direction: column;
     flex: 0 1 auto;
-    min-height: 28px;
+    flex-direction: column;
     max-height: 28px; /* override with max height when visible */
+    min-height: 28px;
     overflow: hidden;
 }
 
 #toolbox {
-    flex: 0 1 auto;
-    display: flex;
-    flex-direction: column;
     align-items: center;
+    display: flex;
+    flex: 0 1 auto;
+    flex-direction: column;
     justify-content: flex-start;
-    position: relative;
     overflow: hidden;
+    position: relative;
 }
 
 #toolbox.hidden {
@@ -652,12 +667,12 @@ body {
 }
 
 #toolbox-bar {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
     align-content: stretch;
-    flex: 0 0 auto;
+    align-items: center;
     background: linear-gradient(#fff,#ddd);
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: row;
 }
 
 #toolbox-bar.hidden {
@@ -666,12 +681,12 @@ body {
 
 #toolbox-bar button {
     background-color: inherit;
-    flex: 1;
     border: none;
+    flex: 1;
+    font-size: 14px;
+    margin: 0px 0px;
     outline: none;
     padding: 6px 2px;
-    margin: 0px 0px;
-    font-size: 14px;
     transition: 0.2s;
 }
 
@@ -700,8 +715,8 @@ body {
 }
 
 .tileset-canvas {
-    z-index: 1;
     position: absolute;
+    z-index: 1;
 }
 
 .tileset-canvas.hidden {
@@ -711,16 +726,16 @@ body {
 #tile-div {
     /* this is only used by ff4map-gba */
     font-size: 12px;
-    width: 100%;
     height: auto;
     margin: 0px;
     padding: 0px;
+    width: 100%;
 }
 
 .cursor-canvas {
     pointer-events: none;
-    z-index: 2;
     position: absolute;
+    z-index: 2;
 }
 
 .cursor-canvas.hidden {
@@ -729,33 +744,33 @@ body {
 
 .palette-div {
     display: flex;
-    flex-direction: column;
     flex: 0 0 auto;
+    flex-direction: column;
 }
 
 #toolbox .graphics-div {
-    flex: 0 0 auto;
-    position: relative;
-    overflow: hidden;
     border-bottom: 1px solid #ccc;
+    flex: 0 0 auto;
+    overflow: hidden;
+    position: relative;
 }
 
 .graphics-canvas-div {
     flex: 0 0 auto;
-    position: relative;
     overflow: hidden;
+    position: relative;
 }
 
 .graphics-controls {
-    display: flex;
-    flex-direction: row;
     align-items: center;
-    flex-wrap: wrap;
-    padding: 0px;
-    height: auto;
     background: linear-gradient(#fff,#ddd);
     border-bottom: 1px solid #ccc;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
     font-size: 12px;
+    height: auto;
+    padding: 0px;
 }
 
 /******************************************************************************/
@@ -764,68 +779,68 @@ body {
 
 #right-pane-bottom {
     flex: 1 1 0;
-    overflow-y: auto;
-    overflow-x: hidden;
     min-height: 50px;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 #properties {
     font-size: 12px;
-    overflow-y: auto;
-    overflow-x: hidden;
     height: auto;
-    width: 100%;
-    padding: 0px;
     margin: 0px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 0px;
+    width: 100%;
 }
 
 #properties-bar {
-    display: none;
-    flex: 0;
     background: linear-gradient(#fff,#ddd);
     border-bottom: 1px solid #ccc;
+    display: none;
+    flex: 0;
 }
 
 .property-heading {
-    padding: 0px 4px;
-    margin: 0px 0px;
-/*    border-bottom: 1px solid #ccc;*/
+    /* border-bottom: 1px solid #ccc; */
     flex: 1 1 auto;
+    margin: 0px 0px;
+    padding: 0px 4px;
 }
 
 .property-heading p {
-    padding: 4px 0px;
-    margin: 0px 0px;
-    font-weight: bold;
     font-size: 12px;
+    font-weight: bold;
+    margin: 0px 0px;
+    padding: 4px 0px;
 }
 
 .property-heading select {
-    padding: 0px;
-    margin-top: 4px;
-    width: 100%;
     font-size: 12px;
+    margin-top: 4px;
+    padding: 0px;
+    width: 100%;
 }
 
 .property-category {
-    padding: 0px;
-    margin: 0px 4px;
     border-top: 1px solid #ccc;
     flex: 1 1 0;
+    margin: 0px 4px;
+    padding: 0px;
 }
 
 .property-category p {
-    padding: 0px;
-    margin: 4px 0px;
     font-weight: bold;
+    margin: 4px 0px;
+    padding: 0px;
 }
 
 .property-div {
+    align-items: baseline;
     display: flex;
     flex-direction: row;
     margin: 0px;
     padding: 4px 4px;
-    align-items: baseline;
 }
 
 .property-div > button {
@@ -833,25 +848,25 @@ body {
 }
 
 .property-label {
-    text-align: right;
-    flex-shrink: 0;
-    flex-grow: 0;
     flex-basis: auto;
-    padding-right: 1px;
+    flex-grow: 0;
+    flex-shrink: 0;
     margin: 0px;
+    padding-right: 1px;
+    text-align: right;
 }
 
 .property-control-div {
-    width: 100%;
-    margin: 0px 4px;
     flex: 1 1 0;
+    margin: 0px 4px;
+    width: 100%;
 }
 
 .property-control {
-    width: 100%;
+    font-size: 12px;
     margin: 0px 0px;
     padding: 0px 0px;
-    font-size: 12px;
+    width: 100%;
 }
 
 .property-text {
@@ -863,8 +878,8 @@ body {
     font-family: monospace;
     font-size: 12px;
     overflow-y: visible;
-    vertical-align: middle;
     resize: vertical;
+    vertical-align: middle;
 }
 
 .property-check-div {
@@ -872,9 +887,9 @@ body {
 }
 
 .property-check {
+    font-size: 12px;
     margin: 0px;
     padding: 0px;
-    font-size: 12px;
     position: relative;
     top: -1px;
     vertical-align: bottom;
@@ -889,16 +904,16 @@ body {
 /******************************************************************************/
 
 .menu {
-    display: none;
-    position: absolute;
-    z-index: 10;
-    padding: 5px 0px;
-    margin: 0px;
-    border-radius: 5px;
-    width: auto;
     background-color: hsl(0, 0%, 95%);
+    border-radius: 5px;
     box-shadow: 2px 2px 4px #666;
+    display: none;
     list-style-type: none;
+    margin: 0px;
+    position: absolute;
+    padding: 5px 0px;
+    width: auto;
+    z-index: 10;
 }
 
 .menu-item:hover > .menu-submenu {
@@ -910,26 +925,26 @@ body {
 }
 
 .menu-submenu {
+    height: auto;
     left: 90px;
     top: -5px;
-    height: auto;
 }
 
 .menu-item {
-    display: block;
-    position: relative;
     background-color: hsl(0, 0%, 95%);
     color: black;
-    width: auto;
+    cursor: default;
+    display: block;
     font-size: 12px;
     list-style: none;
-    white-space: nowrap;
     padding: 2px 20px;
-    cursor: default;
+    position: relative;
+    white-space: nowrap;
     -moz-user-select: none;
     -webkit-user-select: none;
     -ms-user-select: none;
     user-select: none;
+    width: auto;
 }
 
 .menu-item:hover {
@@ -952,10 +967,10 @@ body {
 }
 
 .menu-item.selected:before {
-    position: relative;
+    content: '✓';
     display: inline-block;
+    position: relative;
     width: 14px;
-    content: "✓";
 }
 
 /******************************************************************************/
@@ -963,42 +978,42 @@ body {
 /******************************************************************************/
 
 #modal {
+    align-content: center;
+    align-items: center;
+    background-color: rgba(0,0,0,0.4);
     display: none;
     flex-direction: row;
-    align-items: center;
-    align-content: center;
+    height: 100%;
     justify-content: center;
-    position: fixed;
-    z-index: 11;
     left: 0px;
+    position: fixed;
+    overflow-y: auto;
     top: 0px;
     width: 100%;
-    height: 100%;
-    overflow-y: auto;
-    background-color: rgba(0,0,0,0.4);
+    z-index: 11;
 }
 
 #modal-window {
     background-color: hsl(0, 0%, 95%);
+    border-radius: 5px;
+    height: auto;
+    padding: 10px 20px;
     position: absolute;
     top: 10%;
-    padding: 10px 20px;
-    border-radius: 5px;
     width: 60%;
-    height: auto;
 }
 
 #modal-title {
-    margin: 6px 0px;
     font-size: 18px;
     font-weight: bold;
+    margin: 6px 0px;
     text-align: center;
 }
 
 #modal-content {
-    padding: 0px;
-    margin: 0px;
     font-size: 12px;
+    margin: 0px;
+    padding: 0px;
 }
 
 #modal-content > button {
@@ -1008,15 +1023,15 @@ body {
 #modal-close {
     color: #aaa;
     float: right;
-    font-size: 28px;
     font-weight: bold;
+    font-size: 28px;
 }
 
 #modal-close:hover,
 #modal-close:focus {
     color: black;
-    text-decoration: none;
     cursor: pointer;
+    text-decoration: none;
 }
 
 .modal-list {
@@ -1027,8 +1042,8 @@ body {
 
 .modal-list li {
     color: black;
-    list-style: none;
     cursor: default;
+    list-style: none;
     padding: 1px 0px 1px 4px;
 }
 
@@ -1062,9 +1077,9 @@ body {
 }
 
 .import-preview {
+    align-items: center;
     display: flex;
     flex-direction: row;
-    align-items: center;
     justify-content: space-around;
     margin: 10px 0px;
 }
