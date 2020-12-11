@@ -28,7 +28,10 @@ class FF4MapGBATileset extends ROMToolbox {
         this.layer = [new FF4MapGBALayer(rom, FF4MapGBALayer.Type.layer1),
                       new FF4MapGBALayer(rom, FF4MapGBALayer.Type.layer2)];
 
-        this.selection = new Uint8Array([0x73, 0, 0, 1, 1, 0]);
+        this.selection = {
+            x: 0, y: 0, w: 1, h: 1,
+            tilemap: new Uint8Array(1)
+        };
         this.clickPoint = null;
 
         this.ppu = new GFX.PPU();
@@ -93,9 +96,15 @@ class FF4MapGBATileset extends ROMToolbox {
             const mask = this.clickPoint.x >> 1;
             const maskType = this.getMaskType(mask);
             if (maskType) {
-                this.selection = new Uint8Array([0x73, 0, maskType.index, 1, 1, maskType.value]);
+                this.selection = {
+                    x: 0, y: maskType.index, w: 1, h: 1,
+                    tilemap: new Uint8Array([maskType.value])
+                }
                 this.drawCursor();
-                this.map.selection = new Uint8Array([0x73, 0, 0, 1, 1, maskType.value]);
+                this.map.selection = {
+                    x: 0, y: 0, w: 1, h: 1,
+                    tilemap: new Uint8Array([maskType.value])
+                }
             }
         } else if (this.map.isWorld && this.map.w !== 2 && this.map.l < 2) {
             // select world map properties
@@ -126,17 +135,23 @@ class FF4MapGBATileset extends ROMToolbox {
         y = Math.min(y, this.clickPoint.y);
 
         // create the tile selection
-        this.selection = new Uint8Array(5 + w * h);
-        this.selection.set([0x73, x, y, w, h]);
+        this.selection = {
+            x: x, y: y, w: w, h: h,
+            tilemap: new Uint8Array(w * h)
+        };
+
         for (let r = 0; r < h; r++) {
             for (let c = 0; c < w; c++) {
-                this.selection[5 + c + r * w] = x + c + (y + r) * 16;
+                this.selection.tilemap[c + r * w] = x + c + (y + r) * 16;
             }
         }
 
         // redraw the cursor and notify the map
         this.drawCursor();
-        this.map.selection = new Uint8Array(this.selection);
+        this.map.selection = {
+            x: 0, y: 0, w: w, h: h,
+            tilemap: this.selection.tilemap.slice()
+        }
     }
 
     loadMap(m) {
@@ -262,10 +277,10 @@ class FF4MapGBATileset extends ROMToolbox {
         if (this.map.l === 3 || !this.selection) return;
 
         // get the cursor geometry
-        const l = Math.floor(this.selection[1] * 16 * this.zoom);
-        const t = Math.floor(this.selection[2] * 16 * this.zoom);
-        const r = Math.ceil((this.selection[1] + this.selection[3]) * 16 * this.zoom);
-        const b = Math.ceil((this.selection[2] + this.selection[4]) * 16 * this.zoom);
+        const l = Math.floor(this.selection.x * 16 * this.zoom);
+        const t = Math.floor(this.selection.y * 16 * this.zoom);
+        const r = Math.ceil((this.selection.x + this.selection.w) * 16 * this.zoom);
+        const b = Math.ceil((this.selection.y + this.selection.h) * 16 * this.zoom);
         let x = l;
         let y = t
         let w = r - l;
@@ -301,7 +316,7 @@ class FF4MapGBATileset extends ROMToolbox {
         this.tileDiv.appendChild(headingDiv);
 
         const heading = document.createElement('p');
-        heading.innerHTML = `Tile Properties (${this.selection[1]}, ${this.selection[2]}) ${this.map.z}`;
+        heading.innerHTML = `Tile Properties (${this.selection.x}, ${this.selection.y}) ${this.map.z}`;
         headingDiv.appendChild(heading);
 
         // tile type
@@ -324,7 +339,7 @@ class FF4MapGBATileset extends ROMToolbox {
         tileTypeControl.id = 'tile-type-control';
         tileTypeControlDiv.appendChild(tileTypeControl);
 
-        const currentTile = this.selection[5];
+        const currentTile = this.selection.tilemap[0];
         for (const key in FF4MapGBATileset.MaskType) {
             const maskType = FF4MapGBATileset.MaskType[key];
             const option = document.createElement('option');
@@ -342,7 +357,7 @@ class FF4MapGBATileset extends ROMToolbox {
         }
 
         tileTypeControl.onchange = function() {
-            self.selection[5] = Number(this.value);
+            self.selection.tilemap[0] = Number(this.value);
             self.map.beginAction(callback);
             self.map.selection = self.selection;
             self.map.setTiles();
@@ -398,7 +413,7 @@ class FF4MapGBATileset extends ROMToolbox {
             option.innerHTML = `${treasure.name} ${t}`;
             treasureControl.appendChild(option);
         }
-        const sel = this.selection[5] & 0x1F;
+        const sel = this.selection.tilemap[0] & 0x1F;
         treasureControl.value = sel;
         propertyList.select(treasures.item(sel));
 
@@ -409,7 +424,7 @@ class FF4MapGBATileset extends ROMToolbox {
 
         treasureControl.onchange = function() {
             const t = Number(this.value);
-            self.selection[5] = 0x20 | t;
+            self.selection.tilemap[0] = 0x20 | t;
             self.map.beginAction(callback);
             self.map.selection = self.selection;
             self.map.setTiles();
@@ -450,7 +465,7 @@ class FF4MapGBATileset extends ROMToolbox {
                 option.innerHTML = `${exit.name} ${e}`;
                 exitControl.appendChild(option);
             }
-            const sel = this.selection[5] & 0x1F;
+            const sel = this.selection.tilemap[0] & 0x1F;
             exitControl.value = sel;
             propertyList.select(exits.item(sel));
         }
@@ -462,7 +477,7 @@ class FF4MapGBATileset extends ROMToolbox {
 
         exitControl.onchange = function() {
             const e = Number(this.value);
-            self.selection[5] = 0x40 | e;
+            self.selection.tilemap[0] = 0x40 | e;
             self.map.beginAction(callback);
             self.map.selection = self.selection;
             self.map.setTiles();
@@ -510,14 +525,14 @@ class FF4MapGBATileset extends ROMToolbox {
 
         exitControl.onchange = function() {
             const e = Number(this.value);
-            self.selection[5] = 0x40 | e;
+            self.selection.tilemap[0] = 0x40 | e;
             self.map.beginAction(callback);
             self.map.selection = self.selection;
             self.map.setTiles();
             self.map.endAction(callback);
             propertyList.select(exits.item(e + 37))
         }
-        const sel = this.selection[5] & 0x1F
+        const sel = this.selection.tilemap[0] & 0x1F
         exitControl.value = sel;
         propertyList.select(exits.item(sel + 37))
 
@@ -537,7 +552,7 @@ class FF4MapGBATileset extends ROMToolbox {
         if (value === 0x10) return FF4MapGBATileset.MaskType.bottomTransparent;
         if (value === 0x11) return FF4MapGBATileset.MaskType.bottomHidden;
         if (value === 0x12) return FF4MapGBATileset.MaskType.unknown12;
-        if (value === 0x13) return FF4MapGBATileset.MaskType.unknown13;
+        if (value === 0x13) return FF4MapGBATileset.MaskType.secretPassage;
         if (value & 0x20) return FF4MapGBATileset.MaskType.treasure;
         if (value & 0x40) return FF4MapGBATileset.MaskType.exit;
 
@@ -619,8 +634,8 @@ FF4MapGBATileset.MaskType = {
         value: 0x12,
         index: 11
     },
-    unknown13: {
-        name: 'Unknown (0x13)',
+    secretPassage: {
+        name: 'Secret Passage',
         color: 'rgba(255, 255, 255, 0.5)',
         value: 0x13,
         index: 12

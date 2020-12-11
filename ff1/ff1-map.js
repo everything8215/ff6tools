@@ -3,7 +3,7 @@
 // created 10/27/2018
 //
 
-class FF1Map extends ROMEditor_ {
+class FF1Map extends ROMEditor {
     constructor(rom) {
         super(rom);
 
@@ -475,9 +475,9 @@ class FF1Map extends ROMEditor_ {
         const w = this.selection.w;
         const h = this.selection.h;
 
-        const l = ((x << 4) - this.ppu.layers[this.l].x) & (this.ppu.width - 1);
+        const l = ((x << 4) - this.ppu.layers[this.l].x) % this.ppu.width;
         const r = l + (w << 4);
-        const t = ((y << 4) - this.ppu.layers[this.l].y) & (this.ppu.height - 1);
+        const t = ((y << 4) - this.ppu.layers[this.l].y) % this.ppu.height;
         const b = t + (h << 4);
         const rect = new Rect(l, r, t, b);
 
@@ -731,8 +731,8 @@ class FF1Map extends ROMEditor_ {
     }
 
     invalidateMap(rect) {
-        const clipX = Math.floor(this.ppu.width / 256);
-        const clipY = Math.floor(this.ppu.height / 256);
+        const clipX = Math.ceil(this.ppu.width / 256);
+        const clipY = Math.ceil(this.ppu.height / 256);
         if (!rect) {
             // invalidate all sectors
             const sectorCount = clipX * clipY;
@@ -767,7 +767,7 @@ class FF1Map extends ROMEditor_ {
 
         // update the map canvas
         const mapContext = this.mapCanvas.getContext('2d');
-        const clip = Math.floor(this.ppu.width / 256);
+        const clip = Math.ceil(this.ppu.width / 256);
 
         // draw all visible sectors
         for (let s = 0; s < this.mapSectors.length; s++) {
@@ -937,8 +937,8 @@ class FF1Map extends ROMEditor_ {
         if (!this.showScreen) return;
 
         // calculate the screen rect
-        const x = ((this.selection.x * 16) - this.ppu.layers[this.l].x) & (this.ppu.width - 1);
-        const y = ((this.selection.y * 16) - this.ppu.layers[this.l].y) & (this.ppu.height - 1);
+        const x = ((this.selection.x * 16) - this.ppu.layers[this.l].x) % this.ppu.width;
+        const y = ((this.selection.y * 16) - this.ppu.layers[this.l].y) % this.ppu.height;
         let screenRect = new Rect(x - 7 * 16, x + 9 * 16, y - 7 * 16, y + 8 * 16);
 
         screenRect.l = Math.max(0, screenRect.l);
@@ -974,9 +974,9 @@ class FF1Map extends ROMEditor_ {
         const row = this.selection.y;
 
         // get the cursor geometry and color
-        let x = ((col << 4) - this.ppu.layers[this.l].x) & (this.ppu.width - 1);
+        let x = ((col << 4) - this.ppu.layers[this.l].x) % this.ppu.width;
         x *= this.zoom;
-        let y = ((row << 4) - this.ppu.layers[this.l].y) & (this.ppu.height - 1);
+        let y = ((row << 4) - this.ppu.layers[this.l].y) % this.ppu.height;
         y *= this.zoom;
         let w = this.selection.w * 16;
         w *= this.zoom;

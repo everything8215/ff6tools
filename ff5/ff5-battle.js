@@ -3,7 +3,7 @@
 // created 1/14/2019
 //
 
-class FF5Battle extends ROMEditor_ {
+class FF5Battle extends ROMEditor {
     constructor(rom) {
         super(rom);
 

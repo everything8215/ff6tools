@@ -3,7 +3,7 @@
 // created 6/24/2018
 //
 
-class FF6Battle extends ROMEditor_ {
+class FF6Battle extends ROMEditor {
     constructor(rom) {
         super(rom);
 

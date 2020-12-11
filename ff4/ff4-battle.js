@@ -3,7 +3,7 @@
 // created 7/7/2018
 //
 
-class FF4Battle extends ROMEditor_ {
+class FF4Battle extends ROMEditor {
     constructor(rom) {
         super(rom);
 
@@ -431,6 +431,7 @@ class FF4Battle extends ROMEditor_ {
 
         monster.size = this.rom.monsterSize.item(monster.m);
         monster.position = battleMonster;
+        monster.properties = this.rom.monsterProperties.item(monster.m);
 
         this.observer.startObservingSub(monster.size, this.loadBattle);
         this.observer.startObservingSub(monster.position, this.loadBattle);

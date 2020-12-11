@@ -3,7 +3,7 @@
 // created 9/4/2020
 //
 
-class ROMGraphicsView extends ROMEditor_ {
+class ROMGraphicsView extends ROMEditor {
     constructor(rom, tilemapView) {
         super(rom);
 

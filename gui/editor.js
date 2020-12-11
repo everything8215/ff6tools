@@ -3,7 +3,7 @@
 // created 10/22/2020
 //
 
-class ROMEditor_ {
+class ROMEditor {
     constructor(rom) {
         this.rom = rom;
         this.div = document.createElement('div');

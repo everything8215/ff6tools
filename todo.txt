@@ -37,6 +37,7 @@ gui
  * make menu close any time you click outside of it
  * graphics export selection only
  * import/export tilemap (native/generic, Tiled)
+ * click and drag level progression data
 
 game specific
 -------------

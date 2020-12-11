@@ -3,7 +3,7 @@
 // created 5/19/2020
 //
 
-class FF1LevelProgression extends ROMEditor_ {
+class FF1LevelProgression extends ROMEditor {
     constructor(rom) {
         super(rom);
 
