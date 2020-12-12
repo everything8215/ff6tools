@@ -1949,39 +1949,48 @@
             "reference": [
                 {
                     "begin": "0xC006A6",
-                    "mask": "0xFFFFFF"
+                    "mask": "0xFFFFFF",
+                    "pointerOffset": true
                 }, {
                     "begin": "0xC006D3",
                     "mask": "0xFFFFFF",
-                    "offset": -2
+                    "offset": -2,
+                    "pointerOffset": true
                 }, {
                     "begin": "0xC006E9",
                     "mask": "0xFFFFFF",
-                    "offset": -4
+                    "offset": -4,
+                    "pointerOffset": true
                 }, {
                     "begin": "0xC006F0",
                     "mask": "0xFFFFFF",
-                    "offset": -5
+                    "offset": -5,
+                    "pointerOffset": true
                 }, {
                     "begin": "0xC006FD",
                     "mask": "0xFFFFFF",
-                    "offset": -3
+                    "offset": -3,
+                    "pointerOffset": true
                 }, {
                     "begin": "0xC00708",
                     "mask": "0xFFFFFF",
-                    "offset": -3
+                    "offset": -3,
+                    "pointerOffset": true
                 }, {
                     "begin": "0xC00713",
                     "mask": "0xFFFFFF",
-                    "offset": -4
+                    "offset": -4,
+                    "pointerOffset": true
                 }, {
                     "begin": "0xC00726",
                     "mask": "0xFFFFFF",
-                    "offset": -4
+                    "offset": -4,
+                    "pointerOffset": true
                 }, {
                     "begin": "0xC0072F",
                     "mask": "0xFFFFFF",
-                    "offset": -5
+                    "offset": -5,
+                    "pointerOffset": true
                 }
             ]
         },
@@ -2089,11 +2098,13 @@
             "reference": [
                 {
                     "begin": "0xC0065C",
-                    "mask": "0xFFFFFF"
+                    "mask": "0xFFFFFF",
+                    "pointerOffset": true
                 }, {
                     "begin": "0xC00675",
                     "mask": "0xFFFFFF",
-                    "offset": -2
+                    "offset": -2,
+                    "pointerOffset": true
                 }
             ]
         },
@@ -9363,6 +9374,8 @@
     "freeSpace": [
         "0xC9FF9C-0xCA0000",
         "0xCDF9FF-0xCDFA40",
+        "0xCE58D2-0xCE59C0",
+        "0xCE9BFE-0xCE9C00",
         "0xCEF270-0xCEF400",
         "0xCFD7CB-0xCFD800",
         "0xD0F1D4-0xD0FFA0",
