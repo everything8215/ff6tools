@@ -1880,6 +1880,7 @@
                 "type": "array",
                 "assembly": {
                     "type": "data",
+                    "length": 6,
                     "assembly": {
                         "x": {
                             "type": "property",
@@ -1900,6 +1901,27 @@
                             "mask": "0x03FF",
                             "stringTable": "mapProperties",
                             "link": "mapProperties[%i]"
+                        },
+                        "mapTitle": {
+                            "type": "property",
+                            "name": "Show Map Title",
+                            "begin": 3,
+                            "mask": "0x20",
+                            "bool": true
+                        },
+                        "parentMap": {
+                            "type": "property",
+                            "name": "Set Parent Map",
+                            "begin": 3,
+                            "mask": "0x40",
+                            "bool": true
+                        },
+                        "unknown2_7": {
+                            "type": "property",
+                            "name": "Unknown 2.7",
+                            "begin": 3,
+                            "mask": "0x80",
+                            "bool": true
                         },
                         "xDest": {
                             "type": "property",
@@ -1926,9 +1948,23 @@
                             "name": "Y Destination",
                             "begin": 5,
                             "invalid": "this.parent.map.value >= 5"
+                        },
+                        "direction": {
+                            "type": "property",
+                            "name": "Direction",
+                            "begin": 4,
+                            "mask": "0xC0",
+                            "invalid": "this.parent.map.value < 5",
+                            "stringTable": {
+                                "string": {
+                                    "0": "Up",
+                                    "1": "Right",
+                                    "2": "Down",
+                                    "3": "Left"
+                                }
+                            }
                         }
-                    },
-                    "length": 6
+                    }
                 }
             },
             "pointerTable": {
@@ -7567,6 +7603,82 @@
                                     "0xE3": "Fade Out Only"
                                 }
                             }
+                        },
+                        "mapTitle": {
+                            "type": "property",
+                            "name": "Show Map Title",
+                            "begin": 2,
+                            "mask": "0x20",
+                            "bool": true
+                        },
+                        "parentMap": {
+                            "type": "property",
+                            "name": "Set Parent Map",
+                            "begin": 2,
+                            "mask": "0x40",
+                            "bool": true
+                        },
+                        "unknown2_7": {
+                            "type": "property",
+                            "name": "Unknown 2.7",
+                            "begin": 2,
+                            "mask": "0x80",
+                            "bool": true
+                        },
+                        "x": {
+                            "type": "property",
+                            "name": "X Position",
+                            "begin": 3,
+                            "mask": "0x3F",
+                            "invalid": "this.parent.map.value < 5"
+                        },
+                        "xWorld": {
+                            "type": "property",
+                            "name": "X Position",
+                            "begin": 3,
+                            "invalid": "this.parent.map.value >= 5"
+                        },
+                        "y": {
+                            "type": "property",
+                            "name": "Y Position",
+                            "begin": 4,
+                            "mask": "0x3F",
+                            "invalid": "this.parent.map.value < 5"
+                        },
+                        "yWorld": {
+                            "type": "property",
+                            "name": "Y Position",
+                            "begin": 4,
+                            "invalid": "this.parent.map.value >= 5"
+                        },
+                        "direction": {
+                            "type": "property",
+                            "name": "Direction",
+                            "begin": 3,
+                            "mask": "0xC0",
+                            "invalid": "this.parent.map.value < 5",
+                            "stringTable": {
+                                "string": {
+                                    "0": "Up",
+                                    "1": "Right",
+                                    "2": "Down",
+                                    "3": "Left"
+                                }
+                            }
+                        },
+                        "vehicle": {
+                            "type": "property",
+                            "name": "Vehicle",
+                            "begin": 5,
+                            "mask": "0xE0",
+                            "invalid": "this.parent.map.value >= 5",
+                            "stringTable": "vehicle"
+                        },
+                        "unknown5": {
+                            "type": "property",
+                            "name": "Unknown 5",
+                            "begin": 5,
+                            "mask": "0x1F"
                         }
                     }
                 },
@@ -7723,7 +7835,7 @@
                             "type": "property",
                             "name": "Y Position",
                             "begin": 3,
-                            "mask": "0xFF"
+                            "mask": "0x3F"
                         },
                         "direction": {
                             "type": "property",
