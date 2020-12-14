@@ -230,6 +230,10 @@ function ROMAssembly(rom, definition, parent) {
     this.isLoaded = false;
     this.isDirty = false;
 
+    // start with an empty data object
+    this.lazyData = new Uint8Array(0);
+    this.data = this.lazyData;
+
     // range
     this.range = ROMRange.parse(definition.range);
 
@@ -356,6 +360,14 @@ Object.defineProperty(ROMAssembly.prototype, "disabled", { get: function() {
 }, set: function(disabled) {
     this._disabled = disabled;
 }});
+
+ROMAssembly.prototype.serialize = function() {
+    return base64js.fromByteArray(this.data)
+}
+
+ROMAssembly.prototype.deserialize = function(data) {
+    this.setData(base64js.toByteArray(data));
+}
 
 ROMAssembly.prototype.assemble = function(data) {
 
@@ -863,6 +875,38 @@ ROMData.prototype.updateReferences = function() {
     ROMAssembly.prototype.updateReferences.call(this);
 }
 
+ROMData.prototype.serialize = function() {
+    const specialValue = this.getSpecialValue();
+    if (specialValue !== null) return specialValue;
+
+    const obj = {};
+    for (const key in this.assembly) {
+        let assembly = this[key];
+        if (isString(assembly)) continue; // skip categories
+        if (!assembly) continue;
+        if (assembly.invalid) continue; // skip invalid assemblies
+        // if (!assembly.isLoaded) assembly = this[key];
+        if (!assembly.serialize) continue;
+        obj[key] = assembly.serialize();
+    }
+    return obj;
+}
+
+ROMData.prototype.deserialize = function(obj) {
+
+    if (isNumber(obj)) {
+        this.setSpecialValue(obj);
+        return;
+    }
+
+    for (const key in obj) {
+        let assembly = this.assembly[key];
+        if (!assembly) continue;
+        if (!assembly.isLoaded) assembly = this[assembly.key];
+        assembly.deserialize(obj[key]);
+    }
+}
+
 ROMData.prototype.assemble = function(data) {
 
     // ignore subassemblies if there is a special value
@@ -911,7 +955,7 @@ ROMData.prototype.assemble = function(data) {
             var assembly = this.assembly[key];
             if (!assembly.canRelocate) continue;
 
-            this[key]; // this ensures that the assembly is loaded
+            let _ = this[key]; // this ensures that the assembly is loaded
             assembly.markAsDirty();
             this.orphans.push(assembly);
             dirtyAssemblies.push(assembly);
@@ -3267,6 +3311,14 @@ Object.defineProperty(ROMProperty.prototype, "definition", { get: function() {
     return definition;
 }});
 
+ROMProperty.prototype.serialize = function() {
+    return this.value;
+}
+
+ROMProperty.prototype.deserialize = function(value) {
+    this.value = value;
+}
+
 ROMProperty.prototype.assemble = function(data) {
 
     var value = this.value;
@@ -3607,6 +3659,25 @@ Object.defineProperty(ROMArray.prototype, "definition", { get: function() {
 
     return definition;
 }});
+
+ROMArray.prototype.serialize = function() {
+    if (!this.arrayLength) return null;
+    const obj = [];
+    for (let i = 0; i < this.arrayLength; i++) {
+        const assembly = this.item(i);
+        obj.push(assembly.serialize());
+    }
+    return obj;
+}
+
+ROMArray.prototype.deserialize = function(array) {
+    if (!isArray(array)) return;
+    this.setLength(array.length);
+    for (let i = 0; i < array.length; i++) {
+        this.item(i).deserialize(array[i]);
+    }
+}
+
 
 ROMArray.prototype.createPrototype = function(definition) {
 
@@ -4445,7 +4516,7 @@ ROMScript.prototype.assemble = function(data) {
 
     // update the length of the script
     this.updateReferences();
-    this.assembledLength;
+    let _ = this.assembledLength;
     for (var c = 0; c < this.command.length; c++) {
         this.command[c].assemble(this.data);
     }
@@ -4834,6 +4905,14 @@ Object.defineProperty(ROMText.prototype, "definition", { get: function() {
 
     return definition;
 }});
+
+ROMText.prototype.serialize = function() {
+    return this.text;
+}
+
+ROMText.prototype.deserialize = function(text) {
+    this.text = text;
+}
 
 ROMText.prototype.disassemble = function(data) {
 
@@ -5352,7 +5431,7 @@ ROMStringTable.prototype.createString = function(value) {
         definition.link = this.link;
         return new ROMString(this.rom, definition, this);
     }
-    return null;
+    // return null;
 }
 
 // TODO: add undo functionality for these

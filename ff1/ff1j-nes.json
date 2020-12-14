@@ -3,7 +3,7 @@
     "key": "ff1j-nes",
     "name": "Final Fantasy (J)",
     "length": "0x040010",
-    "crc32": "0x8328E614",
+    "crc32": "0x23C13B15",
     "system": "nes",
     "mode": "mmc1",
     "pad": "0x00",

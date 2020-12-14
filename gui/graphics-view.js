@@ -402,12 +402,12 @@ class ROMGraphicsView extends ROMEditor {
             }
 
             const divHeight = this.div.scrollHeight;
-            const canvasHeight = this.canvasDiv.scrollHeight;
+            let canvasHeight = this.canvasDiv.scrollHeight;
             const otherHeight = divHeight - canvasHeight;
             if (divHeight > clientHeight) {
 
                 // add a scroll bar if graphics is too tall
-                const canvasHeight = clientHeight - otherHeight;
+                canvasHeight = clientHeight - otherHeight;
                 this.canvasDiv.style.height = `${canvasHeight}px`;
                 this.canvasDiv.style.overflowY = 'scroll';
 

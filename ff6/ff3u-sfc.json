@@ -1557,36 +1557,36 @@
                         "stringTable": "battleVRAMMap"
                     },
                     "monsterEntry": {
-                        "type": "property",
+                        "type": "assembly",
                         "external": "battlePropertiesAux[%i].monsterEntry"
                     },
                     "magicPoints": {
-                        "type": "property",
+                        "type": "assembly",
                         "external": "battleMagicPoints[%i].magicPoints",
                         "invalid": "this.parent.i >= 512"
                     },
                     "song": {
-                        "type": "property",
+                        "type": "assembly",
                         "external": "battlePropertiesAux[%i].song"
                     },
                     "continueSong": {
-                        "type": "property",
+                        "type": "assembly",
                         "external": "battlePropertiesAux[%i].continueSong"
                     },
                     "characterAI": {
-                        "type": "property",
+                        "type": "assembly",
                         "external": "battlePropertiesAux[%i].characterAI"
                     },
                     "enableCharacterAI": {
-                        "type": "property",
+                        "type": "assembly",
                         "external": "battlePropertiesAux[%i].enableCharacterAI"
                     },
                     "flags": {
-                        "type": "property",
+                        "type": "assembly",
                         "external": "battlePropertiesAux[%i].flags"
                     },
                     "flags2": {
-                        "type": "property",
+                        "type": "assembly",
                         "external": "battlePropertiesAux[%i].flags2"
                     }
                 }
@@ -14326,6 +14326,21 @@
         }
     },
     "charTable": {
+        "bigText": {
+            "name": "Big Text Characters",
+            "char": {
+                "0xD3": "“",
+                "0xD6": "\\holy",
+                "0xD7": "×",
+                "0xD8": "\\lightning",
+                "0xD9": "\\wind",
+                "0xDA": "\\earth",
+                "0xDB": "\\ice",
+                "0xDC": "\\fire",
+                "0xDD": "\\water",
+                "0xDE": "\\poison"
+            }
+        },
         "dialog": {
             "name": "Dialog",
             "char": {
@@ -14591,9 +14606,21 @@
                 "0xFF": "\\pad"
             }
         },
-        "item": {
-            "name": "Item Icons",
+        "nullTerminated": {
+            "name": "Null-Terminated",
             "char": {
+                "0x00": "\\0",
+                "0xFE": "\\pad",
+                "0xFF": " "
+            }
+        },
+        "smallText": {
+            "name": "Small Text Characters",
+            "char": {
+                "0xD4": "↑",
+                "0xD5": "→",
+                "0xD6": "↙",
+                "0xD7": "×",
                 "0xD8": "\\dagger",
                 "0xD9": "\\sword",
                 "0xDA": "\\spear",
@@ -14613,14 +14640,6 @@
                 "0xE8": "\\white",
                 "0xE9": "\\black",
                 "0xEA": "\\effect"
-            }
-        },
-        "nullTerminated": {
-            "name": "Null-Terminated",
-            "char": {
-                "0x00": "\\0",
-                "0xFE": "\\pad",
-                "0xFF": " "
             }
         },
         "text": {
@@ -14716,11 +14735,7 @@
                 "0xCC": ")",
                 "0xCD": "%",
                 "0xCE": "~",
-                "0xD2": "=",
-                "0xD4": "↑",
-                "0xD5": "→",
-                "0xD6": "↙",
-                "0xD7": "×"
+                "0xD2": "="
             }
         }
     },
@@ -14728,6 +14743,7 @@
         "bigText": {
             "name": "Big Text",
             "charTable": [
+                "bigText",
                 "text",
                 "fixedLength"
             ]
@@ -14742,6 +14758,7 @@
         "nullTerminated": {
             "name": "Null-Terminated",
             "charTable": [
+                "bigText",
                 "text",
                 "nullTerminated"
             ]
@@ -14750,7 +14767,7 @@
             "name": "Small Text",
             "charTable": [
                 "text",
-                "item",
+                "smallText",
                 "fixedLength"
             ]
         }

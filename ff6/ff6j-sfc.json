@@ -1534,36 +1534,36 @@
                         "stringTable": "battleVRAMMap"
                     },
                     "monsterEntry": {
-                        "type": "property",
+                        "type": "assembly",
                         "external": "battlePropertiesAux[%i].monsterEntry"
                     },
                     "magicPoints": {
-                        "type": "property",
+                        "type": "assembly",
                         "external": "battleMagicPoints[%i].magicPoints",
                         "invalid": "this.parent.i >= 512"
                     },
                     "song": {
-                        "type": "property",
+                        "type": "assembly",
                         "external": "battlePropertiesAux[%i].song"
                     },
                     "continueSong": {
-                        "type": "property",
+                        "type": "assembly",
                         "external": "battlePropertiesAux[%i].continueSong"
                     },
                     "characterAI": {
-                        "type": "property",
+                        "type": "assembly",
                         "external": "battlePropertiesAux[%i].characterAI"
                     },
                     "enableCharacterAI": {
-                        "type": "property",
+                        "type": "assembly",
                         "external": "battlePropertiesAux[%i].enableCharacterAI"
                     },
                     "flags": {
-                        "type": "property",
+                        "type": "assembly",
                         "external": "battlePropertiesAux[%i].flags"
                     },
                     "flags2": {
-                        "type": "property",
+                        "type": "assembly",
                         "external": "battlePropertiesAux[%i].flags2"
                     }
                 }
