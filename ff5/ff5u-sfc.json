@@ -942,7 +942,7 @@
         },
         "battleCharacterPalette": {
             "type": "array",
-            "name": "battleCharacterPalette",
+            "name": "Battle Character Palette",
             "range": "0xD4A3C0-0xD4B180",
             "array": {
                 "length": 110

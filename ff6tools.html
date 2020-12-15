@@ -438,9 +438,11 @@
                         skipInvalid: true
                     });
                     definitionFilename = rom.name + '.yaml';
+                    definitionFilename = `${rom.name}.yml`;
                 } else {
                     definition = JSON.stringify(rom.definition, null, 4);
                     definitionFilename = rom.name + '.json';
+                    definitionFilename = `${rom.name}.json`;
                 }
 
                 // update the script list since the script references will change

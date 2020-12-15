@@ -72,6 +72,14 @@
                     "path": "battleBackgroundProperties"
                 }
             ]
+        }, {
+            "name": "Character",
+            "list": [
+                {
+                    "name": "Character Graphics",
+                    "path": "battleCharacterGraphics"
+                }
+            ]
         }
     ],
     "assembly": {
@@ -139,6 +147,63 @@
                     "32": "Castle Exterior (Galuf's World)",
                     "33": "Grass (Galuf's World)"
                 }
+            }
+        },
+        "battleCharacterGraphics": {
+            "type": "array",
+            "name": "Battle Character Graphics",
+            "range": "0x0821D150-0x0823EDC4",
+            "arrayLength": 130,
+            "canRelocate": true,
+            "assembly": {
+                "type": "graphics",
+                "format": ["linear4bpp", "tose-graphics", "gba-lzss"],
+                "palette": "battleCharacterPalette[%i]",
+                "align": 4,
+                "spriteSheet": {
+                    "width": 22,
+                    "height": 3,
+                    "tilemap": [
+                        0, 1,  6, 7,  0, 1, 16,17,  0, 1,  0, 1,  0,30, 35,36, 41,42, 47,48, 47,48,
+                        2, 3,  8, 9, 12,13, 18,19, 22,23, 26,27, 31,32, 37,38, 43,44, 49,50, 53,54,
+                        4, 5, 10,11, 14,15, 20,21, 24,15, 28,29, 33,34, 39,40, 45,46, 51,52, 55,56
+                    ]
+                }
+            },
+            "pointerTable": {
+                "range": "0x0870905C-0x08709264",
+                "reference": [
+                    {
+                        "begin": "0x08088628",
+                        "mask": "0x7FFFFFFF"
+                    }
+                ]
+            },
+            "stringTable": {
+                "length": 130,
+                "default": "<stringTable.characterNames[%i/26|0]> (<stringTable.jobName[%i%26]>)"
+            }
+        },
+        "battleCharacterPalette": {
+            "type": "array",
+            "name": "Battle Character Palette",
+            "range": "0x0823EDC4-0x0824014C",
+            "canRelocate": true,
+            "array": {
+                "length": 130
+            },
+            "assembly": {
+                "align": 4,
+                "format": ["bgr555", "tose-palette"]
+            },
+            "pointerTable": {
+                "range": "0x08709264-0x0870946C",
+                "reference": [
+                    {
+                        "begin": "0x08088764",
+                        "mask": "0x7FFFFFFF"
+                    }
+                ]
             }
         },
         "battleGroupEvent": {
@@ -5325,8 +5390,11 @@
         },
         "characterNames": {
             "name": "Dialog",
-            "length": 1,
-            "link": "text[0x0B76]"
+            "length": 5,
+            "default": "<text[0x0B71+%i]>",
+            "string": {
+                "0": "<text[0x0B76]>"
+            }
         },
         "dialog": {
             "name": "Dialog",
@@ -5799,5 +5867,6 @@
         }
     },
     "freeSpace": [
+        "0x0870AE60-0x08800000"
     ]
 }
