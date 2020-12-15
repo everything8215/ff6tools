@@ -2470,7 +2470,6 @@ ROM.dataFormat = {
                 }
             }
 
-            if (mask != 1) {
             if (mask !== 1) {
                 // we're done with all the data but we're still in the middle of a line
                 line[0] = header;
@@ -2719,7 +2718,6 @@ ROM.dataFormat = {
                 }
             }
 
-            if (mask != 1) {
             if (mask !== 1) {
                 // we're done with all the data but we're still in the middle of a line
                 line[0] = header;
@@ -2885,7 +2883,6 @@ ROM.dataFormat = {
                 }
             }
 
-            if (mask != 1) {
             if (mask !== 0x80) {
                 // we're done with all the data but we're still in the middle of a line
                 line[0] = header;
