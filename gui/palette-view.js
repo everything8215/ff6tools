@@ -281,8 +281,8 @@ class ROMPaletteView {
         }
 
         // overwrite currently selected multiple choice palette
-        if (self.paletteSelectControl) {
-            this.savePalette(JSON.parse(self.paletteSelectControl.value));
+        if (this.paletteSelectControl) {
+            this.savePalette(JSON.parse(this.paletteSelectControl.value));
         }
         this.observer.wake();
 

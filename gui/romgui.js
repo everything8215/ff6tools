@@ -547,11 +547,12 @@ ROMGraphicsExporter.prototype.exportGraphics = function(formatKey) {
     document.body.appendChild(a);
 
     a.href = url;
-    a.download = 'image.' + extension;
+    a.download = `image.${extension}`;
     a.click();
 
     // release the reference to the file by revoking the Object URL
     window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
 }
 
 function ROMGraphicsImporter(rom, graphicsView, callback) {
@@ -607,6 +608,9 @@ function ROMGraphicsImporter(rom, graphicsView, callback) {
     this.paletteLeft.palette = new Uint32Array(this.oldPalette.length);
     this.paletteLeft.palette.fill(0xFF000000);
     this.paletteLeft.p = 0;
+    this.paletteLeft.colorsPerPalette = graphicsView.paletteView.colorsPerPalette;
+    this.paletteLeft.colorsPerRow = graphicsView.paletteView.colorsPerRow;
+    this.paletteLeft.rowsPerPalette = graphicsView.paletteView.rowsPerPalette;
     // this.paletteLeft.showCursor = false;
     this.paletteLeft.canvas.onmousedown = function(e) { importer.paletteLeftMouseDown(e) };
 
@@ -650,6 +654,9 @@ function ROMGraphicsImporter(rom, graphicsView, callback) {
     this.paletteRight = this.graphicsRight.paletteView;
     this.paletteRight.palette = this.oldPalette;
     this.paletteRight.p = graphicsView.paletteView.p;
+    this.paletteRight.colorsPerPalette = graphicsView.paletteView.colorsPerPalette;
+    this.paletteRight.colorsPerRow = graphicsView.paletteView.colorsPerRow;
+    this.paletteRight.rowsPerPalette = graphicsView.paletteView.rowsPerPalette;
     this.paletteRight.canvas.onmousedown = function(e) { importer.paletteRightMouseDown(e) };
 
     this.callback = callback;
