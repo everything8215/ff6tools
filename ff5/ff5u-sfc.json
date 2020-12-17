@@ -5226,6 +5226,48 @@
                 }
             }
         },
+        "monsterItems": {
+            "type": "array",
+            "name": "Monster Items",
+            "range": "0xD05000-0xD05600",
+            "array": {
+                "length": 384
+            },
+            "assembly": {
+                "type": "data",
+                "length": 4,
+                "assembly": {
+                    "rareSteal": {
+                        "type": "property",
+                        "name": "Rare Steal",
+                        "begin": 0,
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
+                    },
+                    "commonSteal": {
+                        "type": "property",
+                        "name": "Common Steal",
+                        "begin": 1,
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
+                    },
+                    "rareDrop": {
+                        "type": "property",
+                        "name": "Rare Drop",
+                        "begin": 2,
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
+                    },
+                    "commonDrop": {
+                        "type": "property",
+                        "name": "Common Drop",
+                        "begin": 3,
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]"
+                    }
+                }
+            }
+        },
         "monsterName": {
             "type": "array",
             "name": "Monster Name",
@@ -5767,6 +5809,23 @@
                     "specialAttackFlags": {
                         "type": "assembly",
                         "external": "monsterSpecialAttackProperties[%i].specialAttackFlags"
+                    },
+                    "category-items": "Items",
+                    "rareSteal": {
+                        "type": "assembly",
+                        "external": "monsterItems[%i].rareSteal"
+                    },
+                    "commonSteal": {
+                        "type": "assembly",
+                        "external": "monsterItems[%i].commonSteal"
+                    },
+                    "rareDrop": {
+                        "type": "assembly",
+                        "external": "monsterItems[%i].rareDrop"
+                    },
+                    "commonDrop": {
+                        "type": "assembly",
+                        "external": "monsterItems[%i].commonDrop"
                     },
                     "cat-element": "Elements",
                     "elementImmune": {
