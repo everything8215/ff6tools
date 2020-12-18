@@ -112,8 +112,8 @@
                     "name": "Jobs",
                     "path": "jobStats"
                 }, {
-                    "name": "Spell Names",
-                    "path": "spellName"
+                    "name": "Attacks",
+                    "path": "attackProperties"
                 }, {
                     "name": "Battle Command Names",
                     "path": "battleCommandName"
@@ -123,12 +123,6 @@
                 }, {
                     "name": "Innate Ability Names",
                     "path": "abilityNameInnate"
-                }, {
-                    "name": "Attack Names",
-                    "path": "attackName"
-                }, {
-                    "name": "Long Attack Names",
-                    "path": "attackNameLong"
                 }, {
                     "name": "Spell Graphics 1",
                     "path": "attackTilemap1"
@@ -293,6 +287,270 @@
             "stringTable": {
                 "length": 128,
                 "default": "Attack Palette %i"
+            }
+        },
+        "attackProperties": {
+            "type": "array",
+            "name": "Attack Properties",
+            "range": "0xD10B80-0xD11380",
+            "arrayLength": 256,
+            "stringTable": "attackName",
+            "assembly": {
+                "type": "data",
+                "length": 8,
+                "assembly": {
+                    "spellName": {
+                        "type": "assembly",
+                        "name": "Name",
+                        "external": "spellName[%i]",
+                        "invalid": "this.parent.i >= 87"
+                    },
+                    "attackName": {
+                        "type": "assembly",
+                        "name": "Name",
+                        "external": "attackName[%i-87]",
+                        "invalid": "this.parent.i < 87"
+                    },
+                    "targeting": {
+                        "type": "property",
+                        "name": "Targeting",
+                        "begin": 0,
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "2": "Roulette",
+                                "3": "Target Enemy by Default",
+                                "4": "Can Target Either Side",
+                                "5": "Can Select Target",
+                                "6": "Always Target All",
+                                "7": "Can Target All"
+                            }
+                        }
+                    },
+                    "attackType": {
+                        "type": "property",
+                        "name": "Attack Type",
+                        "begin": 1,
+                        "flag": true,
+                        "stringTable": "attackType"
+                    },
+                    "unknown2": {
+                        "type": "property",
+                        "name": "Unknown 2",
+                        "begin": 2,
+                        "mask": "0x0F"
+                    },
+                    "learn": {
+                        "type": "property",
+                        "name": "Blue Magic",
+                        "begin": 2,
+                        "mask": "0xF0",
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "0": "10% Learn Prob.",
+                                "1": "50% Learn Prob.",
+                                "2": "100% Learn Prob.",
+                                "3": "Can't Learn"
+                            }
+                        }
+                    },
+                    "mpCost": {
+                        "type": "property",
+                        "name": "MP Cost",
+                        "begin": 3,
+                        "mask": "0x7F"
+                    },
+                    "noReflect": {
+                        "type": "property",
+                        "name": "Can't Reflect",
+                        "begin": 3,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "attackEffect": {
+                        "type": "property",
+                        "name": "Attack Effect",
+                        "begin": 4,
+                        "mask": "0x7F",
+                        "stringTable": {
+                            "length": 128,
+                            "default": "Attack Effect %i",
+                            "string": {
+                                "0": "No Effect",
+                                "1": "Monster Fight",
+                                "2": "Monster Special Attack",
+                                "3": "Magic Sword 1",
+                                "4": "Magic Sword 2",
+                                "5": "Magic Sword 3",
+                                "6": "Offensive Magic",
+                                "7": "HP-Based Damge + Status",
+                                "8": "Ignore Defense",
+                                "9": "Random Damage",
+                                "10": "Physical Magic",
+                                "11": "Level Based Damage + Status",
+                                "12": "Ignore Defense + HP Leak",
+                                "13": "Drain HP",
+                                "14": "Drain MP",
+                                "15": "HP to Critical",
+                                "16": "Restore HP",
+                                "17": "Restore to Full HP",
+                                "18": "Inflict Status 1",
+                                "19": "Inflict Status 2",
+                                "20": "Inflict Status 3",
+                                "21": "Toggle Status",
+                                "22": "Reversing Status Infliction",
+                                "23": "Instant Death",
+                                "24": "Instant Destroy",
+                                "25": "Remove Status",
+                                "26": "Resurrect",
+                                "27": "Whispering Wind",
+                                "28": "Change Element Attribute",
+                                "29": "View Stats",
+                                "30": "Drag",
+                                "31": "Void",
+                                "32": "End Battle",
+                                "33": "Reset Battle",
+                                "34": "Quick",
+                                "35": "Earth Wall",
+                                "36": "Restore HP (Fixed Value)",
+                                "37": "Restore MP (Fixed Value)",
+                                "38": "Restore Full HP/MP",
+                                "39": "Status Added",
+                                "40": "Damage (Fixed Value)",
+                                "41": "Inflict Status 4",
+                                "42": "HP-Based Damage + HP Leak",
+                                "43": "Attacker HP-Based Damage",
+                                "44": "Random Effect",
+                                "45": "Ground Attack",
+                                "46": "Reaper's Sword",
+                                "48": "Unarmed",
+                                "49": "Sword",
+                                "50": "Knife",
+                                "51": "Spear",
+                                "52": "Axe/Staff",
+                                "53": "Bow + Status",
+                                "54": "Bow",
+                                "55": "Katana",
+                                "56": "Whip",
+                                "57": "Bell",
+                                "58": "Axe (No Back Row Penalty)",
+                                "59": "Rod",
+                                "60": "Rune Weapons",
+                                "61": "Death Claw",
+                                "62": "Failure (EL+TS)",
+                                "63": "Zombie Breath",
+                                "64": "Change Row",
+                                "66": "Restore HP and Status",
+                                "67": "Steal",
+                                "68": "Escape",
+                                "69": "Throw",
+                                "70": "GilToss",
+                                "71": "Tame",
+                                "72": "Catch",
+                                "73": "Flirt",
+                                "74": "Dance",
+                                "75": "L5 Doom",
+                                "76": "L2 Old",
+                                "77": "L4 Qrter",
+                                "78": "L3 Flare",
+                                "79": "Spirit",
+                                "80": "Goblin Punch",
+                                "81": "Increase Stats",
+                                "82": "Mucus",
+                                "83": "MP Damage",
+                                "84": "Attacker HP-Based Damage (Negative)",
+                                "85": "Fusion",
+                                "87": "Random Effect",
+                                "88": "Mind Blast",
+                                "89": "Increase HP",
+                                "90": "White Wind",
+                                "92": "Hug",
+                                "93": "Zombie Status",
+                                "97": "Stalker Attack",
+                                "98": "Byblos Attack",
+                                "99": "Grand Cross",
+                                "100": "Chicken Knife",
+                                "101": "Interceptor Rocket",
+                                "102": "Targeting",
+                                "103": "Pull",
+                                "104": "End Battle",
+                                "105": "Control",
+                                "106": "Sandworm",
+                                "107": "Change Attribute",
+                                "108": "Monster Type Bonus",
+                                "109": "Vampire",
+                                "110": "Brave Blade",
+                                "111": "Fight (Strong)",
+                                "112": "Wormhole",
+                                "113": "Level Down",
+                                "114": "Bow (Strong vs. Monster Type)",
+                                "115": "Spear (Strong vs. Monster Type)",
+                                "127": "No Attack"
+                            }
+                        }
+                    },
+                    "byte5": {
+                        "type": "property",
+                        "name": "Byte 5",
+                        "begin": 5
+                    },
+                    "byte6": {
+                        "type": "property",
+                        "name": "Byte 6",
+                        "begin": 6
+                    },
+                    "byte7": {
+                        "type": "property",
+                        "name": "Byte 7",
+                        "begin": 7
+                    },
+                    "priceOverride": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i+256].priceOverride",
+                        "invalid": "this.parent.i >= 128"
+                    },
+                    "priceMultiplier": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i+256].priceMultiplier",
+                        "invalid": "this.parent.i >= 128"
+                    },
+                    "price1": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i+256].price1",
+                        "invalid": "this.parent.i >= 128"
+                    },
+                    "price10": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i+256].price10",
+                        "invalid": "this.parent.i >= 128"
+                    },
+                    "price100": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i+256].price100",
+                        "invalid": "this.parent.i >= 128"
+                    },
+                    "price1000": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i+256].price1000",
+                        "invalid": "this.parent.i >= 128"
+                    },
+                    "price10000": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i+256].price10000",
+                        "invalid": "this.parent.i >= 128"
+                    },
+                    "price100000": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i+256].price100000",
+                        "invalid": "this.parent.i >= 128"
+                    },
+                    "price1000000": {
+                        "type": "assembly",
+                        "external": "itemPrice[%i+256].price1000000",
+                        "invalid": "this.parent.i >= 128"
+                    }
+                }
             }
         },
         "attackTilemap1": {
