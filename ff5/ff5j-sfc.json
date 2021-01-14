@@ -333,6 +333,12 @@
                             }
                         }
                     },
+                    "delay": {
+                        "type": "property",
+                        "name": "Action Delay",
+                        "begin": 0,
+                        "mask": "0x03"
+                    },
                     "attackType": {
                         "type": "property",
                         "name": "Attack Type",
@@ -2887,6 +2893,12 @@
                                 "7": "Can Target All"
                             }
                         }
+                    },
+                    "delay": {
+                        "type": "property",
+                        "name": "Action Delay",
+                        "begin": 0,
+                        "mask": "0x03"
                     },
                     "flags": {
                         "type": "property",

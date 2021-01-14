@@ -43,7 +43,7 @@ class FF4MapGBALayer {
             let ld = x + (y + row) * this.w;
             if (this.type === FF4MapGBALayer.Type.world) {
                 if (ld + clippedW > this.layout.data.length) break;
-                this.layout.setData(selection.tilemap.slice(ls, ls + clippedW), ld);
+                this.layout.replaceData(selection.tilemap.slice(ls, ls + clippedW), ld);
             } else {
                 if (ld + clippedW > this.layout.data.length) break;
                 if (this.type === FF4MapGBALayer.Type.layer1) {
@@ -54,7 +54,7 @@ class FF4MapGBALayer {
                     ld += this.w * this.h; // z-level 2
                 }
                 if (ld + clippedW >= this.layout.data.length) break;
-                this.layout.setData(selection.tilemap.slice(ls, ls + clippedW), ld);
+                this.layout.replaceData(selection.tilemap.slice(ls, ls + clippedW), ld);
             }
         }
         this.decodeLayout(x, y, clippedW, clippedH);

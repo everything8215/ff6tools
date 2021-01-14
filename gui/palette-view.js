@@ -360,7 +360,7 @@ class ROMPaletteView {
         if (range.begin + palette.length > object.data.length) {
             palette = palette.subarray(0, object.data.length - range.begin);
         }
-        object.setData(palette, range.begin);
+        object.replaceData(palette, range.begin);
     }
 
     updateToolbox() {

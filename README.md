@@ -167,4 +167,6 @@ FF6Tools uses the following libraries:
 - pzntg (https://github.com/hectorm/pzntg)
 - RgbQuant.js (https://github.com/leeoniya/RgbQuant.js/)
 - balloon.css (https://github.com/kazzkiq/balloon.css)
+- js-yaml (https://github.com/nodeca/js-yaml)
+- base64-js (https://github.com/beatgammit/base64-js)
 - fontawesome (https://fontawesome.com)

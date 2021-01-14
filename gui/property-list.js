@@ -85,6 +85,115 @@ class ROMPropertyList {
         this.selection.current = null;
     }
 
+    copy() {
+        const obj = this.selection.current;
+        if (!obj.serialize) return;
+        const yaml = obj.serialize();
+        const text = jsyaml.safeDump(yaml, {
+            indent: 4,
+            skipInvalid: true
+        });
+        navigator.permissions.query({name: "clipboard-write"}).then(function(result) {
+            if (result.state == "granted" || result.state == "prompt") {
+                navigator.clipboard.writeText(text);
+            }
+        });
+    }
+
+    paste() {
+        const obj = this.selection.current;
+        if (!obj.deserialize) return;
+
+        const self = this;
+        navigator.permissions.query({name: "clipboard-read"}).then(function(result) {
+            if (result.state == "granted" || result.state == "prompt") {
+                navigator.clipboard.readText().then(function(text) {
+                    const yaml = jsyaml.safeLoad(text);
+                    self.rom.beginAction();
+                    obj.deserialize(yaml);
+                    self.rom.endAction();
+                    // self.showProperties();
+                });
+            }
+        });
+    }
+
+    import() {
+
+        const obj = this.selection.current;
+
+        if (obj instanceof ROMGraphics) {
+            this.graphicsImport();
+            return;
+        }
+        if (!obj.deserialize) return;
+
+        // create a dummy file input element
+        const fileInput = document.createElement('input');
+        document.body.appendChild(fileInput);
+        fileInput.type = 'file';
+        fileInput.style = 'display: none';
+        fileInput.click();
+        fileInput.onchange = function() {
+            if (!fileInput || !fileInput.files[0]) {
+                document.body.removeChild(fileInput);
+                return;
+            }
+            const file = fileInput.files[0];
+            const filereader = new FileReader();
+            filereader.readAsText(file);
+            filereader.onload = function() {
+                // get the file as a byte array
+                const textBuffer = filereader.result;
+                let importObj = null;
+                if (file.name.endsWith('yaml') || file.name.endsWith('yml')) {
+                    importObj = jsyaml.safeLoad(textBuffer);
+                } else {
+                    importObj = JSON.parse(textBuffer);
+                }
+
+                self.rom.beginAction();
+                obj.deserialize(importObj);
+                self.rom.endAction();
+                // self.showProperties();
+
+                document.body.removeChild(fileInput);
+            }
+        }
+    }
+
+    export() {
+        const obj = this.selection.current;
+
+        if (obj instanceof ROMGraphics) {
+            this.graphicsExport();
+            return;
+        }
+
+        if (!obj.serialize) return;
+        const yaml = obj.serialize();
+        const text = jsyaml.safeDump(yaml, {
+            indent: 4,
+            skipInvalid: true
+        });
+
+        const blob = new Blob([text]);
+        const name = obj.labelString ? obj.labelString.fString() : (obj.name || 'object');
+
+        // create a link element, hide it, direct it towards the blob,
+        // and then 'click' it programatically
+        const a = document.createElement('a');
+        a.style = 'display: none';
+        document.body.appendChild(a);
+
+        a.href = window.URL.createObjectURL(blob);
+        a.download = `${name}.yml`;
+        a.click();
+
+        // release the reference to the file by revoking the Object URL
+        window.URL.revokeObjectURL(a.href);
+    }
+
     showProperties() {
 
         // stop observing eveything
@@ -134,10 +243,38 @@ class ROMPropertyList {
             // object name
             const heading = document.createElement('p');
             headingDiv.appendChild(heading);
+
+            // add heading buttons
+            const self = this;
+            const buttonDiv = document.createElement('div');
+            buttonDiv.classList.add('property-heading-button-div');
+            heading.appendChild(buttonDiv);
+
+            const copyButton = document.createElement('i');
+            copyButton.classList.add('fas', 'fa-copy', 'property-heading-button');
+            copyButton.onclick = function() { self.copy(); };
+            buttonDiv.appendChild(copyButton);
+
+            const pasteButton = document.createElement('i');
+            pasteButton.classList.add('fas', 'fa-paste', 'property-heading-button');
+            pasteButton.onclick = function() { self.paste(); };
+            buttonDiv.appendChild(pasteButton);
+
+            const exportButton = document.createElement('i');
+            exportButton.classList.add('fas', 'fa-download', 'property-heading-button');
+            exportButton.onclick = function() { self.export(); };
+            buttonDiv.appendChild(exportButton);
+
+            const importButton = document.createElement('i');
+            importButton.classList.add('fas', 'fa-upload', 'property-heading-button');
+            importButton.onclick = function() { self.import(); };
+            buttonDiv.appendChild(importButton);
+
             if (isNumber(object.i)) {
-                heading.innerHTML = object.name.replace('%i', rom.numToString(object.i));
+                const headingString = object.name.replace('%i', rom.numToString(object.i));
+                heading.appendChild(document.createTextNode(headingString));
             } else {
-                heading.innerHTML = object.name;
+                heading.appendChild(document.createTextNode(object.name));
             }
         }
 
@@ -360,48 +497,87 @@ class ROMPropertyList {
 
         const graphicsView = this.getEditor('ROMGraphicsView');
         const paletteView = graphicsView.paletteView;
-        const exportButton = document.createElement('button');
-        exportButton.innerHTML = 'Export Graphics';
-        exportButton.onclick = function() {
-            const exporter = new ROMGraphicsExporter();
-            exporter.export({
-                tilemap: graphicsView.tilemap,
-                graphics: graphicsView.graphics,
-                palette: paletteView.palette,
-                width: graphicsView.width,
-                backColor: graphicsView.backColor,
-                tileWidth: graphicsView.tileWidth,
-                tileHeight: graphicsView.tileHeight
-            });
-        };
-        graphicsDiv.appendChild(exportButton);
-
-        const importButton = document.createElement('button');
-        importButton.innerHTML = 'Import Graphics';
-        importButton.onclick = function() {
-            function callback(graphics, palette) {
-
-                graphicsView.rom.beginAction();
-                if (graphics) {
-                    // trim the graphics to fit
-                    if (graphics.length > graphicsView.graphics.length) {
-                        graphics = graphics.subarray(0, graphicsView.graphics.length);
-                    }
-
-                    // set the new graphics data
-                    graphicsView.object.setData(graphics);
-                }
-
-                if (palette) {
-                    paletteView.importPalette(palette);
-                }
-                graphicsView.rom.endAction();
-            }
-            const importer = new ROMGraphicsImporter(rom, graphicsView, callback);
-        };
-        graphicsDiv.appendChild(importButton);
+        // const exportButton = document.createElement('button');
+        // exportButton.innerHTML = 'Export Graphics';
+        // exportButton.onclick = function() {
+        //     const exporter = new ROMGraphicsExporter();
+        //     exporter.export({
+        //         tilemap: graphicsView.tilemap,
+        //         graphics: graphicsView.graphics,
+        //         palette: paletteView.palette,
+        //         width: graphicsView.width,
+        //         backColor: graphicsView.backColor,
+        //         tileWidth: graphicsView.tileWidth,
+        //         tileHeight: graphicsView.tileHeight
+        //     });
+        // };
+        // graphicsDiv.appendChild(exportButton);
+        //
+        // const importButton = document.createElement('button');
+        // importButton.innerHTML = 'Import Graphics';
+        // importButton.onclick = function() {
+        //     function callback(graphics, palette) {
+        //
+        //         graphicsView.rom.beginAction();
+        //         if (graphics) {
+        //             // trim the graphics to fit
+        //             if (graphics.length > graphicsView.graphics.length) {
+        //                 graphics = graphics.subarray(0, graphicsView.graphics.length);
+        //             }
+        //
+        //             // set the new graphics data
+        //             graphicsView.object.setData(graphics);
+        //         }
+        //
+        //         if (palette) {
+        //             paletteView.importPalette(palette);
+        //         }
+        //         graphicsView.rom.endAction();
+        //     }
+        //     const importer = new ROMGraphicsImporter(rom, graphicsView, callback);
+        // };
+        // graphicsDiv.appendChild(importButton);
 
         return graphicsDiv;
+    }
+
+    graphicsExport() {
+        const graphicsView = this.getEditor('ROMGraphicsView');
+        const paletteView = graphicsView.paletteView;
+        const exporter = new ROMGraphicsExporter();
+        exporter.export({
+            tilemap: graphicsView.tilemap,
+            graphics: graphicsView.graphics,
+            palette: paletteView.palette,
+            width: graphicsView.width,
+            backColor: graphicsView.backColor,
+            tileWidth: graphicsView.tileWidth,
+            tileHeight: graphicsView.tileHeight
+        });
+    }
+
+    graphicsImport() {
+        const graphicsView = this.getEditor('ROMGraphicsView');
+        const paletteView = graphicsView.paletteView;
+        function callback(graphics, palette) {
+
+            graphicsView.rom.beginAction();
+            if (graphics) {
+                // trim the graphics to fit
+                if (graphics.length > graphicsView.graphics.length) {
+                    graphics = graphics.subarray(0, graphicsView.graphics.length);
+                }
+
+                // set the new graphics data
+                graphicsView.object.setData(graphics);
+            }
+
+            if (palette) {
+                paletteView.importPalette(palette);
+            }
+            graphicsView.rom.endAction();
+        }
+        const importer = new ROMGraphicsImporter(rom, graphicsView, callback);
     }
 
     tilemapHTML(object, options) {

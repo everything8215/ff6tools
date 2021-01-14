@@ -545,7 +545,38 @@ ROMAssembly.prototype.markAsDirty = function(noUpdate) {
     if (this.parent && this.parent.markAsDirty) this.parent.markAsDirty(noUpdate);
 }
 
-ROMAssembly.prototype.setData = function(newData, offset) {
+ROMAssembly.prototype.setData = function(newData) {
+
+    // replace object's data array with newData
+    // can change the length of the object's data
+
+    if (this.external) return;
+
+    // return if the array didn't change
+    var oldData = this.data;
+    if (compareTypedArrays(oldData, newData)) return;
+
+    // perform an action to set the array
+    var assembly = this;
+    function redo() {
+        assembly.data = newData;
+        assembly.disassemble();
+        assembly.notifyObservers();
+    }
+    function undo() {
+        assembly.data = oldData;
+        assembly.disassemble();
+        assembly.notifyObservers();
+    }
+    var description = `Set ${this.name} data`;
+    var action = new ROMAction(this, undo, redo, description);
+    this.rom.doAction(action);
+}
+
+ROMAssembly.prototype.replaceData = function(newData, offset) {
+
+    // overwrite a portion of the object's current data
+    // won't change length of data
 
     if (this.external) return;
 
@@ -567,7 +598,7 @@ ROMAssembly.prototype.setData = function(newData, offset) {
         assembly.disassemble();
         assembly.notifyObservers();
     }
-    var description = "Set " + this.name + " data [" + offset + "-" + (offset + newData.length) + "]";
+    var description = `Set ${this.name} data [${offset}-${offset + newData.length}]`;
     var action = new ROMAction(this, undo, redo, description);
     this.rom.doAction(action);
 }
@@ -3115,31 +3146,31 @@ ROM.prototype.showSettings = function() {
     }
 
     var defFormatDiv = document.createElement('div');
-    defFormatDiv.classList.add("property-div");
+    defFormatDiv.classList.add('property-div');
     content.appendChild(defFormatDiv);
     var defFormatLabel = document.createElement('label');
-    defFormatLabel.innerHTML = "Definition File Format: ";
-    defFormatLabel.htmlFor = "settings-def-format-control";
-    defFormatLabel.classList.add("property-label");
+    defFormatLabel.innerHTML = 'Definition File Format: ';
+    defFormatLabel.htmlFor = 'settings-def-format-control';
+    defFormatLabel.classList.add('property-label');
     defFormatDiv.appendChild(defFormatLabel);
     var defFormatControl = document.createElement('select');
     defFormatDiv.appendChild(defFormatControl);
-    defFormatControl.id = "settings-def-format-control";
-    defFormatControl.classList.add("property-control");
+    defFormatControl.id = 'settings-def-format-control';
+    defFormatControl.classList.add('property-control');
     var defFormatOption1 = document.createElement('option');
     defFormatOption1.value = 0;
-    defFormatOption1.innerHTML = "JSON";
+    defFormatOption1.innerHTML = 'JSON';
     defFormatControl.appendChild(defFormatOption1);
     var defFormatOption2 = document.createElement('option');
     defFormatOption2.value = 1;
-    defFormatOption2.innerHTML = "YAML";
+    defFormatOption2.innerHTML = 'YAML';
     defFormatControl.appendChild(defFormatOption2);
-    defFormatControl.value = rom.definitionFormat === "yaml" ? 1 : 0;
+    defFormatControl.value = rom.definitionFormat === 'yaml' ? 1 : 0;
     defFormatControl.onchange = function() {
         if (Number(this.value) === 1) {
-            rom.definitionFormat = "yaml";
+            rom.definitionFormat = 'yaml';
         } else {
-            rom.definitionFormat = "json";
+            rom.definitionFormat = 'json';
         }
     }
 
@@ -3312,11 +3343,26 @@ Object.defineProperty(ROMProperty.prototype, "definition", { get: function() {
 }});
 
 ROMProperty.prototype.serialize = function() {
-    return this.value;
+    if (this.pointerTo && this.target) {
+        const targetObject = this.parsePath(this.pointerTo);
+        return `${targetObject.path}[${this.target.i}]`;
+    } else {
+        return this.value;
+    }
 }
 
 ROMProperty.prototype.deserialize = function(value) {
-    this.value = value;
+
+    const numberValue = Number(value);
+    if (isNumber(numberValue)) {
+        this.rom.beginAction();
+        if (this.target) this.setTarget(null);
+        this.setValue(value);
+        this.rom.endAction();
+    } else {
+        const target = this.parsePath(value);
+        if (target) this.setTarget(target);
+    }
 }
 
 ROMProperty.prototype.assemble = function(data) {
@@ -4305,9 +4351,15 @@ ROMArray.prototype.iterator = function() {
                 i: 0,
                 next() {
                     if (this.i < self.arrayLength) {
-                        return { value: self.item(this.i++), done: false };
+                        return {
+                            value: self.item(this.i++),
+                            done: false
+                        };
                     }
-                    return { value: undefined, done: true };
+                    return {
+                        value: undefined,
+                        done: true
+                    };
                 }
             };
         }
@@ -4365,7 +4417,7 @@ Object.defineProperty(ROMCommand.prototype, "defaultLabel", { get: function() {
     address &= 0xFFFF;
     bank = bank.toString(16).toUpperCase().padStart(2, '0');
     address = address.toString(16).toUpperCase().padStart(4, '0');
-    return (bank + "/" + address);
+    return `${bank}/${address})`;
 }});
 
 Object.defineProperty(ROMCommand.prototype, "description", { get: function() {
@@ -4510,6 +4562,23 @@ ROMScript.prototype.updateReferences = function() {
     }
 
     ROMAssembly.prototype.updateReferences.call(this);
+}
+
+ROMScript.prototype.serialize = function() {
+    const script = [];
+    for (const command of this.command) {
+        script.push(command.serialize());
+    }
+
+    return script;
+}
+
+ROMScript.prototype.deserialize = function(script) {
+    this.command = [];
+    for (const command of script) {
+        this.command.push(command.deserialize());
+    }
+    this.updateReferences();
 }
 
 ROMScript.prototype.assemble = function(data) {
@@ -4911,7 +4980,7 @@ ROMText.prototype.serialize = function() {
 }
 
 ROMText.prototype.deserialize = function(text) {
-    this.text = text;
+    this.setText(text);
 }
 
 ROMText.prototype.disassemble = function(data) {

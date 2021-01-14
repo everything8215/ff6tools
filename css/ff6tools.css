@@ -763,8 +763,8 @@ body {
 
 .graphics-controls {
     align-items: center;
-    background: linear-gradient(#fff,#ddd);
-    border-bottom: 1px solid #ccc;
+    /* background: linear-gradient(#fff,#ddd); */
+    /* border-bottom: 1px solid #ccc; */
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
@@ -813,6 +813,28 @@ body {
     font-weight: bold;
     margin: 0px 0px;
     padding: 4px 0px;
+}
+
+.property-heading-button-div {
+    float: right;
+}
+
+.property-heading-button {
+    cursor: pointer;
+    font-size: 12px;
+    margin: 0px 4px;
+    padding: 0px 0px;
+    text-align: right;
+}
+
+.property-heading-button:hover {
+    color: var(--control-color-selected);
+    transition: 0.2s;
+}
+
+.property-heading-button:active {
+    color: var(--control-color-active);
+    transition: 0.2s;
 }
 
 .property-heading select {

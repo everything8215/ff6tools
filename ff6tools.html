@@ -4,16 +4,16 @@
         <meta charset="UTF-8">
         <title>FF6Tools</title>
         <meta name="description" content="Browser-Based Editor for Final Fantasy ROMs">
-        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.1/css/all.css" crossorigin="anonymous">
         <link rel="stylesheet" href="css/balloon.css" />
         <link rel="stylesheet" href="css/ff6tools.css" />
 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/split.js/1.5.11/split.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/split.js/1.6.2/split.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.5.0/jszip.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/1.0.10/pako.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/css-element-queries/1.2.3/ResizeSensor.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/3.14.0/js-yaml.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/3.14.1/js-yaml.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/base64-js@1.5.1/base64js.min.js"></script>
         <!-- <script src="ff6tools-min.js"></script> -->
         <script src="lib/pzntg.js"></script>
@@ -334,7 +334,9 @@
                 rom.disassemble(data);
 
                 console.log(`CRC32: ${hexString(ROM.crc32(data), 8)}`);
-                if (rom.isSFC) console.log(`SNES Checksum: ${hexString(ROM.checksum(data), 4)}`);
+                if (rom.isSFC) {
+                    console.log(`SNES Checksum: ${hexString(ROM.checksum(data), 4)}`);
+                }
 
                 // create gui objects
                 if (propertyList) {
@@ -373,10 +375,15 @@
                 //    }
                 // }
 
+                // console.log(jsyaml.safeDump(rom.battleDialog.serialize(), {
+                //     indent: 2,
+                //     skipInvalid: true
+                // }));
+
                 // // output strings to the console
                 // var bigString = "";
-                // for (var d = 0; d < rom.text.arrayLength; d++) {
-                //    var dialogString = rom.text.item(d).text;
+                // for (var d = 0; d < rom.battleDialog.arrayLength; d++) {
+                //    var dialogString = rom.battleDialog.item(d).text;
                 //    bigString += hexString(d, 4) + ": " + dialogString.replace(/\\n/g, "\n        ").replace(/\\page/g, "\n        ") + "\n";
                 // }
                 // console.log(bigString);
@@ -517,7 +524,9 @@
                         if (!button.checked) continue;
                         if (button.value === ROMData.ExpandMode.expand) {
                             rom.expand(rom.data.length + 0x100000);
-                            if (rom.expandMode !== ROMData.ExpandMode.optimize) rom.expandMode = ROMData.ExpandMode.relocate;
+                            if (rom.expandMode !== ROMData.ExpandMode.optimize) {
+                                rom.expandMode = ROMData.ExpandMode.relocate;
+                            }
                         } else {
                             rom.expandMode = button.value;
                         }

@@ -772,7 +772,7 @@ class ROMGraphicsView extends ROMEditor {
         if (range.begin + graphics.length > object.data.length) {
             graphics = graphics.subarray(0, object.data.length - range.begin);
         }
-        object.setData(graphics, range.begin);
+        object.replaceData(graphics, range.begin);
     }
 
     updateToolbox() {
@@ -885,6 +885,60 @@ class ROMGraphicsView extends ROMEditor {
             }
         }
 
+        // heading div
+        const graphicsHeadingDiv = document.createElement('div');
+        graphicsHeadingDiv.classList.add('property-heading');
+        this.div.appendChild(graphicsHeadingDiv);
+
+        const graphicsHeading = document.createElement('p');
+        graphicsHeadingDiv.appendChild(graphicsHeading);
+
+        // add heading buttons
+        const buttonDiv = document.createElement('div');
+        buttonDiv.classList.add('property-heading-button-div');
+        graphicsHeading.appendChild(buttonDiv);
+        graphicsHeading.appendChild(document.createTextNode('Graphics'));
+
+        // const copyButton = document.createElement('i');
+        // copyButton.classList.add('fas', 'fa-copy', 'property-heading-button');
+        // copyButton.onclick = function() { self.copy(); };
+        // buttonDiv.appendChild(copyButton);
+        // const pasteButton = document.createElement('i');
+        // pasteButton.classList.add('fas', 'fa-paste', 'property-heading-button');
+        // pasteButton.onclick = function() { self.paste(); };
+        // buttonDiv.appendChild(pasteButton);
+        const exportButton = document.createElement('i');
+        exportButton.classList.add('fas', 'fa-download', 'property-heading-button');
+        exportButton.onclick = function() {
+            const exporter = new ROMGraphicsExporter();
+            exporter.export({
+                tilemap: self.tilemap,
+                graphics: self.graphics,
+                palette: self.paletteView.palette,
+                width: self.width,
+                tileWidth: self.tileWidth,
+                tileHeight: self.tileHeight,
+                backColor: self.backColor
+            });
+        };
+        buttonDiv.appendChild(exportButton);
+        const importButton = document.createElement('i');
+        importButton.classList.add('fas', 'fa-upload', 'property-heading-button');
+        importButton.onclick = function() {
+            function callback(graphics, palette) {
+                // set the new graphics/palette data
+                self.rom.beginAction();
+                if (graphics) self.importGraphics(graphics);
+                if (palette) self.paletteView.importPalette(palette);
+                self.rom.endAction();
+            }
+            const importer = new ROMGraphicsImporter(rom, self, callback);
+        };
+        buttonDiv.appendChild(importButton);
+
+        // show the graphics canvas
+        this.div.appendChild(this.canvasDiv);
+
         var showZLevelControl = this.format.maxZ && !this.tilemapView.object.disableZLevel;
         var showVFlipControl = this.format.vFlip && !this.tilemapView.object.disableVFlip;
         var showHFlipControl = this.format.hFlip && !this.tilemapView.object.disableHFlip;
@@ -978,42 +1032,39 @@ class ROMGraphicsView extends ROMEditor {
             graphicsControlsDiv.appendChild(zInput);
         }
 
-        // show the graphics canvas
-        this.div.appendChild(this.canvasDiv);
-
-        // add graphics import/export buttons
-        var importExportDiv = document.createElement('div');
-        importExportDiv.classList.add('property-div');
-        this.div.appendChild(importExportDiv);
-
-        var exportButton = document.createElement('button');
-        exportButton.innerHTML = 'Export Graphics';
-        exportButton.onclick = function() {
-            var exporter = new ROMGraphicsExporter();
-            exporter.export({
-                tilemap: self.tilemap,
-                graphics: self.graphics,
-                palette: self.paletteView.palette,
-                width: self.width,
-                tileWidth: self.tileWidth,
-                tileHeight: self.tileHeight,
-                backColor: self.backColor
-            });
-        };
-        importExportDiv.appendChild(exportButton);
-
-        var importButton = document.createElement('button');
-        importButton.innerHTML = 'Import Graphics';
-        importButton.onclick = function() {
-            function callback(graphics, palette) {
-                // set the new graphics/palette data
-                self.rom.beginAction();
-                if (graphics) self.importGraphics(graphics);
-                if (palette) self.paletteView.importPalette(palette);
-                self.rom.endAction();
-            }
-            var importer = new ROMGraphicsImporter(rom, self, callback);
-        };
-        importExportDiv.appendChild(importButton);
+        // // add graphics import/export buttons
+        // var importExportDiv = document.createElement('div');
+        // importExportDiv.classList.add('property-div');
+        // this.div.appendChild(importExportDiv);
+        //
+        // var exportButton = document.createElement('button');
+        // exportButton.innerHTML = 'Export Graphics';
+        // exportButton.onclick = function() {
+        //     var exporter = new ROMGraphicsExporter();
+        //     exporter.export({
+        //         tilemap: self.tilemap,
+        //         graphics: self.graphics,
+        //         palette: self.paletteView.palette,
+        //         width: self.width,
+        //         tileWidth: self.tileWidth,
+        //         tileHeight: self.tileHeight,
+        //         backColor: self.backColor
+        //     });
+        // };
+        // importExportDiv.appendChild(exportButton);
+        //
+        // var importButton = document.createElement('button');
+        // importButton.innerHTML = 'Import Graphics';
+        // importButton.onclick = function() {
+        //     function callback(graphics, palette) {
+        //         // set the new graphics/palette data
+        //         self.rom.beginAction();
+        //         if (graphics) self.importGraphics(graphics);
+        //         if (palette) self.paletteView.importPalette(palette);
+        //         self.rom.endAction();
+        //     }
+        //     var importer = new ROMGraphicsImporter(rom, self, callback);
+        // };
+        // importExportDiv.appendChild(importButton);
     }
 }

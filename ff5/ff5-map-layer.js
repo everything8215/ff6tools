@@ -40,7 +40,7 @@ class FF5MapLayer {
             for (let r = 0; r < clippedH; r++) {
                 const ls = r * w;
                 if (y + r > 256) break;
-                this.layout[y + r].setData(selection.tilemap.slice(ls, ls + clippedW), x);
+                this.layout[y + r].replaceData(selection.tilemap.slice(ls, ls + clippedW), x);
             }
         } else {
             const layoutData = this.layout.data.slice();

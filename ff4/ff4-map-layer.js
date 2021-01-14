@@ -42,10 +42,10 @@ class FF4MapLayer {
             const ld = x + (y + r) * this.w;
             if (this.type === FF4MapLayer.Type.world) {
                 if (y + r > 256) break;
-                this.layout[y + r].setData(selection.tilemap.slice(ls, ls + clippedW), x);
+                this.layout[y + r].replaceData(selection.tilemap.slice(ls, ls + clippedW), x);
             } else {
                 if (ld + clippedW > this.layout.data.length) break;
-                this.layout.setData(selection.tilemap.slice(ls, ls + clippedW), ld);
+                this.layout.replaceData(selection.tilemap.slice(ls, ls + clippedW), ld);
             }
         }
         this.decodeLayout(x, y, clippedW, clippedH);

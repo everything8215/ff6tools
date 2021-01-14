@@ -1016,19 +1016,23 @@ ROMGraphicsImporter.prototype.updateImportPreview = function() {
         quantizeDiv.style.display = "block";
         this.paletteButton.disabled = false;
         var importer = this;
-        var blob = new Blob([this.data], { type: 'image/' + formatKey });
-        var url = URL.createObjectURL(blob);
+        let blob = new Blob([this.data], {
+            type: `image/${formatKey}`
+        });
+        var url = window.URL.createObjectURL(blob);
         var img = new Image();
-        img.decode = "sync"; // load synchronously
-        img.src = url;
+        // img.decode = "sync"; // load synchronously
         img.onload = function() {
-            URL.revokeObjectURL(blob);
             importer.quantizeImage(img);
             importer.resize();
             importer.validateSelection();
             importer.copySpriteSheet();
             importer.copyPalette();
             importer.drawImportPreview();
+            img.onload = null;
+            img.onerror = null;
+            img.src = '';
+            window.URL.revokeObjectURL(url);
         }
         img.onerror = function() {
             importer.paletteLeft.palette = new Uint32Array(importer.oldPalette.length);
@@ -1040,7 +1044,13 @@ ROMGraphicsImporter.prototype.updateImportPreview = function() {
             importer.resize();
             importer.validateSelection();
             importer.drawImportPreview();
+
+            img.onload = null;
+            img.onerror = null;
+            img.src = '';
+            window.URL.revokeObjectURL(url);
         }
+        img.src = url;
 
     } else if (formatKey === "indexed") {
         this.paletteButton.disabled = false;
