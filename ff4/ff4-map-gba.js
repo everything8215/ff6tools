@@ -479,8 +479,8 @@ class FF4MapGBA extends ROMEditor {
 
                 // set the new trigger position (and trigger undo)
                 this.beginAction(this.reloadTriggers);
-                this.selectedTrigger.x.setValue(col);
-                this.selectedTrigger.y.setValue(row);
+                this.selectedTrigger.x.setValue(x);
+                this.selectedTrigger.y.setValue(y);
                 this.endAction(this.reloadTriggers);
             }
         } else if (this.rom.action && this.isDragging) {
