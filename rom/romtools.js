@@ -4417,7 +4417,7 @@ Object.defineProperty(ROMCommand.prototype, "defaultLabel", { get: function() {
     address &= 0xFFFF;
     bank = bank.toString(16).toUpperCase().padStart(2, '0');
     address = address.toString(16).toUpperCase().padStart(4, '0');
-    return `${bank}/${address})`;
+    return `${bank}/${address}`;
 }});
 
 Object.defineProperty(ROMCommand.prototype, "description", { get: function() {
