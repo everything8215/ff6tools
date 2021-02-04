@@ -6893,7 +6893,7 @@
                     "grassProbability": {
                         "type": "property",
                         "name": "Grass Probability",
-                        "mask": "0x03",
+                        "mask": "0xC0",
                         "stringTable": {
                             "string": {
                                 "0": "Normal",
@@ -6906,19 +6906,19 @@
                     "forestProbability": {
                         "type": "property",
                         "name": "Forest Probability",
-                        "mask": "0x0C",
+                        "mask": "0x30",
                         "stringTable": "worldBattleProbability.grassProbability"
                     },
                     "desertProbability": {
                         "type": "property",
                         "name": "Desert Probability",
-                        "mask": "0x30",
+                        "mask": "0x0C",
                         "stringTable": "worldBattleProbability.grassProbability"
                     },
                     "seaProbability": {
                         "type": "property",
                         "name": "Sea Probability",
-                        "mask": "0xC0",
+                        "mask": "0x03",
                         "stringTable": "worldBattleProbability.grassProbability"
                     }
                 }
