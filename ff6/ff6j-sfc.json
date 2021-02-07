@@ -12603,7 +12603,19 @@
                 "position": {
                     "name": "Set Object Position",
                     "opcode": "0xD5",
-                    "length": 3
+                    "length": 3,
+                    "assembly": {
+                        "x": {
+                            "type": "property",
+                            "name": "X Position"
+                            "begin": 1
+                        },
+                        "y": {
+                            "type": "property",
+                            "name": "Y Position"
+                            "begin": 2
+                        }
+                    }
                 },
                 "scroll": {
                     "name": "Scroll to Object",
