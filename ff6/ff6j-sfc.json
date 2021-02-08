@@ -12607,12 +12607,12 @@
                     "assembly": {
                         "x": {
                             "type": "property",
-                            "name": "X Position"
+                            "name": "X Position",
                             "begin": 1
                         },
                         "y": {
                             "type": "property",
-                            "name": "Y Position"
+                            "name": "Y Position",
                             "begin": 2
                         }
                     }
