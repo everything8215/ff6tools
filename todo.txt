@@ -23,6 +23,7 @@ gui
  * custom property controls (entrance trigger destination, rendered text, colosseum battle, fill tile)
  * grid controls (for element/status, esper/natural magic)
  * tile mask layers for map editor (ff3, ff5)
+ * mask for world map battle sectors
  * add directional passability masks for ff6
  * legend for tile mask colors
  * allow multiple selection, cut/copy/paste in script list

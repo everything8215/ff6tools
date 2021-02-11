@@ -4896,59 +4896,59 @@ ROMScriptEncoding.prototype.nextEncoding = function(command) {
     }
 }
 
-ROMScriptEncoding.prototype.populateMenu = function(menu) {
-    menu.innerHTML = "";
-    menu.classList.add('menu');
-
-    var hierarchy = {};
-    var names = []; // commands that have already been sorted
-
-    function createSubMenu(menu, commands) {
-        var keys = Object.keys(commands).sort();
-        for (var i = 0; i < keys.length; i++) {
-            var key = keys[i];
-            var command = commands[key];
-            var li = document.createElement('li');
-            li.innerHTML = key;
-            li.classList.add("menu-item");
-            if (command.encoding) {
-                // command
-                li.id = command.encoding + "." + command.key;
-                li.onclick = function() { eval('scriptList.insert("' + this.id + '")'); };
-            } else {
-                // category
-                var ul = document.createElement('ul');
-                ul.classList.add("menu-submenu");
-                ul.classList.add("menu");
-                createSubMenu(ul, command);
-                li.appendChild(ul);
-            }
-            menu.appendChild(li);
-        }
-    }
-
-    // go through all of the commands and pick out categories
-    var keys = Object.keys(this.command);
-    for (var i = 0; i < keys.length; i++) {
-        var key = keys[i];
-        var opcode = Number(key);
-        if (!isNumber(opcode)) continue;
-        var command = this.command[key];
-        if (!command.name) continue;
-        if (names.indexOf(command.name) !== -1) continue;
-        names.push(command.name);
-
-        if (command.category) {
-            // create a category if needed
-            if (!hierarchy[command.category]) hierarchy[command.category] = {};
-            hierarchy[command.category][command.name] = command;
-        } else {
-            hierarchy[command.name] = command;
-        }
-    }
-
-    createSubMenu(menu, hierarchy);
-}
+// ROMScriptEncoding.prototype.populateMenu = function(menu) {
+//     menu.innerHTML = "";
+//     menu.classList.add('menu');
+//
+//     var hierarchy = {};
+//     var names = []; // commands that have already been sorted
+//
+//     function createSubMenu(menu, commands) {
+//         var keys = Object.keys(commands).sort();
+//         for (var i = 0; i < keys.length; i++) {
+//             var key = keys[i];
+//             var command = commands[key];
+//             var li = document.createElement('li');
+//             li.innerHTML = key;
+//             li.classList.add("menu-item");
+//             if (command.encoding) {
+//                 // command
+//                 li.id = `${command.encoding}.${command.key}`;
+//                 li.onclick = function() { eval(`scriptList.insert("${this.id}")`); };
+//             } else {
+//                 // category
+//                 var ul = document.createElement('ul');
+//                 ul.classList.add("menu-submenu");
+//                 ul.classList.add("menu");
+//                 createSubMenu(ul, command);
+//                 li.appendChild(ul);
+//             }
+//             menu.appendChild(li);
+//         }
+//     }
+//
+//     // go through all of the commands and pick out categories
+//     var keys = Object.keys(this.command);
+//     for (var i = 0; i < keys.length; i++) {
+//         var key = keys[i];
+//         var opcode = Number(key);
+//         if (!isNumber(opcode)) continue;
+//         var command = this.command[key];
+//         if (!command.name) continue;
+//         if (names.indexOf(command.name) !== -1) continue;
+//         names.push(command.name);
+//
+//         if (command.category) {
+//             // create a category if needed
+//             if (!hierarchy[command.category]) hierarchy[command.category] = {};
+//             hierarchy[command.category][command.name] = command;
+//         } else {
+//             hierarchy[command.name] = command;
+//         }
+//     }
+//
+//     createSubMenu(menu, hierarchy);
+// }
 
 // ROMText
 function ROMText(rom, definition, parent) {
