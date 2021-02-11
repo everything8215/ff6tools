@@ -810,7 +810,7 @@ function ROMData(rom, definition, parent) {
     }
 
     this.assembly = {};
-    this.orphans = null;
+    this.orphans = [];
     this.special = definition.special || {};
     this.isSequential = definition.isSequential || false;
     this.expandMode = definition.expandMode || ROMData.ExpandMode.truncate;
@@ -1002,32 +1002,74 @@ ROMData.prototype.assemble = function(data) {
         // we already dealt with assemblies for optimize mode
         if (this.expandMode === ROMData.ExpandMode.optimize && assembly.canRelocate) continue;
 
-        // skip invalid and disabled assemblies
-        if (!assembly.assemble || !assembly.isDirty || assembly.invalid || assembly.disabled) continue;
+        if (!assembly.assemble || !assembly.isDirty) continue; // can't assemble or isn't dirty
+        if (assembly.invalid || assembly.disabled) continue; // skip invalid and disabled assemblies
+        if (this.orphans.includes(assembly)) continue; // assembly is already an orphan (adjacent assembly from below)
+
+        // add to list of dirty assemblies
         dirtyAssemblies.push(assembly);
 
-        // adjust the assembly's range
-        var newRange = new ROMRange(assembly.range.begin, assembly.range.begin + assembly.assembledLength);
+        // try to adjust the assembly's range (based on expand mode)
         this.addFreeSpace(assembly.range);
-        if (this.expandMode === ROMData.ExpandMode.overwrite) {
-            // overwrite adjacent data
+        var newRange = new ROMRange(assembly.range.begin, assembly.range.begin + assembly.assembledLength);
+        var availableRange = this.rangeIsFree(newRange);
+        if (newRange.length <= availableRange.length || this.expandMode === ROMData.ExpandMode.overwrite) {
+            // assembly fits, or overwrite adjacent data
             assembly.relocate(newRange.begin);
-        } else {
-            // truncate to size of free space
-            newRange = this.rangeIsFree(newRange);
-            assembly.relocate(newRange.begin, newRange.end);
-        }
-
-        // check if the assembly fits
-        if (assembly.range.length < assembly.assembledLength) {
-            this.orphans.push(assembly);
-        } else {
             this.removeFreeSpace(assembly.range);
+
+        } else if (this.expandMode === ROMData.ExpandMode.truncate) {
+            // truncate to size of free space
+            assembly.relocate(availableRange.begin, availableRange.end);
+            this.removeFreeSpace(assembly.range);
+
+        } else if (this.expandMode === ROMData.ExpandMode.relocate && !assembly.canRelocate) {
+            // if relocating, but assembly can't be relocated, try relocating the next adjacent assemblies
+            var adjacentAssemblies = [];
+            while (newRange.length > availableRange.length) {
+                // find the next assembly
+                var nextAssembly = this.subAssemblyAt(availableRange.end);
+
+                if (!nextAssembly || !nextAssembly.canRelocate) {
+                    // can't find next assembly, or next assembly can't be relocated
+                    adjacentAssemblies = [];
+                    break;
+                }
+
+                // expand into the next assembly's range
+                adjacentAssemblies.push(nextAssembly);
+                availableRange.end = nextAssembly.range.end;
+            }
+
+            if (adjacentAssemblies.length) {
+                // success, mark adjacent assemblies as orphans
+                for (var i = 0; i < adjacentAssemblies.length; i++) {
+                    // make sure the assembly is loaded
+                    const key = adjacentAssemblies[i].key;
+                    const _ = this[key];
+
+                    if (!dirtyAssemblies.includes(adjacentAssemblies[i])) {
+                        adjacentAssemblies[i].markAsDirty();
+                        dirtyAssemblies.push(adjacentAssemblies[i]);
+                    }
+                    this.addFreeSpace(adjacentAssemblies[i].range);
+                    this.orphans.push(adjacentAssemblies[i]);
+                }
+                // expand this assembly into adjacent space
+                assembly.relocate(newRange.begin);
+                this.removeFreeSpace(assembly.range);
+            } else {
+                // failed, mark this assembly as orphan
+                this.orphans.push(assembly);
+            }
+
+        } else {
+            this.orphans.push(assembly);
         }
     }
 
     // resolve orphans
-    if (!this.orphans.length) this.orphans = null;
+    // if (!this.orphans.length) this.orphans = null;
     var success = this.resolveOrphans();
 
     // assemble all dirty assemblies
@@ -1050,14 +1092,25 @@ ROMData.prototype.assemble = function(data) {
     return ROMAssembly.prototype.assemble.call(this, data) && success;
 }
 
+ROMData.prototype.subAssemblyAt = function(address) {
+    var keys = Object.keys(this.assembly);
+    for (var k = 0; k < keys.length; k++) {
+        var key = keys[k];
+        var assembly = this.assembly[key];
+        if (assembly.range.begin === address) return assembly;
+    }
+    return null;
+}
+
 ROMData.prototype.resolveOrphans = function() {
 
     // make sure there are actually some orphans
-    if (!isArray(this.orphans) || !this.orphans.length) return true;
+    if (!this.orphans.length) return true;
+    // if (!isArray(this.orphans) || !this.orphans.length) return true;
 
     // don't bother relocating if we are truncating or overwriting
     if (this.expandMode === ROMData.ExpandMode.overwrite || this.expandMode === ROMData.ExpandMode.truncate)
-        return false;
+        return true;
 
     // sort orphans by assembled length (largest to smallest)
     this.orphans.sort(function(a, b) { return b.assembledLength - a.assembledLength; });
@@ -4514,7 +4567,7 @@ Object.defineProperty(ROMScript.prototype, "assembledLength", { get: function() 
     var assembledLength = this.updateOffsets();
 
     this.data = new Uint8Array(assembledLength);
-    this.range.end = this.range.begin + assembledLength;
+    // this.range.end = this.range.begin + assembledLength;
     return assembledLength;
 }});
 
