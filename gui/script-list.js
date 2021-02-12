@@ -46,8 +46,8 @@ class ROMScriptList {
 
             // save the scroll position for the top command
             var topCommand = this.script.command[this.blockStart];
-            var commandNode = this.node[topCommand.ref];
-            var oldOffset, newOffset;
+            var commandNode, oldOffset, newOffset;
+            if (topCommand) commandNode = this.node[topCommand.ref];
             if (commandNode) oldOffset = commandNode.offsetTop;
 
             // change blockStart so that the previous blocks are visible
@@ -56,7 +56,7 @@ class ROMScriptList {
             this.update();
 
             // recalculate the scroll position so that the first command stays in the same spot
-            commandNode = this.node[topCommand.ref];
+            if (topCommand) commandNode = this.node[topCommand.ref];
             if (commandNode && oldOffset) {
                 newOffset = commandNode.offsetTop;
                 this.scriptList.parentElement.scrollTop += newOffset - oldOffset;
@@ -69,8 +69,8 @@ class ROMScriptList {
             // save the scroll position for the bottom command
             var bottomIndex = Math.min(this.blockStart + this.blockSize * this.numBlocks - 1, this.script.command.length - 1);
             var bottomCommand = this.script.command[bottomIndex];
-            var commandNode = this.node[bottomCommand.ref];
-            var oldOffset, newOffset;
+            var commandNode, oldOffset, newOffset;
+            if (bottomCommand) commandNode = this.node[bottomCommand.ref];
             if (commandNode) oldOffset = commandNode.offsetTop;
 
             // change blockStart so that the next blocks are visible
@@ -81,7 +81,7 @@ class ROMScriptList {
             this.update();
 
             // recalculate the scroll position so that the first command stays in the same spot
-            commandNode = this.node[bottomCommand.ref];
+            if (bottomCommand) commandNode = this.node[bottomCommand.ref];
             if (commandNode && oldOffset) {
                 newOffset = commandNode.offsetTop;
                 this.scriptList.parentElement.scrollTop += newOffset - oldOffset;
@@ -161,16 +161,17 @@ class ROMScriptList {
         var end = this.script.command.indexOf(lastCommand);
         // if (end === this.script.command.length - 1) return;
         var nextCommand = this.script.command[end + 1];
-        if (!nextCommand) return;
+        var ref = null;
+        if (nextCommand) ref = nextCommand.ref;
 
         this.rom.beginAction();
         var self = this;
         this.rom.pushAction(new ROMAction(this, function() {
             this.script.updateOffsets();
-            this.selectCommand(lastCommand);
+            if (lastCommand) this.selectCommand(lastCommand);
             this.update();
         }, null, 'Update Script'));
-        this.script.insertCommand(command, nextCommand.ref);
+        this.script.insertCommand(command, ref);
         this.rom.doAction(new ROMAction(this, null, function() {
             this.script.updateOffsets();
             this.selectCommand(command);
@@ -193,7 +194,7 @@ class ROMScriptList {
         var self = this;
         this.rom.pushAction(new ROMAction(this, function() {
             this.script.updateOffsets();
-            this.selectCommand(lastCommand);
+            if (lastCommand) this.selectCommand(lastCommand);
             this.update();
         }, null, 'Update Script'));
         this.selection.forEach(function(command) {
@@ -201,7 +202,7 @@ class ROMScriptList {
         });
         this.rom.doAction(new ROMAction(this, null, function() {
             this.script.updateOffsets();
-            this.selectCommand(nextCommand);
+            if (nextCommand) this.selectCommand(nextCommand);
             this.update();
         }, 'Update Script'));
         this.rom.endAction();
@@ -217,10 +218,12 @@ class ROMScriptList {
         var start = this.script.command.indexOf(firstCommand);
         if (start === 0) return;
         var previousCommand = this.script.command[start - 1];
+        if (!previousCommand) return;
         var lastCommand = this.selection[this.selection.length - 1];
         var end = this.script.command.indexOf(lastCommand);
-        if (end === this.script.command.length - 1) return;
         var nextCommand = this.script.command[end + 1];
+        var nextRef = null;
+        if (nextCommand) nextRef = nextCommand.ref;
 
         function updateScript() {
             this.script.updateOffsets();
@@ -232,7 +235,7 @@ class ROMScriptList {
         var self = this;
         this.rom.pushAction(new ROMAction(this, updateScript, null, 'Update Script'));
         this.script.removeCommand(previousCommand);
-        this.script.insertCommand(previousCommand, nextCommand.ref);
+        this.script.insertCommand(previousCommand, nextRef);
         this.rom.doAction(new ROMAction(this, null, updateScript, 'Update Script'));
         this.rom.endAction();
     }
@@ -245,12 +248,11 @@ class ROMScriptList {
 
         var firstCommand = this.selection[0];
         var start = this.script.command.indexOf(firstCommand);
-        if (start === 0) return;
-        var previousCommand = this.script.command[start - 1];
         var lastCommand = this.selection[this.selection.length - 1];
         var end = this.script.command.indexOf(lastCommand);
         if (end === this.script.command.length - 1) return;
         var nextCommand = this.script.command[end + 1];
+        if (!nextCommand) return;
 
         function updateScript() {
             this.script.updateOffsets();

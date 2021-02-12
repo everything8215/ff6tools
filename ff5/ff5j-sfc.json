@@ -6176,7 +6176,7 @@
         "npcScript": {
             "type": "array",
             "name": "NPC Script",
-            "range": "0xCE0740-0xCE2400",
+            "range": "0xCE0740-0xCE2294",
             "arrayLength": 922,
             "isSequential": true,
             "assembly": {
@@ -6795,7 +6795,7 @@
         "triggerScript": {
             "type": "array",
             "name": "Trigger Script",
-            "range": "0xD8E600-0xD90000",
+            "range": "0xD8E600-0xD8FFA8",
             "arrayLength": 704,
             "isSequential": true,
             "assembly": {
@@ -10171,6 +10171,7 @@
     "freeSpace": [
         "0xC9FF9C-0xCA0000",
         "0xCDF9FF-0xCDFA40",
+        "0xCE2294-0xCE2400",
         "0xCE58D2-0xCE59C0",
         "0xCE9BFE-0xCE9C00",
         "0xCEF270-0xCEF400",
@@ -10178,6 +10179,7 @@
         "0xD0FEBC-0xD0FFA0",
         "0xD13600-0xD13840",
         "0xD143FE-0xD15000",
-        "0xD4EFF1-0xD4F000"
+        "0xD4EFF1-0xD4F000",
+        "0xD8FFA8-0xD90000"
     ]
 }

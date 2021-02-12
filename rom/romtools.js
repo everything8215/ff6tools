@@ -4735,10 +4735,15 @@ ROMScript.prototype.blankCommand = function(identifier) {
 
 ROMScript.prototype.insertCommand = function(command, ref) {
 
-    // validate the ref to insert after
-    var previousCommand = this.ref[ref];
-    var i = this.command.indexOf(previousCommand);
-    if (i === -1) i = this.command.length - 1;
+    // default to end of script if no ref is given
+    if (!ref) {
+        i = this.command.length;
+    } else {
+        // validate the ref to insert after
+        var previousCommand = this.ref[ref];
+        var i = this.command.indexOf(previousCommand);
+        if (i === -1) i = this.command.length;
+    }
 
     // perform an action to insert the assembly
     function redo() {
