@@ -2350,7 +2350,7 @@
         "eventTriggers": {
             "type": "array",
             "name": "Event Triggers",
-            "range": "0xCE2800-0xCE36C0",
+            "range": "0xCE2800-0xCE3660",
             "isSequential": true,
             "endPointer": true,
             "canRelocate": true,
@@ -9820,6 +9820,7 @@
         "0xC9FF9C-0xCA0000",
         "0xCDF9FF-0xCDFA40",
         "0xCE2294-0xCE2400",
+        "0xCE3660-0xCE36C0",
         "0xCE58D2-0xCE59C0",
         "0xCE9BFE-0xCE9C00",
         "0xCEF270-0xCEF400",
