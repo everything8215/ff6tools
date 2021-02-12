@@ -6177,9 +6177,8 @@
             "type": "array",
             "name": "NPC Script",
             "range": "0xCE0740-0xCE2400",
-            "array": {
-                "length": 922
-            },
+            "arrayLength": 922,
+            "isSequential": true,
             "assembly": {
                 "type": "script",
                 "encoding": "trigger"
@@ -6797,9 +6796,8 @@
             "type": "array",
             "name": "Trigger Script",
             "range": "0xD8E600-0xD90000",
-            "array": {
-                "length": 704
-            },
+            "arrayLength": 704,
+            "isSequential": true,
             "assembly": {
                 "type": "script",
                 "encoding": "trigger"
