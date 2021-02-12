@@ -9857,7 +9857,7 @@
                 "splashBackground": {
                     "type": "graphics",
                     "name": "Splash Screen Background Graphics",
-                    "range": "0x8DE0-0x9EF0",
+                    "range": "0x8DE0-0x9EE0",
                     "format": "snes4bpp",
                     "palette": "cinematicProgram.splashPalette"
                 },
