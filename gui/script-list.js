@@ -36,8 +36,8 @@ class ROMScriptList {
         if (!this.script) return;
         this.closeMenu();
 
-        var topSpace = this.scriptList.firstChild;
-        var bottomSpace = this.scriptList.lastChild;
+        const topSpace = this.scriptList.firstChild;
+        const bottomSpace = this.scriptList.lastChild;
         if (!topSpace || !bottomSpace) return;
 
         if (this.container.scrollTop < topSpace.offsetHeight) {
@@ -101,41 +101,53 @@ class ROMScriptList {
         this.update();
     }
 
+    selectCommands(selection) {
+        for (const command of selection) {
+            this.selectCommand(command);
+        }
+    }
+
     selectCommand(command) {
 
         this.closeMenu();
 
-        // clear the old selection
-        this.deselectAll();
+        // return if no command, or if command is already selected
+        if (!command || this.selection.includes(command)) return;
 
-        if (!command) {
-            this.selection = [];
-            return;
-        }
-        this.selection = [command];
-
-        // select the command in the rom
-        propertyList.select(command);
+        // add the command to the selection and sort
+        this.selection.push(command);
+        this.selection.sort(function(a, b) {
+            return a.i - b.i;
+        });
 
         if (!this.node[command.ref]) {
             // node is not in the current block
-            var index = this.script.command.indexOf(command);
+            const index = this.script.command.indexOf(command);
             this.blockStart = Math.max(index - index % this.blockSize - this.blockSize, 0);
             this.update();
         }
 
-        var node = this.node[command.ref];
+        const node = this.node[command.ref];
         if (!node) return;
         node.classList.add('selected');
 
         // center the node in the list
-        var nodeTop = node.offsetTop - this.container.offsetTop;
-        var nodeBottom = nodeTop + node.offsetHeight;
-        if ((this.scriptList.parentElement.scrollTop > nodeTop) || ((this.scriptList.parentElement.scrollTop + this.container.offsetHeight) < nodeBottom)) this.scriptList.parentElement.scrollTop = nodeTop - Math.floor(this.container.offsetHeight - node.offsetHeight) / 2;
+        const nodeTop = node.offsetTop - this.container.offsetTop;
+        const nodeBottom = nodeTop + node.offsetHeight;
+        if ((this.scriptList.parentElement.scrollTop > nodeTop) ||
+        ((this.scriptList.parentElement.scrollTop + this.container.offsetHeight) < nodeBottom)) {
+            const offset = Math.floor(this.container.offsetHeight - node.offsetHeight);
+            this.scriptList.parentElement.scrollTop = nodeTop - offset / 2;
+        }
     }
 
-    selectRef(ref) {
-        this.selectCommand(this.script.ref[ref]);
+    deselectCommand(command) {
+        const i = this.selection.indexOf(command);
+        if (i === -1) return;
+        var node = this.node[command.ref];
+        if (!node) return;
+        node.classList.remove('selected');
+        this.selection.splice(i, 1);
     }
 
     deselectAll() {
@@ -144,7 +156,7 @@ class ROMScriptList {
             if (!command) continue;
             var node = this.node[command.ref];
             if (!node) continue;
-            node.classList.remove("selected");
+            node.classList.remove('selected');
         }
         this.selection = [];
     }
@@ -154,27 +166,32 @@ class ROMScriptList {
 
         this.closeMenu();
 
-        var command = this.script.blankCommand(identifier);
+        const command = this.script.blankCommand(identifier);
 
-        var firstCommand = this.selection[0];
-        var lastCommand = this.selection[this.selection.length - 1];
-        var end = this.script.command.indexOf(lastCommand);
+        const firstCommand = this.selection[0];
+        const lastCommand = this.selection[this.selection.length - 1];
+        const end = this.script.command.indexOf(lastCommand);
         // if (end === this.script.command.length - 1) return;
-        var nextCommand = this.script.command[end + 1];
-        var ref = null;
+        const nextCommand = this.script.command[end + 1];
+        let ref = null;
         if (nextCommand) ref = nextCommand.ref;
 
         this.rom.beginAction();
-        var self = this;
         this.rom.pushAction(new ROMAction(this, function() {
             this.script.updateOffsets();
-            if (lastCommand) this.selectCommand(lastCommand);
+            this.deselectAll();
+            if (lastCommand) {
+                this.selectCommand(lastCommand);
+                propertyList.select(lastCommand);
+            }
             this.update();
         }, null, 'Update Script'));
         this.script.insertCommand(command, ref);
         this.rom.doAction(new ROMAction(this, null, function() {
             this.script.updateOffsets();
+            this.deselectAll();
             this.selectCommand(command);
+            propertyList.select(command);
             this.update();
         }, 'Update Script'));
         this.rom.endAction();
@@ -186,23 +203,35 @@ class ROMScriptList {
         if (this.selection.length === 0) return;
         this.closeMenu();
 
-        var lastCommand = this.selection[this.selection.length - 1];
-        var i = this.script.command.indexOf(lastCommand);
-        var nextCommand = this.script.command[i + 1] || this.script.command[this.script.command.length - 2];
+        const firstCommand = this.selection[0];
+        const i = this.script.command.indexOf(firstCommand);
 
         this.rom.beginAction();
-        var self = this;
+        const selection = this.selection.slice();
         this.rom.pushAction(new ROMAction(this, function() {
             this.script.updateOffsets();
-            if (lastCommand) this.selectCommand(lastCommand);
+            this.deselectAll();
+            this.selectCommands(selection);
+            propertyList.select(firstCommand);
             this.update();
         }, null, 'Update Script'));
-        this.selection.forEach(function(command) {
-            self.script.removeCommand(command);
-        });
+
+        // remove the selected commands
+        for (const command of this.selection) {
+            this.script.removeCommand(command);
+        }
+
+        // get the command that is now where the selection started
+        // this will be undefined if the script is now empty
+        const nextCommand = this.script.command[i] || this.script.command[0];
+
         this.rom.doAction(new ROMAction(this, null, function() {
             this.script.updateOffsets();
-            if (nextCommand) this.selectCommand(nextCommand);
+            this.deselectAll();
+            if (nextCommand) {
+                this.selectCommand(nextCommand);
+                propertyList.select(nextCommand);
+            }
             this.update();
         }, 'Update Script'));
         this.rom.endAction();
@@ -214,25 +243,29 @@ class ROMScriptList {
         if (this.selection.length === 0) return;
         this.closeMenu();
 
-        var firstCommand = this.selection[0];
-        var start = this.script.command.indexOf(firstCommand);
+        // get the first selected command and the command before it
+        const firstCommand = this.selection[0];
+        const start = this.script.command.indexOf(firstCommand);
         if (start === 0) return;
-        var previousCommand = this.script.command[start - 1];
+        const previousCommand = this.script.command[start - 1];
         if (!previousCommand) return;
-        var lastCommand = this.selection[this.selection.length - 1];
-        var end = this.script.command.indexOf(lastCommand);
-        var nextCommand = this.script.command[end + 1];
-        var nextRef = null;
+
+        // get the last selected command and the command after it
+        const lastCommand = this.selection[this.selection.length - 1];
+        const end = this.script.command.indexOf(lastCommand);
+        const nextCommand = this.script.command[end + 1];
+        let nextRef = null;
         if (nextCommand) nextRef = nextCommand.ref;
 
+        const selection = this.selection.slice();
         function updateScript() {
             this.script.updateOffsets();
-            this.selectCommand(firstCommand);
+            this.deselectAll();
+            this.selectCommands(selection);
             this.update();
         }
 
         this.rom.beginAction();
-        var self = this;
         this.rom.pushAction(new ROMAction(this, updateScript, null, 'Update Script'));
         this.script.removeCommand(previousCommand);
         this.script.insertCommand(previousCommand, nextRef);
@@ -246,22 +279,26 @@ class ROMScriptList {
         if (this.selection.length === 0) return;
         this.closeMenu();
 
-        var firstCommand = this.selection[0];
-        var start = this.script.command.indexOf(firstCommand);
-        var lastCommand = this.selection[this.selection.length - 1];
-        var end = this.script.command.indexOf(lastCommand);
+        // get the first selected command
+        const firstCommand = this.selection[0];
+        const start = this.script.command.indexOf(firstCommand);
+
+        // get the last selected command and the command after it
+        const lastCommand = this.selection[this.selection.length - 1];
+        const end = this.script.command.indexOf(lastCommand);
         if (end === this.script.command.length - 1) return;
-        var nextCommand = this.script.command[end + 1];
+        const nextCommand = this.script.command[end + 1];
         if (!nextCommand) return;
 
+        const selection = this.selection.slice();
         function updateScript() {
             this.script.updateOffsets();
-            this.selectCommand(firstCommand);
+            this.deselectAll();
+            this.selectCommands(selection);
             this.update();
         }
 
         this.rom.beginAction();
-        var self = this;
         this.rom.pushAction(new ROMAction(this, updateScript, null, 'Update Script'));
         this.script.removeCommand(nextCommand);
         this.script.insertCommand(nextCommand, firstCommand.ref);
@@ -336,9 +373,39 @@ class ROMScriptList {
     liForCommand(command) {
         var li = document.createElement('li');
         li.value = command.ref;
-        var list = this;
-        li.onclick = function() {
-            list.selectRef(this.value);
+        const self = this;
+        li.onclick = function(e) {
+            const refCommand = self.script.ref[this.value];
+            if (e.metaKey || e.ctrlKey) {
+
+                if (self.selection.includes(refCommand)) {
+                    // remove from selection
+                    self.deselectCommand(refCommand);
+                } else {
+                    // append to selection
+                    self.selectCommand(refCommand);
+                    propertyList.select(refCommand);
+                }
+
+            } else if (e.shiftKey && self.selection.length) {
+                // select a range of commands
+                var firstCommand = self.selection[0];
+                var lastCommand = self.selection[self.selection.length - 1];
+                if (refCommand.i < firstCommand.i) {
+                    self.selectCommands(self.script.command.slice(refCommand.i, firstCommand.i));
+                } else if (command.i > lastCommand.i) {
+                    self.selectCommands(self.script.command.slice(lastCommand.i + 1, refCommand.i + 1));
+                } else {
+                    self.selectCommand(refCommand);
+                }
+                propertyList.select(refCommand);
+
+            } else {
+                // select a single command
+                self.deselectAll();
+                self.selectCommand(refCommand);
+                propertyList.select(refCommand);
+            }
         };
         var span = document.createElement('span');
         span.classList.add('script-offset');
