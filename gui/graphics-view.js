@@ -1007,7 +1007,7 @@ class ROMGraphicsView extends ROMEditor {
 
         if (showZLevelControl) {
             var zLabel = document.createElement('label');
-            zLabel.innerHTML = 'Z-Level:';
+            zLabel.innerHTML = 'Priority:';
             zLabel.style.display = 'inline-block';
             zLabel.style.padding = '2px 10px';
             zLabel.style.margin = '4px 3px';

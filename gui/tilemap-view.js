@@ -1001,7 +1001,7 @@ ROMTilemapView.TileMasks = {
     },
     zLevel: {
         key: "zLevel",
-        name: "Z-Level"
+        name: "Priority"
     // },
     // "tileIndex": {
     //     "key": "tileIndex",
