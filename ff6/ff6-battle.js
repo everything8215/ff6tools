@@ -266,6 +266,7 @@ class FF6Battle extends ROMEditor {
     }
 
     hide() {
+        this.battleProperties = null;
         this.observer.stopObservingAll();
         if (this.resizeSensor) {
             const editTop = document.getElementById('edit-top');

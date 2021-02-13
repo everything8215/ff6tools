@@ -143,6 +143,7 @@ class FF5Map extends ROMEditor {
     }
 
     hide() {
+        this.mapProperties = null;
         this.observer.stopObservingAll();
         if (this.resizeSensor) {
             const editTop = document.getElementById('edit-top');
