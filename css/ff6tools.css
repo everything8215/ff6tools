@@ -321,15 +321,16 @@ body {
 }
 
 .nav-array > p:before {
-    content: "\25B8";
+    content: "\25B6";
     display: inline-block;
-    font-size: 12px;
+    font-size: 8px;
     margin: 0px;
-    width: 1em;
+    vertical-align: baseline;
+    width: 12px;
 }
 
 .nav-array.shown > p:before {
-    content: "\25BE";
+    content: "\25BC";
 }
 
 .nav-object {
@@ -925,6 +926,25 @@ body {
 /*                                    menu                                    */
 /******************************************************************************/
 
+#menu-div {
+    align-content: center;
+    align-items: center;
+    background-color: rgba(0,0,0,0.0);
+    display: none;
+    flex-direction: row;
+    height: 100%;
+    justify-content: center;
+    left: 0px;
+    position: fixed;
+    top: 0px;
+    width: 100%;
+    z-index: 11;
+}
+
+#menu-div.visible {
+    display: flex;
+}
+
 .menu {
     background-color: hsl(0, 0%, 95%);
     border-radius: 5px;
@@ -932,18 +952,36 @@ body {
     display: none;
     list-style-type: none;
     margin: 0px;
-    position: absolute;
+    overflow-y: visible;
+    position: fixed;
     padding: 5px 0px;
     width: auto;
     z-index: 10;
+}
+
+.menu.top-menu {
+    display: block;
+}
+
+.menu.full-height {
+    height: 100%;
+    overflow-y: auto;
 }
 
 .menu-item:hover > .menu-submenu {
     display: block;
 }
 
+.menu-item:hover > .menu.submenu {
+    display: block;
+}
+
 .menu-active {
     display: inline-block;
+}
+
+.menu.submenu {
+    position: fixed;
 }
 
 .menu-submenu {
@@ -961,6 +999,7 @@ body {
     list-style: none;
     padding: 2px 20px;
     position: relative;
+    vertical-align: middle;
     white-space: nowrap;
     -moz-user-select: none;
     -webkit-user-select: none;
@@ -989,10 +1028,22 @@ body {
 }
 
 .menu-item.selected:before {
-    content: '✓';
+    content: '\2713'; /* check mark */
     display: inline-block;
     position: relative;
     width: 14px;
+}
+
+.menu-item.has-submenu:after {
+    content: '\25B6'; /* right arrow */
+    display: inline-block;
+    font-size: 8px;
+    position: relative;
+    left: 12px;
+    margin: 0px;
+    margin-top: 2px;
+    vertical-align: baseline;
+    float: right;
 }
 
 /******************************************************************************/

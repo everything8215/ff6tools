@@ -22,7 +22,8 @@ class ROMScriptList {
 
         const self = this;
         this.scriptList.parentElement.onscroll = function() { self.scroll(); };
-        this.menu = document.getElementById('menu');
+        // this.menu = document.getElementById('menu');
+        this.menu = null;
         this.scriptList.parentElement.oncontextmenu = function(e) {
             self.openMenu(e);
             return false;
@@ -371,7 +372,7 @@ class ROMScriptList {
     }
 
     liForCommand(command) {
-        var li = document.createElement('li');
+        const li = document.createElement('li');
         li.value = command.ref;
         const self = this;
         li.onclick = function(e) {
@@ -425,39 +426,13 @@ class ROMScriptList {
         var hierarchy = {};
         var names = []; // commands that have already been sorted
 
-        function createSubMenu(menu, commands) {
-            var keys = Object.keys(commands).sort();
-            for (var i = 0; i < keys.length; i++) {
-                var key = keys[i];
-                var command = commands[key];
-                var li = document.createElement('li');
-                li.innerHTML = key;
-                li.classList.add('menu-item');
-                if (command.encoding) {
-                    // command
-                    li.id = `${command.encoding}.${command.key}`;
-                    li.onclick = function() {
-                        eval(`scriptList.insert("${this.id}")`);
-                    };
-                } else {
-                    // category
-                    var ul = document.createElement('ul');
-                    ul.classList.add('menu-submenu');
-                    ul.classList.add('menu');
-                    createSubMenu(ul, command);
-                    li.appendChild(ul);
-                }
-                menu.appendChild(li);
-            }
-        }
+        const self = this;
 
         // go through all of the commands and pick out categories
-        var keys = Object.keys(encoding.command);
-        for (var i = 0; i < keys.length; i++) {
-            var key = keys[i];
-            var opcode = Number(key);
+        for (const key in encoding.command) {
+            const opcode = Number(key);
             if (!isNumber(opcode)) continue;
-            var command = encoding.command[key];
+            const command = encoding.command[key];
             if (!command.name) continue;
             if (names.indexOf(command.name) !== -1) continue;
             names.push(command.name);
@@ -471,56 +446,62 @@ class ROMScriptList {
             }
         }
 
-        createSubMenu(menu, hierarchy);
+        this.populateSubMenu(menu, hierarchy);
+    }
+
+    populateSubMenu(menu, commands) {
+
+        // sort alphabetically
+        const keys = Object.keys(commands).sort();
+        for (const key of keys) {
+            const command = commands[key];
+            const li = this.menu.createMenuItem(menu);
+            li.innerHTML = key;
+            if (command.encoding) {
+                // command
+                li.id = `${command.encoding}.${command.key}`;
+                const self = this;
+                li.onclick = function() {
+                    self.insert(this.id);
+                };
+            } else {
+                // category
+                const ul = this.menu.createSubMenu(li);
+                this.populateSubMenu(ul, command);
+            }
+            menu.appendChild(li);
+        }
     }
 
     updateMenu() {
 
-        this.menu.innerHTML = '';
-        this.menu.classList.add('menu');
-
         // build the menu for the appropriate script commands
         if (isArray(this.script.encoding)) {
-            for (var i = 0; i < this.script.encoding.length; i++) {
-                var encodingName = this.script.encoding[i];
-                var encoding = this.rom.scriptEncoding[encodingName];
-                var subMenu = document.createElement('ul');
-                subMenu.classList.add('menu-submenu');
-                if (encoding) this.populateMenu(subMenu, encoding);
-                var encodingLabel = document.createElement('li');
-                encodingLabel.classList.add('menu-item');
+            // script has multiple encodings
+            for (const encodingName of this.script.encoding) {
+                const encoding = this.rom.scriptEncoding[encodingName];
+                if (!encoding) continue;
+                const encodingLabel = this.menu.createMenuItem(this.menu.topMenu);
                 encodingLabel.innerHTML = encoding.name;
-                encodingLabel.appendChild(subMenu);
-                this.menu.appendChild(encodingLabel);
+
+                const subMenu = this.menu.createSubMenu(encodingLabel);
+                if (encoding) this.populateMenu(subMenu, encoding);
             }
         } else {
-            var encoding = this.rom.scriptEncoding[this.script.encoding];
-            if (encoding) this.populateMenu(this.menu, encoding);
+            // script has only one encoding
+            const encoding = this.rom.scriptEncoding[this.script.encoding];
+            if (encoding) this.populateMenu(this.menu.topMenu, encoding);
         }
     }
 
     openMenu(e) {
+        this.menu = new ROMMenu();
         this.updateMenu();
-
-        this.menu.classList.add('menu-active');
-        this.menu.style.left = `${e.x}px`;
-        this.menu.style.height = '';
-        this.menu.style.overflowY = 'visible';
-
-        var top = e.y;
-        var height = this.menu.clientHeight;
-        if (height + top > window.innerHeight) {
-            top = window.innerHeight - height;
-        }
-        if (top < 0) {
-            this.menu.style.height = `${window.innerHeight - 10}px`;
-            this.menu.style.overflowY = 'auto';
-            top = 0;
-        }
-        this.menu.style.top = `${top}px`;
+        this.menu.open(e.x, e.y);
     }
 
     closeMenu() {
-        this.menu.classList.remove('menu-active');
+        if (this.menu) this.menu.close();
+        this.menu = null;
     }
 }

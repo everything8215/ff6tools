@@ -155,7 +155,7 @@ class ROMEditor {
                 list.onchange(this.value);
             };
             if (list.selected(i)) li.classList.add('selected');
-            menu.appendChild(li);
+            self.menu.appendChild(li);
         }
 
         this.menu.classList.add('menu-active');

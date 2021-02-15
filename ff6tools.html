@@ -15,7 +15,6 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/css-element-queries/1.2.3/ResizeSensor.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/3.14.1/js-yaml.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/base64-js@1.5.1/base64js.min.js"></script>
-        <!-- <script src="ff6tools-min.js"></script> -->
         <script src="lib/pzntg.js"></script>
         <script src="lib/rgbquant.js"></script>
         <script src="rom/gfx.js"></script>
@@ -24,6 +23,7 @@
         <script src="rom/rom-observer.js"></script>
         <script src="gui/romgui.js"></script>
         <script src="gui/editor.js"></script>
+        <script src="gui/menu.js"></script>
         <script src="gui/navigator.js"></script>
         <script src="gui/palette-view.js"></script>
         <script src="gui/graphics-view.js"></script>
@@ -85,6 +85,8 @@
                 xhr.send();
 
                 modal = document.getElementById('modal');
+
+                window.addEventListener('click', onclick);
 
                 var romFile = document.getElementById('rom-file');
                 romFile.onchange = selectROM;
@@ -183,9 +185,11 @@
             };
 
             // When the user clicks anywhere outside of the modal, close it
-            window.onclick = function(e) {
+            function onclick(e) {
                 if (e.target === modal) {
                     closeModal();
+                // } else if (e.target === menu.div) {
+                //     menu.close();
                 }
             }
 
@@ -779,7 +783,10 @@
                 </div>
             </div>
         </div>
+
         <ul id="menu" class="menu"></ul>
+
+        <div id="menu-div"></div>
 
         <div id="modal">
             <div id="modal-window">
