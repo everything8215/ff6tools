@@ -35,7 +35,6 @@ class FF3Map extends ROMEditor {
         this.dirtyRect = null;
         this.mapRect = new Rect(0, 0, 256, 256);
         this.npcCanvas = document.createElement('canvas');
-        this.menu = document.getElementById('menu');
 
         this.mapProperties = null;
         this.m = null; // map index
@@ -219,8 +218,6 @@ class FF3Map extends ROMEditor {
 
     scroll() {
 
-        this.closeMenu();
-
         // get the visible dimensions
         const x = this.div.scrollLeft;
         const y = this.div.scrollTop;
@@ -262,7 +259,6 @@ class FF3Map extends ROMEditor {
 
     mouseDown(e) {
 
-        this.closeMenu();
         this.clickPoint = this.getEventPoint(e);
 
         // update the selection position
@@ -320,9 +316,6 @@ class FF3Map extends ROMEditor {
     }
 
     mouseMove(e) {
-
-        // return if the menu is open
-        if (this.menu.classList.contains('active')) return;
 
         const point = this.getEventPoint(e);
 
@@ -412,52 +405,34 @@ class FF3Map extends ROMEditor {
     }
 
     openMenu(e) {
-        // if (this.l !== 3) return; // no menu unless editing triggers
-        // this.updateMenu();
-        //
-        // this.clickPoint = this.getEventPoint(e);
-        //
-        // this.menu.classList.add('menu-active');
-        // this.menu.style.left = `${e.x}px`;
-        // this.menu.style.top = `${e.y}px`;
+        if (this.l !== 3) return; // no menu unless editing triggers
+
+        this.menu = new ROMMenu();
+
+        const self = this;
+        this.menu.createMenuItem(this.menu.topMenu, {
+            name: 'Insert NPC',
+            disabled: true,
+            onclick: function() {
+                self.closeMenu();
+                self.insertNPC();
+            }
+        });
+
+        this.menu.createMenuItem(this.menu.topMenu, {
+            name: 'Delete NPC',
+            disabled: true,
+            onclick: function() {
+                self.closeMenu();
+                self.deleteNPC();
+            }
+        });
+
+        this.menu.open(e.x, e.y);
     }
 
     closeMenu() {
-        // this.menu.classList.remove('menu-active');
-    }
-
-    updateMenu() {
-        // this.menu.innerHTML = '';
-        //
-        // const self = this;
-        // function appendMenuItem(label, onclick) {
-        //     const li = document.createElement('li');
-        //     li.classList.add('menu-item');
-        //     li.innerHTML = label;
-        //     if (onclick) {
-        //         li.onclick = onclick;
-        //     } else {
-        //         li.classList.add('menu-item-disabled');
-        //     }
-        //     self.menu.appendChild(li);
-        // }
-        //
-        // // make sure there are unused NPCs
-        // let isFull = true;
-        // const npcProperties = this.rom.mapNPC.item(this.m);
-        // for (const npc of npcProperties.iterator()) {
-        //     if (npc.npcID.value == 0) {
-        //         isFull = false;
-        //         break;
-        //     }
-        // }
-        //
-        // appendMenuItem('Insert NPC', (this.isWorld || isFull) ? null : function() {
-        //     self.insertNPC()
-        // });
-        // appendMenuItem('Delete NPC', this.selectedTrigger ? function() {
-        //     self.deleteNPC()
-        // } : null);
+        if (this.menu) this.closeMenu();
     }
 
     setTiles() {
@@ -1099,7 +1074,6 @@ class FF3Map extends ROMEditor {
     }
 
     insertNPC() {
-        this.closeMenu();
 
         // get the npc properties
         if (this.isWorld) return;
@@ -1126,7 +1100,6 @@ class FF3Map extends ROMEditor {
 
     deleteNPC() {
 
-        this.closeMenu();
         const npc = this.selectedTrigger;
         if (!npc) return;
         const npcArray = npc.parent;

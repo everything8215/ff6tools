@@ -4727,8 +4727,12 @@ ROMScript.prototype.blankCommand = function(identifier) {
     command.ref = this.nextRef++;
     var data = new Uint8Array(command.range.length);
     var opcode = encoding.opcode[identifier];
-    data[0] = opcode & 0xFF;
-    if (opcode > 0xFF && data.length > 1) data[1] = opcode >> 8;
+    if (opcode > 0xFF) {
+        data[0] = opcode >> 8;
+        if (data.length > 1) data[1] = opcode & 0xFF;
+    } else {
+        data[0] = opcode & 0xFF;
+    }
     command.disassemble(data);
     return command;
 }
@@ -4833,7 +4837,7 @@ function ROMScriptEncoding(rom, definition, parent) {
     if (definition.delegate) this.delegate = window[definition.delegate];
 
     // default opcode definition
-    var opcodeDef = {
+    var defaultOpcode = {
         "type": "property",
         "name": "Opcode",
         "begin": 0,
@@ -4852,7 +4856,10 @@ function ROMScriptEncoding(rom, definition, parent) {
         command.key = key;
         command.encoding = this.key;
         if (!command.assembly) command.assembly = {};
-        if (!command.assembly.opcode) command.assembly.opcode = opcodeDef;
+        if (!command.assembly.opcode) {
+            command.assembly.opcode = {};
+            Object.assign(command.assembly.opcode, defaultOpcode);
+        }
 
         // convert single opcodes to an array
         var opcodes = command.opcode;
@@ -4892,7 +4899,7 @@ function ROMScriptEncoding(rom, definition, parent) {
             "length": 1,
             "encoding": this.key,
             "assembly": {
-                "opcode": opcodeDef
+                "opcode": defaultOpcode
             }
         };
     }
@@ -4953,60 +4960,6 @@ ROMScriptEncoding.prototype.nextEncoding = function(command) {
         return command.encoding;
     }
 }
-
-// ROMScriptEncoding.prototype.populateMenu = function(menu) {
-//     menu.innerHTML = "";
-//     menu.classList.add('menu');
-//
-//     var hierarchy = {};
-//     var names = []; // commands that have already been sorted
-//
-//     function createSubMenu(menu, commands) {
-//         var keys = Object.keys(commands).sort();
-//         for (var i = 0; i < keys.length; i++) {
-//             var key = keys[i];
-//             var command = commands[key];
-//             var li = document.createElement('li');
-//             li.innerHTML = key;
-//             li.classList.add("menu-item");
-//             if (command.encoding) {
-//                 // command
-//                 li.id = `${command.encoding}.${command.key}`;
-//                 li.onclick = function() { eval(`scriptList.insert("${this.id}")`); };
-//             } else {
-//                 // category
-//                 var ul = document.createElement('ul');
-//                 ul.classList.add("menu-submenu");
-//                 ul.classList.add("menu");
-//                 createSubMenu(ul, command);
-//                 li.appendChild(ul);
-//             }
-//             menu.appendChild(li);
-//         }
-//     }
-//
-//     // go through all of the commands and pick out categories
-//     var keys = Object.keys(this.command);
-//     for (var i = 0; i < keys.length; i++) {
-//         var key = keys[i];
-//         var opcode = Number(key);
-//         if (!isNumber(opcode)) continue;
-//         var command = this.command[key];
-//         if (!command.name) continue;
-//         if (names.indexOf(command.name) !== -1) continue;
-//         names.push(command.name);
-//
-//         if (command.category) {
-//             // create a category if needed
-//             if (!hierarchy[command.category]) hierarchy[command.category] = {};
-//             hierarchy[command.category][command.name] = command;
-//         } else {
-//             hierarchy[command.name] = command;
-//         }
-//     }
-//
-//     createSubMenu(menu, hierarchy);
-// }
 
 // ROMText
 function ROMText(rom, definition, parent) {

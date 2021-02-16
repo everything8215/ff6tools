@@ -163,12 +163,14 @@ var FF5Script = {
                 return dialogText + (dialog ? dialog.htmlString() : "Invalid Dialog Message");
 
             case "parallel":
+                if (!command.bytes) return command.name;
                 return "Execute the Next  " + command.bytes.value + " Byte(s) in Parallel";
 
             case "partyGraphic":
                 return "Change Party Graphic to " + this.string(command, "graphics", command.stringTable);
 
             case "repeat":
+                if (!command.bytes) return command.name;
                 return "Repeat the Next  " + command.bytes.value + " Byte(s) " + command.count.value + " Times";
 
             case "shop":

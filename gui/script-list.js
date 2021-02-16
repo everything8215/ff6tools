@@ -22,7 +22,6 @@ class ROMScriptList {
 
         const self = this;
         this.scriptList.parentElement.onscroll = function() { self.scroll(); };
-        // this.menu = document.getElementById('menu');
         this.menu = null;
         this.scriptList.parentElement.oncontextmenu = function(e) {
             self.openMenu(e);
@@ -108,6 +107,11 @@ class ROMScriptList {
         }
     }
 
+    selectRef(ref) {
+        const command = this.script.ref[ref];
+        if (command) this.selectCommand(command);
+    }
+
     selectCommand(command) {
 
         this.closeMenu();
@@ -177,8 +181,10 @@ class ROMScriptList {
         let ref = null;
         if (nextCommand) ref = nextCommand.ref;
 
+        const script = this.script;
         this.rom.beginAction();
         this.rom.pushAction(new ROMAction(this, function() {
+            this.selectScript(script);
             this.script.updateOffsets();
             this.deselectAll();
             if (lastCommand) {
@@ -189,6 +195,7 @@ class ROMScriptList {
         }, null, 'Update Script'));
         this.script.insertCommand(command, ref);
         this.rom.doAction(new ROMAction(this, null, function() {
+            this.selectScript(script);
             this.script.updateOffsets();
             this.deselectAll();
             this.selectCommand(command);
@@ -204,11 +211,11 @@ class ROMScriptList {
         if (this.selection.length === 0) return;
         this.closeMenu();
 
-        const firstCommand = this.selection[0];
+        const selection = this.selection.slice();
+        const firstCommand = selection[0];
         const i = this.script.command.indexOf(firstCommand);
 
         this.rom.beginAction();
-        const selection = this.selection.slice();
         this.rom.pushAction(new ROMAction(this, function() {
             this.script.updateOffsets();
             this.deselectAll();
@@ -218,20 +225,18 @@ class ROMScriptList {
         }, null, 'Update Script'));
 
         // remove the selected commands
-        for (const command of this.selection) {
+        for (const command of selection) {
             this.script.removeCommand(command);
         }
 
-        // get the command that is now where the selection started
-        // this will be undefined if the script is now empty
-        const nextCommand = this.script.command[i] || this.script.command[0];
-
+        const script = this.script;
         this.rom.doAction(new ROMAction(this, null, function() {
+            this.selectScript(script);
             this.script.updateOffsets();
             this.deselectAll();
-            if (nextCommand) {
-                this.selectCommand(nextCommand);
-                propertyList.select(nextCommand);
+            // deselect in property list if current selection was deleted
+            if (selection.includes(propertyList.selection.current)) {
+                propertyList.select(null);
             }
             this.update();
         }, 'Update Script'));
@@ -242,7 +247,6 @@ class ROMScriptList {
         // return if nothing is selected
         if (!this.script) return;
         if (this.selection.length === 0) return;
-        this.closeMenu();
 
         // get the first selected command and the command before it
         const firstCommand = this.selection[0];
@@ -259,7 +263,9 @@ class ROMScriptList {
         if (nextCommand) nextRef = nextCommand.ref;
 
         const selection = this.selection.slice();
+        const script = this.script;
         function updateScript() {
+            this.selectScript(script);
             this.script.updateOffsets();
             this.deselectAll();
             this.selectCommands(selection);
@@ -278,7 +284,6 @@ class ROMScriptList {
         // return if nothing is selected
         if (!this.script) return;
         if (this.selection.length === 0) return;
-        this.closeMenu();
 
         // get the first selected command
         const firstCommand = this.selection[0];
@@ -292,7 +297,9 @@ class ROMScriptList {
         if (!nextCommand) return;
 
         const selection = this.selection.slice();
+        const script = this.script;
         function updateScript() {
+            this.selectScript(script);
             this.script.updateOffsets();
             this.deselectAll();
             this.selectCommands(selection);
@@ -419,30 +426,74 @@ class ROMScriptList {
         return li;
     }
 
+    openMenu(e) {
+        this.menu = new ROMMenu();
+
+        // build the menu for the appropriate script commands
+        if (isArray(this.script.encoding)) {
+            // script has multiple encodings
+            for (const key of this.script.encoding) {
+                const encoding = this.rom.scriptEncoding[key];
+                if (!encoding) continue;
+                const li = this.menu.createMenuItem(this.menu.topMenu, {
+                    name: encoding.name
+                });
+
+                const ul = this.menu.createSubMenu(li);
+                this.populateMenu(ul, encoding);
+            }
+
+        } else if (this.script.encoding) {
+            // script has only one encoding
+            const key = this.script.encoding;
+            const encoding = this.rom.scriptEncoding[key];
+            if (!encoding) return;
+            this.populateMenu(this.menu.topMenu, encoding);
+        }
+
+        this.menu.open(e.x, e.y);
+    }
+
+    closeMenu() {
+        if (this.menu) this.menu.close();
+    }
+
     populateMenu(menu, encoding) {
-        menu.innerHTML = '';
-        menu.classList.add('menu');
 
         var hierarchy = {};
-        var names = []; // commands that have already been sorted
-
-        const self = this;
+        var names = []; // list of names
 
         // go through all of the commands and pick out categories
         for (const key in encoding.command) {
+
+            // only look at opcodes (encoding.command also contains keys)
             const opcode = Number(key);
             if (!isNumber(opcode)) continue;
-            const command = encoding.command[key];
-            if (!command.name) continue;
-            if (names.indexOf(command.name) !== -1) continue;
-            names.push(command.name);
 
-            if (command.category) {
+            // get the command and its name
+            const command = encoding.command[key];
+            if (!command) continue;
+
+            const name = command.name;
+            const category = command.category;
+
+            // skip commands with no name
+            if (!name) continue;
+
+            // skip if already included in names list
+            if (names.includes(name)) continue;
+
+            // add to list of names
+            names.push(name);
+
+            if (category) {
                 // create a category if needed
-                if (!hierarchy[command.category]) hierarchy[command.category] = {};
-                hierarchy[command.category][command.name] = command;
+                if (!hierarchy[category]) {
+                    hierarchy[category] = {};
+                }
+                hierarchy[category][name] = command;
             } else {
-                hierarchy[command.name] = command;
+                hierarchy[name] = command;
             }
         }
 
@@ -453,55 +504,34 @@ class ROMScriptList {
 
         // sort alphabetically
         const keys = Object.keys(commands).sort();
+        const self = this;
         for (const key of keys) {
             const command = commands[key];
-            const li = this.menu.createMenuItem(menu);
-            li.innerHTML = key;
             if (command.encoding) {
                 // command
-                li.id = `${command.encoding}.${command.key}`;
-                const self = this;
-                li.onclick = function() {
-                    self.insert(this.id);
-                };
+                this.menu.createMenuItem(menu, {
+                    name: key,
+                    value: `${command.encoding}.${command.key}`,
+                    onclick: function() {
+                        // here, "this" refers to the li
+                        self.insert(this.getAttribute('data-value'));
+                    }
+                });
+                // li.id = `${command.encoding}.${command.key}`;
+                // const self = this;
+                // li.onclick = function() {
+                //     // here, "this" refers to the li
+                //     self.insert(this.id);
+                // };
             } else {
                 // category
+                const li = this.menu.createMenuItem(menu, {
+                    name: key
+                });
                 const ul = this.menu.createSubMenu(li);
                 this.populateSubMenu(ul, command);
             }
-            menu.appendChild(li);
+            // menu.appendChild(li);
         }
-    }
-
-    updateMenu() {
-
-        // build the menu for the appropriate script commands
-        if (isArray(this.script.encoding)) {
-            // script has multiple encodings
-            for (const encodingName of this.script.encoding) {
-                const encoding = this.rom.scriptEncoding[encodingName];
-                if (!encoding) continue;
-                const encodingLabel = this.menu.createMenuItem(this.menu.topMenu);
-                encodingLabel.innerHTML = encoding.name;
-
-                const subMenu = this.menu.createSubMenu(encodingLabel);
-                if (encoding) this.populateMenu(subMenu, encoding);
-            }
-        } else {
-            // script has only one encoding
-            const encoding = this.rom.scriptEncoding[this.script.encoding];
-            if (encoding) this.populateMenu(this.menu.topMenu, encoding);
-        }
-    }
-
-    openMenu(e) {
-        this.menu = new ROMMenu();
-        this.updateMenu();
-        this.menu.open(e.x, e.y);
-    }
-
-    closeMenu() {
-        if (this.menu) this.menu.close();
-        this.menu = null;
     }
 }

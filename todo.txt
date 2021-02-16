@@ -34,7 +34,6 @@ gui
  * find a better way to auto-populate battle names
  * controls for array insert/remove
  * arrayPath/objectPath in navigator
- * make menu close any time you click outside of it
  * graphics export selection only
  * import/export tilemap (native/generic, Tiled)
  * click and drag level progression data

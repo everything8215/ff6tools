@@ -35,7 +35,6 @@ class FF5Map extends ROMEditor {
         this.dirtyRect = null;
         this.mapRect = new Rect(0, 0, 256, 256);
         this.npcCanvas = document.createElement('canvas');
-        this.menu = document.getElementById('menu');
 
         this.mapProperties = null;
         this.m = null; // map index
@@ -243,8 +242,6 @@ class FF5Map extends ROMEditor {
 
     scroll() {
 
-        this.closeMenu();
-
         // get the visible dimensions
         const x = this.div.scrollLeft;
         const y = this.div.scrollTop;
@@ -288,7 +285,6 @@ class FF5Map extends ROMEditor {
 
     mouseDown(e) {
 
-        this.closeMenu();
         this.clickPoint = this.getEventPoint(e);
 
         // update the selection position
@@ -344,9 +340,6 @@ class FF5Map extends ROMEditor {
     }
 
     mouseMove(e) {
-
-        // return if the menu is open
-        if (this.menu.classList.contains('active')) return;
 
         const point = this.getEventPoint(e);
 
@@ -438,50 +431,58 @@ class FF5Map extends ROMEditor {
 
     openMenu(e) {
         if (this.l !== 3) return; // no menu unless editing triggers
-        this.updateMenu();
 
-        this.clickPoint = this.getEventPoint(e);
+        this.menu = new ROMMenu();
 
-        this.menu.classList.add('menu-active');
-        this.menu.style.left = `${e.x}px`;
-        this.menu.style.top = `${e.y}px`;
+        const self = this;
+        this.menu.createMenuItem(this.menu.topMenu, {
+            name: 'Insert Entrance Trigger',
+            onclick: function() {
+                self.closeMenu();
+                self.insertTrigger('entranceTriggers');
+            }
+        });
+
+        this.menu.createMenuItem(this.menu.topMenu, {
+            name: 'Insert Event Trigger',
+            onclick: function() {
+                self.closeMenu();
+                self.insertTrigger('eventTriggers');
+            }
+        });
+
+        this.menu.createMenuItem(this.menu.topMenu, {
+            name: 'Insert Treasure',
+            disabled: this.isWorld,
+            onclick: function() {
+                self.closeMenu();
+                self.insertTrigger('treasureProperties');
+            }
+        });
+
+        this.menu.createMenuItem(this.menu.topMenu, {
+            name: 'Insert NPC',
+            disabled: this.isWorld,
+            onclick: function() {
+                self.closeMenu();
+                self.insertTrigger('npcProperties');
+            }
+        });
+
+        this.menu.createMenuItem(this.menu.topMenu, {
+            name: 'Delete Trigger',
+            disabled: this.selectedTrigger === null,
+            onclick: function() {
+                self.closeMenu();
+                self.deleteTrigger();
+            }
+        });
+
+        this.menu.open(e.x, e.y);
     }
 
     closeMenu() {
-        this.menu.classList.remove('menu-active');
-    }
-
-    updateMenu() {
-        this.menu.innerHTML = '';
-
-        const self = this;
-        function appendMenuItem(label, onclick) {
-            const li = document.createElement('li');
-            li.classList.add('menu-item');
-            li.innerHTML = label;
-            if (onclick) {
-                li.onclick = onclick;
-            } else {
-                li.classList.add('menu-item-disabled');
-            }
-            self.menu.appendChild(li);
-        }
-
-        appendMenuItem('Insert Entrance Trigger', function() {
-            self.insertTrigger('entranceTriggers');
-        });
-        appendMenuItem('Insert Event Trigger', function() {
-            self.insertTrigger('eventTriggers');
-        });
-        appendMenuItem('Insert Treasure', !this.isWorld ? function() {
-            self.insertTrigger('treasureProperties');
-        } : null);
-        appendMenuItem('Insert NPC', !this.isWorld ? function() {
-            self.insertTrigger('npcProperties');
-        } : null);
-        appendMenuItem('Delete Trigger', this.selectedTrigger ? function() {
-            self.deleteTrigger();
-        } : null);
+        if (this.menu) this.menu.close();
     }
 
     setTiles() {
@@ -1116,8 +1117,6 @@ class FF5Map extends ROMEditor {
 
     insertTrigger(type) {
 
-        this.closeMenu();
-
         const triggerArray = this.rom[type].item(this.m);
         const newTrigger = triggerArray.blankAssembly();
 
@@ -1133,7 +1132,6 @@ class FF5Map extends ROMEditor {
 
     deleteTrigger() {
 
-        this.closeMenu();
         const trigger = this.selectedTrigger;
         if (!trigger) return;
         const triggerArray = trigger.parent;

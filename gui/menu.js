@@ -32,17 +32,24 @@ class ROMMenu {
     createSubMenu(parent) {
         const subMenu = document.createElement('ul');
         subMenu.classList.add('menu');
-        subMenu.classList.add('submenu');
         parent.appendChild(subMenu);
         parent.classList.add('has-submenu')
         return subMenu;
     }
 
-    createMenuItem(parent) {
-        const item = document.createElement('li');
-        item.classList.add('menu-item');
-        parent.appendChild(item);
-        return item;
+    createMenuItem(parent, options) {
+        options = options || {};
+        const li = document.createElement('li');
+        li.classList.add('menu-item');
+        if (options.name) li.innerHTML = options.name;
+        const numberValue = Number(options.value);
+        if (isNumber(numberValue)) li.value = numberValue;
+        if (options.value) li.setAttribute('data-value', options.value);
+        if (options.selected) li.classList.add('selected');
+        if (options.disabled) li.classList.add('disabled');
+        if (options.onclick && !options.disabled) li.onclick = options.onclick;
+        parent.appendChild(li);
+        return li;
     }
 
     setMenuPosition(menu, x, y) {
@@ -80,7 +87,7 @@ class ROMMenu {
         for (const menuItem of menu.children) {
             if (!menuItem.classList.contains('has-submenu')) continue;
             for (const child of menuItem.children) {
-                if (child.classList.contains('submenu')) {
+                if (child.classList.contains('menu')) {
                     const x = menu.offsetLeft + menu.offsetWidth;
                     const y = menu.offsetTop + menuItem.offsetTop - 5;
                     this.setMenuPosition(child, x, y);
