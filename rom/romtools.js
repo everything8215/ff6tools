@@ -4438,6 +4438,20 @@ function ROMCommand(rom, definition, parent) {
 ROMCommand.prototype = Object.create(ROMData.prototype);
 ROMCommand.prototype.constructor = ROMCommand;
 
+ROMCommand.prototype.serialize = function() {
+    const obj = {
+        encoding: this.encoding,
+        key: this.key
+    }
+
+    Object.assign(obj, ROMData.prototype.serialize.call(this));
+    return obj;
+}
+
+ROMCommand.prototype.deserialize = function(command) {
+    ROMData.prototype.deserialize.call(this, command);
+}
+
 ROMCommand.prototype.assemble = function(data) {
     var encoding = this.rom.scriptEncoding[this.encoding];
     encoding.willAssemble(this);

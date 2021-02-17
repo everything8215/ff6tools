@@ -24,12 +24,12 @@ class ROMScriptList {
         this.scriptList.parentElement.onscroll = function() { self.scroll(); };
         this.menu = null;
         this.scriptList.parentElement.oncontextmenu = function(e) {
-            self.openMenu(e);
+            self.openContextMenu(e);
             return false;
         };
 
         const insertButton = document.getElementById('script-insert');
-        insertButton.onclick = function(e) { self.openMenu(e); };
+        insertButton.onclick = function(e) { self.openInsertMenu(e); };
     }
 
     scroll() {
@@ -314,6 +314,96 @@ class ROMScriptList {
         this.rom.endAction();
     }
 
+    cut() {
+        this.copy();
+        this.delete();
+    }
+
+    copy() {
+        // return if nothing is selected
+        if (!this.script) return;
+        if (this.selection.length === 0) return;
+
+        const yaml = [];
+        for (const command of this.selection) {
+            if (!command.serialize) continue;
+            yaml.push(command.serialize());
+        }
+        const text = jsyaml.safeDump(yaml, {
+            indent: 4,
+            skipInvalid: true
+        });
+        navigator.permissions.query({name: "clipboard-write"}).then(function(result) {
+            if (result.state == "granted" || result.state == "prompt") {
+                navigator.clipboard.writeText(text);
+            }
+        });
+    }
+
+    paste() {
+        if (!this.script) return;
+
+        const self = this;
+        navigator.permissions.query({name: "clipboard-read"}).then(function(result) {
+            if (result.state == "granted" || result.state == "prompt") {
+                navigator.clipboard.readText().then(function(text) {
+                    const yaml = jsyaml.safeLoad(text);
+                    self.pasteYAML(yaml);
+                });
+            }
+        });
+    }
+
+    pasteYAML(yamlArray) {
+
+        if (!isArray(yamlArray) || !yamlArray.length) return;
+
+        const lastCommand = this.selection[this.selection.length - 1];
+        const end = this.script.command.indexOf(lastCommand);
+        const nextCommand = this.script.command[end + 1];
+        let ref = null;
+        if (nextCommand) ref = nextCommand.ref;
+
+        this.rom.beginAction();
+        const newCommands = [];
+        for (const yaml of yamlArray) {
+            const identifier = `${yaml.encoding}.${yaml.key}`;
+            const command = this.script.blankCommand(identifier);
+            if (!command) continue;
+            command.deserialize(yaml);
+            newCommands.push(command);
+        }
+
+        const script = this.script;
+        const selection = this.selection;
+        this.rom.pushAction(new ROMAction(this, function() {
+            this.selectScript(script);
+            this.script.updateOffsets();
+            this.deselectAll();
+            for (const command of selection) {
+                this.selectCommand(command);
+            }
+            if (newCommands.includes(propertyList.selection.current)) {
+                propertyList.select(null);
+            }
+            this.update();
+        }, null, 'Update Script'));
+        for (const command of newCommands) {
+            this.script.insertCommand(command, ref);
+        }
+        this.rom.doAction(new ROMAction(this, null, function() {
+            this.selectScript(script);
+            this.script.updateOffsets();
+            this.deselectAll();
+            for (const command of newCommands) {
+                this.selectCommand(command);
+            }
+            propertyList.select(newCommands[0]);
+            this.update();
+        }, 'Update Script'));
+        this.rom.endAction();
+    }
+
     update() {
 
         if (!this.script) return;
@@ -426,30 +516,87 @@ class ROMScriptList {
         return li;
     }
 
-    openMenu(e) {
+    openContextMenu(e) {
+
+        let refCommand = null;
+        if (this.node.includes(e.target)) {
+            refCommand = this.script.ref[e.target.value];
+        } else if (this.node.includes(e.target.parentNode)) {
+            refCommand = this.script.ref[e.target.parentNode.value];
+        }
+
+        if (refCommand) {
+            propertyList.select(refCommand);
+            if (!this.selection.includes(refCommand)) {
+                this.deselectAll();
+                this.selectCommand(refCommand);
+            }
+        }
+
+        const self = this;
         this.menu = new ROMMenu();
 
-        // build the menu for the appropriate script commands
-        if (isArray(this.script.encoding)) {
-            // script has multiple encodings
-            for (const key of this.script.encoding) {
-                const encoding = this.rom.scriptEncoding[key];
-                if (!encoding) continue;
-                const li = this.menu.createMenuItem(this.menu.topMenu, {
-                    name: encoding.name
-                });
+        const liInsert = this.menu.createMenuItem(this.menu.topMenu, {
+            name: 'Insert'
+        });
+        const ulInsert = this.menu.createSubMenu(liInsert);
+        this.populateInsertMenu(ulInsert);
 
-                const ul = this.menu.createSubMenu(li);
-                this.populateMenu(ul, encoding);
+        this.menu.createMenuItem(this.menu.topMenu, {
+            name: 'Delete',
+            onclick: function() {
+                self.delete();
+                self.closeMenu();
             }
+        });
 
-        } else if (this.script.encoding) {
-            // script has only one encoding
-            const key = this.script.encoding;
-            const encoding = this.rom.scriptEncoding[key];
-            if (!encoding) return;
-            this.populateMenu(this.menu.topMenu, encoding);
-        }
+        this.menu.createMenuItem(this.menu.topMenu, {
+            name: 'Move Up',
+            onclick: function() {
+                self.moveUp();
+                self.closeMenu();
+            }
+        });
+
+        this.menu.createMenuItem(this.menu.topMenu, {
+            name: 'Move Down',
+            onclick: function() {
+                self.moveDown();
+                self.closeMenu();
+            }
+        });
+
+        this.menu.createMenuItem(this.menu.topMenu, {
+            name: 'Cut',
+            onclick: function() {
+                self.cut();
+                self.closeMenu();
+            }
+        });
+
+        this.menu.createMenuItem(this.menu.topMenu, {
+            name: 'Copy',
+            onclick: function() {
+                self.copy();
+                self.closeMenu();
+            }
+        });
+
+        this.menu.createMenuItem(this.menu.topMenu, {
+            name: 'Paste',
+            onclick: function() {
+                self.paste();
+                self.closeMenu();
+            }
+        });
+
+        this.menu.open(e.x, e.y);
+    }
+
+    openInsertMenu(e) {
+        this.menu = new ROMMenu();
+
+        this.populateInsertMenu(this.menu.topMenu);
 
         this.menu.open(e.x, e.y);
     }
@@ -458,7 +605,31 @@ class ROMScriptList {
         if (this.menu) this.menu.close();
     }
 
-    populateMenu(menu, encoding) {
+    populateInsertMenu(menu) {
+        // build the menu for the appropriate script commands
+        if (isArray(this.script.encoding)) {
+            // script has multiple encodings
+            for (const key of this.script.encoding) {
+                const encoding = this.rom.scriptEncoding[key];
+                if (!encoding) continue;
+                const li = this.menu.createMenuItem(menu, {
+                    name: encoding.name
+                });
+
+                const ul = this.menu.createSubMenu(li);
+                this.populateEncodingMenu(ul, encoding);
+            }
+
+        } else if (this.script.encoding) {
+            // script has only one encoding
+            const key = this.script.encoding;
+            const encoding = this.rom.scriptEncoding[key];
+            if (!encoding) return;
+            this.populateEncodingMenu(menu, encoding);
+        }
+    }
+
+    populateEncodingMenu(menu, encoding) {
 
         var hierarchy = {};
         var names = []; // list of names
@@ -497,10 +668,10 @@ class ROMScriptList {
             }
         }
 
-        this.populateSubMenu(menu, hierarchy);
+        this.populateCommandMenu(menu, hierarchy);
     }
 
-    populateSubMenu(menu, commands) {
+    populateCommandMenu(menu, commands) {
 
         // sort alphabetically
         const keys = Object.keys(commands).sort();
@@ -517,21 +688,14 @@ class ROMScriptList {
                         self.insert(this.getAttribute('data-value'));
                     }
                 });
-                // li.id = `${command.encoding}.${command.key}`;
-                // const self = this;
-                // li.onclick = function() {
-                //     // here, "this" refers to the li
-                //     self.insert(this.id);
-                // };
             } else {
                 // category
                 const li = this.menu.createMenuItem(menu, {
                     name: key
                 });
                 const ul = this.menu.createSubMenu(li);
-                this.populateSubMenu(ul, command);
+                this.populateCommandMenu(ul, command);
             }
-            // menu.appendChild(li);
         }
     }
 }
