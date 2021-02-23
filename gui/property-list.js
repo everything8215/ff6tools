@@ -93,6 +93,8 @@ class ROMPropertyList {
             indent: 4,
             skipInvalid: true
         });
+        this.rom.clipboard = text;
+        if (!navigator.permissions) return;
         navigator.permissions.query({name: "clipboard-write"}).then(function(result) {
             if (result.state == "granted" || result.state == "prompt") {
                 navigator.clipboard.writeText(text);
@@ -104,18 +106,32 @@ class ROMPropertyList {
         const obj = this.selection.current;
         if (!obj.deserialize) return;
 
+        if (!navigator.permissions) {
+            if (isString(this.rom.clipboard)) {
+                this.pasteYAML(this.rom.clipboard);
+            }
+            return;
+        }
         const self = this;
         navigator.permissions.query({name: "clipboard-read"}).then(function(result) {
             if (result.state == "granted" || result.state == "prompt") {
                 navigator.clipboard.readText().then(function(text) {
-                    const yaml = jsyaml.safeLoad(text);
-                    self.rom.beginAction();
-                    obj.deserialize(yaml);
-                    self.rom.endAction();
-                    // self.showProperties();
+                    self.pasteYAML(text);
                 });
+            } else if (isString(self.rom.clipboard)) {
+                self.pasteYAML(self.rom.clipboard);
             }
         });
+    }
+
+    pasteYAML(text) {
+        const obj = this.selection.current;
+        if (!obj.deserialize) return;
+
+        const yaml = jsyaml.safeLoad(text);
+        self.rom.beginAction();
+        obj.deserialize(yaml);
+        self.rom.endAction();
     }
 
     import() {

@@ -333,6 +333,8 @@ class ROMScriptList {
             indent: 4,
             skipInvalid: true
         });
+        this.rom.clipboard = text;
+        if (!navigator.permissions) return;
         navigator.permissions.query({name: "clipboard-write"}).then(function(result) {
             if (result.state == "granted" || result.state == "prompt") {
                 navigator.clipboard.writeText(text);
@@ -343,20 +345,31 @@ class ROMScriptList {
     paste() {
         if (!this.script) return;
 
+        if (!navigator.permissions) {
+            if (isString(this.rom.clipboard)) {
+                this.pasteYAML(this.rom.clipboard);
+            }
+            return;
+        }
+
         const self = this;
         navigator.permissions.query({name: "clipboard-read"}).then(function(result) {
             if (result.state == "granted" || result.state == "prompt") {
                 navigator.clipboard.readText().then(function(text) {
-                    const yaml = jsyaml.safeLoad(text);
-                    self.pasteYAML(yaml);
+                    self.pasteYAML(text);
                 });
+            } else if (isString(self.rom.clipboard)) {
+                self.pasteYAML(self.rom.clipboard);
             }
         });
     }
 
-    pasteYAML(yamlArray) {
+    pasteYAML(text) {
 
-        if (!isArray(yamlArray) || !yamlArray.length) return;
+        let yamlArray = jsyaml.safeLoad(text);
+        if (!yamlArray) return;
+        if (!isArray(yamlArray)) yamlArray = [yamlArray];
+        if (!yamlArray.length) return;
 
         const lastCommand = this.selection[this.selection.length - 1];
         const end = this.script.command.indexOf(lastCommand);

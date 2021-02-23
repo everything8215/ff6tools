@@ -1337,6 +1337,7 @@ function ROM(rom, definition) {
     this.noChecksumFix = definition.noChecksumFix || false;
     this.gammaCorrection = definition.gammaCorrection || false;
     this.definitionFormat = definition.definitionFormat || 'json';
+    this.clipboard = null;
 
     var i, key, keys;
 
