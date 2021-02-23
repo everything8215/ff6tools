@@ -264,51 +264,40 @@ class FF3Map extends ROMEditor {
         // update the selection position
         this.selection.x = this.clickPoint.x;
         this.selection.y = this.clickPoint.y;
+        this.isDragging = true;
 
         if (this.l === 3) {
+            // right click handled by context menu
+            if (this.clickPoint.button === 2) return;
+
             const triggers = this.triggersAt(e.offsetX, e.offsetY);
-            const index = triggers.indexOf(this.selectedTrigger);
-            if (index !== -1) {
-                // select the next trigger in a stack
-                this.selectedTrigger = triggers[(index + 1) % triggers.length];
-                propertyList.select(this.selectedTrigger);
-                this.isDragging = true;
-                this.triggerPoint = {
-                    x: this.selectedTrigger.x.value,
-                    y: this.selectedTrigger.y.value
-                };
-                this.reloadTriggers();
-            } else if (triggers.length !== 0) {
-                // select the first trigger
-                this.selectedTrigger = triggers[0];
-                propertyList.select(this.selectedTrigger);
-                this.isDragging = true;
-                this.triggerPoint = {
-                    x: this.selectedTrigger.x.value,
-                    y: this.selectedTrigger.y.value
-                };
+            if (triggers.length) {
+                // select the first trigger, or the next trigger in a stack
+                let index = triggers.indexOf(this.selectedTrigger);
+                index = (index + 1) % triggers.length;
+                this.selectTrigger(triggers[index]);
             } else {
                 // clear trigger selection
-                this.selectedTrigger = null;
+                this.selectTrigger(null);
+                this.isDragging = false;
                 if (this.isWorld) {
                     // select world map battle
-                    this.selectWorldBattle(this.clickPoint.x, this.clickPoint.y)
+                    this.selectWorldBattle(this.clickPoint.x, this.clickPoint.y);
                 } else {
                     // select map properties
                     propertyList.select(this.mapProperties);
                 }
-                this.isDragging = false;
             }
+
         } else if (this.clickPoint.button === 2) {
+            // right mouse button down - select tiles
             this.selectTiles();
-            this.isDragging = true;
 
         } else {
+            // left mouse button down - draw tiles
             this.beginAction(this.redraw);
-            // this.rom.pushAction(new ROMAction(this, this.redraw, null, 'Redraw Map'));
             this.rom.doAction(new ROMAction(this.selectedLayer, this.selectedLayer.decodeLayout, null, 'Decode Layout'));
             this.setTiles();
-            this.isDragging = true;
         }
 
         this.drawScreen();
@@ -406,6 +395,25 @@ class FF3Map extends ROMEditor {
 
     openMenu(e) {
         if (this.l !== 3) return; // no menu unless editing triggers
+
+        this.clickPoint = this.getEventPoint(e);
+
+        // update the selection position
+        this.selection.x = this.clickPoint.x;
+        this.selection.y = this.clickPoint.y;
+
+        const triggers = this.triggersAt(e.offsetX, e.offsetY);
+        if (triggers.length) {
+            // open a menu for the selected trigger
+            let index = triggers.indexOf(this.selectedTrigger);
+            if (index === -1) index = 0;
+            this.selectTrigger(triggers[index]);
+        } else {
+            // clear trigger selection
+            this.selectTrigger(null);
+        }
+        this.drawScreen();
+        this.drawCursor();
 
         this.menu = new ROMMenu();
 
@@ -1071,6 +1079,16 @@ class FF3Map extends ROMEditor {
             ], this.reloadTriggers);
             this.triggers.push(npc);
         }
+    }
+
+    selectTrigger(trigger) {
+        this.selectedTrigger = trigger;
+        propertyList.select(trigger);
+        if (!trigger) return;
+        this.triggerPoint = {
+            x: this.selectedTrigger.x.value,
+            y: this.selectedTrigger.y.value
+        };
     }
 
     insertNPC() {

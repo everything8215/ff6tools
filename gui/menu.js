@@ -17,6 +17,7 @@ class ROMMenu {
             // close menu if user clicks outside
             if (e.target === self.div) self.close();
         };
+        this.div.oncontextmenu = function(e) { self.close(); };
     }
 
     open(x, y) {
