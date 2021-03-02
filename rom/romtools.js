@@ -1338,6 +1338,7 @@ function ROM(rom, definition) {
     this.gammaCorrection = definition.gammaCorrection || false;
     this.definitionFormat = definition.definitionFormat || 'json';
     this.clipboard = null;
+    this.scriptDelegate = {};
 
     var i, key, keys;
 
@@ -1514,6 +1515,16 @@ ROM.prototype.disassemble = function(data) {
     this.range = new ROMRange(0, data.length);
 
     ROMAssembly.prototype.disassemble.call(this, data);
+}
+
+ROM.prototype.getScriptDelegate = function(name) {
+    if (this.scriptDelegate[name]) return this.scriptDelegate[name];
+
+    const delegateClass = eval(name);
+    if (!delegateClass) return null;
+    const delegate = new delegateClass(this);
+    this.scriptDelegate[name] = delegate;
+    return delegate;
 }
 
 ROM.prototype.expand = function(length) {
@@ -3596,6 +3607,17 @@ ROMProperty.prototype.setTarget = function(target) {
     this.rom.doAction(action);
 }
 
+ROMProperty.prototype.fString = function(maxLength) {
+    if (!this.stringTable) return 'Invalid';
+    const stringTable = this.rom.stringTable[this.stringTable];
+    if (!stringTable) return 'Invalid';
+    const i = this.value;
+    if (!isNumber(i)) return 'Invalid';
+    const string = stringTable.string[i];
+    if (!string) return 'Invalid';
+    return string.fString(maxLength);
+}
+
 // ROMArray
 function ROMArray(rom, definition, parent) {
     ROMAssembly.call(this, rom, definition, parent);
@@ -4849,7 +4871,7 @@ function ROMScriptEncoding(rom, definition, parent) {
     ROMObject.call(this, rom, definition, parent);
     this.type = ROMObject.Type.scriptEncoding;
 
-    if (definition.delegate) this.delegate = window[definition.delegate];
+    this.delegate = this.rom.getScriptDelegate(definition.delegate);
 
     // default opcode definition
     var defaultOpcode = {

@@ -3,12 +3,13 @@
 // created 12/23/2018
 //
 
-var FF5Script = {
-    name: "FF5Script",
+class FF5Script extends ROMScriptDelegate {
+    constructor(rom) {
+        super(rom);
+        this.name = 'FF5Script';
+    }
 
-    initScript: function(script) { },
-
-    didDisassemble: function(command, data) {
+    didDisassemble(command, data) {
         switch (command.key) {
 
             case "mapBackground":
@@ -45,9 +46,9 @@ var FF5Script = {
             default:
                 break;
         }
-    },
+    }
 
-    willAssemble: function(command) {
+    willAssemble(command) {
         switch (command.key) {
             case "switch":
                 if (command.encoding === "event") {
@@ -63,15 +64,15 @@ var FF5Script = {
 
             default: break;
         }
-    },
+    }
 
-    nextEncoding: function(command) {
+    nextEncoding(command) {
         if (command.encoding === "trigger" && command.key === "end") return "npcDialog";
 
         return command.encoding;
-    },
+    }
 
-    description: function(command) {
+    description(command) {
         var desc = "Invalid Command"
 
         switch (command.key) {
@@ -84,7 +85,7 @@ var FF5Script = {
                 } else {
                     obj = "Party";
                 }
-                return obj + ": " + this.string(command, "action", command.stringTable);
+                return obj + ": " + this.string(command, "action", command.action.stringTable);
 
             case "bool1":
             case "bool2":
@@ -105,7 +106,7 @@ var FF5Script = {
             case "dialog":
             case "dialogYesNo":
                 var d = command.dialog.value;
-                var dialog = command.rom.stringTable.dialog.string[d];
+                var dialog = this.rom.stringTable.dialog.string[d];
                 var dialogText = command.name + ":<br/>";
                 return dialogText + (dialog ? dialog.htmlString() : "Invalid Dialog Message");
 
@@ -158,7 +159,7 @@ var FF5Script = {
                 i = command.i - i;
 
                 var d = command.dialog.value;
-                var dialog = command.rom.stringTable.dialog.string[d];
+                var dialog = this.rom.stringTable.dialog.string[d];
                 var dialogText = "NPC Dialog " + i + ":<br/>";
                 return dialogText + (dialog ? dialog.htmlString() : "Invalid Dialog Message");
 
@@ -198,28 +199,5 @@ var FF5Script = {
             default: break;
         }
         return command.name;
-    },
-
-    string: function(command, key, stringKey) {
-        var stringTable;
-        if (stringKey) {
-            stringTable = command.rom.stringTable[stringKey];
-        } else {
-            stringTable = command.rom.stringTable[command[key].stringTable];
-        }
-        var string = stringTable.string[command[key].value];
-        if (!string) return "Invalid String"
-        return string.fString();
-    },
-
-    fixSwitch: function(switchProperty) {
-        var map = propertyList.editors["FF5Map"];
-        if (map.m > 256 && switchProperty.offset !== 256) {
-            switchProperty.offset = 256;
-            switchProperty.value += 256;
-        } else if (map.m <= 256 && switchProperty.offset !== 0) {
-            switchProperty.offset = 0;
-            switchProperty.value -= 256;
-        }
     }
 }

@@ -63,7 +63,7 @@
                     "name": "Event Script",
                     "path": "eventScript"
                 }, {
-                    "name": "Dialog",
+                    "name": "Dialogue",
                     "path": "stringTable.dialog"
                 }, {
                     "name": "NPC Switches",
@@ -89,7 +89,7 @@
                     "name": "Event Battle Groups",
                     "path": "battleGroupsEvent"
                 }, {
-                    "name": "Battle Dialog",
+                    "name": "Battle Dialogue",
                     "path": "stringTable.battleDialog"
                 }, {
                     "name": "Attack Messages",
@@ -119,7 +119,7 @@
                     "name": "Character A.I.",
                     "path": "characterAI"
                 }, {
-                    "name": "Monster Dialog",
+                    "name": "Monster Dialogue",
                     "path": "stringTable.monsterDialog"
                 }
             ]
@@ -9203,15 +9203,15 @@
                     "length": 2,
                     "opcode": "0x68",
                     "assembly": {
-                        "type": {
+                        "priority": {
                             "type": "property",
                             "name": "Priority",
-                            "begin": 0
+                            "begin": 1
                         }
                     }
                 },
                 "advanceBattle": {
-                    "name": "Battle",
+                    "name": "Battle (GBA)",
                     "category": "FF6 Advance",
                     "length": 5,
                     "opcode": "0x69",
@@ -9221,7 +9221,8 @@
                             "name": "Battle",
                             "begin": 3,
                             "mask": "0xFFFF",
-                            "link": "battleProperties[%i]"
+                            "link": "battleProperties[%i]",
+                            "stringTable": "battleProperties"
                         },
                         "background": {
                             "type": "property",
@@ -9233,7 +9234,7 @@
                     }
                 },
                 "advanceItem": {
-                    "name": "Give Item",
+                    "name": "Give Item (GBA)",
                     "category": "FF6 Advance",
                     "length": 3,
                     "opcode": "0x83",
@@ -9243,13 +9244,13 @@
                             "name": "Item",
                             "begin": 1,
                             "mask": "0xFFFF",
-                            "stringTable": "itemNames",
-                            "link": "itemProperties[%i]"
+                            "link": "itemProperties[%i]",
+                            "stringTable": "itemNames"
                         }
                     }
                 },
                 "advanceSwitch": {
-                    "name": "Change Switch",
+                    "name": "Change Switch (GBA)",
                     "category": "FF6 Advance",
                     "length": 2,
                     "opcode": ["0xE5", "0xE6"],
@@ -9257,7 +9258,8 @@
                         "switch": {
                             "type": "property",
                             "name": "Switch",
-                            "begin": 1
+                            "begin": 1,
+                            "stringTable": "eventSwitchGBA"
                         }
                     }
                 },
@@ -9330,7 +9332,7 @@
                             "stringTable": {
                                 "string": {
                                     "0x8D": "Remove",
-                                    "0x9C": "Optimum"
+                                    "0x9C": "Optimize"
                                 }
                             }
                         },
@@ -9380,14 +9382,14 @@
                                     "0x06": "+64",
                                     "0x07": "+128",
                                     "0x7F": "Set to Max",
-                                    "0x80": "-1",
-                                    "0x81": "-2",
-                                    "0x82": "-4",
-                                    "0x83": "-8",
-                                    "0x84": "-16",
-                                    "0x85": "-32",
-                                    "0x86": "-64",
-                                    "0x87": "-128",
+                                    "0x80": "−1",
+                                    "0x81": "−2",
+                                    "0x82": "−4",
+                                    "0x83": "−8",
+                                    "0x84": "−16",
+                                    "0x85": "−32",
+                                    "0x86": "−64",
+                                    "0x87": "−128",
                                     "0xFF": "Set to Max"
                                 }
                             }
@@ -9410,7 +9412,8 @@
                             "type": "property",
                             "name": "Name",
                             "begin": 2,
-                            "stringTable": "characterNames"
+                            "stringTable": "characterNames",
+                            "link": "characterProperties[%i]"
                         }
                     }
                 },
@@ -9442,7 +9445,15 @@
                     "name": "Show Character Portrait",
                     "category": "Character",
                     "opcode": "0xE7",
-                    "length": 2
+                    "length": 2,
+                    "assembly": {
+                        "character": {
+                            "type": "property",
+                            "name": "Name",
+                            "begin": 2,
+                            "stringTable": "portraitGraphics"
+                        }
+                    }
                 },
                 "characterProperties": {
                     "name": "Change a Character's Properties",
@@ -9460,12 +9471,13 @@
                             "type": "property",
                             "name": "Properties",
                             "begin": 2,
-                            "stringTable": "characterNames"
+                            "stringTable": "characterNames",
+                            "link": "characterProperties[%i]"
                         }
                     }
                 },
                 "characterRestore": {
-                    "name": "Restore a Character to Full HP/MP",
+                    "name": "Restore Character to Full HP/MP",
                     "category": "Character",
                     "opcode": "0x77",
                     "length": 2,
@@ -9510,8 +9522,8 @@
                             "flag": true,
                             "stringTable": {
                                 "string": {
-                                    "0-8": "<stringTable.statusNames[7-%i]>",
-                                    "8-16": "<stringTable.statusNames[39-%i]>"
+                                    "0-8": "<stringTable.statusNamesReversed[%i]>",
+                                    "8-16": "<stringTable.statusNamesReversed[%i+16]>"
                                 }
                             }
                         }
@@ -9581,14 +9593,14 @@
                     }
                 },
                 "dialog": {
-                    "name": "Display Dialog",
-                    "category": "Dialog",
+                    "name": "Display Dialogue",
+                    "category": "Dialogue",
                     "length": 3,
                     "opcode": ["0x4B", "0x48"],
                     "assembly": {
                         "dialog": {
                             "type": "property",
-                            "name": "Dialog",
+                            "name": "Dialogue",
                             "begin": 1,
                             "mask": "0x3FFF",
                             "stringTable": "dialog",
@@ -9621,13 +9633,13 @@
                     }
                 },
                 "dialogKey": {
-                    "name": "Wait for Dialog Keypress",
-                    "category": "Dialog",
+                    "name": "Wait for Dialogue Keypress",
+                    "category": "Dialogue",
                     "opcode": "0x4A"
                 },
                 "dialogWait": {
-                    "name": "Wait for Dialog Window",
-                    "category": "Dialog",
+                    "name": "Wait for Dialogue Window",
+                    "category": "Dialogue",
                     "opcode": "0x49"
                 },
                 "end": {
@@ -9747,27 +9759,59 @@
                 "jumpCharacter": {
                     "name": "Jump Based on Character Switch",
                     "category": "Control",
-                    "length": 2,
+                    "length": 5,
                     "opcode": "0xBE",
                     "assembly": {
                         "count": {
                             "type": "property",
                             "name": "Count",
-                            "begin": 1
+                            "begin": 1,
+                            "hidden": true
                         },
-                        "scriptPointer": {
-                            "type": "property",
-                            "name": "Script Pointer",
+                        "pointerArray": {
+                            "type": "array",
+                            "name": "Script Pointers",
                             "begin": 2,
-                            "mask": "0x03FFFF",
-                            "script": "eventScript"
+                            "array": {
+                                "length": 1,
+                                "min": 1,
+                                "max": 16
+                            },
+                            "assembly": {
+                                "type": "data",
+                                "length": 3,
+                                "assembly": {
+                                    "character": {
+                                        "type": "property",
+                                        "name": "Character",
+                                        "begin": 2,
+                                        "mask": "0xF0",
+                                        "stringTable": {
+                                            "length": 16,
+                                            "default": "<stringTable.eventCharacters[%i]>",
+                                            "string": {
+                                                "0": "<stringTable.eventCharacters[%i]> (Equal To)",
+                                                "1": "<stringTable.eventCharacters[%i]> (Greater Than)",
+                                                "2": "<stringTable.eventCharacters[%i]> (Less Than)"
+                                            }
+                                        }
+                                    },
+                                    "scriptPointer": {
+                                        "type": "property",
+                                        "name": "Pointer",
+                                        "begin": 0,
+                                        "mask": "0x03FFFF",
+                                        "script": "eventScript"
+                                    }
+                                }
+                            }
                         }
                     }
                 },
                 "jumpDialog": {
-                    "name": "Jump Based on Dialog Choice",
+                    "name": "Jump Based on Dialogue Choice",
                     "category": "Control",
-                    "length": 1,
+                    "length": 4,
                     "opcode": "0xB6",
                     "assembly": {
                         "pointerArray": {
@@ -9811,7 +9855,7 @@
                     }
                 },
                 "jumpSubRepeat": {
-                    "name": "Call Subroutine (repeat)",
+                    "name": "Call Subroutine (Repeat)",
                     "category": "Control",
                     "length": 5,
                     "opcode": "0xB3",
@@ -9870,12 +9914,6 @@
                                 "min": 1,
                                 "max": 8
                             },
-                            "reference": [
-                                {
-                                    "target": "this.parent.count",
-                                    "arrayLength": true
-                                }
-                            ],
                             "assembly": {
                                 "type": "data",
                                 "length": 2,
@@ -9905,7 +9943,7 @@
                     }
                 },
                 "jumpRandom": {
-                    "name": "Jump (random)",
+                    "name": "Jump (50% Random)",
                     "category": "Control",
                     "length": 4,
                     "opcode": "0xBD",
@@ -9920,7 +9958,7 @@
                     }
                 },
                 "jumpReturn": {
-                    "name": "Return From Subroutine",
+                    "name": "Return from Subroutine",
                     "category": "Control",
                     "opcode": "0xFE"
                 },
@@ -10022,20 +10060,74 @@
                     "name": "Set Map Animation Counter",
                     "category": "Map",
                     "opcode": "0x64",
-                    "length": 3
+                    "length": 3,
+                    "assembly": {
+                        "tile": {
+                            "type": "property",
+                            "name": "Tile",
+                            "begin": 1,
+                            "mask": "0x07"
+                        },
+                        "frame": {
+                            "type": "property",
+                            "name": "Frame",
+                            "begin": 2,
+                            "mask": "0x03"
+                        }
+                    }
                 },
                 "mapAnimationSpeed": {
                     "name": "Set Map Animation Speed",
                     "category": "Map",
                     "opcode": "0x65",
-                    "length": 3
+                    "length": 3,
+                    "assembly": {
+                        "tile": {
+                            "type": "property",
+                            "name": "Tile",
+                            "begin": 1,
+                            "mask": "0x07"
+                        },
+                        "speed": {
+                            "type": "property",
+                            "name": "Speed",
+                            "begin": 2,
+                            "signed": true
+                        }
+                    }
                 },
                 "mapBackground": {
-                    "name": "Change Map Background",
+                    "name": "Change Map Layer",
                     "category": "Map",
                     "opcode": ["0x73", "0x74"],
                     "length": 5,
                     "assembly": {
+                        "update": {
+                            "type": "property",
+                            "name": "Update",
+                            "begin": 0,
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0x73": "Update Immediately",
+                                    "0x74": "No Update"
+                                }
+                            }
+                        },
+                        "layer": {
+                            "type": "property",
+                            "name": "Layer",
+                            "begin": 2,
+                            "mask": "0xC0",
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0": "Layer 1",
+                                    "1": "Layer 2",
+                                    "2": "Layer 3"
+                                }
+                            }
+                        },
                         "x": {
                             "type": "property",
                             "name": "X Position",
@@ -10044,7 +10136,8 @@
                         "y": {
                             "type": "property",
                             "name": "Y Position",
-                            "begin": 2
+                            "begin": 2,
+                            "mask": "0x3F"
                         },
                         "w": {
                             "type": "property",
@@ -10059,7 +10152,7 @@
                     }
                 },
                 "mapUpdate": {
-                    "name": "Update Map Background",
+                    "name": "Update Map Layers After Changes",
                     "category": "Map",
                     "opcode": "0x75"
                 },
@@ -10067,7 +10160,21 @@
                     "name": "Change Map Palette",
                     "category": "Map",
                     "opcode": "0x60",
-                    "length": 3
+                    "length": 3,
+                    "assembly": {
+                        "vramPalette": {
+                            "type": "property",
+                            "name": "VRAM Palette",
+                            "begin": 1,
+                            "stringTable": "mapVRAMPalette"
+                        },
+                        "palette": {
+                            "type": "property",
+                            "name": "Palette",
+                            "begin": 2,
+                            "stringTable": "mapSpritePalettes"
+                        }
+                    }
                 },
                 "mapParent": {
                     "name": "Set Parent Map",
@@ -10083,40 +10190,11 @@
                             "stringTable": "mapProperties",
                             "link": "mapProperties[%i]"
                         },
-                        "setParent": {
-                            "type": "property",
-                            "name": "Set Parent Map",
-                            "begin": 2,
-                            "mask": "0x02",
-                            "bool": true
-                        },
-                        "z": {
-                            "type": "property",
-                            "name": "Z-Level",
-                            "begin": 2,
-                            "mask": "0x04",
-                            "invalid": "this.parent.map.value < 3",
-                            "stringTable": {
-                                "string": {
-                                    "0": "Lower",
-                                    "1": "Upper"
-                                }
-                            }
-                        },
-                        "title": {
-                            "type": "property",
-                            "name": "Show Map Title",
-                            "begin": 2,
-                            "mask": "0x08",
-                            "invalid": "this.parent.map.value < 3",
-                            "bool": true
-                        },
                         "direction": {
                             "type": "property",
                             "name": "Facing Direction",
-                            "begin": 2,
-                            "mask": "0x30",
-                            "invalid": "this.parent.map.value < 3",
+                            "begin": 5,
+                            "mask": "0x03",
                             "stringTable": "directions"
                         },
                         "xDest": {
@@ -10128,58 +10206,26 @@
                             "type": "property",
                             "name": "Y Destination",
                             "begin": 4
-                        },
-                        "vehicle": {
-                            "type": "property",
-                            "name": "Vehicle",
-                            "begin": 5,
-                            "mask": "0x03",
-                            "invalid": "(this.parent.map.value > 2) && (this.parent.map.value != 511)",
-                            "stringTable": "vehiclesWorld"
-                        },
-                        "noSizeUpdate": {
-                            "type": "property",
-                            "name": "No Size Update",
-                            "begin": 5,
-                            "mask": "0x20",
-                            "invalid": "this.parent.map.value < 3",
-                            "bool": true
-                        },
-                        "manualFade": {
-                            "type": "property",
-                            "name": "Manual Fade-In",
-                            "begin": 5,
-                            "mask": "0x40",
-                            "invalid": "this.parent.map.value < 3",
-                            "bool": true
-                        },
-                        "enableMapEvent": {
-                            "type": "property",
-                            "name": "Enable Map Event",
-                            "begin": 5,
-                            "mask": "0x80",
-                            "invalid": "this.parent.map.value < 3",
-                            "bool": true
                         }
                     }
                 },
                 "menuColosseum": {
-                    "name": "Colosseum Menu",
+                    "name": "Open Colosseum Menu",
                     "category": "Menu",
                     "opcode": "0x9A"
                 },
                 "menuFinalBattle": {
-                    "name": "Final Battle Menu",
+                    "name": "Open Final Battle Menu",
                     "category": "Menu",
                     "opcode": "0x9D"
                 },
                 "menuLoad": {
-                    "name": "Game Load Menu",
+                    "name": "Open Game Load Menu",
                     "category": "Menu",
                     "opcode": "0xAB"
                 },
                 "menuName": {
-                    "name": "Name Change Menu",
+                    "name": "Open Name Change Menu",
                     "category": "Menu",
                     "opcode": "0x98",
                     "length": 2,
@@ -10188,22 +10234,29 @@
                             "type": "property",
                             "name": "Character",
                             "begin": 1,
-                            "max": 15,
-                            "stringTable": "eventObjects"
+                            "stringTable": "eventCharacters"
                         }
                     }
                 },
                 "menuParty": {
-                    "name": "Party Select Menu",
+                    "name": "Open Party Select Menu",
                     "category": "Menu",
                     "opcode": "0x99",
                     "length": 4,
                     "assembly": {
                         "party": {
                             "type": "property",
-                            "name": "Party",
+                            "name": "Parties",
                             "begin": 1,
-                            "max": 7
+                            "min": 1,
+                            "mask": "0x07"
+                        },
+                        "resetParties": {
+                            "type": "property",
+                            "name": "Reset Parties",
+                            "begin": 1,
+                            "mask": "0x80",
+                            "bool": true
                         },
                         "character": {
                             "type": "property",
@@ -10217,11 +10270,11 @@
                 },
                 "menuRestore": {
                     "name": "Restore Saved Game",
-                    "category": "Menu",
+                    "category": "Control",
                     "opcode": "0x4F"
                 },
                 "menuShop": {
-                    "name": "Shop Menu",
+                    "name": "Open Shop Menu",
                     "category": "Menu",
                     "opcode": "0x9B",
                     "length": 2,
@@ -10241,7 +10294,7 @@
                     "opcode": "0x45"
                 },
                 "objectCollisions": {
-                    "name": "Enable/Disable Object Collisions",
+                    "name": "Enable/Disable Collision Event",
                     "category": "Object",
                     "length": 2,
                     "opcode": ["0x7C", "0x7D"],
@@ -10352,7 +10405,10 @@
                             "type": "property",
                             "name": "Palette",
                             "begin": 2,
-                            "stringTable": "mapSpritePalettes"
+                            "stringTable": {
+                                "length": 8,
+                                "default": "<stringTable.mapSpritePalettes[%i]>"
+                            }
                         }
                     }
                 },
@@ -10362,7 +10418,7 @@
                     "opcode": "0x47"
                 },
                 "objectPassability": {
-                    "name": "Enable/Disable Object Passability",
+                    "name": "Enable/Disable Passability",
                     "category": "Object",
                     "length": 2,
                     "opcode": ["0x36", "0x78"],
@@ -10387,10 +10443,18 @@
                     }
                 },
                 "objectPyramid": {
-                    "name": "Pyramid",
+                    "name": "Show Pyramid",
                     "category": "Object",
                     "opcode": "0xA7",
-                    "length": 2
+                    "length": 2,
+                    "assembly": {
+                        "object": {
+                            "type": "property",
+                            "name": "Object",
+                            "begin": 1,
+                            "stringTable": "eventObjects"
+                        }
+                    }
                 },
                 "objectScript": {
                     "name": "Object Script",
@@ -10407,7 +10471,7 @@
                         },
                         "wait": {
                             "type": "property",
-                            "name": "Wait",
+                            "name": "Wait Until Complete",
                             "begin": 1,
                             "mask": "0x80",
                             "bool": true
@@ -10489,7 +10553,7 @@
                     }
                 },
                 "party": {
-                    "name": "Set the Current Party",
+                    "name": "Set the Active Party",
                     "category": "Party",
                     "opcode": "0x46",
                     "length": 2,
@@ -10549,7 +10613,7 @@
                 },
                 "partyControl": {
                     "name": "Enable/Disable User Control",
-                    "category": "Party",
+                    "category": "Control",
                     "opcode": ["0x3A", "0x3B"],
                     "length": 1,
                     "assembly": {
@@ -10567,16 +10631,45 @@
                     }
                 },
                 "partyMap": {
-                    "name": "Change a Party's Map",
+                    "name": "Move a Party to a Map",
                     "category": "Party",
                     "opcode": "0x79",
-                    "length": 4
+                    "length": 4,
+                    "assembly": {
+                        "party": {
+                            "type": "property",
+                            "name": "Party",
+                            "begin": 1,
+                            "min": 1,
+                            "max": 7
+                        },
+                        "map": {
+                            "type": "property",
+                            "name": "Map",
+                            "begin": 2,
+                            "mask": "0x01FF",
+                            "stringTable": "mapProperties",
+                            "link": "mapProperties[%i]"
+                        }
+                    }
                 },
                 "partyPosition": {
-                    "name": "Change the Party's Position",
+                    "name": "Change the Active Party's Position",
                     "category": "Party",
                     "opcode": "0x7E",
-                    "length": 3
+                    "length": 3,
+                    "assembly": {
+                        "x": {
+                            "type": "property",
+                            "name": "X Position",
+                            "begin": 1
+                        },
+                        "y": {
+                            "type": "property",
+                            "name": "Y Position",
+                            "begin": 2
+                        }
+                    }
                 },
                 "partyReset": {
                     "name": "Reset the Previous Party",
@@ -10591,7 +10684,6 @@
                 "repeatEnd": {
                     "name": "End Repeat",
                     "category": "Control",
-                    "length": 1,
                     "opcode": "0xB1"
                 },
                 "repeatStart": {
@@ -10608,7 +10700,7 @@
                     }
                 },
                 "repeatSwitch": {
-                    "name": "End Repeat (switch)",
+                    "name": "End Repeat (Switch)",
                     "category": "Control",
                     "length": 3,
                     "opcode": "0xBC",
@@ -10617,7 +10709,8 @@
                             "type": "property",
                             "name": "Switch",
                             "begin": 1,
-                            "mask": "0xFFFF"
+                            "mask": "0xFFFF",
+                            "stringTable": "eventSwitches"
                         }
                     }
                 },
@@ -10675,80 +10768,217 @@
                     "name": "Flash the Screen",
                     "category": "Screen",
                     "opcode": "0x55",
-                    "length": 2
+                    "length": 2,
+                    "assembly": {
+                        "color": {
+                            "type": "property",
+                            "name": "Color",
+                            "begin": 1,
+                            "mask": "0xE0",
+                            "stringTable": "fixedColor"
+                        }
+                    }
                 },
                 "screenFlashlight": {
-                    "name": "Flashlight",
+                    "name": "Show Flashlight",
                     "category": "Screen",
                     "opcode": "0x63",
-                    "length": 2
+                    "length": 2,
+                    "assembly": {
+                        "radius": {
+                            "type": "property",
+                            "name": "Radius",
+                            "begin": 1,
+                            "mask": "0x1F"
+                        }
+                    }
                 },
                 "screenMath": {
                     "name": "Set Fixed Color Math",
                     "category": "Screen",
                     "opcode": ["0x56", "0x57"],
-                    "length": 2
+                    "length": 2,
+                    "assembly": {
+                        "math": {
+                            "type": "property",
+                            "name": "Math",
+                            "begin": 0,
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0x56": "Addition",
+                                    "0x57": "Subtraction"
+                                }
+                            }
+                        },
+                        "color": {
+                            "type": "property",
+                            "name": "Color",
+                            "begin": 1,
+                            "mask": "0xE0",
+                            "stringTable": "fixedColor"
+                        },
+                        "speed": {
+                            "type": "property",
+                            "name": "Speed",
+                            "begin": 1,
+                            "mask": "0x18"
+                        },
+                        "intensity": {
+                            "type": "property",
+                            "name": "Intensity",
+                            "begin": 1,
+                            "mask": "0x07"
+                        }
+                    }
+                },
+                "screenMathDisable": {
+                    "name": "Disable Fixed Color Math",
+                    "category": "Screen",
+                    "opcode": "0x54"
                 },
                 "screenMosaic": {
                     "name": "Screen Mosaic",
                     "category": "Screen",
                     "opcode": "0x62",
-                    "length": 2
-                },
-                "screenPalettes": {
-                    "name": "Modify Palettes",
-                    "category": "Screen",
-                    "opcode": ["0x50", "0x52"],
-                    "length": 2
-                },
-                "screenPalettesRange": {
-                    "name": "Modify Palettes (range)",
-                    "category": "Screen",
-                    "opcode": ["0x51", "0x53"],
-                    "length": 4
-                },
-                "screenScroll1": {
-                    "name": "Scroll the Screen",
-                    "category": "Screen",
-                    "opcode": "0x5D-0x60",
-                    "length": 3,
+                    "length": 2,
                     "assembly": {
-                        "layer": {
+                        "speed": {
                             "type": "property",
-                            "name": "Layer",
-                            "stringTable": {
-                                "string": {
-                                    "0x5D": "Layer 1",
-                                    "0x5E": "Layer 2",
-                                    "0x5F": "Layer 3"
-                                }
-                            }
-                        },
-                        "hScroll": {
-                            "type": "property",
-                            "name": "H-Scroll",
+                            "name": "Speed",
                             "begin": 1,
-                            "signed": true
-                        },
-                        "vScroll": {
-                            "type": "property",
-                            "name": "V-Scroll",
-                            "begin": 2,
-                            "signed": true
+                            "min": "1",
+                            "max": "15"
                         }
                     }
                 },
-                "screenScroll2": {
-                    "name": "Scroll the Screen",
+                "screenPalettes": {
+                    "name": "Modify Color Palettes (All)",
                     "category": "Screen",
-                    "opcode": "0x70-0x73",
+                    "opcode": ["0x50", "0x52"],
+                    "length": 2,
+                    "assembly": {
+                        "palettes": {
+                            "type": "property",
+                            "name": "Palettes",
+                            "begin": 0,
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0x50": "Background",
+                                    "0x52": "Sprite"
+                                }
+                            }
+                        },
+                        "function": {
+                            "type": "property",
+                            "name": "Function",
+                            "begin": 1,
+                            "mask": "0xE0",
+                            "stringTable": {
+                                "string": {
+                                    "0": "Restore Colors to Normal",
+                                    "1": "Increment Colors",
+                                    "2": "Add to Colors (Broken)",
+                                    "3": "Un-Increment Colors",
+                                    "4": "Decrement Colors",
+                                    "5": "Subtract from Colors",
+                                    "6": "Un-Decrement Colors",
+                                    "7": "Restore Colors to Normal"
+                                }
+                            }
+                        },
+                        "color": {
+                            "type": "property",
+                            "name": "Color",
+                            "begin": 1,
+                            "mask": "0x1C",
+                            "stringTable": "fixedColorReversed"
+                        },
+                        "intensity": {
+                            "type": "property",
+                            "name": "Intensity",
+                            "begin": 1,
+                            "mask": "0x03"
+                        }
+                    }
+                },
+                "screenPalettesRange": {
+                    "name": "Modify Color Palettes (Range)",
+                    "category": "Screen",
+                    "opcode": ["0x51", "0x53"],
+                    "length": 4,
+                    "assembly": {
+                        "palettes": {
+                            "type": "property",
+                            "name": "Palettes",
+                            "begin": 0,
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0x51": "Background",
+                                    "0x53": "Sprite"
+                                }
+                            }
+                        },
+                        "function": {
+                            "type": "property",
+                            "name": "Function",
+                            "begin": 1,
+                            "mask": "0xE0",
+                            "stringTable": {
+                                "string": {
+                                    "0": "Restore Colors to Normal",
+                                    "1": "Increment Colors",
+                                    "2": "Add to Colors (Broken)",
+                                    "3": "Un-Increment Colors",
+                                    "4": "Decrement Colors",
+                                    "5": "Subtract from Colors",
+                                    "6": "Un-Decrement Colors",
+                                    "7": "Restore Colors to Normal"
+                                }
+                            }
+                        },
+                        "color": {
+                            "type": "property",
+                            "name": "Color",
+                            "begin": 1,
+                            "mask": "0x1C",
+                            "stringTable": "fixedColorReversed"
+                        },
+                        "intensity": {
+                            "type": "property",
+                            "name": "Intensity",
+                            "begin": 1,
+                            "mask": "0x03"
+                        },
+                        "colorFirst": {
+                            "type": "property",
+                            "name": "First Color",
+                            "begin": 2
+                        },
+                        "colorLast": {
+                            "type": "property",
+                            "name": "Last Color",
+                            "begin": 3
+                        }
+                    }
+                },
+                "screenScroll": {
+                    "name": "Scroll Background",
+                    "category": "Screen",
+                    "opcode": ["0x5D-0x60", "0x70-0x73"],
                     "length": 3,
                     "assembly": {
                         "layer": {
                             "type": "property",
                             "name": "Layer",
                             "stringTable": {
+                                "hideIndex": true,
                                 "string": {
+                                    "0x5D": "Layer 1 (1's Complement)",
+                                    "0x5E": "Layer 2 (1's Complement)",
+                                    "0x5F": "Layer 3 (1's Complement)",
                                     "0x70": "Layer 1",
                                     "0x71": "Layer 2",
                                     "0x72": "Layer 3"
@@ -10775,7 +11005,7 @@
                     "opcode": ["0x38", "0x39"],
                     "length": 1,
                     "assembly": {
-                        "fade": {
+                        "lock": {
                             "type": "property",
                             "name": "Lock/Unlock",
                             "stringTable": {
@@ -10823,10 +11053,28 @@
                     }
                 },
                 "screenTint": {
-                    "name": "Tint the Screen",
+                    "name": "Tint Colors",
                     "category": "Screen",
                     "opcode": "0x61",
-                    "length": 4
+                    "length": 4,
+                    "assembly": {
+                        "color": {
+                            "type": "property",
+                            "name": "Color",
+                            "begin": 1,
+                            "stringTable": "fixedColor"
+                        },
+                        "colorFirst": {
+                            "type": "property",
+                            "name": "First Color",
+                            "begin": 2
+                        },
+                        "colorLast": {
+                            "type": "property",
+                            "name": "Last Color",
+                            "begin": 3
+                        }
+                    }
                 },
                 "spcInterrupt": {
                     "name": "SPC Interrupt",
@@ -10925,7 +11173,15 @@
                             "type": "property",
                             "name": "Song",
                             "begin": 1,
+                            "mask": "0x7F",
                             "stringTable": "song"
+                        },
+                        "altStart": {
+                            "type": "property",
+                            "name": "Alt. Start",
+                            "begin": 1,
+                            "mask": "0x80",
+                            "bool": true
                         }
                     }
                 },
@@ -10939,7 +11195,20 @@
                             "type": "property",
                             "name": "Song",
                             "begin": 1,
+                            "mask": "0x7F",
                             "stringTable": "song"
+                        },
+                        "altStart": {
+                            "type": "property",
+                            "name": "Alt. Start",
+                            "begin": 1,
+                            "mask": "0x80",
+                            "bool": true
+                        },
+                        "speed": {
+                            "type": "property",
+                            "name": "Speed",
+                            "begin": 2
                         }
                     }
                 },
@@ -10947,7 +11216,14 @@
                     "name": "Fade Out Song",
                     "category": "Sound",
                     "length": 2,
-                    "opcode": "0xF2"
+                    "opcode": "0xF2",
+                    "assembly": {
+                        "speed": {
+                            "type": "property",
+                            "name": "Speed",
+                            "begin": 1
+                        }
+                    }
                 },
                 "spcSongManual": {
                     "name": "Play Song (manual)",
@@ -10959,7 +11235,20 @@
                             "type": "property",
                             "name": "Song",
                             "begin": 1,
+                            "mask": "0x7F",
                             "stringTable": "song"
+                        },
+                        "altStart": {
+                            "type": "property",
+                            "name": "Alt. Start",
+                            "begin": 1,
+                            "mask": "0x80",
+                            "bool": true
+                        },
+                        "volume": {
+                            "type": "property",
+                            "name": "Volume",
+                            "begin": 2
                         }
                     }
                 },
@@ -10967,7 +11256,14 @@
                     "name": "Fade In Previous Song",
                     "category": "Sound",
                     "length": 2,
-                    "opcode": "0xF3"
+                    "opcode": "0xF3",
+                    "assembly": {
+                        "speed": {
+                            "type": "property",
+                            "name": "Speed",
+                            "begin": 1
+                        }
+                    }
                 },
                 "spcSoundEffect": {
                     "name": "Play Sound Effect",
@@ -11022,13 +11318,14 @@
                     "name": "Wait for SPC",
                     "category": "Sound",
                     "length": 1,
-                    "opcode": ["0xFA", "0xF8"],
+                    "opcode": ["0xF8", "0xFA"],
                     "assembly": {
                         "waitType": {
                             "type": "property",
                             "name": "Type",
                             "begin": 0,
                             "stringTable": {
+                                "hideIndex": true,
                                 "string": {
                                     "0xF8": "Port-2",
                                     "0xFA": "Port-3"
@@ -11043,6 +11340,18 @@
                     "length": 2,
                     "opcode": ["0xB8", "0xB9"],
                     "assembly": {
+                        "onOff": {
+                            "type": "property",
+                            "name": "On/Off",
+                            "begin": 0,
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0xB8": "On",
+                                    "0xB9": "Off"
+                                }
+                            }
+                        },
                         "switch": {
                             "type": "property",
                             "name": "Switch",
@@ -11153,7 +11462,15 @@
                     "name": "Stop Timer",
                     "category": "Control",
                     "opcode": "0xA1",
-                    "length": 2
+                    "length": 2,
+                    "assembly": {
+                        "timer": {
+                            "type": "property",
+                            "name": "Timer",
+                            "begin": 1,
+                            "mask": "0x03"
+                        }
+                    }
                 },
                 "variable": {
                     "name": "Variable Operations",
@@ -11167,8 +11484,8 @@
                             "stringTable": {
                                 "string": {
                                     "0xE8": "Set",
-                                    "0xE9": "Add",
-                                    "0xEA": "Subtract",
+                                    "0xE9": "Add to",
+                                    "0xEA": "Subtract from",
                                     "0xEB": "Compare"
                                 }
                             }
@@ -11179,7 +11496,7 @@
                             "begin": 1,
                             "stringTable": "eventVariables"
                         },
-                        "value": {
+                        "varValue": {
                             "type": "property",
                             "name": "Value",
                             "begin": 2,
@@ -11198,6 +11515,7 @@
                             "name": "Duration",
                             "begin": 0,
                             "stringTable": {
+                                "hideIndex": true,
                                 "string": {
                                     "0x91": "15 Frames (0.25s)",
                                     "0x92": "30 Frames (0.5s)",
@@ -11210,7 +11528,7 @@
                     }
                 },
                 "waitManual": {
-                    "name": "Wait (manual)",
+                    "name": "Wait (Manual)",
                     "category": "Control",
                     "length": 2,
                     "opcode": ["0xB4", "0xB5"],
@@ -11220,6 +11538,7 @@
                             "name": "Units",
                             "begin": 0,
                             "stringTable": {
+                                "hideIndex": true,
                                 "string": {
                                     "0xB4": "Frames",
                                     "0xB5": "Seconds"
@@ -11621,13 +11940,13 @@
                     }
                 },
                 "dialog": {
-                    "name": "Dialog",
+                    "name": "Dialogue",
                     "opcode": "0xF3",
                     "length": 3,
                     "assembly": {
                         "dialog": {
                             "type": "property",
-                            "name": "Dialog",
+                            "name": "Dialogue",
                             "begin": 1,
                             "link": "stringTable.monsterDialog[%i]",
                             "stringTable": "monsterDialog"
@@ -13106,7 +13425,7 @@
             }
         },
         "dialogEscapeSequences": {
-            "name": "Dialog Escape Sequences",
+            "name": "Dialogue Escape Sequences",
             "char": {
                 "0xC2": "\\xC2[",
                 "0xC3": "\\xC3[",
@@ -13505,7 +13824,7 @@
             ]
         },
         "text2": {
-            "name": "Dialog",
+            "name": "Dialogue",
             "charTable": [
                 "characters",
                 "dialogEscapeSequences",
@@ -13659,7 +13978,7 @@
                 "0x1E": "A.I. Command",
                 "0x1F": "Random Attack",
                 "0x20": "Change Battle",
-                "0x21": "Battle Dialog",
+                "0x21": "Battle Dialogue",
                 "0x22": "Enemy Roulette",
                 "0x23": "Battle Event",
                 "0x24": "Monster Entry/Exit",
@@ -13678,7 +13997,7 @@
             }
         },
         "battleDialog": {
-            "name": "Battle Dialog",
+            "name": "Battle Dialogue",
             "length": 256,
             "default": {
                 "value": "<text2[%i*5+0x4E66]>",
@@ -14101,7 +14420,7 @@
             }
         },
         "dialog": {
-            "name": "Dialog",
+            "name": "Dialogue",
             "length": 3261,
             "default": {
                 "value": "<text2[%i*5]>",
@@ -14469,6 +14788,32 @@
                 "1": "Narshe security checkpoint variable",
                 "6": "Number of dragons left",
                 "7": "Cid's health/Pieces of coral"
+            }
+        },
+        "fixedColor": {
+            "name": "Fixed Color",
+            "string": {
+                "0": "Black",
+                "1": "Red",
+                "2": "Green",
+                "3": "Yellow",
+                "4": "Blue",
+                "5": "Magenta",
+                "6": "Cyan",
+                "7": "White"
+            }
+        },
+        "fixedColorReversed": {
+            "name": "Fixed Color (Reversed)",
+            "string": {
+                "0": "Black",
+                "1": "Blue",
+                "2": "Green",
+                "3": "Cyan",
+                "4": "Red",
+                "5": "Magenta",
+                "6": "Yellow",
+                "7": "White"
             }
         },
         "itemNames": {
@@ -15034,7 +15379,7 @@
                 "218": "Doma Castle / Cyan's Dream",
                 "220": "World of Ruin / Figaro Castle -> Kohlingen",
                 "222": "Figaro Castle / On Fire",
-                "256": "Sabin's House / Edgar Dialog",
+                "256": "Sabin's House / Edgar Dialogue",
                 "257": "South Figaro / Merchant -> Old Man's House",
                 "258": "South Figaro / Merchant -> Pub",
                 "259": "South Figaro / Locke is a Green Soldier",
@@ -15059,9 +15404,9 @@
                 "280": "Esperville / Event 3",
                 "281": "Opera House / Shadow Left",
                 "291": "Cave to South Figaro / Can Jump on Turtle",
-                "292": "Number of Characters in Party 1",
-                "293": "Number of Characters in Party 2",
-                "294": "Number of Characters in Party 3",
+                "292": "Number of Characters in Party / Bit 1",
+                "293": "Number of Characters in Party / Bit 2",
+                "294": "Number of Characters in Party / Bit 3",
                 "295": "Disable Warp",
                 "296": "Narshe / First Guards",
                 "297": "Narshe / Second Guards",
@@ -15317,6 +15662,27 @@
                 "0": "None"
             }
         },
+        "mapVRAMPalette": {
+            "name": "Map VRAM Palette",
+            "string": {
+                "0": "Background Palette 0",
+                "1": "Background Palette 1",
+                "2": "Background Palette 2",
+                "3": "Background Palette 3",
+                "4": "Background Palette 4",
+                "5": "Background Palette 5",
+                "6": "Background Palette 6",
+                "7": "Background Palette 7",
+                "8": "Sprite Palette 0",
+                "9": "Sprite Palette 1",
+                "10": "Sprite Palette 2",
+                "11": "Sprite Palette 3",
+                "12": "Sprite Palette 4",
+                "13": "Sprite Palette 5",
+                "14": "Sprite Palette 6",
+                "15": "Sprite Palette 7"
+            }
+        },
         "monsterAnimation": {
             "name": "Monster Animation",
             "string": {
@@ -15365,7 +15731,7 @@
             }
         },
         "monsterDialog": {
-            "name": "Monster Dialog",
+            "name": "Monster Dialogue",
             "length": 256,
             "default": {
                 "value": "<text2[%i*5+18425]>",

@@ -3,10 +3,12 @@
 // created 4/8/2018
 //
 
-var FF4Script = {};
-FF4Script.name = "FF4Script";
+function FF4Script(rom) {
+    this.rom = rom;
+    this.name = 'FF4Script';
+}
 
-FF4Script.initScript = function(script) {
+FF4Script.prototype.initScript = function(script) {
     var offset, label, e;
 
     if (script.key === "npcScript") {
@@ -25,7 +27,7 @@ FF4Script.initScript = function(script) {
     }
 }
 
-FF4Script.didDisassemble = function(command, data) {
+FF4Script.prototype.didDisassemble = function(command, data) {
     switch (command.key) {
         case "repeat":
             break;
@@ -35,7 +37,7 @@ FF4Script.didDisassemble = function(command, data) {
     }
 }
 
-FF4Script.description = function(command) {
+FF4Script.prototype.description = function(command) {
     var desc = "Invalid Command"
 
     if (command.encoding === "npcDialog") {
@@ -164,7 +166,7 @@ FF4Script.description = function(command) {
     return command.name;
 }
 
-FF4Script.string = function(command, key, stringKey) {
+FF4Script.prototype.string = function(command, key, stringKey) {
     var stringTable;
     var property = command[key];
     if (!property) return "Invalid String";
@@ -181,7 +183,7 @@ FF4Script.string = function(command, key, stringKey) {
     return string.fString();
 }
 
-FF4Script.fixSwitch = function(switchProperty) {
+FF4Script.prototype.fixSwitch = function(switchProperty) {
     var map = propertyList.editors["FF4Map"];
     if (map.m > 256 && switchProperty.offset !== 256) {
         switchProperty.offset = 256;
@@ -192,10 +194,11 @@ FF4Script.fixSwitch = function(switchProperty) {
     }
 }
 
-var FF4MonsterScript = {
-    name: "FF4MonsterScript",
+function FF4MonsterScript(rom) {
+    this.rom = rom;
+    this.name = 'FF4MonsterScript';
 
-    moonMonsters: [
+    this.moonMonsters = [
         32, // Tricker
         53, // D.Bone
         81, // D.Fossil
@@ -222,133 +225,137 @@ var FF4MonsterScript = {
         200, // Zeromus 2
         201, // Zeromus 3 (Final Form)
         216 // Zeromus 1 (Golbez & FuSoYa)
-    ],
+    ]
 
-    moonScripts: [],
+    this.moonScripts = [];
 
-    initScript: function(script) {
+    // this.initMoon();
+}
 
-        if (this.moonScripts.length === 0) this.initMoon(script.rom)
+FF4MonsterScript.prototype.initScript = function(script) {
 
-        var encoding = (this.moonScripts.includes(script.i)) ? "monsterMoon" : "monster";
-        script.encoding = encoding;
-        script.addPlaceholder(null, 0, encoding, script.rom.stringTable.monsterScript.string[script.i].fString());
-    },
+    if (!this.moonScripts.length) this.initMoon()
 
-    initMoon: function(rom) {
-        // initialize action and condition scripts
-        rom.monsterAction;
-        rom.monsterActionMoon;
-        rom.monsterConditionScript;
+    var encoding = (this.moonScripts.includes(script.i)) ? "monsterMoon" : "monster";
+    script.encoding = encoding;
+    script.addPlaceholder(null, 0, encoding, script.rom.stringTable.monsterScript.string[script.i].fString());
+}
 
-        // identify moon scripts
-        for (var m = 0; m < this.moonMonsters.length; m++) {
-            var monster = rom.monsterProperties.item(this.moonMonsters[m]);
-            if (monster.script.value !== 0) {
-                this.moonScripts.push(monster.script.value);
+FF4MonsterScript.prototype.initMoon = function() {
+    // initialize action and condition scripts
+    this.rom.monsterAction;
+    this.rom.monsterActionMoon;
+    this.rom.monsterConditionScript;
+
+    // identify moon scripts
+    for (var m = 0; m < this.moonMonsters.length; m++) {
+        var monster = this.rom.monsterProperties.item(this.moonMonsters[m]);
+        if (monster.script.value !== 0) {
+            this.moonScripts.push(monster.script.value);
+        }
+        if (monster.counter.value !== 0) {
+            this.moonScripts.push(monster.counter.value);
+        }
+    }
+}
+
+FF4MonsterScript.prototype.description = function(command) {
+    if (command.key !== "action") return command.name;
+    var c = command.condition.value;
+    var a = command.action.value;
+    var condition = this.rom.stringTable["monsterConditionScript"].string[c].fString();
+    var actionKey = (command.encoding === "monsterMoon") ? "monsterActionMoon" : "monsterAction";
+    var action = this.rom.stringTable[actionKey].string[a].fString();
+    return condition + ":<br/>" + action;
+}
+
+function FF4MonsterActionScript(rom) {
+    this.rom = rom;
+    this.name = 'FF4MonsterActionScript';
+}
+
+FF4MonsterActionScript.prototype.initScript = function(script) {
+    var string = this.rom.stringTable[script.key].string[script.i];
+    if (!string) return;
+    script.addPlaceholder(null, 0, "monsterAction", string.fString());
+}
+
+FF4MonsterActionScript.prototype.description = function(command) {
+    switch (command.key) {
+
+        case "attack":
+            var a = command.attack.value;
+            return "Attack: " + this.rom.stringTable["attackNames"].string[a].fString();
+
+        case "chain":
+            var chain = command.chain.value;
+            if (chain === 0xFB) return "Continue Attack Chain";
+            if (chain === 0xFC) return "End Attack Chain";
+            if (chain === 0xFD) return "Start Attack Chain";
+            break;
+
+        case "command":
+            var c = command.command.value;
+            return "Command: " + this.rom.stringTable["battleCommandNames"].string[c].fString();
+
+        case "dialog":
+            var d = command.dialog.value;
+            var dialog = this.rom.battleDialog.item(d);
+            if (dialog) {
+                return "Display Dialog:<br/>" + dialog.htmlText;
+            } else {
+                return "Display Dialog:<br/>Invalid Dialog Message";
             }
-            if (monster.counter.value !== 0) {
-                this.moonScripts.push(monster.counter.value);
-            }
-        }
-    },
 
-    description: function(command) {
-        if (command.key !== "action") return command.name;
-        var c = command.condition.value;
-        var a = command.action.value;
-        var condition = command.rom.stringTable["monsterConditionScript"].string[c].fString();
-        var actionKey = (command.encoding === "monsterMoon") ? "monsterActionMoon" : "monsterAction";
-        var action = command.rom.stringTable[actionKey].string[a].fString();
-        return condition + ":<br/>" + action;
+        case "graphics":
+            return "Change Graphics: " + command.graphics.value;
+
+        case "target":
+            var t = command.target.value;
+            return "Change Target: " + this.rom.stringTable["scriptEncoding.monsterAction.target.target"].string[t].fString();
+
+        case "variable":
+            var v = command.variable.value;
+            var o = command.operation.value;
+            var value = command.value.value;
+            var variableName;
+            if (v === 0xF4) variableName = "Variable 1";
+            if (v === 0xF5) variableName = "Variable 2";
+            if (v === 0xF6) variableName = "Variable 3";
+            if (v === 0xF7) variableName = "Variable 4";
+            if (o === 0) return variableName + " += " + value;
+            if (o === 1) return variableName + " -= " + value;
+            if (o === 2) return variableName + " = " + value;
+            break;
+
+        default: break;
     }
-};
+    return command.name;
+}
 
-var FF4MonsterActionScript = {
-    name: "FF4MonsterActionScript",
+function FF4MonsterConditionScript(rom) {
+    this.rom = rom;
+    this.name = 'FF4MonsterConditionScript';
+}
 
-    initScript: function(script) {
-        var string = script.rom.stringTable[script.key].string[script.i];
-        if (!string) return;
-        script.addPlaceholder(null, 0, "monsterAction", string.fString());
-    },
-
-    description: function(command) {
-        switch (command.key) {
-
-            case "attack":
-                var a = command.attack.value;
-                return "Attack: " + command.rom.stringTable["attackNames"].string[a].fString();
-
-            case "chain":
-                var chain = command.chain.value;
-                if (chain === 0xFB) return "Continue Attack Chain";
-                if (chain === 0xFC) return "End Attack Chain";
-                if (chain === 0xFD) return "Start Attack Chain";
-                break;
-
-            case "command":
-                var c = command.command.value;
-                return "Command: " + command.rom.stringTable["battleCommandNames"].string[c].fString();
-
-            case "dialog":
-                var d = command.dialog.value;
-                var dialog = command.rom.battleDialog.item(d);
-                if (dialog) {
-                    return "Display Dialog:<br/>" + dialog.htmlText;
-                } else {
-                    return "Display Dialog:<br/>Invalid Dialog Message";
-                }
-
-            case "graphics":
-                return "Change Graphics: " + command.graphics.value;
-
-            case "target":
-                var t = command.target.value;
-                return "Change Target: " + command.rom.stringTable["scriptEncoding.monsterAction.target.target"].string[t].fString();
-
-            case "variable":
-                var v = command.variable.value;
-                var o = command.operation.value;
-                var value = command.value.value;
-                var variableName;
-                if (v === 0xF4) variableName = "Variable 1";
-                if (v === 0xF5) variableName = "Variable 2";
-                if (v === 0xF6) variableName = "Variable 3";
-                if (v === 0xF7) variableName = "Variable 4";
-                if (o === 0) return variableName + " += " + value;
-                if (o === 1) return variableName + " -= " + value;
-                if (o === 2) return variableName + " = " + value;
-                break;
-
-            default: break;
-        }
-        return command.name;
+FF4MonsterConditionScript.prototype.initScript = function(script) {
+    var name = "";
+    for (var i = 0; i < script.data.length; i++) {
+        var c = script.data[i];
+        if (c === 0xFF) break;
+        if (name !== "") name += " && ";
+        name += this.rom.stringTable.monsterCondition.string[c].fString();
     }
-};
+    if (name === "") name = "Always";
+    var string = this.rom.stringTable.monsterConditionScript.string[script.i];
+    if (!string) return;
+    string.value = (name === "Always") ? name : "If " + name;
+    script.addPlaceholder(null, 0, "monsterCondition", name);
+}
 
-var FF4MonsterConditionScript = {
-    name: "FF4MonsterConditionScript",
-
-    initScript: function(script) {
-        var name = "";
-        for (var i = 0; i < script.data.length; i++) {
-            var c = script.data[i];
-            if (c === 0xFF) break;
-            if (name !== "") name += " && ";
-            name += script.rom.stringTable.monsterCondition.string[c].fString();
-        }
-        if (name === "") name = "Always";
-        var string = script.rom.stringTable.monsterConditionScript.string[script.i];
-        if (!string) return;
-        string.value = (name === "Always") ? name : "If " + name;
-        script.addPlaceholder(null, 0, "monsterCondition", name);
-    },
-
-    description: function(command) {
-        if (command.key !== "condition") return command.name;
-        var c = command.condition.value;
-        var name = command.rom.stringTable["monsterCondition"].string[c].fString();
-        return (name === "Always") ? name : "If " + name;
-    }
-};
+FF4MonsterConditionScript.prototype.description = function(command) {
+    if (command.key !== "condition") return command.name;
+    var c = command.condition.value;
+    var name = this.rom.stringTable["monsterCondition"].string[c].fString();
+    return (name === "Always") ? name : "If " + name;
+}
