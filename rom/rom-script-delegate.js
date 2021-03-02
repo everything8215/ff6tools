@@ -19,17 +19,6 @@ class ROMScriptDelegate {
 
     string(command, assemblyKey, stringTableKey) {
         return command[assemblyKey].fString();
-
-        // const assembly = command(assemblyKey);
-        // if (!assembly) return 'Invalid String';
-        // stringTableKey = stringTableKey || assembly.stringTable;
-        // const stringTable = this.rom.stringTable[stringTableKey];
-        // if (!stringTable) return 'Invalid String';
-        // const i = command[assemblyKey].value;
-        // if (!isNumber(i)) return 'Invalid String';
-        // const string = stringTable.string[i];
-        // if (!string) return 'Invalid String';
-        // return string.fString();
     }
 
     initScript(script) {

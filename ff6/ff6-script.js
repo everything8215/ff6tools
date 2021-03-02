@@ -11,7 +11,7 @@ class FF6Script extends ROMScriptDelegate {
 
     description(command) {
         let desc = '';
-        var offset, label;
+        var offset;
         switch (`${command.encoding}.${command.key}`) {
             case 'event.advanceBattle':
                 return `${command.name}: <b>${command.battle.fString()}</b>`;
@@ -29,32 +29,40 @@ class FF6Script extends ROMScriptDelegate {
                 return `${command.name}: <b>${command.battle.fString()}</b>`;
 
             case 'event.characterEquip':
-                return `<b>${command.equipment.fString()}</b> Equipment for <b>${command.character.fString()}</b>`;
+                return `<b>${command.equipment.fString()}</b> Equipment for ` +
+                       `<b>${command.character.fString()}</b>`;
 
             case 'event.characterHP':
-                return `Change <b>${command.hpmp.fString()}</b> for <b>${command.character.fString()}</b>: <b>${command.amount.fString()}</b>`;
+                return `Change <b>${command.hpmp.fString()}</b> for ` +
+                       `<b>${command.character.fString()}</b>: ` +
+                       `<b>${command.amount.fString()}</b>`;
 
             case 'event.characterName':
-                return `Change <b>${command.character.fString()}</b>'s Name to <b>${command.characterName.fString()}</b>`;
+                return `Change <b>${command.character.fString()}</b>'s Name to ` +
+                       `<b>${command.characterName.fString()}</b>`;
 
             case 'event.characterParty':
                 if (command.party.value === 0) {
                     return `Remove <b>${command.character.fString()}</b> from Party`;
                 } else {
-                    return `Add <b>${command.character.fString()}</b> to Party <b>${command.party.value}</b>`;
+                    return `Add <b>${command.character.fString()}</b> to Party ` +
+                           `<b>${command.party.value}</b>`;
                 }
 
             case 'event.characterPortrait':
                 return `Show Portrait for <b>${command.character.fString()}</b>`;
 
             case 'event.characterProperties':
-                return `Change <b>${command.character.fString()}</b>'s Properties to <b>${command.properties.fString()}</b>`;
+                return `Change <b>${command.character.fString()}</b>'s ` +
+                       `Properties to <b>${command.properties.fString()}</b>`;
 
             case 'event.characterRestore':
                 return `Restore <b>${command.character.fString()}</b> to Full HP/MP`;
 
             case 'event.characterStatus':
-                return `<b>${command.effect.fString()}</b> Status for <b>${command.character.fString()}</b>: <b>${this.statusString(command.status.value)}</b>`;
+                return `<b>${command.effect.fString()}</b> Status for ` +
+                       `<b>${command.character.fString()}</b>: ` +
+                       `<b>${this.statusString(command.status.value)}</b>`;
 
             case 'event.cinematic':
                 return `${command.name}: <b>${command.cinematic.fString()}</b>`;
@@ -73,26 +81,29 @@ class FF6Script extends ROMScriptDelegate {
                 return `Display Dialogue:<br/><b>${desc}</b>`;
 
             case 'event.inventoryEsper':
-                return `<b>${command.giveTake.fString()}</b> Esper: <b>${command.esper.fString()}</b>`;
+                return `<b>${command.giveTake.fString()}</b> Esper: ` +
+                       `<b>${command.esper.fString()}</b>`;
 
             case 'event.inventoryGP':
-                return `<b>${command.giveTake.fString()}</b> <b>${command.gp.value}</b> GP`;
+                return `<b>${command.giveTake.fString()}</b> ` +
+                       `<b>${command.gp.value}</b> GP`;
 
             case 'event.inventoryItem':
-                return `<b>${command.giveTake.fString()}</b> Item: <b>${command.item.fString()}</b>`;
+                return `<b>${command.giveTake.fString()}</b> Item: ` +
+                       `<b>${command.item.fString()}</b>`;
 
             case 'event.jumpBattleSwitch':
                 offset = command.scriptPointer.value;
-                return `Jump to <b>${this.label(command.parent, offset)}</b> if <b>${command.switch.fString()}</b> == Off`;
+                return `Jump to <b>${this.label(command.parent, offset)}</b> ` +
+                       `if <b>${command.switch.fString()}</b> == Off`;
 
             case 'event.jumpCharacter':
                 desc = `${command.name}:`;
-                var count = command.pointerArray.arrayLength;
-                for (var c = 0; c < count; c++) {
-                    const pointer = command.pointerArray.item(c);
+                for (const pointer of command.pointerArray.iterator()) {
                     offset = pointer.scriptPointer.value;
-                    label = this.label(command.parent, offset);
-                    desc += `<br/>${pointer.character.fString()}: <b>${label}</b>`;
+                    desc += `<br/>${pointer.character.value}: ` +
+                            `${pointer.character.fString()}: ` +
+                            `<b>${this.label(command.parent, offset)}</b>`;
                 }
                 return desc;
 
@@ -106,15 +117,15 @@ class FF6Script extends ROMScriptDelegate {
 
             case 'event.jumpSubRepeat':
                 offset = command.scriptPointer.value;
-                return `Call Subroutine: <b>${this.label(command.parent, offset)}</b> (Repeat <b>${command.count.value}</b> Times)`;
+                return `Call Subroutine: <b>${this.label(command.parent, offset)}</b> ` +
+                       `(Repeat <b>${command.count.value}</b> Times)`;
 
             case 'event.jumpDialog':
                 desc = `${command.name}:`;
-                var choices = command.pointerArray.arrayLength;
-                for (var c = 0; c < choices; c++) {
-                    offset = command.pointerArray.item(c).scriptPointer.value;
-                    label = this.label(command.parent, offset);
-                    desc += `<br/>${c}: <b>${label}</b>`;
+                for (const choiceAssembly of command.pointerArray.iterator()) {
+                    offset = choiceAssembly.scriptPointer.value;
+                    desc += `<br/>${choiceAssembly.i}: ` +
+                            `<b>${this.label(command.parent, offset)}</b>`;
                 }
                 return desc;
 
@@ -122,14 +133,12 @@ class FF6Script extends ROMScriptDelegate {
             case 'world.jumpSwitch':
             case 'vehicle.jumpSwitch':
                 offset = command.scriptPointer.value;
-                label = this.label(command.parent, offset);
-                var count = command.switchArray.arrayLength;
-
-                desc = `Jump to <b>${label}</b> if <b>${command.anyAll.fString()}</b> of These are True:`;
-                for (var s = 0; s < count; s++) {
-                    var switchAssembly = command.switchArray.item(s);
-                    var state = switchAssembly.state.value ? 'On' : 'Off';
-                    desc += `<br/>${s}: <b>${switchAssembly.switch.fString()}</b> == <b>${state}</b>`;
+                desc = `Jump to <b>${this.label(command.parent, offset)}</b> if ` +
+                       `<b>${command.anyAll.fString()}</b> of These are True:`;
+                for (const switchAssembly of command.switchArray.iterator()) {
+                    desc += `<br/>${switchAssembly.i}: ` +
+                            `<b>${switchAssembly.switch.fString()}</b> == ` +
+                            `<b>${switchAssembly.state.fString()}</b>`;
                 }
                 return desc;
 
@@ -140,16 +149,20 @@ class FF6Script extends ROMScriptDelegate {
                 return `${command.name}: <b>${command.map.fString()}</b>`;
 
             case 'event.mapAnimationCounter':
-                return `${command.name}: <b>Tile ${command.tile.value}</b>, <b>Frame ${command.frame.value}</b>`;
+                return `${command.name}: <b>Tile ${command.tile.value}</b>, ` +
+                       `<b>Frame ${command.frame.value}</b>`;
 
             case 'event.mapAnimationSpeed':
-                return `${command.name}: <b>Tile ${command.tile.value}</b>, <b>Speed ${command.speed.value}</b>`;
+                return `${command.name}: <b>Tile ${command.tile.value}</b>, ` +
+                       `<b>Speed ${command.speed.value}</b>`;
 
             case 'event.mapBackground':
-                return `Change Map <b>${command.layer.fString()}</b> at (${command.x.value},${command.y.value})`;
+                return `Change Map <b>${command.layer.fString()}</b> at ` +
+                       `(${command.x.value},${command.y.value})`;
 
             case 'event.mapPalette':
-                return `Change <b>${command.vramPalette.fString()}</b> to <b>${command.palette.fString()}</b>`;
+                return `Change <b>${command.vramPalette.fString()}</b> to ` +
+                       `<b>${command.palette.fString()}</b>`;
 
             case 'event.menuName':
                 return `${command.name} for <b>${command.character.fString()}</b>`;
@@ -161,38 +174,47 @@ class FF6Script extends ROMScriptDelegate {
                 return `${command.name}: <b>${command.shop.fString()}</b>`;
 
             case 'event.objectCollisions':
-                return `<b>${command.enable.fString()}</b> Collision Event for <b>${command.object.fString()}</b>`;
+                return `<b>${command.enable.fString()}</b> Collision Event for ` +
+                       `<b>${command.object.fString()}</b>`;
 
             case 'event.objectCreate':
-                return `<b>${command.create.fString()}</b> Object: <b>${command.object.fString()}</b>`;
+                return `<b>${command.create.fString()}</b> Object: ` +
+                       `<b>${command.object.fString()}</b>`;
 
             case 'event.objectEvent':
                 offset = command.scriptPointer.value;
-                return `Change Event for <b>${command.object.fString()}</b>: <b>${this.label(command.parent, offset)}</b>`;
+                return `Change Event for <b>${command.object.fString()}</b>: ` +
+                       `<b>${this.label(command.parent, offset)}</b>`;
 
             case 'event.objectGraphics':
-                return `Change <b>${command.object.fString()}</b>'s Graphics to <b>${command.graphics.fString()}</b>`;
+                return `Change <b>${command.object.fString()}</b>'s Graphics to ` +
+                       `<b>${command.graphics.fString()}</b>`;
 
             case 'event.objectPalette':
-                return `Change <b>${command.object.fString()}</b>'s Palette to <b>${command.palette.fString()}</b>`;
+                return `Change <b>${command.object.fString()}</b>'s Palette to ` +
+                       `<b>${command.palette.fString()}</b>`;
 
             case 'event.objectPyramid':
-                return `${command.name} Around Object: <b>${command.object.fString()}</b>`;
+                return `${command.name} Around Object: ` +
+                       `<b>${command.object.fString()}</b>`;
 
             case 'event.objectScript':
                 return `${command.name} for <b>${command.object.fString()}</b>`;
 
             case 'event.objectShow':
-                return `<b>${command.show.fString()}</b> Object: <b>${command.object.fString()}</b>`;
+                return `<b>${command.show.fString()}</b> Object: ` +
+                       `<b>${command.object.fString()}</b>`;
 
             case 'event.objectVehicle':
-                return `Change <b>${command.object.fString()}</b>'s Vehicle to <b>${command.vehicle.fString()}</b>`;
+                return `Change <b>${command.object.fString()}</b>'s Vehicle to ` +
+                       `<b>${command.vehicle.fString()}</b>`;
 
             case 'event.objectWait':
                 return `Wait for <b>${command.object.fString()}</b>`;
 
             case 'event.objectPassability':
-                return `<b>${command.passability.fString()}</b> Passability for <b>${command.object.fString()}</b>`;
+                return `<b>${command.passability.fString()}</b> Passability for ` +
+                       `<b>${command.object.fString()}</b>`;
 
             case 'event.party':
                 return `${command.name}: <b>Party ${command.party.value}</b>`;
@@ -210,7 +232,8 @@ class FF6Script extends ROMScriptDelegate {
                 return `<b>${command.control.fString()}</b> User Control`;
 
             case 'event.partyMap':
-                return `Move <b>Party ${command.party.value}</b> to Map: <b>${command.map.fString()}</b>`;
+                return `Move <b>Party ${command.party.value}</b> to Map: ` +
+                       `<b>${command.map.fString()}</b>`;
 
             case 'event.partyPosition':
                 return `Move the Active Party to (${command.x.value},${command.y.value})`;
@@ -225,7 +248,8 @@ class FF6Script extends ROMScriptDelegate {
                 return `<b>${command.fade.fString()}</b>`;
 
             case 'event.screenFadeManual':
-                return `<b>${command.fade.fString()}</b> with <b>Speed ${command.speed.value}</b>`;
+                return `<b>${command.fade.fString()}</b> with ` +
+                       `<b>Speed ${command.speed.value}</b>`;
 
             case 'event.screenFlash':
                 return `${command.name} <b>${command.color.fString()}</b>`;
@@ -234,28 +258,41 @@ class FF6Script extends ROMScriptDelegate {
                 return `${command.name} <b>Radius ${command.radius.value}</b>`;
 
             case 'event.screenMath':
-                return `Set Fixed Color <b>${command.math.fString()}</b>: <b>${command.color.fString()}</b> <b>Speed ${command.speed.value}</b> <b>Intensity ${command.intensity.value}</b>`;
+                return `Set Fixed Color <b>${command.math.fString()}</b>: ` +
+                       `<b>${command.color.fString()}</b> ` +
+                       `<b>Speed ${command.speed.value}</b> ` +
+                       `<b>Intensity ${command.intensity.value}</b>`;
 
             case 'event.screenMosaic':
                 return `${command.name} <b>Speed ${command.speed.value}</b>`;
 
             case 'event.screenPalettes':
-                return `Modify ${command.palettes.fString()} Palettes: <b>${command.function.fString()}</b> <b>${command.color.fString()}</b>`;
+                return `Modify ${command.palettes.fString()} Palettes: ` +
+                       `<b>${command.function.fString()}</b> ` +
+                       `<b>${command.color.fString()}</b>`;
 
             case 'event.screenPalettesRange':
-                return `Modify ${command.palettes.fString()} Palette Colors <b>${command.colorFirst.value}−${command.colorLast.value}</b>: <b>${command.function.fString()}</b> <b>${command.color.fString()}</b>`;
+                return `Modify ${command.palettes.fString()} Palette Colors ` +
+                       `<b>${command.colorFirst.value}−${command.colorLast.value}</b>: ` +
+                       `<b>${command.function.fString()}</b> ` +
+                       `<b>${command.color.fString()}</b>`;
 
             case 'event.screenScroll':
-                return `${command.name} <b>${command.layer.fString()}</b> (${command.hScroll.value},${command.vScroll.value})`;
+                return `${command.name} <b>${command.layer.fString()}</b> ` +
+                       `(${command.hScroll.value},${command.vScroll.value})`;
 
             case 'event.screenScrollLock':
                 return `<b>${command.lock.fString()}</b> the Screen`;
 
             case 'event.screenShake':
-                return `${command.name} <b>Amplitude ${command.amplitude.value}</b> <b>Frequency ${command.frequency.value}</b>`;
+                return `${command.name} <b>Amplitude ${command.amplitude.value}</b> ` +
+                       `<b>Frequency ${command.frequency.value}</b>`;
 
             case 'event.screenTint':
-                return `${command.name} <b>${command.colorFirst.value}−${command.colorLast.value}</b>: <b>${command.color.fString()}</b>`;
+                return `${command.name} ` +
+                       `<b>${command.colorFirst.value}−` +
+                       `${command.colorLast.value}</b>: ` +
+                       `<b>${command.color.fString()}</b>`;
 
             case 'event.spcInterrupt':
                 return `${command.name} <b>${command.interrupt.fString()}</b>`;
@@ -276,12 +313,14 @@ class FF6Script extends ROMScriptDelegate {
                 return `${command.name} <b>${command.waitType.fString()}</b>`;
 
             case 'event.switchBattle':
-                return `Set Battle Switch: <b>${command.switch.fString()}</b> = <b>${command.onOff.fString()}</b>`;
+                return `Set Battle Switch: <b>${command.switch.fString()}</b> = ` +
+                       `<b>${command.onOff.fString()}</b>`;
 
             case 'event.switch':
             case 'world.switch':
             case 'vehicle.switch':
-                return `Set Switch: <b>${command.switch.fString()}</b> = <b>${command.onOff.fString()}</b>`;
+                return `Set Switch: <b>${command.switch.fString()}</b> = ` +
+                       `<b>${command.onOff.fString()}</b>`;
 
             case 'event.switchControl':
                 return `Set Control Switches: <b>${command.switches.fString()}</b>`;
@@ -292,13 +331,17 @@ class FF6Script extends ROMScriptDelegate {
                 const sec = Math.floor(duration / 60) % 60;
                 const frame = duration % 60;
                 offset = command.scriptPointer.value;
-                return `${command.name} <b>${command.timer.value}</b> <b>${min}m:${sec}s:${frame}f</b>: <b>${this.label(command.parent, offset)}</b>`;
+                return `${command.name} <b>${command.timer.value}</b> ` +
+                       `<b>${min}m:${sec}s:${frame}f</b>: ` +
+                       `<b>${this.label(command.parent, offset)}</b>`;
 
             case 'event.timerStop':
                 return `${command.name} <b>${command.timer.value}</b>`;
 
             case 'event.variable':
-                return `${command.operation.fString()} Variable <b>${command.variable.fString()}</b>: <b>${command.varValue.value}</b>`;
+                return `${command.operation.fString()} Variable ` +
+                       `<b>${command.variable.fString()}</b>: ` +
+                       `<b>${command.varValue.value}</b>`;
 
             case 'event.wait':
                 return `${command.name} <b>${command.duration.fString()}</b>`;
@@ -627,234 +670,285 @@ class FF6MonsterScript extends ROMScriptDelegate {
         }
     }
 
-    attackString(command, key) {
-        var a = command[key].value;
-        if (a === 0xFE) return 'Do Nothing';
-        return this.string(command, key, "attackName");
-    }
-
-    commandString(command, key) {
-        var a = command[key].value;
-        if (a === 0xFE) return "Do Nothing";
-        return this.string(command, key, "battleCommandName");
-    }
-
     elementString(command, key) {
-        var e = command[key].value;
-        if (e === 0) return "No Element";
-        var element = "";
-        var count = bitCount(e);
-        for (var i = 0; i < 8; i++) {
-            var mask = 1 << i;
+        let e = command[key].value;
+        if (e === 0) return '<b>No Element</b>';
+        let element = '';
+        const count = bitCount(e);
+        const elementStringTable = this.rom.stringTable.element;
+        for (let i = 0; i < 8; i++) {
+            const mask = 1 << i;
             if (!(e & mask)) continue;
             e ^= mask; // flip the bit
-            if (element !== "") {
+            if (element) {
                 // this is not the first element
-                if (count === 2) element += " or ";
-                else element += (e ? ", " : ", or ");
+                if (count === 2) element += ' or ';
+                else element += (e ? ', ' : ', or ');
             }
-            element += this.rom.stringTable.element.string[i].fString();
+            element += `<b>${elementStringTable.string[i].fString()}</b>`;
         }
         return element;
     }
 
     slotString(command, prep) {
-        var s = command.monsters.value;
-        if (s === 0) return "This Monster";
-        if (s === 0xFF) return "All Monsters";
+        let s = command.monsters.value;
+        if (s === 0) return '<b>This Monster</b>';
+        if (s === 0xFF) return '<b>All Monsters</b>';
         s &= 0x3F;
-        var slot = "";
-        var count = bitCount(s);
-        for (var i = 0; i < 6; i++) {
-            var mask = 1 << i;
+        let slot = '';
+        const count = bitCount(s);
+        for (let i = 0; i < 6; i++) {
+            const mask = 1 << i;
             if (!(s & mask)) continue;
             s ^= mask; // flip the bit
-            if (slot !== "") {
+            if (slot) {
                 // this is not the first element
-                if (count === 2) slot += (" " + prep + " ");
-                else slot += (s ? ", " : (", " + prep + " "));
+                if (count === 2) slot += (` ${prep} `);
+                else slot += (s ? ', ' : (`, ${prep} `));
             } else {
-                slot = "Monster Slot ";
+                slot = 'Monster Slot ';
             }
             slot += (i + 1).toString();
         }
-        return slot;
+        return `<b>${slot}</b>`;
     }
 
     conditionalString(command) {
-        var target = this.string(command, "target", "battleTargets");
+        const target = command.target.fString();
+
         switch (command.condition.value) {
 
             case 1: // command
-                var command1 = this.commandString(command, "command1");
-                var command2 = this.commandString(command, "command2");
-                if (command.command1.value === command.command2.value) return "If " + command1 + " Was Used Against This Monster";
-                return "If " + command1 + " or " + command2 + " Was Used Against This Monster";
+                if (command.command1.value === command.command2.value) {
+                    return `If <b>${command.command1.fString()}</b> ` +
+                           `Was Used Against This Monster`;
+                } else {
+                    return `If <b>${command.command1.fString()}</b> or ` +
+                           `<b>${command.command2.fString()}</b> ` +
+                           `Was Used Against This Monster`;
+                }
 
             case 2: // attack
-                var attack1 = this.attackString(command, "attack1");
-                var attack2 = this.attackString(command, "attack2");
-                if (command.attack1.value === command.attack2.value) return "If " + attack1 + " Was Used Against This Monster";
-                return "If " + attack1 + " or " + attack2 + " Was Used Against This Monster";
+                if (command.attack1.value === command.attack2.value) {
+                    return `If <b>${command.attack1.fString()}</b> ` +
+                           `Was Used Against This Monster`;
+                } else {
+                    return `If <b>${command.attack1.fString()}</b> or ` +
+                           `<b>${command.attack2.fString()}</b> ` +
+                           `Was Used Against This Monster`;
+                }
 
             case 3: // item
-                var item1 = this.string(command, "item1", "itemNames");
-                var item2 = this.string(command, "item2", "itemNames");
-                if (command.item1.value === command.item2.value) return "If " + item1 + " Was Used On This Monster";
-                return "If " + item1 + " or " + item2 + " Was Used On This Monster";
+                if (command.item1.value === command.item2.value) {
+                    return `If <b>${command.item1.fString()}</b> ` +
+                           `Was Used Against This Monster`;
+                } else {
+                    return `If <b>${command.item1.fString()}</b> or ` +
+                           `<b>${command.item2.fString()}</b> ` +
+                           `Was Used On This Monster`;
+                }
 
             case 4: // element
-                return "If " + this.elementString(command, "element") + " Was Used Against this Monster";
+                return `If <b>${this.elementString(command, 'element')}</b> ` +
+                       `Was Used Against this Monster`;
 
             case 5: // any action
-                return "If Any Action Was Used Against This Monster";
+                return 'If <b>Any Action</b> Was Used Against This Monster';
 
             case 6: // hp
-                return "If " + target + "'s HP < " + command.hp.value.toString();
+                return `If <b>${target}</b>'s <b>HP</b> &lt; ` +
+                       `<b>${command.hp.value}</b>`;
 
             case 7: // mp
-                return "If " + target + "'s MP < " + command.mp.value.toString();
+                return `If <b>${target}</b>'s <b>MP</b> &lt; ` +
+                       `<b>${command.mp.value}</b>`;
 
             case 8: // has status
-                return "If " + target + " Has " + this.string(command, "status", "statusNamesReversed") + " Status";
+                return `If <b>${target}</b> Has Status ` +
+                       `<b>${command.status.fString()}</b>`;
 
             case 9: // does not have status
-                return "If " + target + " Does Not Have " + this.string(command, "status", "statusNamesReversed") + " Status";
+                return `If <b>${target}</b> Does Not Have Status ` +
+                       `<b>${command.status.fString()}</b>`;
 
             case 11: // monster timer
-                return "If Monster Timer > " + command.timer.value.toString();
+                return `If <b>Monster Timer</b> &gt; ` +
+                       `<b>${command.timer.value}</b>`;
 
             case 12: // variable less than
-                return "If " + this.string(command, "variable", "battleVariable") + " < " + command.value.value.toString();
+                return `If <b>${command.variable.fString()}</b> &lt; ` +
+                       `<b>${command.value.value}</b>`;
 
             case 13: // variable greater than
-                return "If " + this.string(command, "variable", "battleVariable") + " ≥ " + command.value.value.toString();
+                return `If <b>${command.variable.fString()}</b> ≥ ` +
+                       `<b>${command.value.value}</b>`;
 
             case 14: // level less than
-                return "If " + target + "'s Level < " + command.level.value.toString();
+                return `If <b>${target}</b>'s Level &lt; ` +
+                       `<b>${command.level.value}</b>`;
 
             case 15: // level greater than
-                return "If " + target + "'s Level ≥ " + command.level.value.toString();
+                return `If <b>${target}</b>'s Level ≥ ` +
+                       `<b>${command.level.value}</b>`;
 
             case 16: // only one type of monster
-                return "If There is Only One Type of Monster Remaining";
+                return 'If <b>There is Only One Type of Monster Remaining</b>';
 
             case 17: // monsters alive
             case 18: // monsters dead
-                return "If " + this.slotString(command, "and") + ((bitCount(command.monsters.value) < 2) ? " is " : " are ") + (command.condition.value === 17 ? "Alive" : "Dead");
+                return `If <b>${this.slotString(command, 'and')}</b> ` +
+                       `${(bitCount(command.monsters.value) < 2) ? 'is' : 'are'} ` +
+                       `<b>${command.condition.value === 17 ? 'Alive' : 'Dead'}</b>`;
 
             case 19: // characters/monsters alive
                 if (command.countType.value) {
-                    return "If There Are " + command.count.value.toString() + " or Fewer Monsters Remaining";
+                    return `If There Are <b>${command.count.value} ` +
+                           `or Fewer Monsters Remaining</b>`;
+                } else {
+                    return `If There Are <b>${command.count.value} ` +
+                           `or More Characters Remaining</b>`;
                 }
-                return "If There Are " + command.count.value.toString() + " or More Characters Remaining";
 
             case 20: // switch on
-                return "If " + this.string(command, "switch", "battleSwitch") + " == On";
+                return `If <b>${command.switch.fString()}</b> == <b>On</b>`;
 
             case 21: // switch off
-                return "If " + this.string(command, "switch", "battleSwitch") + " == Off";
+                return `If <b>${command.switch.fString()}</b> == <b>Off</b>`;
 
             case 22: // battle timer
-                return "If Battle Timer > " + command.timer.value.toString();
+                return `If <b>Battle Timer</b> > <b>${command.timer.value}</b>`;
 
             case 23: // target valid
-                return "If " + target + " is a Valid Target";
+                return `If <b>${target}</b> is a Valid Target`;
 
             case 24: // gau present
-                return "If " + this.rom.stringTable.characterNames.string[11].fString() + " is Present";
+            const gauString = this.rom.stringTable.characterNames.string[11];
+                return `If ${gauString.fString()} is Present`;
 
             case 25: // monster slot
-                return "If This Monster is " + this.slotString(command, "or");
+                return `If This Monster is <b>${this.slotString(command, 'or')}</b>`;
 
             case 26: // weak vs. element
-                return "If " + target + " is Weak vs. " + this.elementString(command, "element2");
+                return `If <b>${target}</b> is Weak vs. ` +
+                       `<b>${this.elementString(command, 'element2')}</b>`;
 
             case 27: // battle index
-                return "If Current Battle is " + this.string(command, "battle", "battleProperties");
+                return `If Current Battle is <b>${command.battle.fString()}</b>`;
 
-            default: return this.string(command, "condition", command.condition.stringTable);
+            default:
+                break;
         }
+        return `<b>${command.condition.fString()}</b>`;
     }
 
     description(command) {
         switch (command.key) {
+            case 'animation':
+                return `${command.name}: ${this.slotString(command, 'and')}`;
+
             case 'attack':
                 var a1 = command.attack1.value;
                 var a2 = command.attack2.value;
                 var a3 = command.attack3.value;
-                if (a1 === a2 && a1 === a3) return `Use Attack <b>${command.attack1.fString()}</b>`;
-                return `Use Attack <b>${command.attack1.fString()}</b>, <b>${command.attack2.fString()}</b>, or <b>${command.attack3.fString()}</b>`;
+                if (a1 === a2 && a1 === a3) {
+                    return `Use Attack: <b>${command.attack1.fString()}</b>`;
+                } else {
+                    return `Use Attack: <b>${command.attack1.fString()}</b>, ` +
+                           `<b>${command.attack2.fString()}</b>, or ` +
+                           `<b>${command.attack3.fString()}</b>`;
+                }
 
             case 'attackSingle':
-                return `Use Attack <b>${command.attack.fString()}</b>`;
+                return `Use Attack: <b>${command.attack.fString()}</b>`;
 
-            case "changeBattle":
-                return "Change Battle: " + this.string(command, "battle", "battleProperties");
+            case 'battleEvent':
+                return `Battle Event <b>${command.battleEvent.value}</b>`;
 
-            case "command":
+            case 'changeBattle':
+                return `Change Battle: <b>${command.battle.fString()}</b>`;
+
+            case 'command':
                 var c1 = command.command1.value;
                 var c2 = command.command2.value;
                 var c3 = command.command3.value;
-                if (c1 === c2 && c1 === c3) return "Command: " + this.commandString(command, "command1");
-                return "Command: " + this.commandString(command, "command1") + ", " + this.commandString(command, "command2") + ", or " + this.commandString(command, "command3");
+                if (c1 === c2 && c1 === c3) {
+                    return `Use Command: <b>${command.command1.fString()}</b>`;
+                } else {
+                    return `Use Command: <b>${command.command1.fString()}</b>, ` +
+                           `<b>${command.command2.fString()}</b>, or ` +
+                           `<b>${command.command3.fString()}</b>`;
+                }
 
-            case "conditional":
-                return "Conditional: " + this.conditionalString(command);
+            case 'conditional':
+                return `Conditional: ${this.conditionalString(command)}`;
 
-            case "dialog":
+            case 'dialog':
                 var d = command.dialog.value;
                 var dialog = this.rom.stringTable.monsterDialog.string[d];
                 if (dialog) {
-                    return "Display Monster Dialog:<br/>" + dialog.htmlString();
+                    return `Display Monster Dialogue:<br/>` +
+                           `<b>${dialog.htmlString()}</b>`;
                 } else {
-                    return "Display Monster Dialog:<br/>Invalid Dialog Message";
+                    return `Display Monster Dialogue:<br/>` +
+                           `<b>Invalid Dialogue Message</b>`;
                 }
 
-            case "item":
-                var i1 = command.item1.value;
-                var i2 = command.item2.value;
-                var useThrow = command.useThrow.value ? "Throw Item: " : "Use Item: ";
-                if (i1 === i2) return useThrow + this.string(command, "item1", "itemNames");
-                return useThrow + this.string(command, "item1", "itemNames") + " or " + this.string(command, "item2", "itemNames");
+            case 'item':
+                if (command.item1.value === command.item2.value) {
+                    return `<b>${command.useThrow.fString()}</b> Item: ` +
+                           `<b>${command.item1.fString()}</b>`;
+                } else {
+                    return `<b>${command.useThrow.fString()}</b> Item: ` +
+                           `<b>${command.item1.fString()}</b> or ` +
+                           `<b>${command.item2.fString()}</b>`;
+                }
 
-            case "misc":
-                var desc = this.string(command, "effect", command.effect.stringTable);
+            case 'misc':
                 if (!command.target.invalid) {
-                    desc += ": " + this.string(command, "target", "battleTargets");
+                    return `<b>${command.effect.fString()}</b>: ` +
+                           `<b>${command.target.fString()}</b>`;
                 } else if (!command.status.invalid) {
-                    desc += ": " + this.string(command, "status", "statusNamesReversed");
+                    return `<b>${command.effect.fString()}</b>: ` +
+                           `<b>${command.status.fString()}</b>`;
+                } else {
+                    return `<b>${command.effect.fString()}</b>`
                 }
-                return desc;
 
-            case "showHide":
-            case "animation":
-                return command.name + ": " + this.slotString(command, "and");
+            case 'showHide':
+                return `Show/Hide ${this.slotString(command, 'and')} ` +
+                       `(<b>${command.showHide.fString()}</b>)`;
 
-            case "switch":
+            case 'soundEffect':
+                return `${command.name} <b>${command.soundEffect.value}</b>`;
+
+            case 'switch':
                 if (command.operation.value === 0) {
-                    return "Toggle " + this.string(command, "switch", "battleSwitch");
+                    return `Toggle <b>${command.switch.fString()}</b>`;
                 } else if (command.operation.value === 1) {
-                    return this.string(command, "switch", "battleSwitch") + " = On";
+                    return `<b>${command.switch.fString()}</b> = <b>On</b>`;
                 } else if (command.operation.value === 2) {
-                    return this.string(command, "switch", "battleSwitch") + " = Off";
+                    return `<b>${command.switch.fString()}</b> = <b>Off</b>`;
                 }
-                return "Invalid Switch Operation";
+                return 'Invalid Switch Operation';
 
-            case "target":
-                return "Change Target: " + this.string(command, "target", "battleTargets");
+            case 'target':
+                return `${command.name}: <b>${command.target.fString()}</b>`;
 
-            case "variable":
+            case 'variable':
                 if (command.operation.value === 0) {
-                    return this.string(command, "variable", "battleVariable") + " = " + command.value.value.toString();
+                    return `<b>${command.variable.fString()}</b> = ` +
+                           `<b>${command.value.value}</b>`;
                 } else if (command.operation.value === 2) {
-                    return this.string(command, "variable", "battleVariable") + " += " + command.value.value.toString();
+                    return `<b>${command.variable.fString()}</b> += ` +
+                           `<b>${command.value.value}</b>`;
                 } else if (command.operation.value === 3) {
-                    return this.string(command, "variable", "battleVariable") + " -= " + command.value.value.toString();
+                    return `<b>${command.variable.fString()}</b> -= ` +
+                           `<b>${command.value.value}</b>`;
                 }
-                return "Invalid Switch Operation";
+                return 'Invalid Variable Operation';
 
-            default: break;
+            default:
+                break;
         }
         return command.name;
     }

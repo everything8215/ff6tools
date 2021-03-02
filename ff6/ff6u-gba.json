@@ -11648,30 +11648,36 @@
                             "type": "property",
                             "name": "Attack 1",
                             "begin": 1,
-                            "stringTable": "attackName",
-                            "max": "0xFE",
-                            "special": {
-                                "0xFE": "Do Nothing"
+                            "stringTable": {
+                                "length": 255,
+                                "default": "<stringTable.attackName[%i]>",
+                                "string": {
+                                    "0xFE": "Do Nothing"
+                                }
                             }
                         },
                         "attack2": {
                             "type": "property",
                             "name": "Attack 2",
                             "begin": 2,
-                            "stringTable": "attackName",
-                            "max": "0xFE",
-                            "special": {
-                                "0xFE": "Do Nothing"
+                            "stringTable": {
+                                "length": 255,
+                                "default": "<stringTable.attackName[%i]>",
+                                "string": {
+                                    "0xFE": "Do Nothing"
+                                }
                             }
                         },
                         "attack3": {
                             "type": "property",
                             "name": "Attack 3",
                             "begin": 3,
-                            "stringTable": "attackName",
-                            "max": "0xFE",
-                            "special": {
-                                "0xFE": "Do Nothing"
+                            "stringTable": {
+                                "length": 255,
+                                "default": "<stringTable.attackName[%i]>",
+                                "string": {
+                                    "0xFE": "Do Nothing"
+                                }
                             }
                         }
                     }
@@ -11683,8 +11689,10 @@
                         "attack": {
                             "type": "property",
                             "name": "Attack",
-                            "stringTable": "attackName",
-                            "max": "0xEF"
+                            "stringTable": {
+                                "length": 240,
+                                "default": "<stringTable.attackName[%i]>"
+                            }
                         }
                     }
                 },
@@ -11979,7 +11987,7 @@
                     }
                 },
                 "dialog": {
-                    "name": "Dialogue",
+                    "name": "Display Dialogue",
                     "opcode": "0xF3",
                     "length": 3,
                     "assembly": {
@@ -11987,7 +11995,7 @@
                             "type": "property",
                             "name": "Dialogue",
                             "begin": 1,
-                            "link": "text2[%i+0x0E65]",
+                            "link": "stringTable.monsterDialog[%i]",
                             "stringTable": "monsterDialog"
                         }
                     }
@@ -12124,7 +12132,7 @@
                     }
                 },
                 "soundEffect": {
-                    "name": "Sound Effect",
+                    "name": "Play Sound Effect",
                     "opcode": "0xFA09",
                     "length": 4,
                     "assembly": {
