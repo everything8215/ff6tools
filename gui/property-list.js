@@ -648,6 +648,7 @@ class ROMPropertyList {
             label = document.createElement('a');
             const link = object.parseSubscripts(object.parseIndex(object.script));
             label.href = `javascript:propertyList.select('${link}');` +
+                `scriptList.deselectAll();` +
                 `scriptList.selectRef(${command.ref});`;
 
         } else if (object.target instanceof ROMAssembly) {
