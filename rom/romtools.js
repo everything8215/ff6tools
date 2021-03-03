@@ -3613,9 +3613,23 @@ ROMProperty.prototype.fString = function(maxLength) {
     if (!stringTable) return 'Invalid';
     const i = this.value;
     if (!isNumber(i)) return 'Invalid';
-    const string = stringTable.string[i];
-    if (!string) return 'Invalid';
-    return string.fString(maxLength);
+
+    if (!this.flag) {
+        const string = stringTable.string[i];
+        if (!string) return 'Invalid';
+        return string.fString(maxLength);
+    }
+
+    let flagString = '';
+    for (let i = 0; i < this.width; i++) {
+        const mask = 1 << i;
+        if (!(this.value & mask)) continue;
+        const string = stringTable.string[i];
+        if (!string) continue;
+        if (flagString) flagString += ', ';
+        flagString += string.fString();
+    }
+    return flagString || 'None';
 }
 
 // ROMArray

@@ -38,6 +38,7 @@ gui
  * import/export tilemap (native/generic, Tiled)
  * click and drag level progression data
  * change properties view and editors to only update once after paste or import
+ * script indentation
 
 game specific
 -------------

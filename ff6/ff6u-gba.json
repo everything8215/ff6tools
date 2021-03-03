@@ -12238,7 +12238,7 @@
             "delegate": "FF6Script",
             "command": {
                 "action": {
-                    "name": "Action",
+                    "name": "Do Action",
                     "opcode": "0x00-0x80",
                     "assembly": {
                         "action": {
@@ -12265,7 +12265,6 @@
                             "type": "property",
                             "name": "Animation",
                             "begin": 0,
-                            "mask": "0xFF",
                             "stringTable": {
                                 "string": {
                                     "0xC6": "Enable",
@@ -12280,6 +12279,19 @@
                     "length": 2,
                     "opcode": "0xFA-0xFE",
                     "assembly": {
+                        "branch": {
+                            "type": "property",
+                            "name": "Branch",
+                            "begin": 0,
+                            "stringTable": {
+                                "string": {
+                                    "0xFA": "Backward (50% Chance)",
+                                    "0xFB": "Forward (50% Change)",
+                                    "0xFC": "Backward",
+                                    "0xFD": "Forward"
+                                }
+                            }
+                        },
                         "offset": {
                             "type": "property",
                             "name": "Offset",
@@ -12425,15 +12437,16 @@
                     "name": "Scroll to Object",
                     "opcode": "0xD7"
                 },
-                "show": {
+                "showHide": {
                     "name": "Show/Hide Object",
                     "opcode": ["0xD0", "0xD1"],
                     "assembly": {
-                        "show": {
+                        "showHide": {
                             "type": "property",
                             "name": "Show/Hide",
                             "begin": 0,
                             "stringTable": {
+                                "hideIndex": true,
                                 "string": {
                                     "0xD0": "Show",
                                     "0xD1": "Hide"
@@ -12450,15 +12463,15 @@
                             "type": "property",
                             "name": "Speed",
                             "begin": 0,
-                            "mask": "0x07",
                             "stringTable": {
+                                "hideIndex": true,
                                 "string": {
-                                    "0": "Very Slow",
-                                    "1": "Slow",
-                                    "2": "Normal",
-                                    "3": "Fast",
-                                    "4": "Fast ×2",
-                                    "5": "Fast ×4"
+                                    "0xC0": "Very Slow",
+                                    "0xC1": "Slow",
+                                    "0xC2": "Normal",
+                                    "0xC3": "Fast",
+                                    "0xC4": "Fast ×2",
+                                    "0xC5": "Fast ×4"
                                 }
                             }
                         }
@@ -12565,10 +12578,11 @@
                             "type": "property",
                             "name": "Arrows",
                             "stringTable": {
+                                "hideIndex": true,
                                 "string": {
-                                    "0xDA": "Show Arrows",
-                                    "0xDB": "Lock Arrows",
-                                    "0xDC": "Hide Arrows"
+                                    "0xDA": "Show Direction Arrows",
+                                    "0xDB": "Lock Direction Arrows",
+                                    "0xDC": "Hide Direction Arrows"
                                 }
                             }
                         }
@@ -12577,12 +12591,14 @@
                 "battle": {
                     "name": "Event Battle",
                     "length": 3,
-                    "opcode": "0xCA",
+                    "opcode": "0xCA-0xD0",
                     "assembly": {
                         "battle": {
                             "type": "property",
                             "name": "Battle",
-                            "begin": 1
+                            "begin": 1,
+                            "stringTable": "battleGroupsEvent",
+                            "link": "battleGroupsEvent[%i]"
                         },
                         "background": {
                             "type": "property",
@@ -12627,6 +12643,7 @@
                             "type": "property",
                             "name": "Cinematic",
                             "stringTable": {
+                                "hideIndex": true,
                                 "string": {
                                     "0xF2": "Ending Airship Scene",
                                     "0xF3": "Light of Judgement 1",
@@ -12643,25 +12660,36 @@
                         }
                     }
                 },
+                "direction": {
+                    "name": "Change Direction",
+                    "opcode": "0xC1-0xC5",
+                    "length": 3,
+                    "assembly": {
+                        "directionType": {
+                            "type": "property",
+                            "name": "Type",
+                            "begin": 0,
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0xC1": "Camera Direction",
+                                    "0xC2": "Movement Direction",
+                                    "0xC3": "Unknown Direction (0xC3)",
+                                    "0xC4": "Unknown Direction (0xC4)"
+                                }
+                            }
+                        },
+                        "direction": {
+                            "type": "property",
+                            "name": "Direction",
+                            "begin": 1,
+                            "mask": "0xFFFF"
+                        }
+                    }
+                },
                 "end": {
                     "name": "End of Script",
                     "opcode": "0xFF"
-                },
-                "fade": {
-                    "name": "Fade In/Out",
-                    "opcode": ["0xD8", "0xD9"],
-                    "assembly": {
-                        "fade": {
-                            "type": "property",
-                            "name": "Fade",
-                            "stringTable": {
-                                "string": {
-                                    "0xD8": "Fade In",
-                                    "0xD9": "Fade Out"
-                                }
-                            }
-                        }
-                    }
                 },
                 "graphic": {
                     "name": "Change Vehicle Graphic",
@@ -12720,12 +12748,6 @@
                                 "min": 1,
                                 "max": 8
                             },
-                            "reference": [
-                                {
-                                    "target": "this.parent.count",
-                                    "arrayLength": true
-                                }
-                            ],
                             "assembly": {
                                 "type": "data",
                                 "length": 2,
@@ -12851,10 +12873,11 @@
                     "name": "Show/Hide Mini-Map",
                     "opcode": ["0xDD", "0xDF"],
                     "assembly": {
-                        "fade": {
+                        "miniMap": {
                             "type": "property",
-                            "name": "Fade",
+                            "name": "Mini-Map",
                             "stringTable": {
+                                "hideIndex": true,
                                 "string": {
                                     "0xDD": "Hide Mini-Map",
                                     "0xDF": "Show Mini-Map"
@@ -12876,12 +12899,12 @@
                             "stringTable": {
                                 "string": {
                                     "0": "Sharp Turn",
-                                    "1": "Back",
-                                    "2": "Forward",
-                                    "3": "Right",
-                                    "4": "Left",
-                                    "5": "Up",
-                                    "6": "Down"
+                                    "1": "Go Back",
+                                    "2": "Go Forward",
+                                    "3": "Turn Right",
+                                    "4": "Turn Left",
+                                    "5": "Go Up",
+                                    "6": "Go Down"
                                 }
                             }
                         },
@@ -12900,19 +12923,6 @@
                         "speed": {
                             "type": "property",
                             "name": "Speed",
-                            "begin": 1,
-                            "mask": "0xFFFF"
-                        }
-                    }
-                },
-                "movementDirection": {
-                    "name": "Change Movement Direction",
-                    "opcode": "0xC2",
-                    "length": 3,
-                    "assembly": {
-                        "direction": {
-                            "type": "property",
-                            "name": "Direction",
                             "begin": 1,
                             "mask": "0xFFFF"
                         }
@@ -12979,22 +12989,31 @@
                 "unknown_C0": {
                     "name": "Unknown Command $C0",
                     "opcode": "0xC0",
-                    "length": 2
-                },
-                "unknown_C3": {
-                    "name": "Unknown Command $C3",
-                    "opcode": "0xC3",
-                    "length": 3
-                },
-                "unknown_C4": {
-                    "name": "Unknown Command $C4",
-                    "opcode": "0xC4",
-                    "length": 3
+                    "length": 2,
+                    "assembly": {
+                        "parameter": {
+                            "type": "property",
+                            "name": "Parameter",
+                            "begin": 1
+                        }
+                    }
                 },
                 "unknown_DE": {
                     "name": "Unknown Command $DE",
                     "opcode": "0xDE",
-                    "length": 3
+                    "length": 3,
+                    "assembly": {
+                        "parameter1": {
+                            "type": "property",
+                            "name": "Parameter 1",
+                            "begin": 1
+                        },
+                        "parameter2": {
+                            "type": "property",
+                            "name": "Parameter 2",
+                            "begin": 2
+                        }
+                    }
                 },
                 "wait": {
                     "name": "Wait",
@@ -13015,7 +13034,7 @@
             "delegate": "FF6Script",
             "command": {
                 "action": {
-                    "name": "Action",
+                    "name": "Do Action",
                     "opcode": "0x00-0x80",
                     "assembly": {
                         "action": {
@@ -13034,25 +13053,8 @@
                         }
                     }
                 },
-                "character": {
-                    "name": "Show/Hide Character Sprite",
-                    "opcode": ["0xD0", "0xD1"],
-                    "assembly": {
-                        "showHide": {
-                            "type": "property",
-                            "name": "Show/Hide",
-                            "begin": 0,
-                            "stringTable": {
-                                "string": {
-                                    "0xD0": "Show Character",
-                                    "0xD1": "Hide Character"
-                                }
-                            }
-                        }
-                    }
-                },
                 "direction": {
-                    "name": "Change Facing Direction",
+                    "name": "Change Direction",
                     "opcode": "0xCC-0xD0",
                     "assembly": {
                         "direction": {
@@ -13060,6 +13062,7 @@
                             "name": "Direction",
                             "begin": 0,
                             "stringTable": {
+                                "hideIndex": true,
                                 "string": {
                                     "0xCC": "Up",
                                     "0xCD": "Right",
@@ -13074,22 +13077,6 @@
                     "name": "End of Script",
                     "opcode": "0xFF"
                 },
-                "fade": {
-                    "name": "Fade In/Out",
-                    "opcode": ["0xD8", "0xD9"],
-                    "assembly": {
-                        "fade": {
-                            "type": "property",
-                            "name": "Fade",
-                            "stringTable": {
-                                "string": {
-                                    "0xD8": "Fade In",
-                                    "0xD9": "Fade Out"
-                                }
-                            }
-                        }
-                    }
-                },
                 "figaro": {
                     "name": "Figaro Castle Animation",
                     "opcode": ["0xFD", "0xFE"],
@@ -13099,6 +13086,7 @@
                             "name": "Animation",
                             "begin": 0,
                             "stringTable": {
+                                "hideIndex": true,
                                 "string": {
                                     "0xFD": "Figaro Castle Submerging",
                                     "0xFE": "Figaro Castle Emerging"
@@ -13311,10 +13299,11 @@
                     "name": "Show/Hide Mini-Map",
                     "opcode": ["0xDD", "0xDF"],
                     "assembly": {
-                        "fade": {
+                        "miniMap": {
                             "type": "property",
-                            "name": "Fade",
+                            "name": "Mini-Map",
                             "stringTable": {
+                                "hideIndex": true,
                                 "string": {
                                     "0xDD": "Hide Mini-Map",
                                     "0xDF": "Show Mini-Map"
@@ -13391,6 +13380,24 @@
                     "name": "Change to Ship Sprite",
                     "opcode": "0xFC"
                 },
+                "showHide": {
+                    "name": "Show/Hide Character Sprite",
+                    "opcode": ["0xD0", "0xD1"],
+                    "assembly": {
+                        "showHide": {
+                            "type": "property",
+                            "name": "Show/Hide",
+                            "begin": 0,
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0xD0": "Show",
+                                    "0xD1": "Hide"
+                                }
+                            }
+                        }
+                    }
+                },
                 "speed": {
                     "name": "Change Movement Speed",
                     "opcode": "0xC0-0xC5",
@@ -13400,6 +13407,7 @@
                             "name": "Speed",
                             "begin": 0,
                             "stringTable": {
+                                "hideIndex": true,
                                 "string": {
                                     "0xC0": "Slow ×2",
                                     "0xC1": "Slow",

@@ -13,6 +13,10 @@ class FF6Script extends ROMScriptDelegate {
         let desc = '';
         var offset;
         switch (`${command.encoding}.${command.key}`) {
+            case 'object.action':
+            case 'world.action':
+                return `${command.name}: <b>${command.action.fString()}</b>`;
+
             case 'event.advanceBattle':
                 return `${command.name}: <b>${command.battle.fString()}</b>`;
 
@@ -25,8 +29,26 @@ class FF6Script extends ROMScriptDelegate {
             case 'event.advanceSwitch':
                 return `${command.name}: <b>${command.switch.fString()}</b> = On`;
 
+            case 'vehicle.airshipPosition':
+                return `${command.name} to (<b>${command.x.value}</b>,` +
+                       `<b>${command.y.value}</b>)`;
+
+            case 'vehicle.altitude':
+                return `${command.name} to <b>${command.altitude.value}</b>`;
+
+            case 'object.animation':
+                return `<b>${command.animation.fString()}</b> Animation`;
+
+            case 'vehicle.arrows':
+                return `<b>${command.arrows.fString()}</b>`;
+
             case 'event.battle':
+            case 'vehicle.battle':
                 return `${command.name}: <b>${command.battle.fString()}</b>`;
+
+            case 'object.branch':
+                return `${command.name} <b>${command.branch.fString()}</b> ` +
+                       `<b>${command.offset.value}</b> Bytes`;
 
             case 'event.characterEquip':
                 return `<b>${command.equipment.fString()}</b> Equipment for ` +
@@ -65,6 +87,7 @@ class FF6Script extends ROMScriptDelegate {
                        `<b>${this.statusString(command.status.value)}</b>`;
 
             case 'event.cinematic':
+            case 'vehicle.cinematic':
                 return `${command.name}: <b>${command.cinematic.fString()}</b>`;
 
             case 'event.cinematicEnding':
@@ -80,6 +103,19 @@ class FF6Script extends ROMScriptDelegate {
                 }
                 return `Display Dialogue:<br/><b>${desc}</b>`;
 
+            case 'object.direction':
+            case 'world.direction':
+                return `${command.name}: <b>Face ${command.direction.fString()}</b>`;
+
+            case 'vehicle.direction':
+                return `Change <b>${command.directionType.fString()}</b> to <b>${command.direction.value}</b>`;
+
+            case 'world.figaro':
+                return `Show Animation: <b>${command.animation.fString()}</b>`;
+
+            case 'vehicle.graphic':
+                return `${command.name} to <b>${command.graphic.fString()}</b>`;
+
             case 'event.inventoryEsper':
                 return `<b>${command.giveTake.fString()}</b> Esper: ` +
                        `<b>${command.esper.fString()}</b>`;
@@ -91,6 +127,9 @@ class FF6Script extends ROMScriptDelegate {
             case 'event.inventoryItem':
                 return `<b>${command.giveTake.fString()}</b> Item: ` +
                        `<b>${command.item.fString()}</b>`;
+
+            case 'object.jump':
+                return `${command.name} (<b>${command.jump.fString()}</b>)`;
 
             case 'event.jumpBattleSwitch':
                 offset = command.scriptPointer.value;
@@ -107,6 +146,29 @@ class FF6Script extends ROMScriptDelegate {
                 }
                 return desc;
 
+            case 'event.jumpDialog':
+                desc = `${command.name}:`;
+                for (const choiceAssembly of command.pointerArray.iterator()) {
+                    offset = choiceAssembly.scriptPointer.value;
+                    desc += `<br/>${choiceAssembly.i}: ` +
+                            `<b>${this.label(command.parent, offset)}</b>`;
+                }
+                return desc;
+
+            case 'world.jumpDirection':
+                offset = command.scriptPointer.value;
+                return `Jump to <b>${this.label(command.parent, offset)}</b> ` +
+                       `if Facing <b>${command.direction.fString()}</b>`;
+
+            case 'object.jumpEvent':
+                offset = command.scriptPointer.value;
+                return `${command.name}: <b>${this.label(command.parent, offset)}</b>`;
+
+            case 'world.jumpKeypress':
+                offset = command.scriptPointer.value;
+                return `Jump to <b>${this.label(command.parent, offset)}</b> ` +
+                       `if A Button is Pressed`;
+
             case 'event.jumpSub':
                 offset = command.scriptPointer.value;
                 return `${command.name}: <b>${this.label(command.parent, offset)}</b>`;
@@ -120,18 +182,9 @@ class FF6Script extends ROMScriptDelegate {
                 return `Call Subroutine: <b>${this.label(command.parent, offset)}</b> ` +
                        `(Repeat <b>${command.count.value}</b> Times)`;
 
-            case 'event.jumpDialog':
-                desc = `${command.name}:`;
-                for (const choiceAssembly of command.pointerArray.iterator()) {
-                    offset = choiceAssembly.scriptPointer.value;
-                    desc += `<br/>${choiceAssembly.i}: ` +
-                            `<b>${this.label(command.parent, offset)}</b>`;
-                }
-                return desc;
-
             case 'event.jumpSwitch':
-            case 'world.jumpSwitch':
             case 'vehicle.jumpSwitch':
+            case 'world.jumpSwitch':
                 offset = command.scriptPointer.value;
                 desc = `Jump to <b>${this.label(command.parent, offset)}</b> if ` +
                        `<b>${command.anyAll.fString()}</b> of These are True:`;
@@ -142,11 +195,15 @@ class FF6Script extends ROMScriptDelegate {
                 }
                 return desc;
 
+            case 'object.layerPriority':
+                return `${command.name} to <b>${command.priority.fString()}</b>`;
+
             case 'event.map':
             case 'event.mapParent':
-            case 'world.map':
             case 'vehicle.map':
-                return `${command.name}: <b>${command.map.fString()}</b>`;
+            case 'world.map':
+                return `${command.name}: <b>${command.map.fString()}</b> ` +
+                       `at (<b>${command.xDest.value}</b>,<b>${command.yDest.value}</b>)`;
 
             case 'event.mapAnimationCounter':
                 return `${command.name}: <b>Tile ${command.tile.value}</b>, ` +
@@ -158,7 +215,7 @@ class FF6Script extends ROMScriptDelegate {
 
             case 'event.mapBackground':
                 return `Change Map <b>${command.layer.fString()}</b> at ` +
-                       `(${command.x.value},${command.y.value})`;
+                       `(<b>${command.x.value}</b>,<b>${command.y.value}</b>)`;
 
             case 'event.mapPalette':
                 return `Change <b>${command.vramPalette.fString()}</b> to ` +
@@ -172,6 +229,26 @@ class FF6Script extends ROMScriptDelegate {
 
             case 'event.menuShop':
                 return `${command.name}: <b>${command.shop.fString()}</b>`;
+
+            case 'vehicle.miniMap':
+            case 'world.miniMap':
+                return `<b>${command.miniMap.fString()}</b>`;
+
+            case 'object.move':
+            case 'world.move':
+                return `${command.name} <b>${command.direction.fString()} ` +
+                       `${command.distance.value}</b>`;
+
+            case 'vehicle.move':
+                return `${command.name}: <b>${command.flags.fString()} ` +
+                       `${command.duration.value}</b>`;
+
+            case 'object.moveDiagonal':
+            case 'world.moveDiagonal':
+                return `${command.name} <b>${command.direction.fString()}</b>`;
+
+            case 'vehicle.moveForward':
+                return `${command.name} at Speed <b>${command.speed.value}</b>`;
 
             case 'event.objectCollisions':
                 return `<b>${command.enable.fString()}</b> Collision Event for ` +
@@ -238,6 +315,10 @@ class FF6Script extends ROMScriptDelegate {
             case 'event.partyPosition':
                 return `Move the Active Party to (${command.x.value},${command.y.value})`;
 
+            case 'object.position':
+                return `${command.name} to (<b>${command.x.value}</b>,` +
+                       `<b>${command.y.value}</b>)`;
+
             case 'event.repeatStart':
                 return `${command.name} (Repeat <b>${command.count.value}</b> Times)`;
 
@@ -245,6 +326,8 @@ class FF6Script extends ROMScriptDelegate {
                 return `End Repeat if <b>${command.switch.fString()}</b> == On`;
 
             case 'event.screenFade':
+            case 'vehicle.screenFade':
+            case 'world.screenFade':
                 return `<b>${command.fade.fString()}</b>`;
 
             case 'event.screenFadeManual':
@@ -294,6 +377,15 @@ class FF6Script extends ROMScriptDelegate {
                        `${command.colorLast.value}</b>: ` +
                        `<b>${command.color.fString()}</b>`;
 
+            case 'object.showHide':
+                return `<b>${command.showHide.fString()}</b> Object`;
+
+            case 'vehicle.showHide':
+                return `<b>${command.showHide.fString()}</b> Vehicle Sprite`;
+
+            case 'world.showHide':
+                return `<b>${command.showHide.fString()}</b> Character Sprite`;
+
             case 'event.spcInterrupt':
                 return `${command.name} <b>${command.interrupt.fString()}</b>`;
 
@@ -312,14 +404,19 @@ class FF6Script extends ROMScriptDelegate {
             case 'event.spcWait':
                 return `${command.name} <b>${command.waitType.fString()}</b>`;
 
+            case 'object.speed':
+            case 'world.speed':
+                return `${command.name} to <b>${command.speed.fString()}</b>`;
+
             case 'event.switchBattle':
-                return `Set Battle Switch: <b>${command.switch.fString()}</b> = ` +
+                return `Change Battle Switch: <b>${command.switch.fString()}</b> = ` +
                        `<b>${command.onOff.fString()}</b>`;
 
             case 'event.switch':
+            case 'object.switch':
             case 'world.switch':
             case 'vehicle.switch':
-                return `Set Switch: <b>${command.switch.fString()}</b> = ` +
+                return `Change Switch: <b>${command.switch.fString()}</b> = ` +
                        `<b>${command.onOff.fString()}</b>`;
 
             case 'event.switchControl':
@@ -343,15 +440,20 @@ class FF6Script extends ROMScriptDelegate {
                        `<b>${command.variable.fString()}</b>: ` +
                        `<b>${command.varValue.value}</b>`;
 
+            case 'object.vehicle':
+                return `${command.name} to <b>${command.vehicle.fString()}</b>`;
+
             case 'event.wait':
                 return `${command.name} <b>${command.duration.fString()}</b>`;
+
+            case 'object.wait':
+            case 'vehicle.wait':
+            case 'world.wait':
+                return `${command.name} <b>${command.duration.value}</b> Frames`;
 
             case 'event.waitManual':
                 const units = command.units.fString();
                 return `${command.name} <b>${command[`duration${units}`].value} ${units}</b>`;
-
-            case 'object.move':
-                return `${command.name} <b>${command.direction.fString()} ${command.distance.value}</b>`;
 
             default:
                 break;
