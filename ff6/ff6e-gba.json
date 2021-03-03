@@ -2675,7 +2675,7 @@
             "type": "script",
             "name": "Event Script",
             "range": "0x087A0000-0x087E91A8",
-            "encoding": "event",
+            "encoding": ["event", "object", "world", "vehicle"],
             "label": {
                 "No Event": "0x087A0000",
                 "Return": "0x087A5EA9",

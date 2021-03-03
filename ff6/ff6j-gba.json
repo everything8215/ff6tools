@@ -2668,7 +2668,7 @@
             "type": "script",
             "name": "Event Script",
             "range": "0x087A0000-0x087E90FB",
-            "encoding": "event",
+            "encoding": ["event", "object", "world", "vehicle"],
             "label": {
                 "No Event": "0x087A0000",
                 "Return": "0x087A5EA9",
@@ -15937,7 +15937,7 @@
             "length": "0x4E",
             "default": "Target %i",
             "string": {
-                "0x00-0x30": "<characterNames[%i]>",
+                "0x00-0x30": "<stringTable.characterNames[%i]>",
                 "0x30": "Monster Slot 1",
                 "0x31": "Monster Slot 2",
                 "0x32": "Monster Slot 3",
