@@ -115,9 +115,12 @@ class FF6Script extends ROMScriptDelegate {
                     } else if (this.rom.stringTable.dialog) {
                         var dialogString = this.rom.stringTable.dialog.string[d];
                         var language = dialogString.language;
-                        if (!language) break;
-                        var firstLanguage = Object.keys(language)[0];
-                        var link = language[firstLanguage].link;
+                        if (language) {
+                            var firstLanguage = Object.keys(language)[0];
+                            var link = language[firstLanguage].link;
+                        } else {
+                            var link = dialogString.link;
+                        }
                         dialog = command.parsePath(link.replace(/%i/g, d.toString()));
                     } else {
                         break;
@@ -212,13 +215,14 @@ class FF6Script extends ROMScriptDelegate {
 
     willAssemble(command) {
         switch (`${command.encoding}.${command.key}`) {
+
             case 'event.objectScript':
                 // find the end of the object script
                 var script = command.parent;
                 var i = script.command.indexOf(command);
                 while (++i < script.command.length) {
                     var nextCommand = script.command[i];
-                    if (nextCommand.encoding !== 'object') break;
+                    if (nextCommand.encoding === 'event') break;
                 }
                 var length = nextCommand.range.begin - command.range.end;
                 if (length === command.scriptLength.value) break;
@@ -303,12 +307,16 @@ class FF6Script extends ROMScriptDelegate {
             case 'event.map':
             case 'vehicle.map':
             case 'world.map':
-                if (command.map.value >= 3 && command.map.value !== 511) return 'event';
-                if (command.vehicle.value) return 'vehicle';
-                return 'world';
+                if (command.map.value >= 3 && command.map.value !== 511) {
+                    return 'event';
+                } else if (command.vehicle.value) {
+                    return 'vehicle';
+                } else {
+                    return 'world';
+                }
 
-            case 'event.end':
-            case 'object.end':
+            // case 'event.end':
+            // case 'object.end': // there are some gba object scripts with a double FF that this messes up
             case 'vehicle.end':
             case 'world.end':
                 return 'event';

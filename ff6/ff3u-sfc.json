@@ -11020,6 +11020,7 @@
                             "type": "property",
                             "name": "Count",
                             "begin": 1,
+                            "mask": "0x0F",
                             "hidden": true
                         },
                         "pointerArray": {

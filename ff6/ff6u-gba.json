@@ -9805,6 +9805,7 @@
                             "type": "property",
                             "name": "Count",
                             "begin": 1,
+                            "mask": "0x0F",
                             "hidden": true
                         },
                         "pointerArray": {
@@ -14028,10 +14029,10 @@
                 "70": "Timers are Shown in Battle",
                 "71": "Eaten by Zone Eater",
                 "72": "Doom Gaze is Defeated",
-                "73": "<characterNames[11]> is available",
-                "75": "<characterNames[3]> Can't Leave After Battle",
-                "76": "<characterNames[1]> is a Merchant",
-                "77": "<characterNames[1]> is a Green Soldier",
+                "73": "<stringTable.characterNames[11]> is available",
+                "75": "<stringTable.characterNames[3]> Can't Leave After Battle",
+                "76": "<stringTable.characterNames[1]> is a Merchant",
+                "77": "<stringTable.characterNames[1]> is a Green Soldier",
                 "80-96": "Doom Gaze's HP",
                 "96-104": "Cursed Shield Battle Counter"
             }

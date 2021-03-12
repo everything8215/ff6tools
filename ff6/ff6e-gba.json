@@ -2674,7 +2674,7 @@
         "eventScript": {
             "type": "script",
             "name": "Event Script",
-            "range": "0x087A0000-0x087E91A8",
+            "range": "0x087A0000-0x087E8C43",
             "encoding": ["event", "object", "world", "vehicle"],
             "label": {
                 "No Event": "0x087A0000",
@@ -9766,6 +9766,7 @@
                             "type": "property",
                             "name": "Count",
                             "begin": 1,
+                            "mask": "0x0F",
                             "hidden": true
                         },
                         "pointerArray": {
