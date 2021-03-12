@@ -9,6 +9,316 @@ class FF6Script extends ROMScriptDelegate {
         this.name = 'FF6Script';
     }
 
+    initScript(script) {
+
+        if (script.key !== 'eventScript') return;
+
+        // add references for each map's events
+        var triggers, m, t, offset, label;
+
+        // event triggers
+        for (const triggerArray of this.rom.eventTriggers.iterator()) {
+            const encoding = (triggerArray.i < 3) ? 'world' : 'event'
+            for (const trigger of triggerArray.iterator()) {
+                const scriptPointer = trigger.scriptPointer;
+                script.addPlaceholder(trigger.scriptPointer, scriptPointer.value, encoding);
+            }
+        }
+
+        // npcs
+        for (const triggerArray of this.rom.eventTriggers.iterator()) {
+            if (triggerArray.i < 3) continue;
+            for (const trigger of triggerArray.iterator()) {
+                if (trigger.scriptPointer.invalid) continue;
+                const scriptPointer = trigger.scriptPointer;
+                script.addPlaceholder(trigger.scriptPointer, scriptPointer.value, 'event');
+            }
+        }
+
+        // startup event
+        for (const map of this.rom.mapProperties.iterator()) {
+            if (map.i < 3) continue;
+            const scriptPointer = map.scriptPointer;
+            label = this.rom.stringTable.mapProperties.string[map.i].fString();
+            script.addPlaceholder(scriptPointer, scriptPointer.value, 'event', label);
+        }
+
+        // add references for vehicle events
+        for (const event of this.rom.vehicleEvents.iterator()) {
+            const scriptPointer = event.scriptPointer;
+            label = this.rom.stringTable.vehicleEvents.string[event.i].fString();
+            script.addPlaceholder(scriptPointer, scriptPointer.value, 'vehicle', label);
+        }
+
+        // todo: add references for ff6 advance events
+
+    }
+
+    didDisassemble(command, data) {
+
+        var offset;
+
+        switch (`${command.encoding}.${command.key}`) {
+
+            case 'event.objectEvent':
+            case 'event.startTimer':
+            case 'event.jumpSub':
+            case 'event.jumpSubRepeat':
+            case 'event.jumpBattleSwitch':
+            case 'event.jumpRandom':
+            case 'world.jumpKeypress':
+            case 'world.jumpDirection':
+                offset = command.scriptPointer.value;
+                command.parent.addPlaceholder(command.scriptPointer, offset, command.encoding);
+                break;
+
+            case 'object.jumpEvent':
+                offset = command.scriptPointer.value;
+                command.parent.addPlaceholder(command.scriptPointer, offset, 'event');
+                break;
+
+            case 'event.jumpCharacter':
+                var count = command.count.value;
+                if (count === 0) {
+                    this.rom.log(`Invalid Count Parameter for Command at ${command.defaultLabel}`);
+                    count = 1;
+                }
+                command.range.end = command.range.begin + 2 + count * 3;
+                command.pointerArray.arrayLength = count;
+                command.pointerArray.range.end = command.range.length;
+                ROMData.prototype.disassemble.call(command, data);
+                command.pointerArray.disassemble(command.data);
+                for (c = 0; c < count; c++) {
+                    var pointer = command.pointerArray.item(c).scriptPointer;
+                    offset = pointer.value;
+                    command.parent.addPlaceholder(pointer, offset, command.encoding);
+                }
+                break;
+
+            case 'event.jumpDialog':
+                // default to 2 choices
+                var choices = 2;
+
+                // find the previous dialog command
+                var c = command.parent.command.length - 1;
+                while (true) {
+                    var previous = command.parent.command[c--];
+                    if (!previous) break;
+                    if (previous.key !== 'dialog') continue;
+
+                    // get the previous dialog text
+                    var d = previous.dialog.value;
+                    var dialog;
+                    if (this.rom.dialog) {
+                        dialog = this.rom.dialog.item(d);
+                        if (!dialog || !dialog.text) continue;
+                    } else if (this.rom.stringTable.dialog) {
+                        var dialogString = this.rom.stringTable.dialog.string[d];
+                        var language = dialogString.language;
+                        if (!language) break;
+                        var firstLanguage = Object.keys(language)[0];
+                        var link = language[firstLanguage].link;
+                        dialog = command.parsePath(link.replace(/%i/g, d.toString()));
+                    } else {
+                        break;
+                    }
+
+                    // count the number of dialog choices
+                    var matches = dialog.text.match(/\\choice/g);
+
+                    // keep looking if there were no dialog choices
+                    if (!matches) continue;
+                    choices = matches.length;
+                    break;
+                }
+                command.range.end = command.range.begin + 1 + choices * 3;
+                command.pointerArray.arrayLength = choices;
+                command.pointerArray.range.end = command.range.length;
+
+                ROMData.prototype.disassemble.call(command, data);
+                command.pointerArray.disassemble(command.data);
+                for (c = 0; c < choices; c++) {
+                    var pointer = command.pointerArray.item(c).scriptPointer;
+                    offset = pointer.value;
+                    command.parent.addPlaceholder(pointer, offset, 'event');
+                }
+                break;
+
+            case 'event.jumpSwitch':
+            case 'vehicle.jumpSwitch':
+            case 'world.jumpSwitch':
+                var count = command.count.value;
+                if (count === 0) {
+                    this.rom.log(`Invalid Count Parameter for Command at ${command.defaultLabel}`);
+                    count = 1;
+                }
+                var length = count * 2 + 4;
+
+                // update the command's range
+                command.range.end = command.range.begin + length;
+                command.assembly.scriptPointer.range = new ROMRange(length - 3, length);
+                command.switchArray.arrayLength = count;
+                command.switchArray.range.end = command.switchArray.range.begin + count * 2;
+                ROMData.prototype.disassemble.call(command, data);
+                command.switchArray.disassemble(command.data);
+                command.scriptPointer.disassemble(command.data);
+
+                // add a placeholder at the jump offset
+                offset = command.scriptPointer.value;
+                command.parent.addPlaceholder(command.scriptPointer, offset, command.encoding);
+                break;
+
+            case 'event.objectScript':
+                // add a placeholder at the end of the object script
+                offset = command.range.end + command.scriptLength.value;
+                command.parent.addPlaceholder(null, offset, 'event');
+                break;
+
+            case 'event.mapBackground':
+                var w = command.w.value;
+                var h = command.h.value;
+                command.range.end += w * h;
+                ROMData.prototype.disassemble.call(command, data);
+                break;
+
+            case 'event.switch':
+                var encoding = this.rom.scriptEncoding[command.encoding];
+                var bank = command.bank.value - encoding.opcode[command.key];
+                if (bank & 1) {
+                    command.onOff.value = 1;
+                } else {
+                    command.onOff.value = 0;
+                }
+                bank >>= 1;
+                command.switch.value += bank << 8;
+                break;
+
+            case 'object.switch':
+                var encoding = this.rom.scriptEncoding[command.encoding];
+                var bank = command.bank.value - encoding.opcode[command.key];
+                if (bank < 3) {
+                    command.onOff.value = 0;
+                } else {
+                    command.onOff.value = 1;
+                    bank -= 3;
+                }
+                command.switch.value += bank << 8;
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    willAssemble(command) {
+        switch (`${command.encoding}.${command.key}`) {
+            case 'event.objectScript':
+                // find the end of the object script
+                var script = command.parent;
+                var i = script.command.indexOf(command);
+                while (++i < script.command.length) {
+                    var nextCommand = script.command[i];
+                    if (nextCommand.encoding !== 'object') break;
+                }
+                var length = nextCommand.range.begin - command.range.end;
+                if (length === command.scriptLength.value) break;
+                command.scriptLength.value = length;
+                command.scriptLength.markAsDirty();
+                break;
+
+            case 'object.switch':
+                var encoding = this.rom.scriptEncoding[command.encoding];
+                command.bank.value = encoding.opcode[command.key];
+                if (command.switch.value >= 0x0100) command.bank.value++;
+                if (command.switch.value >= 0x0200) command.bank.value++;
+                if (command.onOff.value) command.bank.value += 3;
+                command.bank.markAsDirty();
+                command.onOff.isDirty = false;
+                break;
+
+            case 'event.switch':
+                var encoding = this.rom.scriptEncoding[command.encoding];
+                command.bank.value = encoding.opcode[command.key];
+                if (command.switch.value >= 0x0100) command.bank.value += 2;
+                if (command.switch.value >= 0x0200) command.bank.value += 2;
+                if (command.switch.value >= 0x0300) command.bank.value += 2;
+                if (command.switch.value >= 0x0400) command.bank.value += 2;
+                if (command.switch.value >= 0x0500) command.bank.value += 2;
+                if (command.switch.value >= 0x0600) command.bank.value += 2;
+                if (command.onOff.value) command.bank.value++;
+                command.bank.markAsDirty();
+                command.onOff.isDirty = false;
+                break;
+
+            case 'event.jumpCharacter':
+                var count = command.pointerArray.arrayLength;
+                var length = 2 + count * 3;
+                var newData = new Uint8Array(length);
+                newData.set(command.data);
+                command.lazyData = null;
+                command.data = newData;
+                command.range.end = command.range.begin + length;
+                command.assembly.pointerArray.range.end = length;
+                break;
+
+            case 'event.jumpDialog':
+                var count = command.pointerArray.arrayLength;
+                var length = 1 + count * 3;
+                var newData = new Uint8Array(length);
+                newData.set(command.data);
+                command.lazyData = null;
+                command.data = newData;
+                command.range.end = command.range.begin + length;
+                command.assembly.pointerArray.range.end = length;
+                break;
+
+            case 'event.jumpSwitch':
+            case 'vehicle.jumpSwitch':
+            case 'world.jumpSwitch':
+                var count = command.switchArray.arrayLength;
+                if (command.count.value !== count) {
+                    command.count.value = count;
+                    command.count.markAsDirty();
+                }
+                var length = count * 2 + 4;
+                var newData = new Uint8Array(length);
+                newData.set(command.data);
+                command.lazyData = null;
+                command.data = newData;
+                command.range.end = command.range.begin + length;
+                command.assembly.switchArray.range.end = length - 3;
+                command.assembly.scriptPointer.range = new ROMRange(length - 3, length);
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    nextEncoding(command) {
+        switch (`${command.encoding}.${command.key}`) {
+            case 'event.objectScript':
+                return 'object';
+
+            case 'event.map':
+            case 'vehicle.map':
+            case 'world.map':
+                if (command.map.value >= 3 && command.map.value !== 511) return 'event';
+                if (command.vehicle.value) return 'vehicle';
+                return 'world';
+
+            case 'event.end':
+            case 'object.end':
+            case 'vehicle.end':
+            case 'world.end':
+                return 'event';
+
+            default:
+                break;
+        }
+        return super.nextEncoding(command);
+    }
+
     description(command) {
         let desc = '';
         var offset;
@@ -84,7 +394,7 @@ class FF6Script extends ROMScriptDelegate {
             case 'event.characterStatus':
                 return `<b>${command.effect.fString()}</b> Status for ` +
                        `<b>${command.character.fString()}</b>: ` +
-                       `<b>${this.statusString(command.status.value)}</b>`;
+                       `<b>${command.status.fString()}</b>`;
 
             case 'event.cinematic':
             case 'vehicle.cinematic':
@@ -342,12 +652,12 @@ class FF6Script extends ROMScriptDelegate {
 
             case 'event.screenMath':
                 return `Set Fixed Color <b>${command.math.fString()}</b>: ` +
-                       `<b>${command.color.fString()}</b> ` +
-                       `<b>Speed ${command.speed.value}</b> ` +
+                       `<b>${command.color.fString()}</b>, ` +
+                       `<b>Speed ${command.speed.value}</b>, ` +
                        `<b>Intensity ${command.intensity.value}</b>`;
 
             case 'event.screenMosaic':
-                return `${command.name} <b>Speed ${command.speed.value}</b>`;
+                return `${command.name} (<b>Speed ${command.speed.value}</b>)`;
 
             case 'event.screenPalettes':
                 return `Modify ${command.palettes.fString()} Palettes: ` +
@@ -399,10 +709,10 @@ class FF6Script extends ROMScriptDelegate {
                 return `${command.name} <b>${command.soundEffect.value}</b>`;
 
             case 'event.spcSync':
-                return `${command.name} <b>Position ${command.position.value}</b>`;
+                return `${command.name} (<b>Position ${command.position.value}</b>)`;
 
             case 'event.spcWait':
-                return `${command.name} <b>${command.waitType.fString()}</b>`;
+                return `${command.name} (<b>${command.waitType.fString()}</b>)`;
 
             case 'object.speed':
             case 'world.speed':
@@ -429,7 +739,7 @@ class FF6Script extends ROMScriptDelegate {
                 const frame = duration % 60;
                 offset = command.scriptPointer.value;
                 return `${command.name} <b>${command.timer.value}</b> ` +
-                       `<b>${min}m:${sec}s:${frame}f</b>: ` +
+                       `(<b>${min}m:${sec}s:${frame}f</b>): ` +
                        `<b>${this.label(command.parent, offset)}</b>`;
 
             case 'event.timerStop':
@@ -459,300 +769,6 @@ class FF6Script extends ROMScriptDelegate {
                 break;
         }
         return super.description(command);
-    }
-
-    initScript(script) {
-
-        if (script.key !== 'eventScript') return;
-
-        // add references for each map's events
-        var triggers, m, t, offset, label;
-
-        // event triggers
-        for (m = 0; m < this.rom.eventTriggers.arrayLength; m++) {
-            const encoding = (m < 3) ? 'world' : 'event'
-            triggers = this.rom.eventTriggers.item(m);
-            for (t = 0; t < triggers.arrayLength; t++) {
-                offset = triggers.item(t).scriptPointer.value;
-                script.addPlaceholder(triggers.item(t).scriptPointer, offset, encoding);
-            }
-        }
-
-        // npcs
-        for (m = 3; m < this.rom.npcProperties.arrayLength; m++) {
-            triggers = this.rom.npcProperties.item(m);
-            for (t = 0; t < triggers.arrayLength; t++) {
-                var npc = triggers.item(t);
-                if (npc.vehicle.value === 0 && npc.special.value) continue;
-                offset = triggers.item(t).scriptPointer.value;
-                script.addPlaceholder(triggers.item(t).scriptPointer, offset, 'event');
-            }
-        }
-
-        // startup event
-        for (m = 3; m < this.rom.mapProperties.arrayLength; m++) {
-            offset = this.rom.mapProperties.item(m).scriptPointer.value;
-            label = this.rom.stringTable.mapProperties.string[m].fString();
-            script.addPlaceholder(this.rom.mapProperties.item(m).scriptPointer, offset, 'event', label);
-        }
-
-        // add references for vehicle events
-        for (var e = 0; e < this.rom.vehicleEvents.arrayLength; e++) {
-            offset = this.rom.vehicleEvents.item(e).scriptPointer.value;
-            label = this.rom.stringTable.vehicleEvents.string[e].fString();
-            script.addPlaceholder(this.rom.vehicleEvents.item(e).scriptPointer, offset, 'vehicle', label);
-        }
-
-        // add references for ff6 advance events
-
-    }
-
-    didDisassemble(command, data) {
-
-        var offset;
-
-        switch (command.key) {
-
-            case 'objectEvent':
-            case 'startTimer':
-            case 'jumpSub':
-            case 'jumpSubRepeat':
-            case 'jumpBattleSwitch':
-            case 'jumpRandom':
-            case 'jumpKeypress':
-            case 'jumpDirection':
-                offset = command.scriptPointer.value;
-                command.parent.addPlaceholder(command.scriptPointer, offset, command.encoding);
-                break;
-
-            case 'jumpEvent':
-                offset = command.scriptPointer.value;
-                command.parent.addPlaceholder(command.scriptPointer, offset, 'event');
-                break;
-
-            case 'jumpCharacter':
-                var count = command.count.value;
-                if (count === 0) {
-                    this.rom.log(`Invalid Count Parameter for Command at ${command.defaultLabel}`);
-                    count = 1;
-                }
-                command.range.end = command.range.begin + 2 + count * 3;
-                command.pointerArray.arrayLength = count;
-                command.pointerArray.range.end = command.range.length;
-                ROMData.prototype.disassemble.call(command, data);
-                command.pointerArray.disassemble(command.data);
-                for (c = 0; c < count; c++) {
-                    var pointer = command.pointerArray.item(c).scriptPointer;
-                    offset = pointer.value;
-                    command.parent.addPlaceholder(pointer, offset, command.encoding);
-                }
-                break;
-
-            case 'jumpDialog':
-                // default to 2 choices
-                var choices = 2;
-
-                // find the previous dialog command
-                var c = command.parent.command.length - 1;
-                while (true) {
-                    var previous = command.parent.command[c--];
-                    if (!previous) break;
-                    if (previous.key !== 'dialog') continue;
-
-                    // get the previous dialog text
-                    var d = previous.dialog.value;
-                    var dialog;
-                    if (this.rom.dialog) {
-                        dialog = this.rom.dialog.item(d);
-                        if (!dialog || !dialog.text) continue;
-                    } else if (this.rom.stringTable.dialog) {
-                        var dialogString = this.rom.stringTable.dialog.string[d];
-                        var language = dialogString.language;
-                        if (!language) break;
-                        var firstLanguage = Object.keys(language)[0];
-                        var link = language[firstLanguage].link;
-                        dialog = command.parsePath(link.replace(/%i/g, d.toString()));
-                    } else {
-                        break;
-                    }
-
-                    // count the number of dialog choices
-                    var matches = dialog.text.match(/\\choice/g);
-
-                    // keep looking if there were no dialog choices
-                    if (!matches) continue;
-                    choices = matches.length;
-                    break;
-                }
-                command.range.end = command.range.begin + 1 + choices * 3;
-                command.pointerArray.arrayLength = choices;
-                command.pointerArray.range.end = command.range.length;
-
-                ROMData.prototype.disassemble.call(command, data);
-                command.pointerArray.disassemble(command.data);
-                for (c = 0; c < choices; c++) {
-                    var pointer = command.pointerArray.item(c).scriptPointer;
-                    offset = pointer.value;
-                    command.parent.addPlaceholder(pointer, offset, 'event');
-                }
-                break;
-
-            case 'jumpSwitch':
-                var count = command.count.value;
-                if (count === 0) {
-                    this.rom.log(`Invalid Count Parameter for Command at ${command.defaultLabel}`);
-                    count = 1;
-                }
-                var length = count * 2 + 4;
-
-                // update the command's range
-                command.range.end = command.range.begin + length;
-                command.assembly.scriptPointer.range = new ROMRange(length - 3, length);
-                command.switchArray.arrayLength = count;
-                command.switchArray.range.end = command.switchArray.range.begin + count * 2;
-                ROMData.prototype.disassemble.call(command, data);
-                command.switchArray.disassemble(command.data);
-                command.scriptPointer.disassemble(command.data);
-
-                // add a placeholder at the jump offset
-                offset = command.scriptPointer.value;
-                command.parent.addPlaceholder(command.scriptPointer, offset, command.encoding);
-                break;
-
-            case 'objectScript':
-                // add a placeholder at the end of the object script
-                offset = command.range.end + command.scriptLength.value;
-                command.parent.addPlaceholder(null, offset, 'event');
-                break;
-
-            case 'mapBackground':
-                var w = command.w.value;
-                var h = command.h.value;
-                command.range.end += w * h;
-                ROMData.prototype.disassemble.call(command, data);
-                break;
-
-            case 'switch':
-                if (command.encoding === 'event') {
-                    command.switch.value += command.bank.value << 8;
-                } else if (command.encoding === 'object') {
-                    var opcode = command.opcode.value;
-                    if (opcode < 0xE4) {
-                        command.onOff.value = 0;
-                        opcode -= 0xE1;
-                    } else {
-                        command.onOff.value = 1;
-                        opcode -= 0xE4;
-                    }
-                    command.switch.value += (opcode << 8);
-                }
-                break;
-
-            default:
-                break;
-        }
-    }
-
-    willAssemble(command) {
-        switch (command.key) {
-            case 'objectScript':
-                // find the end of the object script
-                var script = command.parent;
-                var i = script.command.indexOf(command);
-                while (++i < script.command.length) {
-                    var nextCommand = script.command[i];
-                    if (nextCommand.encoding !== 'object') break;
-                }
-                var length = nextCommand.range.begin - command.range.end;
-                if (length === command.scriptLength.value) break;
-                command.scriptLength.value = length;
-                command.scriptLength.markAsDirty();
-                break;
-
-            case 'switch':
-                if (command.encoding !== 'event') break;
-                command.bank.value = command.switch.value >> 8;
-                command.bank.markAsDirty();
-                break;
-
-            case 'jumpCharacter':
-                var count = command.pointerArray.arrayLength;
-                var length = 2 + count * 3;
-                var newData = new Uint8Array(length);
-                newData.set(command.data);
-                command.lazyData = null;
-                command.data = newData;
-                command.range.end = command.range.begin + length;
-                command.assembly.pointerArray.range.end = length;
-                break;
-
-            case 'jumpDialog':
-                var count = command.pointerArray.arrayLength;
-                var length = 1 + count * 3;
-                var newData = new Uint8Array(length);
-                newData.set(command.data);
-                command.lazyData = null;
-                command.data = newData;
-                command.range.end = command.range.begin + length;
-                command.assembly.pointerArray.range.end = length;
-                break;
-
-            case 'jumpSwitch':
-                var count = command.switchArray.arrayLength;
-                if (command.count.value !== count) {
-                    command.count.value = count;
-                    command.count.markAsDirty();
-                }
-                var length = count * 2 + 4;
-                var newData = new Uint8Array(length);
-                newData.set(command.data);
-                command.lazyData = null;
-                command.data = newData;
-                command.range.end = command.range.begin + length;
-                command.assembly.switchArray.range.end = length - 3;
-                command.assembly.scriptPointer.range = new ROMRange(length - 3, length);
-                break;
-
-            default:
-                break;
-        }
-    }
-
-    nextEncoding(command) {
-        switch (command.key) {
-            case 'objectScript':
-                return 'object';
-
-            case 'map':
-                if (command.map.value >= 3 && command.map.value !== 511) return 'event';
-                if (command.vehicle.value) return 'vehicle';
-                return 'world';
-
-            case 'end':
-                return 'event';
-
-            default:
-                return command.encoding;
-        }
-    }
-
-    statusString(statusMask) {
-        if (statusMask === 0) return 'None';
-        if (statusMask === 0xFFFF) return 'All';
-        let statusString = '';
-        const count = bitCount(statusMask);
-        for (let i = 0; i < 16; i++) {
-            const mask = 1 << i;
-            if (!(statusMask & mask)) continue;
-            statusMask ^= mask; // flip the bit
-            if (statusString !== '') {
-                // this is not the first element
-                if (count === 2) statusString += ' and ';
-                else statusString += (statusMask ? ', ' : ', and ');
-            }
-            statusString += this.rom.stringTable.statusNamesReversed.string[i].fString();
-        }
-        return statusString;
     }
 }
 

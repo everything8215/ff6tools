@@ -799,9 +799,8 @@
             "type": "array",
             "name": "Event Script",
             "range": "0x083C2B58-0x083E4838",
-            "array": {
-                "length": 2208
-            },
+            "isSequential": true,
+            "arrayLength": 2208,
             "assembly": {
                 "type": "script",
                 "encoding": "event"
@@ -815,29 +814,6 @@
                 "length": 2208,
                 "default": "Event %i",
                 "string": {
-                    "0": "No Event",
-                    "1": "NPC Dialog 1",
-                    "2": "NPC Dialog 2",
-                    "3": "NPC Dialog 3",
-                    "4": "NPC Dialog 4",
-                    "5": "NPC Dialog 5",
-                    "6": "NPC Dialog 6",
-                    "7": "NPC Dialog 7",
-                    "8": "NPC Dialog 8",
-                    "16": "Game Start",
-                    "34": "Tent",
-                    "36": "Cabin",
-                    "38": "Intro",
-                    "323": "Ending",
-                    "1407": "Restore Party HP/MP/Status",
-                    "1792": "Piano Practice 1",
-                    "1793": "Piano Practice 2",
-                    "1794": "Piano Practice 3",
-                    "1795": "Piano Practice 4",
-                    "1796": "Piano Practice 5",
-                    "1797": "Piano Practice 6",
-                    "1798": "Piano Practice 7",
-                    "1799": "Piano Practice 8"
                 }
             }
         },
@@ -3267,6 +3243,8 @@
                 "length": 815,
                 "default": "Trigger Event %i",
                 "string": {
+                    "17": "Tent",
+                    "18": "Cabin",
                     "255": "Save Point"
                 }
             }
@@ -3571,7 +3549,8 @@
             "delegate": "FF5Script",
             "command": {
                 "action": {
-                    "name": "Action",
+                    "name": "Do Action",
+                    "category": "Object",
                     "opcode": "0xA6-0xF3",
                     "length": 2,
                     "assembly": {
@@ -3592,7 +3571,8 @@
                     }
                 },
                 "actionParty": {
-                    "name": "Action (Party)",
+                    "name": "Do Action (Party)",
+                    "category": "Object",
                     "opcode": "0x78-0x9D",
                     "length": 1,
                     "assembly": {
@@ -3607,6 +3587,7 @@
                 },
                 "battle": {
                     "name": "Battle",
+                    "category": "Misc.",
                     "opcode": ["0x51", "0xA5"],
                     "length": 3,
                     "assembly": {
@@ -3650,6 +3631,7 @@
                 },
                 "battleStats": {
                     "name": "Battle (Character Stats)",
+                    "category": "Misc.",
                     "opcode": "0x6F",
                     "length": 4,
                     "assembly": {
@@ -3681,11 +3663,13 @@
                 },
                 "branchCharacters": {
                     "name": "Branch Based on Characters Present",
+                    "category": "Control",
                     "opcode": "0xFA",
                     "length": 2
                 },
                 "branchRandom": {
-                    "name": "Branch Forward (Random)",
+                    "name": "Branch Forward (50% Random)",
+                    "category": "Control",
                     "opcode": "0x74",
                     "length": 2,
                     "assembly": {
@@ -3699,6 +3683,7 @@
                 },
                 "character": {
                     "name": "Add/Remove Character",
+                    "category": "Character",
                     "opcode": ["0x4A", "0x4B"],
                     "length": 3,
                     "assembly": {
@@ -3706,16 +3691,58 @@
                             "type": "property",
                             "name": "Character",
                             "begin": 1,
-                            "stringTable": "eventCharacter"
+                            "mask": "0x07",
+                            "stringTable": "characterNames"
+                        },
+                        "addRemove": {
+                            "type": "property",
+                            "name": "Add/Remove",
+                            "begin": 1,
+                            "mask": "0x80",
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0": "Add",
+                                    "1": "Remove"
+                                }
+                            }
+                        },
+                        "present": {
+                            "type": "property",
+                            "name": "Present",
+                            "begin": 1,
+                            "mask": "0x40",
+                            "bool": true,
+                            "invert": true
+                        },
+                        "battleOrder": {
+                            "type": "property",
+                            "name": "Battle Order",
+                            "begin": 1,
+                            "mask": "0x30"
+                        },
+                        "gender": {
+                            "type": "property",
+                            "name": "Gender",
+                            "begin": 1,
+                            "mask": "0x08",
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0": "Male",
+                                    "1": "Female"
+                                }
+                            }
                         }
                     }
                 },
                 "characterHP": {
                     "name": "Change Character HP",
+                    "category": "Character",
                     "opcode": "0x37",
                     "length": 2,
                     "assembly": {
-                        "subtract": {
+                        "addSubtract": {
                             "type": "property",
                             "name": "Add/Subtract",
                             "begin": 1,
@@ -3759,10 +3786,11 @@
                 },
                 "characterMP": {
                     "name": "Change Character MP",
+                    "category": "Character",
                     "opcode": "0x38",
                     "length": 2,
                     "assembly": {
-                        "subtract": {
+                        "addSubtract": {
                             "type": "property",
                             "name": "Add/Subtract",
                             "begin": 1,
@@ -3805,6 +3833,7 @@
                 },
                 "characterStatus": {
                     "name": "Change Character Status",
+                    "category": "Character",
                     "opcode": "0x4E-0x51",
                     "length": 3,
                     "assembly": {
@@ -3815,9 +3844,9 @@
                             "stringTable": {
                                 "hideIndex": true,
                                 "string": {
-                                    "0x4E": "AND",
-                                    "0x4F": "OR",
-                                    "0x50": "XOR"
+                                    "0xBA": "Remove (AND)",
+                                    "0xBB": "Set (OR)",
+                                    "0xBC": "Toggle (XOR)"
                                 }
                             }
                         },
@@ -3832,39 +3861,31 @@
                             "name": "Status",
                             "begin": 2,
                             "flag": true,
-                            "stringTable": {
-                                "hideIndex": true,
-                                "string": {
-                                    "0": "Status 1",
-                                    "1": "Status 2",
-                                    "2": "Status 3",
-                                    "3": "Status 4",
-                                    "4": "Status 5",
-                                    "5": "Status 6",
-                                    "6": "Status 7",
-                                    "7": "Status 8"
-                                }
-                            }
+                            "stringTable": "status"
                         }
                     }
                 },
                 "command_28": {
                     "name": "Command $28",
+                    "category": "Misc.",
                     "opcode": "0x28",
                     "length": 1
                 },
                 "command_2A": {
                     "name": "Command $2A",
+                    "category": "Misc.",
                     "opcode": "0x2A",
                     "length": 1
                 },
                 "command_2C": {
                     "name": "Command $2C",
+                    "category": "Misc.",
                     "opcode": "0x2C",
                     "length": 1
                 },
                 "command_A4": {
                     "name": "Command $A4",
+                    "category": "Misc.",
                     "opcode": "0xA4",
                     "length": 6,
                     "assembly": {
@@ -3897,6 +3918,7 @@
                 },
                 "cutscene": {
                     "name": "Show Cutscene",
+                    "category": "Misc.",
                     "opcode": "0x49",
                     "length": 2,
                     "assembly": {
@@ -3920,13 +3942,14 @@
                     }
                 },
                 "dialog": {
-                    "name": "Dialog",
+                    "name": "Dialogue",
+                    "category": "Dialogue",
                     "opcode": "0x5C",
                     "length": 3,
                     "assembly": {
                         "dialog": {
                             "type": "property",
-                            "name": "Dialog",
+                            "name": "Dialogue",
                             "begin": 1,
                             "mask": "0x7FFF",
                             "link": "stringTable.dialog[%i]",
@@ -3935,13 +3958,14 @@
                     }
                 },
                 "dialogYesNo": {
-                    "name": "Dialog (Yes/No)",
+                    "name": "Dialogue (Yes/No)",
+                    "category": "Dialogue",
                     "opcode": "0x72",
                     "length": 7,
                     "assembly": {
                         "dialog": {
                             "type": "property",
-                            "name": "Dialog",
+                            "name": "Dialogue",
                             "begin": 1,
                             "mask": "0x7FFF",
                             "link": "dialog[%i]",
@@ -3967,11 +3991,13 @@
                 },
                 "end": {
                     "name": "End of Script",
+                    "category": "Control",
                     "opcode": "0x77",
                     "length": 1
                 },
                 "fade": {
                     "name": "Fade In/Out",
+                    "category": "Screen",
                     "opcode": "0x58-0x5A",
                     "length": 2,
                     "assembly": {
@@ -3996,11 +4022,13 @@
                 },
                 "fadeStop": {
                     "name": "Stop Fade",
+                    "category": "Screen",
                     "opcode": "0x2B",
                     "length": 1
                 },
                 "inn": {
-                    "name": "Inn",
+                    "name": "Display Inn Dialogue",
+                    "category": "Dialogue",
                     "opcode": "0x5E",
                     "length": 2,
                     "assembly": {
@@ -4025,6 +4053,7 @@
                 },
                 "inventoryGP": {
                     "name": "Give/Take GP",
+                    "category": "Inventory",
                     "opcode": ["0x3D", "0x3E"],
                     "length": 2,
                     "assembly": {
@@ -4050,6 +4079,7 @@
                 },
                 "inventoryItem": {
                     "name": "Give/Take Item",
+                    "category": "Inventory",
                     "opcode": ["0x39", "0x3A"],
                     "length": 2,
                     "assembly": {
@@ -4076,6 +4106,7 @@
                 },
                 "inventoryJob": {
                     "name": "Give Job",
+                    "category": "Inventory",
                     "opcode": "0x5B",
                     "length": 2,
                     "assembly": {
@@ -4089,10 +4120,11 @@
                 },
                 "inventoryMagic": {
                     "name": "Give Spell",
+                    "category": "Inventory",
                     "opcode": "0x3B",
                     "length": 2,
                     "assembly": {
-                        "magic": {
+                        "spell": {
                             "type": "property",
                             "name": "Spell",
                             "begin": 1,
@@ -4100,8 +4132,9 @@
                         }
                     }
                 },
-                "jump": {
+                "jumpSub": {
                     "name": "Call Subroutine",
+                    "category": "Control",
                     "opcode": "0x61",
                     "length": 3,
                     "assembly": {
@@ -4116,7 +4149,8 @@
                     }
                 },
                 "map": {
-                    "name": "Load Map",
+                    "name": "Change Map",
+                    "category": "Map",
                     "opcode": ["0x69", "0x6A", "0x6B"],
                     "length": 6,
                     "assembly": {
@@ -4140,6 +4174,82 @@
                                     "0x6B": "Fade Out Only"
                                 }
                             }
+                        },
+                        "mapTitle": {
+                            "type": "property",
+                            "name": "Show Map Title",
+                            "begin": 2,
+                            "mask": "0x20",
+                            "bool": true
+                        },
+                        "parentMap": {
+                            "type": "property",
+                            "name": "Set Parent Map",
+                            "begin": 2,
+                            "mask": "0x40",
+                            "bool": true
+                        },
+                        "unknown2_7": {
+                            "type": "property",
+                            "name": "Unknown 2.7",
+                            "begin": 2,
+                            "mask": "0x80",
+                            "bool": true
+                        },
+                        "x": {
+                            "type": "property",
+                            "name": "X Position",
+                            "begin": 3,
+                            "mask": "0x3F",
+                            "invalid": "this.parent.map.value < 5"
+                        },
+                        "xWorld": {
+                            "type": "property",
+                            "name": "X Position",
+                            "begin": 3,
+                            "invalid": "this.parent.map.value >= 5"
+                        },
+                        "y": {
+                            "type": "property",
+                            "name": "Y Position",
+                            "begin": 4,
+                            "mask": "0x3F",
+                            "invalid": "this.parent.map.value < 5"
+                        },
+                        "yWorld": {
+                            "type": "property",
+                            "name": "Y Position",
+                            "begin": 4,
+                            "invalid": "this.parent.map.value >= 5"
+                        },
+                        "direction": {
+                            "type": "property",
+                            "name": "Direction",
+                            "begin": 3,
+                            "mask": "0xC0",
+                            "invalid": "this.parent.map.value < 5",
+                            "stringTable": {
+                                "string": {
+                                    "0": "Up",
+                                    "1": "Right",
+                                    "2": "Down",
+                                    "3": "Left"
+                                }
+                            }
+                        },
+                        "vehicle": {
+                            "type": "property",
+                            "name": "Vehicle",
+                            "begin": 5,
+                            "mask": "0xE0",
+                            "invalid": "this.parent.map.value >= 5",
+                            "stringTable": "vehicle"
+                        },
+                        "unknown5": {
+                            "type": "property",
+                            "name": "Unknown 5",
+                            "begin": 5,
+                            "mask": "0x1F"
                         }
                     }
                 },
@@ -4353,14 +4463,15 @@
                     "opcode": "0xA2",
                     "length": 3,
                     "assembly": {
-                        "romPalette": {
+                        "vramPalette": {
                             "type": "property",
-                            "name": "ROM Palette",
-                            "begin": 1
+                            "name": "VRAM Palette",
+                            "begin": 1,
+                            "stringTable": "mapVRAMPalette"
                         },
-                        "ppuPalette": {
+                        "palette": {
                             "type": "property",
-                            "name": "PPU Palette",
+                            "name": "Palette",
                             "begin": 2
                         }
                     }
@@ -4670,7 +4781,7 @@
                     "opcode": "0x48",
                     "length": 2,
                     "assembly": {
-                        "song": {
+                        "soundEffect": {
                             "type": "property",
                             "name": "Sound Effect",
                             "begin": 1,
@@ -4813,13 +4924,22 @@
                 },
                 "switch": {
                     "name": "Change Event Switch",
+                    "category": "Control",
                     "opcode": "0x2F-0x33",
                     "length": 2,
                     "assembly": {
+                        "bank": {
+                            "type": "property",
+                            "name": "Bank",
+                            "begin": 0,
+                            "hidden": true
+                        },
                         "onOff": {
                             "type": "property",
                             "name": "On/Off",
+                            "mask": 0,
                             "stringTable": {
+                                "hideIndex": true,
                                 "string": {
                                     "0": "On",
                                     "1": "Off"
@@ -4830,7 +4950,7 @@
                             "type": "property",
                             "name": "Switch",
                             "begin": 1,
-                            "max": "0x1FF",
+                            "max": "0x01FF",
                             "stringTable": "eventSwitch"
                         }
                     }
@@ -5153,7 +5273,12 @@
                         }
                     }
                 },
-                "event": {
+                "end": {
+                    "name": "End of NPC Script",
+                    "opcode": "0xF0",
+                    "length": 1
+                },
+                "jumpEvent": {
                     "name": "Execute Event",
                     "opcode": "0xFF",
                     "length": 3,
@@ -5168,20 +5293,23 @@
                         }
                     }
                 },
-                "end": {
-                    "name": "End of NPC Script",
-                    "opcode": "0xF0",
-                    "length": 1
-                },
                 "switch": {
                     "name": "If Switch is On/Off",
                     "opcode": "0xFB-0xFF",
                     "length": 2,
                     "assembly": {
+                        "bank": {
+                            "type": "property",
+                            "name": "Bank",
+                            "begin": 0,
+                            "hidden": true
+                        },
                         "onOff": {
                             "type": "property",
                             "name": "On/Off",
+                            "mask": 0,
                             "stringTable": {
+                                "hideIndex": true,
                                 "string": {
                                     "0": "On",
                                     "1": "Off"
@@ -5192,7 +5320,7 @@
                             "type": "property",
                             "name": "Switch",
                             "begin": 1,
-                            "max": "0x1FF",
+                            "max": "0x01FF",
                             "stringTable": "eventSwitch"
                         }
                     }
@@ -5438,6 +5566,27 @@
             "link": "text[%i+0x16B3]",
             "string": {
                 "0": "No Title"
+            }
+        },
+        "mapVRAMPalette": {
+            "name": "Map VRAM Palette",
+            "string": {
+                "0": "Background Palette 0",
+                "1": "Background Palette 1",
+                "2": "Background Palette 2",
+                "3": "Background Palette 3",
+                "4": "Background Palette 4",
+                "5": "Background Palette 5",
+                "6": "Background Palette 6",
+                "7": "Background Palette 7",
+                "8": "Sprite Palette 0",
+                "9": "Sprite Palette 1",
+                "10": "Sprite Palette 2",
+                "11": "Sprite Palette 3",
+                "12": "Sprite Palette 4",
+                "13": "Sprite Palette 5",
+                "14": "Sprite Palette 6",
+                "15": "Sprite Palette 7"
             }
         },
         "monsterName": {
@@ -5850,6 +5999,44 @@
             "name": "Spell Names",
             "length": 94,
             "link": "text[%i+0x11E3]"
+        },
+        "status": {
+            "name": "Status",
+            "length": 32,
+            "string": {
+                "0": "Darkness",
+                "1": "Zombie",
+                "2": "Poison",
+                "3": "Float",
+                "4": "Mini",
+                "5": "Toad",
+                "6": "Stone",
+                "7": "Wounded",
+                "8": "Image 1",
+                "9": "Image 2",
+                "10": "Mute",
+                "11": "Berserk",
+                "12": "Charm",
+                "13": "Paralyze",
+                "14": "Sleep",
+                "15": "Aging",
+                "16": "Regen",
+                "17": "Invulnerable",
+                "18": "Slow",
+                "19": "Haste",
+                "20": "Stop",
+                "21": "Shell",
+                "22": "Armor",
+                "23": "Wall",
+                "24": "Hidden",
+                "25": "Critical",
+                "26": "Singing",
+                "27": "HP Leak",
+                "28": "Countdown",
+                "29": "Controlled",
+                "30": "False Image",
+                "31": "Erased"
+            }
         },
         "vehicle": {
             "name": "Vehicle",

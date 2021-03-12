@@ -10877,7 +10877,7 @@
                     "opcode": "0x54"
                 },
                 "screenMosaic": {
-                    "name": "Screen Mosaic",
+                    "name": "Pixelate the Screen",
                     "category": "Screen",
                     "opcode": "0x62",
                     "length": 2,
