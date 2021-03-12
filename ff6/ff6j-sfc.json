@@ -11926,22 +11926,23 @@
                     "length": 2,
                     "opcode": "0xD0-0xDE",
                     "assembly": {
+                        "bank": {
+                            "type": "property",
+                            "name": "Bank",
+                            "begin": 0,
+                            "hidden": true
+                        },
                         "onOff": {
                             "type": "property",
                             "name": "On/Off",
-                            "mask": "0x01",
+                            "mask": "0",
                             "stringTable": {
+                                "hideIndex": true,
                                 "string": {
                                     "0": "On",
                                     "1": "Off"
                                 }
                             }
-                        },
-                        "bank": {
-                            "type": "property",
-                            "name": "Bank",
-                            "mask": "0x0E",
-                            "hidden": true
                         },
                         "switch": {
                             "type": "property",
@@ -13003,10 +13004,17 @@
                     "length": 2,
                     "opcode": "0xE1-0xE7",
                     "assembly": {
+                        "bank": {
+                            "type": "property",
+                            "name": "Bank",
+                            "begin": 0,
+                            "hidden": true
+                        },
                         "onOff": {
                             "type": "property",
                             "name": "On/Off",
                             "stringTable": {
+                                "hideIndex": true,
                                 "string": {
                                     "0": "On",
                                     "1": "Off"
@@ -13017,8 +13025,7 @@
                             "type": "property",
                             "name": "Switch",
                             "begin": 1,
-                            "max": "0x02FF",
-                            "stringTable": "eventSwitches"
+                            "stringTable": "mapSwitches"
                         }
                     }
                 },
@@ -13457,6 +13464,7 @@
                             "type": "property",
                             "name": "Fade",
                             "stringTable": {
+                                "hideIndex": true,
                                 "string": {
                                     "0xD8": "Fade In",
                                     "0xD9": "Fade Out"
@@ -13474,6 +13482,7 @@
                             "name": "Show/Hide",
                             "begin": 0,
                             "stringTable": {
+                                "hideIndex": true,
                                 "string": {
                                     "0xD0": "Show Vehicle",
                                     "0xD1": "Hide Vehicle"
@@ -13491,6 +13500,7 @@
                             "type": "property",
                             "name": "On/Off",
                             "stringTable": {
+                                "hideIndex": true,
                                 "string": {
                                     "0xC8": "On",
                                     "0xC9": "Off"
@@ -13949,6 +13959,7 @@
                             "type": "property",
                             "name": "On/Off",
                             "stringTable": {
+                                "hideIndex": true,
                                 "string": {
                                     "0xC8": "On",
                                     "0xC9": "Off"
