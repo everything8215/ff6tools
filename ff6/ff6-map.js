@@ -422,11 +422,22 @@ class FF6Map extends ROMEditor {
             if (this.clickPoint.button === 2) return;
 
             const triggers = this.triggersAt(e.offsetX, e.offsetY);
-            if (triggers.length) {
+            if (e.detail === 2) {
+                // double click, select trigger script
+                this.selectTrigger(this.selectedTrigger);
+                const scriptPointer = this.selectedTrigger.scriptPointer;
+                if (scriptPointer && !scriptPointer.invalid) {
+                    propertyList.select(scriptPointer.script);
+                    scriptList.deselectAll();
+                    scriptList.selectRef(scriptPointer.value);
+                }
+
+            } else if (triggers.length) {
                 // select the first trigger, or the next trigger in a stack
                 let index = triggers.indexOf(this.selectedTrigger);
                 index = (index + 1) % triggers.length;
                 this.selectTrigger(triggers[index]);
+
             } else {
                 // clear trigger selection
                 this.selectTrigger(null);

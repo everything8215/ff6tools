@@ -297,11 +297,21 @@ class FF5Map extends ROMEditor {
             if (this.clickPoint.button === 2) return;
 
             const triggers = this.triggersAt(e.offsetX, e.offsetY);
-            if (triggers.length) {
+
+            if (e.detail === 2) {
+                // double click, select trigger script
+                this.selectTrigger(this.selectedTrigger);
+                const triggerEvent = this.selectedTrigger.event;
+                if (triggerEvent && !triggerEvent.invalid) {
+                    propertyList.select(triggerEvent.parsePath(triggerEvent.link));
+                }
+
+            } else if (triggers.length) {
                 // select the first trigger, or the next trigger in a stack
                 let index = triggers.indexOf(this.selectedTrigger);
                 index = (index + 1) % triggers.length;
                 this.selectTrigger(triggers[index]);
+
             } else {
                 // clear trigger selection
                 this.selectTrigger(null);

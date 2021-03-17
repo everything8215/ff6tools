@@ -401,11 +401,27 @@ class FF4Map extends ROMEditor {
             if (this.clickPoint.button === 2) return;
 
             const triggers = this.triggersAt(e.offsetX, e.offsetY);
-            if (triggers.length) {
+
+            if (e.detail === 2) {
+                // double click, select trigger script
+                this.selectTrigger(this.selectedTrigger);
+                const triggerEvent = this.selectedTrigger.event;
+                if (triggerEvent && !triggerEvent.invalid) {
+                    // event trigger
+                    propertyList.select(triggerEvent.parsePath(triggerEvent.link));
+
+                } else if (this.selectedTrigger.key === 'npcProperties') {
+                    // npc
+                    const npcSwitch = this.selectedTrigger.switch;
+                    propertyList.select(this.rom.npcScript.item(npcSwitch.value));
+                }
+
+            } else if (triggers.length) {
                 // select the first trigger, or the next trigger in a stack
                 let index = triggers.indexOf(this.selectedTrigger);
                 index = (index + 1) % triggers.length;
                 this.selectTrigger(triggers[index]);
+
             } else {
                 // clear trigger selection
                 this.selectTrigger(null);
@@ -1377,16 +1393,6 @@ class FF4Map extends ROMEditor {
             y: this.selectedTrigger.y.value
         };
 
-        if (this.selectedTrigger.key === 'npcProperties') {
-            const script = this.rom.npcScript.item(trigger.switch.value);
-            propertyList.select(script);
-        } else if (this.selectedTrigger instanceof ROMCommand) {
-            const script = this.selectedTrigger.parent;
-            propertyList.select(script);
-            scriptList.selectCommand(this.selectedTrigger);
-        } else if (this.selectedTrigger.object) {
-            trigger = this.selectedTrigger.object;
-        }
         propertyList.select(trigger);
     }
 

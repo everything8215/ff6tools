@@ -2132,6 +2132,7 @@
             "type": "array",
             "name": "Event Script",
             "range": "0xC849DC-0xC9FF9C",
+            "isSequential": true,
             "canRelocate": true,
             "array": {
                 "length": 1940
@@ -2159,8 +2160,6 @@
                     "7": "NPC Dialog 7",
                     "8": "NPC Dialog 8",
                     "16": "Game Start",
-                    "34": "Tent",
-                    "36": "Cabin",
                     "38": "Intro",
                     "323": "Ending",
                     "1407": "Restore Party HP/MP/Status",
@@ -6183,7 +6182,7 @@
             "isSequential": true,
             "assembly": {
                 "type": "script",
-                "encoding": "trigger"
+                "encoding": ["trigger", "npcDialog"]
             },
             "pointerTable": {
                 "range": "0xCE0000-0xCE0740",
@@ -6813,6 +6812,8 @@
                 "length": 704,
                 "default": "Trigger Event %i",
                 "string": {
+                    "17": "Tent",
+                    "18": "Cabin",
                     "255": "Save Point"
                 }
             }
@@ -7100,7 +7101,8 @@
             "delegate": "FF5Script",
             "command": {
                 "action": {
-                    "name": "Action",
+                    "name": "Do Action",
+                    "category": "Object",
                     "opcode": "0x80-0xA0",
                     "length": 2,
                     "assembly": {
@@ -7120,7 +7122,8 @@
                     }
                 },
                 "actionParty": {
-                    "name": "Action (Party)",
+                    "name": "Do Action (Party)",
+                    "category": "Object",
                     "opcode": "0x00-0x70",
                     "length": 1,
                     "assembly": {
@@ -7141,6 +7144,7 @@
                 },
                 "battle": {
                     "name": "Battle",
+                    "category": "Misc.",
                     "opcode": ["0xBD", "0xE2", "0xE8"],
                     "length": 3,
                     "assembly": {
@@ -7185,6 +7189,7 @@
                 },
                 "battleSwitch": {
                     "name": "Change Battle Switch",
+                    "category": "Control",
                     "opcode": "0xA6-0xA7",
                     "length": 2,
                     "assembly": {
@@ -7210,11 +7215,13 @@
                 },
                 "branchCharacters": {
                     "name": "Branch Based on Characters Present",
+                    "category": "Control",
                     "opcode": "0xE7",
                     "length": 1
                 },
                 "branchRandom": {
-                    "name": "Branch Forward (Random)",
+                    "name": "Branch Forward (50% Random)",
+                    "category": "Control",
                     "opcode": "0xF1",
                     "length": 2,
                     "assembly": {
@@ -7228,6 +7235,7 @@
                 },
                 "character": {
                     "name": "Add/Remove Character",
+                    "category": "Character",
                     "opcode": "0xB7",
                     "length": 2,
                     "assembly": {
@@ -7238,6 +7246,19 @@
                             "mask": "0x07",
                             "stringTable": "characterNames"
                         },
+                        "addRemove": {
+                            "type": "property",
+                            "name": "Add/Remove",
+                            "begin": 1,
+                            "mask": "0x80",
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0": "Add",
+                                    "1": "Remove"
+                                }
+                            }
+                        },
                         "present": {
                             "type": "property",
                             "name": "Present",
@@ -7246,33 +7267,34 @@
                             "bool": true,
                             "invert": true
                         },
-                        "row": {
-                            "type": "property",
-                            "name": "Row",
-                            "begin": 1,
-                            "mask": "0x80",
-                            "stringTable": {
-                                "hideIndex": true,
-                                "string": {
-                                    "0": "Front",
-                                    "1": "Back"
-                                }
-                            }
-                        },
                         "battleOrder": {
                             "type": "property",
                             "name": "Battle Order",
                             "begin": 1,
-                            "mask": "0x38"
+                            "mask": "0x30"
+                        },
+                        "gender": {
+                            "type": "property",
+                            "name": "Gender",
+                            "begin": 1,
+                            "mask": "0x08",
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0": "Male",
+                                    "1": "Female"
+                                }
+                            }
                         }
                     }
                 },
                 "characterHP": {
                     "name": "Change Character HP",
+                    "category": "Character",
                     "opcode": "0xA8",
                     "length": 2,
                     "assembly": {
-                        "subtract": {
+                        "addSubtract": {
                             "type": "property",
                             "name": "Add/Subtract",
                             "begin": 1,
@@ -7316,10 +7338,11 @@
                 },
                 "characterMP": {
                     "name": "Change Character MP",
+                    "category": "Character",
                     "opcode": "0xA9",
                     "length": 2,
                     "assembly": {
-                        "subtract": {
+                        "addSubtract": {
                             "type": "property",
                             "name": "Add/Subtract",
                             "begin": 1,
@@ -7362,6 +7385,7 @@
                 },
                 "characterStatus": {
                     "name": "Change Character Status",
+                    "category": "Character",
                     "opcode": "0xBA-0xBC",
                     "length": 3,
                     "assembly": {
@@ -7372,9 +7396,9 @@
                             "stringTable": {
                                 "hideIndex": true,
                                 "string": {
-                                    "0xBA": "AND",
-                                    "0xBB": "OR",
-                                    "0xBC": "XOR"
+                                    "0xBA": "Remove (AND)",
+                                    "0xBB": "Set (OR)",
+                                    "0xBC": "Toggle (XOR)"
                                 }
                             }
                         },
@@ -7389,39 +7413,31 @@
                             "name": "Status",
                             "begin": 2,
                             "flag": true,
-                            "stringTable": {
-                                "hideIndex": true,
-                                "string": {
-                                    "0": "Status 1",
-                                    "1": "Status 2",
-                                    "2": "Status 3",
-                                    "3": "Status 4",
-                                    "4": "Status 5",
-                                    "5": "Status 6",
-                                    "6": "Status 7",
-                                    "7": "Status 8"
-                                }
-                            }
+                            "stringTable": "status"
                         }
                     }
                 },
                 "command_7B": {
                     "name": "Command $7B",
+                    "category": "Misc.",
                     "opcode": "0x7B",
                     "length": 1
                 },
                 "command_7D": {
                     "name": "Command $7D",
+                    "category": "Misc.",
                     "opcode": "0x7D",
                     "length": 1
                 },
                 "command_7F": {
                     "name": "Command $7F",
+                    "category": "Misc.",
                     "opcode": "0x7F",
                     "length": 1
                 },
                 "command_DA": {
                     "name": "Command $DA",
+                    "category": "Misc.",
                     "opcode": "0xDA",
                     "length": 4,
                     "assembly": {
@@ -7444,11 +7460,13 @@
                 },
                 "command_EB": {
                     "name": "Command $EB",
+                    "category": "Misc.",
                     "opcode": "0xEB",
                     "length": 1
                 },
                 "cutscene": {
                     "name": "Show Cutscene",
+                    "category": "Misc.",
                     "opcode": "0xB6",
                     "length": 2,
                     "assembly": {
@@ -7456,29 +7474,37 @@
                             "type": "property",
                             "name": "Cutscene",
                             "begin": 1,
-                            "offset": -240,
                             "stringTable": {
                                 "default": "Cutscene %i",
                                 "length": 12,
+                                "hideIndex": true,
                                 "string": {
-                                    "0": "Ending Credits",
-                                    "1": "Title/Credits",
-                                    "2": "Tycoon Meteor",
-                                    "4": "Walse Meteor",
-                                    "6": "Gohn Meteor"
+                                    "240": "Ending Credits",
+                                    "241": "Title/Credits",
+                                    "242": "Tycoon Meteor",
+                                    "243": "Cutscene 3",
+                                    "244": "Walse Meteor",
+                                    "245": "Cutscene 5",
+                                    "246": "Gohn Meteor",
+                                    "247": "Cutscene 7",
+                                    "248": "Cutscene 8",
+                                    "249": "Cutscene 9",
+                                    "250": "Cutscene 10",
+                                    "251": "Cutscene 11"
                                 }
                             }
                         }
                     }
                 },
                 "dialog": {
-                    "name": "Dialog",
+                    "name": "Display Dialogue",
+                    "category": "Dialogue",
                     "opcode": "0xC8",
                     "length": 3,
                     "assembly": {
                         "dialog": {
                             "type": "property",
-                            "name": "Dialog",
+                            "name": "Dialogue",
                             "begin": 1,
                             "mask": "0x7FFF",
                             "link": "dialog[%i]",
@@ -7487,13 +7513,14 @@
                     }
                 },
                 "dialogYesNo": {
-                    "name": "Dialog (Yes/No)",
+                    "name": "Display Dialogue (Yes/No)",
+                    "category": "Dialogue",
                     "opcode": "0xF0",
                     "length": 3,
                     "assembly": {
                         "dialog": {
                             "type": "property",
-                            "name": "Dialog",
+                            "name": "Dialogue",
                             "begin": 1,
                             "mask": "0x7FFF",
                             "link": "dialog[%i]",
@@ -7503,11 +7530,13 @@
                 },
                 "end": {
                     "name": "End of Script",
+                    "category": "Control",
                     "opcode": "0xFF",
                     "length": 1
                 },
                 "fade": {
                     "name": "Fade In/Out",
+                    "category": "Screen",
                     "opcode": "0xC3-0xC5",
                     "length": 2,
                     "assembly": {
@@ -7532,11 +7561,13 @@
                 },
                 "fadeStop": {
                     "name": "Stop Fade",
+                    "category": "Screen",
                     "opcode": "0x7E",
                     "length": 1
                 },
                 "inn": {
-                    "name": "Inn",
+                    "name": "Display Inn Dialogue",
+                    "category": "Dialogue",
                     "opcode": "0xAD",
                     "length": 2,
                     "assembly": {
@@ -7561,6 +7592,7 @@
                 },
                 "inventoryGP": {
                     "name": "Give/Take GP",
+                    "category": "Inventory",
                     "opcode": ["0xAF", "0xB0"],
                     "length": 2,
                     "assembly": {
@@ -7586,6 +7618,7 @@
                 },
                 "inventoryItem": {
                     "name": "Give/Take Item",
+                    "category": "Inventory",
                     "opcode": ["0xAA", "0xAB"],
                     "length": 2,
                     "assembly": {
@@ -7611,6 +7644,7 @@
                 },
                 "inventoryJob": {
                     "name": "Give Job",
+                    "category": "Inventory",
                     "opcode": "0xC6",
                     "length": 2,
                     "assembly": {
@@ -7624,19 +7658,22 @@
                 },
                 "inventoryMagic": {
                     "name": "Give Spell",
+                    "category": "Inventory",
                     "opcode": "0xAC",
                     "length": 2,
                     "assembly": {
-                        "magic": {
+                        "spell": {
                             "type": "property",
                             "name": "Spell",
                             "begin": 1,
-                            "stringTable": "attackName"
+                            "stringTable": "attackName",
+                            "link": "attackProperties[%i]"
                         }
                     }
                 },
-                "jump": {
+                "jumpSub": {
                     "name": "Call Subroutine",
+                    "category": "Control",
                     "opcode": "0xCD",
                     "length": 3,
                     "assembly": {
@@ -7651,7 +7688,8 @@
                     }
                 },
                 "map": {
-                    "name": "Load Map",
+                    "name": "Change Map",
+                    "category": "Map",
                     "opcode": ["0xE0", "0xE1", "0xE3"],
                     "length": 6,
                     "assembly": {
@@ -7756,6 +7794,7 @@
                 },
                 "mapBackground": {
                     "name": "Change Map Background",
+                    "category": "Map",
                     "opcode": ["0xF3", "0xF4"],
                     "length": 4,
                     "assembly": {
@@ -7833,27 +7872,31 @@
                 },
                 "mapTitle": {
                     "name": "Show Map Title",
+                    "category": "Dialogue",
                     "opcode": "0xEA",
                     "length": 1
                 },
                 "miniMap": {
                     "name": "Show Mini-Map",
+                    "category": "Map",
                     "opcode": "0x79",
                     "length": 1
                 },
                 "nameChange": {
-                    "name": "Show Name Change Menu",
+                    "name": "Open Name Change Menu",
+                    "category": "Menu",
                     "opcode": "0x7A",
                     "length": 1
                 },
                 "npcDialog": {
-                    "name": "NPC Dialog",
+                    "name": "Show NPC Dialogue",
+                    "category": "Dialogue",
                     "opcode": "0xA0",
                     "length": 2,
                     "assembly": {
                         "dialog": {
                             "type": "property",
-                            "name": "Dialog",
+                            "name": "Dialogue",
                             "begin": 1,
                             "offset": 1
                         }
@@ -7861,6 +7904,7 @@
                 },
                 "npcSwitch": {
                     "name": "Change NPC Switch",
+                    "category": "Control",
                     "opcode": ["0xCA", "0xCB"],
                     "length": 3,
                     "assembly": {
@@ -7887,6 +7931,7 @@
                 },
                 "objectPositionAbs": {
                     "name": "Change Object Position (Absolute)",
+                    "category": "Object",
                     "opcode": "0xD3",
                     "length": 4,
                     "assembly": {
@@ -7907,7 +7952,7 @@
                             "type": "property",
                             "name": "Y Position",
                             "begin": 3,
-                            "mask": "0xFF"
+                            "mask": "0x3F"
                         },
                         "direction": {
                             "type": "property",
@@ -7927,6 +7972,7 @@
                 },
                 "objectPositionRel": {
                     "name": "Change Object Position (Relative)",
+                    "category": "Object",
                     "opcode": "0xD8",
                     "length": 3,
                     "assembly": {
@@ -7950,28 +7996,45 @@
                             "begin": 2,
                             "mask": "0x0F",
                             "signed": true
+                        },
+                        "direction": {
+                            "type": "property",
+                            "name": "Direction",
+                            "begin": 1,
+                            "mask": "0xC0",
+                            "stringTable": {
+                                "string": {
+                                    "0": "Up",
+                                    "1": "Right",
+                                    "2": "Down",
+                                    "3": "Left"
+                                }
+                            }
                         }
                     }
                 },
                 "palette": {
                     "name": "Change Palette",
+                    "category": "Map",
                     "opcode": "0xD9",
                     "length": 3,
                     "assembly": {
-                        "romPalette": {
+                        "vramPalette": {
                             "type": "property",
-                            "name": "ROM Palette",
-                            "begin": 1
+                            "name": "VRAM Palette",
+                            "begin": 1,
+                            "stringTable": "mapVRAMPalette"
                         },
-                        "ppuPalette": {
+                        "palette": {
                             "type": "property",
-                            "name": "PPU Palette",
+                            "name": "Palette",
                             "begin": 2
                         }
                     }
                 },
                 "parallel": {
                     "name": "Parallel Commands",
+                    "category": "Control",
                     "opcode": "0xC7",
                     "length": 2,
                     "assembly": {
@@ -7983,13 +8046,14 @@
                     }
                 },
                 "partyGraphic": {
-                    "name": "Change Party Graphics",
+                    "name": "Change Party Sprite",
+                    "category": "Object",
                     "opcode": "0xB1",
                     "length": 2,
                     "assembly": {
                         "graphics": {
                             "type": "property",
-                            "name": "Graphics",
+                            "name": "Sprite",
                             "begin": 1,
                             "stringTable": {
                                 "string": {
@@ -8013,12 +8077,13 @@
                 },
                 "partyGraphicAlt": {
                     "name": "Change Party Graphics (Alt.)",
+                    "category": "Object",
                     "opcode": "0xC1",
                     "length": 2,
                     "assembly": {
                         "graphics": {
                             "type": "property",
-                            "name": "Graphics",
+                            "name": "Sprite",
                             "begin": 1,
                             "stringTable": {
                                 "string": {
@@ -8041,30 +8106,33 @@
                     }
                 },
                 "partyUpdate": {
-                    "name": "Update Party Graphic",
+                    "name": "Update Party Sprite",
+                    "category": "Object",
                     "opcode": "0xDB",
                     "length": 1
                 },
                 "ram": {
                     "name": "Change RAM",
+                    "category": "Misc.",
                     "opcode": "0xDD",
                     "length": 3,
                     "assembly": {
                         "offset": {
                             "type": "property",
-                            "name": "offset (+$0500)",
+                            "name": "Offset (+$0500)",
                             "begin": 1,
                             "mask": "0xFFFF"
                         },
-                        "value": {
+                        "ramValue": {
                             "type": "property",
-                            "name": "value",
+                            "name": "Value",
                             "begin": 3
                         }
                     }
                 },
                 "repeat": {
                     "name": "Repeat",
+                    "category": "Control",
                     "opcode": ["0xCE", "0xCF"],
                     "length": 3,
                     "assembly": {
@@ -8092,8 +8160,117 @@
                         }
                     }
                 },
+                "screenColor": {
+                    "name": "Change Fixed Color Math",
+                    "category": "Screen",
+                    "opcode": "0xB8-0xBA",
+                    "length": 2,
+                    "assembly": {
+                        "math": {
+                            "type": "property",
+                            "name": "Math",
+                            "begin": 0,
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0xB8": "Addition",
+                                    "0xB9": "Subtraction"
+                                }
+                            }
+                        },
+                        "color": {
+                            "type": "property",
+                            "name": "Color",
+                            "begin": 1,
+                            "mask": "0xE0",
+                            "stringTable": "fixedColor"
+                        },
+                        "speed": {
+                            "type": "property",
+                            "name": "Speed",
+                            "begin": 1,
+                            "mask": "0x18",
+                            "stringTable": {
+                                "hideIndex": true,
+                                "string": {
+                                    "0": "Slow",
+                                    "1": "Medium",
+                                    "2": "Fast",
+                                    "3": "Fast"
+                                }
+                            }
+                        },
+                        "intensity": {
+                            "type": "property",
+                            "name": "Intensity",
+                            "begin": 1,
+                            "mask": "0x07"
+                        }
+                    }
+                },
+                "screenGrayscale": {
+                    "name": "Change Color Palette to Grayscale",
+                    "category": "Screen",
+                    "opcode": "0xE6",
+                    "length": 1
+                },
+                "screenFlash": {
+                    "name": "Flash the Screen",
+                    "category": "Screen",
+                    "opcode": "0xC5",
+                    "length": 2,
+                    "assembly": {
+                        "color": {
+                            "type": "property",
+                            "name": "Color",
+                            "begin": 1,
+                            "mask": "0xE0",
+                            "stringTable": "fixedColor"
+                        }
+                    }
+                },
+                "screenMask": {
+                    "name": "Change Window Mask",
+                    "category": "Screen",
+                    "opcode": "0xC0",
+                    "length": 2,
+                    "assembly": {
+                        "mask": {
+                            "type": "property",
+                            "name": "Mask",
+                            "begin": 1
+                        }
+                    }
+                },
+                "screenPixelate": {
+                    "name": "Pixelate the Screen",
+                    "category": "Screen",
+                    "opcode": "0xAE",
+                    "length": 2,
+                    "assembly": {
+                        "speed": {
+                            "type": "property",
+                            "name": "Speed",
+                            "begin": 1
+                        }
+                    }
+                },
+                "screenShake": {
+                    "name": "Shake the Screen",
+                    "category": "Screen",
+                    "opcode": "0xBE",
+                    "length": 2,
+                    "assembly": {
+                        "amplitude": {
+                            "type": "property",
+                            "name": "Amplitude",
+                            "begin": 1
+                        }
+                    }
+                },
                 "scrollSpeed": {
                     "name": "Change Scroll Speed",
+                    "category": "Screen",
                     "opcode": "0x76-0x79",
                     "length": 1,
                     "assembly": {
@@ -8112,115 +8289,9 @@
                         }
                     }
                 },
-                "screenColor": {
-                    "name": "Change Fixed Color Math",
-                    "opcode": "0xB8-0xBA",
-                    "length": 2,
-                    "assembly": {
-                        "math": {
-                            "type": "property",
-                            "name": "Math",
-                            "begin": 0,
-                            "stringTable": {
-                                "hideIndex": true,
-                                "string": {
-                                    "0xB8": "Subtraction",
-                                    "0xB9": "Addition"
-                                }
-                            }
-                        },
-                        "color": {
-                            "type": "property",
-                            "name": "Color",
-                            "begin": 1,
-                            "mask": "0xE0",
-                            "flag": true,
-                            "stringTable": {
-                                "string": {
-                                    "0": "Red",
-                                    "1": "Green",
-                                    "2": "Blue"
-                                }
-                            }
-                        },
-                        "speed": {
-                            "type": "property",
-                            "name": "Speed",
-                            "begin": 1,
-                            "mask": "0x18"
-                        },
-                        "intensity": {
-                            "type": "property",
-                            "name": "Amplitude",
-                            "begin": 1,
-                            "mask": "0x07"
-                        }
-                    }
-                },
-                "screenGrayscale": {
-                    "name": "Change Color Palette to Grayscale",
-                    "opcode": "0xE6",
-                    "length": 1
-                },
-                "screenFlash": {
-                    "name": "Flash the Screen",
-                    "opcode": "0xC5",
-                    "length": 2,
-                    "assembly": {
-                        "color": {
-                            "type": "property",
-                            "name": "Color",
-                            "begin": 1,
-                            "mask": "0xE0",
-                            "flag": true,
-                            "stringTable": {
-                                "string": {
-                                    "0": "Red",
-                                    "1": "Green",
-                                    "2": "Blue"
-                                }
-                            }
-                        }
-                    }
-                },
-                "screenMask": {
-                    "name": "Change Window Mask",
-                    "opcode": "0xC0",
-                    "length": 2,
-                    "assembly": {
-                        "mask": {
-                            "type": "property",
-                            "name": "Mask",
-                            "begin": 1
-                        }
-                    }
-                },
-                "screenPixelate": {
-                    "name": "Pixelate the Screen",
-                    "opcode": "0xAE",
-                    "length": 2,
-                    "assembly": {
-                        "speed": {
-                            "type": "property",
-                            "name": "Speed",
-                            "begin": 1
-                        }
-                    }
-                },
-                "screenShake": {
-                    "name": "Shake the Screen",
-                    "opcode": "0xBE",
-                    "length": 2,
-                    "assembly": {
-                        "amplitude": {
-                            "type": "property",
-                            "name": "Amplitude",
-                            "begin": 1
-                        }
-                    }
-                },
                 "shop": {
-                    "name": "Shop",
+                    "name": "Open Shop Menu",
+                    "category": "Menu",
                     "opcode": "0xA1",
                     "length": 2,
                     "assembly": {
@@ -8236,6 +8307,7 @@
                 },
                 "song": {
                     "name": "Play Song",
+                    "category": "Sound",
                     "opcode": "0xB4",
                     "length": 2,
                     "assembly": {
@@ -8249,10 +8321,11 @@
                 },
                 "soundEffect": {
                     "name": "Play Sound Effect",
+                    "category": "Sound",
                     "opcode": "0xB5",
                     "length": 2,
                     "assembly": {
-                        "song": {
+                        "soundEffect": {
                             "type": "property",
                             "name": "Sound Effect",
                             "begin": 1,
@@ -8260,15 +8333,62 @@
                         }
                     }
                 },
-                "spcCommand": {
-                    "name": "SPC Command",
+                "spcInterrupt": {
+                    "name": "Do SPC Interrupt",
+                    "category": "Sound",
                     "opcode": "0xD0",
                     "length": 3,
                     "assembly": {
-                        "parameter1": {
+                        "interrupt": {
                             "type": "property",
-                            "name": "Parameter 1",
-                            "begin": 1
+                            "name": "Interrupt",
+                            "begin": 1,
+                            "stringTable": {
+                                "hideIndex": "true",
+                                "string": {
+                                    "0x10": "Play System Sound Effect 0",
+                                    "0x11": "Play System Sound Effect 1",
+                                    "0x12": "Play System Sound Effect 2",
+                                    "0x13": "Play System Sound Effect 3",
+                                    "0x14": "Play System Sound Effect 4",
+                                    "0x15": "Play System Sound Effect 5",
+                                    "0x16": "Play System Sound Effect 6",
+                                    "0x17": "Play System Sound Effect 7",
+                                    "0x18": "Play System Sound Effect 8",
+                                    "0x19": "Play System Sound Effect 9",
+                                    "0x1A": "Play System Sound Effect 10",
+                                    "0x1B": "Play System Sound Effect 11",
+                                    "0x1C": "Play System Sound Effect 12",
+                                    "0x1D": "Play System Sound Effect 13",
+                                    "0x1E": "Play System Sound Effect 14",
+                                    "0x1F": "Play System Sound Effect 15",
+                                    "0x80": "Set Absolute Volume",
+                                    "0x81": "Set Absolute Volume (Song Only)",
+                                    "0x82": "Set Absolute Volume (Sound Effects Only)",
+                                    "0x83": "Set Relative Volume",
+                                    "0x84": "Set Relative Volume (Song Only)",
+                                    "0x85": "Set Relative Volume (Sound Effects Only)",
+                                    "0x86": "Set Tempo Multiplier",
+                                    "0x87": "Set Tempo Multiplier (Song Only)",
+                                    "0x88": "Set Tempo Multiplier (Sound Effects Only)",
+                                    "0x89": "Set Pitch Multiplier",
+                                    "0x8A": "Set Pitch Multiplier (Song Only)",
+                                    "0x8B": "Set Pitch Multiplier (Sound Effects Only)",
+                                    "0xF0": "Stop Sound",
+                                    "0xF1": "Stop Sound (Song Only)",
+                                    "0xF2": "Stop Sound (Sound Effects Only)",
+                                    "0xF3": "Change to Stereo",
+                                    "0xF4": "Change to Mono",
+                                    "0xF5": "Mute/Unmute Channels",
+                                    "0xF6": "Interrupt $F6",
+                                    "0xF7": "Interrupt $F7",
+                                    "0xF8": "Enable Fast Forward",
+                                    "0xF9": "Enable Fast Forward",
+                                    "0xFA": "Disable Fast Forward",
+                                    "0xFB": "Enable Conditional Jump",
+                                    "0xFC": "Reflect Sound Effects"
+                                }
+                            }
                         },
                         "parameter2": {
                             "type": "property",
@@ -8277,81 +8397,129 @@
                         }
                     }
                 },
-                "spcUnknown_C9": {
-                    "name": "Unknown (SPC)",
+                "spcResumeSong": {
+                    "name": "Resume Suspended Song",
+                    "category": "Sound",
                     "opcode": "0xC9",
                     "length": 3,
                     "assembly": {
-                        "parameter1": {
+                        "envelopeDuration": {
                             "type": "property",
-                            "name": "Parameter 1",
-                            "begin": 1
+                            "name": "Volume Envelope Duration",
+                            "begin": 1,
+                            "mask": "0xF0"
                         },
-                        "parameter2": {
+                        "relativeVolume": {
                             "type": "property",
-                            "name": "Parameter 2",
-                            "begin": 2
+                            "name": "Relative Volume",
+                            "begin": 1,
+                            "mask": "0x0F"
+                        },
+                        "absoluteVolumeInitial": {
+                            "type": "property",
+                            "name": "Initial Absolute Volume",
+                            "begin": 2,
+                            "mask": "0xF0"
+                        },
+                        "absoluteVolumeFinal": {
+                            "type": "property",
+                            "name": "Final Absolute Volume",
+                            "begin": 2,
+                            "mask": "0x0F"
                         }
                     }
                 },
-                "spcUnknown_D4": {
-                    "name": "Unknown (SPC)",
+                "songManual": {
+                    "name": "Play Song (Manual)",
+                    "category": "Sound",
                     "opcode": "0xD4",
                     "length": 4,
                     "assembly": {
-                        "parameter1": {
+                        "song": {
                             "type": "property",
-                            "name": "Parameter 1",
-                            "begin": 1
+                            "name": "Song",
+                            "begin": 1,
+                            "stringTable": "song"
                         },
-                        "parameter2": {
+                        "envelopeDuration": {
                             "type": "property",
-                            "name": "Parameter 2",
-                            "begin": 2
+                            "name": "Volume Envelope Duration",
+                            "begin": 2,
+                            "mask": "0xF0"
                         },
-                        "parameter3": {
+                        "relativeVolume": {
                             "type": "property",
-                            "name": "Parameter 3",
-                            "begin": 3
+                            "name": "Relative Volume",
+                            "begin": 2,
+                            "mask": "0x0F"
+                        },
+                        "absoluteVolumeInitial": {
+                            "type": "property",
+                            "name": "Initial Absolute Volume",
+                            "begin": 3,
+                            "mask": "0xF0"
+                        },
+                        "absoluteVolumeFinal": {
+                            "type": "property",
+                            "name": "Final Absolute Volume",
+                            "begin": 3,
+                            "mask": "0x0F"
                         }
                     }
                 },
-                "spcUnknown_D5": {
-                    "name": "Unknown (SPC)",
+                "soundEffectManual": {
+                    "name": "Play Sound Effect (Manual)",
+                    "category": "Sound",
                     "opcode": "0xD5",
                     "length": 4,
                     "assembly": {
-                        "parameter1": {
+                        "soundEffect": {
                             "type": "property",
-                            "name": "Parameter 1",
-                            "begin": 1
+                            "name": "Sound Effect",
+                            "begin": 1,
+                            "stringTable": "soundEffect"
                         },
-                        "parameter2": {
+                        "envelopeDuration": {
                             "type": "property",
-                            "name": "Parameter 2",
-                            "begin": 2
+                            "name": "Volume Envelope Duration",
+                            "begin": 2,
+                            "mask": "0xF0"
                         },
-                        "parameter3": {
+                        "relativeVolumeInitial": {
                             "type": "property",
-                            "name": "Parameter 3",
-                            "begin": 3
+                            "name": "Initial Relative Volume",
+                            "begin": 2,
+                            "mask": "0x0F"
+                        },
+                        "relativeVolumeFinal": {
+                            "type": "property",
+                            "name": "Final Relative Volume",
+                            "begin": 3,
+                            "mask": "0x0F"
+                        },
+                        "absoluteVolume": {
+                            "type": "property",
+                            "name": "Absolute Volume",
+                            "begin": 3,
+                            "mask": "0xF0"
                         }
                     }
                 },
                 "spcWait": {
                     "name": "Wait for SPC",
+                    "category": "Sound",
                     "opcode": "0xE4-0xE6",
                     "length": 1,
                     "assembly": {
-                        "channel": {
+                        "waitType": {
                             "type": "property",
-                            "name": "Channel",
+                            "name": "Type",
                             "begin": 0,
                             "stringTable": {
                                 "hideIndex": true,
                                 "string": {
-                                    "0xE4": "Channel 2",
-                                    "0xE5": "Channel 3"
+                                    "0xE4": "Port-2",
+                                    "0xE5": "Port-3"
                                 }
                             }
                         }
@@ -8359,6 +8527,7 @@
                 },
                 "special": {
                     "name": "Special Command",
+                    "category": "Misc.",
                     "opcode": "0xBF",
                     "length": 2,
                     "assembly": {
@@ -8367,7 +8536,7 @@
                             "name": "Command",
                             "begin": 1,
                             "stringTable": {
-                                "default": "Command %i",
+                                "default": "Special Command %i",
                                 "length": 27,
                                 "string": {
                                     "0": "Game Over",
@@ -8380,13 +8549,22 @@
                 },
                 "switch": {
                     "name": "Change Event Switch",
+                    "category": "Control",
                     "opcode": "0xA2-0xA6",
                     "length": 2,
                     "assembly": {
+                        "bank": {
+                            "type": "property",
+                            "name": "Bank",
+                            "begin": 0,
+                            "hidden": true
+                        },
                         "onOff": {
                             "type": "property",
                             "name": "On/Off",
+                            "mask": 0,
                             "stringTable": {
+                                "hideIndex": true,
                                 "string": {
                                     "0": "On",
                                     "1": "Off"
@@ -8397,13 +8575,14 @@
                             "type": "property",
                             "name": "Switch",
                             "begin": 1,
-                            "max": "0x1FF",
+                            "max": "0x01FF",
                             "stringTable": "eventSwitch"
                         }
                     }
                 },
                 "timerStart": {
                     "name": "Start Timer",
+                    "category": "Control",
                     "opcode": ["0xD1", "0xD7"],
                     "length": 4,
                     "assembly": {
@@ -8436,11 +8615,13 @@
                 },
                 "timerStop": {
                     "name": "Stop Timer",
+                    "category": "Control",
                     "opcode": "0x7C",
                     "length": 1
                 },
                 "tutorial": {
-                    "name": "Tutorial Menu",
+                    "name": "Open Tutorial Menu",
+                    "category": "Menu",
                     "opcode": "0xDC",
                     "length": 2,
                     "assembly": {
@@ -8462,8 +8643,51 @@
                         }
                     }
                 },
+                "vehicleChange": {
+                    "name": "Change Vehicle",
+                    "category": "Map",
+                    "opcode": "0xD6",
+                    "length": 4,
+                    "assembly": {
+                        "map": {
+                            "type": "property",
+                            "name": "Map",
+                            "begin": 1,
+                            "mask": "0x1FFF",
+                            "link": "mapProperties[%i]",
+                            "stringTable": "mapProperties"
+                        },
+                        "unknown2_5": {
+                            "type": "property",
+                            "name": "Unknown 2.5",
+                            "begin": 2,
+                            "mask": "0x20",
+                            "bool": true
+                        },
+                        "vehicleID": {
+                            "type": "property",
+                            "name": "ID",
+                            "begin": 3,
+                            "mask": "0xE0"
+                        },
+                        "vehicle": {
+                            "type": "property",
+                            "name": "Vehicle",
+                            "begin": 3,
+                            "mask": "0x1C",
+                            "stringTable": "vehicle"
+                        },
+                        "graphics": {
+                            "type": "property",
+                            "name": "Graphics",
+                            "begin": 3,
+                            "mask": "0x03"
+                        }
+                    }
+                },
                 "vehicleHide": {
                     "name": "Hide Vehicle",
+                    "category": "Map",
                     "opcode": "0xC2",
                     "length": 2,
                     "assembly": {
@@ -8477,22 +8701,17 @@
                 },
                 "vehicleShow": {
                     "name": "Show Vehicle",
+                    "category": "Map",
                     "opcode": "0xD2",
                     "length": 5,
                     "assembly": {
-                        "vehicle": {
-                            "type": "property",
-                            "name": "Vehicle",
-                            "begin": 4,
-                            "mask": "0xE0",
-                            "stringTable": "vehicle"
-                        },
                         "map": {
                             "type": "property",
                             "name": "Map",
                             "begin": 1,
                             "max": 2,
-                            "stringTable": "mapProperties"
+                            "stringTable": "mapProperties",
+                            "link": "mapProperties[%i]"
                         },
                         "x": {
                             "type": "property",
@@ -8504,16 +8723,30 @@
                             "name": "Y Position",
                             "begin": 3
                         },
-                        "special": {
+                        "vehicleID": {
                             "type": "property",
-                            "name": "Special",
+                            "name": "ID",
                             "begin": 4,
-                            "mask": "0x1F"
+                            "mask": "0xE0"
+                        },
+                        "vehicle": {
+                            "type": "property",
+                            "name": "Vehicle",
+                            "begin": 4,
+                            "mask": "0x1C",
+                            "stringTable": "vehicle"
+                        },
+                        "graphics": {
+                            "type": "property",
+                            "name": "Graphics",
+                            "begin": 4,
+                            "mask": "0x03"
                         }
                     }
                 },
                 "wait": {
-                    "name": "Wait (15, 30, 45, 60, 90, 120 frames)",
+                    "name": "Wait",
+                    "category": "Control",
                     "opcode": "0x70-0x76",
                     "length": 1,
                     "assembly": {
@@ -8524,46 +8757,47 @@
                             "mask": "0x0F",
                             "stringTable": {
                                 "string": {
-                                    "0": "15 Frames",
-                                    "1": "30 Frames",
-                                    "2": "45 Frames",
-                                    "3": "60 Frames",
-                                    "4": "90 Frames",
-                                    "5": "120 Frames"
+                                    "0": "15 Frames (0.25s)",
+                                    "1": "30 Frames (0.5s)",
+                                    "2": "45 Frames (0.75s)",
+                                    "3": "60 Frames (1s)",
+                                    "4": "90 Frames (1.5s)",
+                                    "5": "120 Frames (2s)"
                                 }
                             }
                         }
                     }
                 },
-                "waitAny": {
-                    "name": "Wait (Any Duration)",
+                "waitManual": {
+                    "name": "Wait (Manual)",
+                    "category": "Control",
                     "opcode": ["0xB2", "0xB3"],
                     "length": 2,
                     "assembly": {
-                        "multiplier": {
+                        "units": {
                             "type": "property",
-                            "name": "Multiplier",
+                            "name": "Units",
                             "begin": 0,
                             "stringTable": {
                                 "hideIndex": true,
                                 "string": {
-                                    "0xB2": "×1",
-                                    "0xB3": "×15"
+                                    "0xB2": "Frames",
+                                    "0xB3": "Seconds"
                                 }
                             }
                         },
-                        "duration1": {
+                        "durationFrames": {
                             "type": "property",
                             "name": "Duration",
                             "begin": 1,
-                            "invalid": "this.parent.multiplier.value === 0xB3"
+                            "invalid": "this.parent.units.value !== 0xB2"
                         },
-                        "duration15": {
+                        "durationSeconds": {
                             "type": "property",
                             "name": "Duration",
                             "begin": 1,
-                            "multiplier": 15,
-                            "invalid": "this.parent.multiplier.value === 0xB2"
+                            "multiplier": 0.25,
+                            "invalid": "this.parent.units.value !== 0xB3"
                         }
                     }
                 }
@@ -8719,7 +8953,12 @@
                         }
                     }
                 },
-                "event": {
+                "end": {
+                    "name": "End of NPC Script",
+                    "opcode": "0xF0",
+                    "length": 1
+                },
+                "jumpEvent": {
                     "name": "Execute Event",
                     "opcode": "0xFF",
                     "length": 3,
@@ -8734,20 +8973,23 @@
                         }
                     }
                 },
-                "end": {
-                    "name": "End of NPC Script",
-                    "opcode": "0xF0",
-                    "length": 1
-                },
                 "switch": {
                     "name": "If Switch is On/Off",
                     "opcode": "0xFB-0xFF",
                     "length": 2,
                     "assembly": {
+                        "bank": {
+                            "type": "property",
+                            "name": "Bank",
+                            "begin": 0,
+                            "hidden": true
+                        },
                         "onOff": {
                             "type": "property",
                             "name": "On/Off",
+                            "mask": 0,
                             "stringTable": {
+                                "hideIndex": true,
                                 "string": {
                                     "0": "On",
                                     "1": "Off"
@@ -8758,7 +9000,7 @@
                             "type": "property",
                             "name": "Switch",
                             "begin": 1,
-                            "max": "0x1FF",
+                            "max": "0x01FF",
                             "stringTable": "eventSwitch"
                         }
                     }
@@ -9664,6 +9906,32 @@
                 "511": "Disable Random Battles"
             }
         },
+        "fixedColor": {
+            "name": "Fixed Color",
+            "string": {
+                "0": "Black",
+                "1": "Red",
+                "2": "Green",
+                "3": "Yellow",
+                "4": "Blue",
+                "5": "Magenta",
+                "6": "Cyan",
+                "7": "White"
+            }
+        },
+        "fixedColorReversed": {
+            "name": "Fixed Color (Reversed)",
+            "string": {
+                "0": "Black",
+                "1": "Blue",
+                "2": "Green",
+                "3": "Cyan",
+                "4": "Red",
+                "5": "Magenta",
+                "6": "Yellow",
+                "7": "White"
+            }
+        },
         "itemType": {
             "name": "Item Type",
             "string": {
@@ -9707,6 +9975,27 @@
                 "8-16": "<jobName[23-%i]>",
                 "18": "Freelancer",
                 "19-24": "<jobName[39-%i]>"
+            }
+        },
+        "mapVRAMPalette": {
+            "name": "Map VRAM Palette",
+            "string": {
+                "0": "Background Palette 0",
+                "1": "Background Palette 1",
+                "2": "Background Palette 2",
+                "3": "Background Palette 3",
+                "4": "Background Palette 4",
+                "5": "Background Palette 5",
+                "6": "Background Palette 6",
+                "7": "Background Palette 7",
+                "8": "Sprite Palette 0",
+                "9": "Sprite Palette 1",
+                "10": "Sprite Palette 2",
+                "11": "Sprite Palette 3",
+                "12": "Sprite Palette 4",
+                "13": "Sprite Palette 5",
+                "14": "Sprite Palette 6",
+                "15": "Sprite Palette 7"
             }
         },
         "monsterType": {
@@ -10057,56 +10346,56 @@
                 "0x13": "Set Animation Speed to Fast",
                 "0x14": "Toggle Layer Priority (Top Half)",
                 "0x15": "Toggle Layer Priority (Bottom Half)",
-                "0x20": "Face up",
-                "0x21": "Face up (walking)",
-                "0x22": "Face right",
-                "0x23": "Face right (walking)",
-                "0x24": "Face down",
-                "0x25": "Face down (walking)",
-                "0x26": "Face left",
-                "0x27": "Face left (walking)",
-                "0x28": "Face down (alt.)",
-                "0x29": "Face up (alt.)",
-                "0x2A": "Face left (alt.)",
-                "0x2B": "Face left (walking, alt.)",
-                "0x2C": "Face down (h-flip)",
-                "0x2D": "Face up (h-flip)",
-                "0x2E": "Face left (h-flip)",
-                "0x2F": "Face right (h-flip)",
-                "0x30": "Face down (right hand <)",
-                "0x31": "Face down (right hand -)",
-                "0x32": "Face down (right hand >)",
-                "0x33": "Face down (left hand >)",
-                "0x34": "Face down (left hand -)",
-                "0x35": "Face down (left hand <)",
-                "0x36": "Face up (right hand >)",
-                "0x37": "Face up (right hand <)",
-                "0x38": "Face up (left hand <)",
-                "0x39": "Face up (left hand >)",
-                "0x3A": "Face left (arm up)",
-                "0x3B": "Face left (arm forward)",
-                "0x3C": "Face right (arm up)",
-                "0x3D": "Face right (arm forward)",
-                "0x3E": "Face down (head down)",
-                "0x3F": "Face up (head down)",
-                "0x40": "Face left (head down)",
-                "0x41": "Face right (head down)",
-                "0x42": "Knocked down",
-                "0x43": "Knocked down (h-flip)",
-                "0x44": "Kick left",
-                "0x45": "Kick right",
+                "0x20": "Face Up",
+                "0x21": "Face Up (Walking)",
+                "0x22": "Face Right",
+                "0x23": "Face Right (Walking)",
+                "0x24": "Face Down",
+                "0x25": "Face Down (Walking)",
+                "0x26": "Face Left",
+                "0x27": "Face Left (Walking)",
+                "0x28": "Face Down (Alt.)",
+                "0x29": "Face Up (Alt.)",
+                "0x2A": "Face Left (Alt.)",
+                "0x2B": "Face Left (Walking, Alt.)",
+                "0x2C": "Face Down (h-flip)",
+                "0x2D": "Face Up (h-flip)",
+                "0x2E": "Face Left (h-flip)",
+                "0x2F": "Face Right (h-flip)",
+                "0x30": "Face Down (Right Hand <)",
+                "0x31": "Face Down (Right Hand -)",
+                "0x32": "Face Down (Right Hand >)",
+                "0x33": "Face Down (Left Hand >)",
+                "0x34": "Face Down (Left Hand -)",
+                "0x35": "Face Down (Left Hand <)",
+                "0x36": "Face Up (Right Hand >)",
+                "0x37": "Face Up (Right Hand <)",
+                "0x38": "Face Up (Left Hand <)",
+                "0x39": "Face Up (Left Hand >)",
+                "0x3A": "Face Left (Arm Up)",
+                "0x3B": "Face Left (Arm Forward)",
+                "0x3C": "Face Right (Arm Up)",
+                "0x3D": "Face Right (Arm Forward)",
+                "0x3E": "Face Down (Head Down)",
+                "0x3F": "Face Up (Head Down)",
+                "0x40": "Face Left (Head Down)",
+                "0x41": "Face Right (Head Down)",
+                "0x42": "Knocked Down",
+                "0x43": "Knocked Down (h-flip)",
+                "0x44": "Kick Left",
+                "0x45": "Kick Right",
                 "0x46": "Laugh 1",
                 "0x47": "Laugh 2",
-                "0x48": "Face down (crouching)",
-                "0x49": "Face down (jumping)",
-                "0x4A": "Face down (surprised)",
-                "0x4B": "Face up (alt.)",
-                "0x4C": "Face down (angry)",
-                "0x4D": "Face up (arms up <>)",
-                "0x4E": "Face up (arms up ><)",
-                "0x4F": "Face down (head <)",
-                "0x50": "Face down (head >)",
-                "0x51": "Face up (symmetric)"
+                "0x48": "Face Down (Crouching)",
+                "0x49": "Face Down (Jumping)",
+                "0x4A": "Face Down (Surprised)",
+                "0x4B": "Face Up (Alt.)",
+                "0x4C": "Face Down (Angry)",
+                "0x4D": "Face Up (Arms Up <>)",
+                "0x4E": "Face Up (Arms Up ><)",
+                "0x4F": "Face Down (Head <)",
+                "0x50": "Face Down (Head >)",
+                "0x51": "Face Up (Symmetric)"
             }
         },
         "song": {
