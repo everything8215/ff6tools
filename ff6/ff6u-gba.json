@@ -3402,7 +3402,7 @@
                     "elementHalf": {
                         "type": "property",
                         "name": "50% Element",
-                        "begin": 16,
+                        "begin": 15,
                         "flag": true,
                         "stringTable": "element",
                         "invalid": "(this.parent.itemType.value < 2) || (this.parent.itemType.value === 6)"

@@ -155,7 +155,7 @@ Geiger/Evil Peer, Cless, Master ZED, Imzogelmo, Terrii Senshi, Mnrogar,
 Yousei, Lord J, Novalia Spirit, Corundum, giangurgolo, Disch, Ben Siron,
 PKT Paladin, Kea, JCE3000GT, samurai goroh, Lenophis, m06, Squall_FF8,
 Warrax, Tenkarider, Grimoire LD, Odym82, Jorgur, instructrtrepe,
-Light Phoenix, kwhazit
+Light Phoenix, kwhazit, killXtech
 
 FF6Tools uses the following libraries:
 
