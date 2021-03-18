@@ -2012,7 +2012,7 @@
                     },
                     "vigor": {
                         "type": "property",
-                        "name": "Vigor",
+                        "name": "Strength",
                         "begin": 6
                     },
                     "speed": {
@@ -3204,7 +3204,7 @@
                     },
                     "vigor": {
                         "type": "property",
-                        "name": "Vigor",
+                        "name": "Strength",
                         "begin": 16,
                         "mask": "0x0F",
                         "invalid": "(this.parent.itemType.value === 0) || (this.parent.itemType.value === 6)",
@@ -3548,7 +3548,7 @@
                                 "20": "100% Hit Rate",
                                 "21": "Spells Cost 50% Less",
                                 "22": "Spells Cost 1 MP",
-                                "23": "Vigor +50%"
+                                "23": "Strength +50%"
                             }
                         }
                     },
