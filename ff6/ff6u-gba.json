@@ -3134,6 +3134,14 @@
                         "bool": true,
                         "invalid": "(this.parent.itemType.value === 0) || (this.parent.itemType.value > 5)"
                     },
+                    "breakWhenUsed": {
+                        "type": "property",
+                        "name": "Break After Use",
+                        "begin": 18,
+                        "mask": "0x80",
+                        "bool": true,
+                        "invalid": "(this.parent.itemType.value === 0) || (this.parent.itemType.value > 5)"
+                    },
                     "spellLearned": {
                         "type": "property",
                         "name": "Spell Learned",
