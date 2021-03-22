@@ -13509,7 +13509,7 @@
         "item": {
             "name": "Item Icons",
             "char": {
-                "0xC39F": "\\item",
+                "0xC39F": "\\potion",
                 "0xC3A0": "\\dagger",
                 "0xC3A1": "\\sword",
                 "0xC3A2": "\\spear",
@@ -13529,6 +13529,13 @@
                 "0xC3B0": "\\white",
                 "0xC3B1": "\\black",
                 "0xC3B2": "\\effect"
+            }
+        },
+        "menuEscapeSequences": {
+            "name": "Menu Escape Sequences",
+            "char": {
+                "0xC484": "\\item",
+                "0xC485": "\\character"
             }
         },
         "portraits": {
@@ -13856,6 +13863,7 @@
             "name": "Small Text",
             "charTable": [
                 "item",
+                "menuEscapeSequences",
                 "text1"
             ]
         },

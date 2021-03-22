@@ -13563,7 +13563,7 @@
         "item": {
             "name": "Item Icons",
             "char": {
-                "0xC2A2": "\\item",
+                "0xC2A2": "\\potion",
                 "0xC2A3": "\\dagger",
                 "0xC2A4": "\\sword",
                 "0xC2A5": "\\spear",
