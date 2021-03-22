@@ -185,6 +185,9 @@
                 }, {
                     "name": "Manual Equip Items",
                     "path": "itemManualEquip"
+                }, {
+                    "name": "Item Sort Order",
+                    "path": "itemSortOrder"
                 }
             ]
         }, {
@@ -3572,6 +3575,35 @@
                                 "11": "Double Experience",
                                 "12": "Double GP",
                                 "15": "Make Character Undead"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "itemSortOrder": {
+            "type": "data",
+            "name": "Item Sort Order",
+            "range": "0x08159710-0x08159950",
+            "isSequential": true,
+            "assembly": {
+                "sortOrder": {
+                    "type": "array",
+                    "name": "Item Sort Order",
+                    "length": 576,
+                    "arrayLength": 288,
+                    "arrayMin": 288,
+                    "arrayMax": 288,
+                    "assembly": {
+                        "type": "data",
+                        "length": 2,
+                        "assembly": {
+                            "itemID": {
+                                "type": "property",
+                                "name": "Item",
+                                "mask": "0xFFFF",
+                                "stringTable": "itemNames",
+                                "link": "itemProperties[%i]"
                             }
                         }
                     }
