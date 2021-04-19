@@ -87,13 +87,6 @@
                     "name": "Battle Dialogue",
                     "path": "battleDialog"
                 }, {
-                    "name": "Attack Messages",
-                    "path": "attackMessage"
-                }, {
-                    "path": "attackTilemap2bpp"
-                }, {
-                    "path": "attackTilemap3bpp"
-                }, {
                     "name": "Battle Backgrounds",
                     "path": "battleBackgroundProperties"
                 }
@@ -134,29 +127,34 @@
                     "name": "Vehicle Graphics",
                     "path": "vehicleGraphics"
                 }, {
+                    "name": "Level Progression",
+                    "path": "characterLevelProgression"
+                }
+            ]
+        }, {
+            "name": "Ability",
+            "list": [
+                {
+                    "path": "attackProperties"
+                }, {
+                    "name": "Attack Messages",
+                    "path": "attackMessage"
+                }, {
                     "name": "Espers",
                     "path": "esperProperties"
                 }, {
-                    "name": "Esper Bonuses",
+                    "name": "Esper Bonus Names",
                     "path": "esperBonusNames"
                 }, {
                     "name": "Natural Magic",
                     "path": "naturalMagic"
                 }, {
-                    "name": "Blitz",
-                    "path": "blitzCode"
-                }, {
-                    "name": "SwdTech",
-                    "path": "swdTechLevel"
-                }, {
                     "name": "Dance",
                     "path": "danceAttacks"
                 }, {
-                    "name": "Lore",
-                    "path": "initialLore"
+                    "path": "attackTilemap3bpp"
                 }, {
-                    "name": "Level Progression",
-                    "path": "characterLevelProgression"
+                    "path": "attackTilemap2bpp"
                 }
             ]
         }, {
@@ -576,18 +574,262 @@
             "array": {
                 "length": 256
             },
+            "stringTable": "attackName",
             "assembly": {
                 "type": "data",
                 "length": 14,
                 "assembly": {
+                    "spellName": {
+                        "type": "assembly",
+                        "name": "Name",
+                        "external": "spellNames[%i]",
+                        "invalid": "this.parent.i >= 0x36"
+                    },
+                    "spellDescription": {
+                        "type": "assembly",
+                        "name": "Description",
+                        "external": "spellDescriptions[%i]",
+                        "invalid": "this.parent.i >= 0x36"
+                    },
+                    "esperAttackName": {
+                        "type": "assembly",
+                        "name": "Name",
+                        "external": "esperAttackName[%i-0x36]",
+                        "invalid": "this.parent.i < 0x36 || this.parent.i >= 0x51"
+                    },
+                    "esperAttackDescription": {
+                        "type": "assembly",
+                        "name": "Description",
+                        "external": "esperAttackDescriptions[%i-0x36]",
+                        "invalid": "this.parent.i < 0x36 || this.parent.i >= 0x51"
+                    },
+                    "miscName": {
+                        "type": "assembly",
+                        "name": "Name",
+                        "external": "attackName[%i-0x51]",
+                        "invalid": "this.parent.i < 0x51 || this.parent.i >= 0x55"
+                    },
+                    "swdTechName": {
+                        "type": "assembly",
+                        "name": "Name",
+                        "external": "swdTechNames[%i-0x55]",
+                        "invalid": "this.parent.i < 0x55 || this.parent.i >= 0x5D"
+                    },
+                    "swdTechDescription": {
+                        "type": "assembly",
+                        "name": "Description",
+                        "external": "swdTechDescription[%i-0x55]",
+                        "invalid": "this.parent.i < 0x55 || this.parent.i >= 0x5D"
+                    },
+                    "swdTechLevel": {
+                        "type": "assembly",
+                        "external": "swdTechLevel[%i-0x55]",
+                        "invalid": "this.parent.i < 0x55 || this.parent.i >= 0x5D"
+                    },
+                    "attackName": {
+                        "type": "assembly",
+                        "name": "Name",
+                        "external": "attackName[%i-0x51]",
+                        "invalid": "this.parent.i < 0x5D"
+                    },
+                    "blitzDescription": {
+                        "type": "assembly",
+                        "name": "Description",
+                        "external": "blitzDescription[%i-0x5D]",
+                        "invalid": "this.parent.i < 0x5D || this.parent.i >= 0x65"
+                    },
+                    "blitzCode": {
+                        "type": "assembly",
+                        "external": "blitzCode[%i-0x5D]",
+                        "invalid": "this.parent.i < 0x5D || this.parent.i >= 0x65"
+                    },
+                    "loreDescription": {
+                        "type": "assembly",
+                        "name": "Description",
+                        "external": "loreDescription[%i-0x8B]",
+                        "invalid": "this.parent.i < 0x8B || this.parent.i >= 0xA3"
+                    },
+                    "initialLore": {
+                        "type": "assembly",
+                        "external": "initialLore[%i-0x8B]",
+                        "invalid": "this.parent.i < 0x8B || this.parent.i >= 0xA3"
+                    },
                     "mpCost": {
                         "type": "property",
                         "name": "MP Cost",
                         "begin": 5
+                    },
+                    "spellPower": {
+                        "type": "property",
+                        "name": "Spell Power",
+                        "begin": 6
+                    },
+                    "hitRate": {
+                        "type": "property",
+                        "name": "Hit Rate",
+                        "begin": 8
+                    },
+                    "specialEffect": {
+                        "type": "property",
+                        "name": "Special Effect",
+                        "begin": 9,
+                        "mask": "0xFF",
+                        "stringTable": {
+                            "length": "88",
+                            "default": "Attack Special Effect %i",
+                            "hideIndex": true,
+                            "string": {
+                                "0-16": "<stringTable.weaponSpecialEffect[%i]>",
+                                "16": "<stringTable.attackName[24]>",
+                                "17": "<stringTable.attackName[76]>",
+                                "18": "<stringTable.attackName[70]>",
+                                "19": "<stringTable.attackName[63]>",
+                                "21": "<stringTable.attackName[97]>",
+                                "22": "<stringTable.attackName[99]>",
+                                "23": "<stringTable.attackName[120]>",
+                                "24": "<stringTable.attackName[42]>",
+                                "25": "<stringTable.attackName[162]>",
+                                "26": "<stringTable.attackName[144]>",
+                                "27": "<stringTable.attackName[147]>",
+                                "28": "<stringTable.attackName[151]>",
+                                "29": "<stringTable.attackName[152]>",
+                                "30": "<stringTable.attackName[153]>",
+                                "31": "<stringTable.attackName[155]>",
+                                "32": "<stringTable.attackName[157]>",
+                                "33": "<stringTable.attackName[158]>",
+                                "34": "<stringTable.attackName[159]>",
+                                "35": "Disable Counterattack",
+                                "36": "<stringTable.attackName[69]>",
+                                "37": "Miss Flying Targets",
+                                "38": "<stringTable.attackName[193]>",
+                                "39": "<stringTable.attackName[194]>",
+                                "40": "<stringTable.attackName[196]>",
+                                "41": "<stringTable.attackName[197]>",
+                                "42": "<stringTable.attackName[198]>",
+                                "43": "<stringTable.attackName[201]>",
+                                "44": "<stringTable.attackName[205]>",
+                                "45": "<stringTable.attackName[199]>",
+                                "46": "<stringTable.attackName[200]>",
+                                "47": "<stringTable.attackName[202]>",
+                                "48": "<stringTable.attackName[95]>",
+                                "49": "<stringTable.attackName[154]>",
+                                "50": "<stringTable.attackName[88]>, <stringTable.attackName[91]>",
+                                "51": "<stringTable.attackName[234]>",
+                                "52": "<stringTable.attackName[206]>",
+                                "53": "<stringTable.attackName[13]>",
+                                "54": "<stringTable.attackName[89]>",
+                                "55": "<stringTable.attackName[220]>",
+                                "56": "<stringTable.attackName[203]>",
+                                "57": "<stringTable.attackName[213]>",
+                                "58": "<stringTable.attackName[218]>",
+                                "59": "<stringTable.attackName[211]>",
+                                "60": "<stringTable.attackName[86]>",
+                                "61": "<stringTable.attackName[146]>",
+                                "62": "<stringTable.attackName[225]>",
+                                "63": "<stringTable.attackName[90]>",
+                                "64": "<stringTable.attackName[192]>",
+                                "65": "1/2 Damage",
+                                "66": "1/4 Damage",
+                                "67": "<stringTable.attackName[43]>",
+                                "68": "<stringTable.attackName[219]>",
+                                "69": "<stringTable.attackName[164]>",
+                                "72-88": "<stringTable.itemSpecialEffect[%i-72]>",
+                                "255": "None"
+                            }
+                        }
+                    },
+                    "statusBlock": {
+                        "type": "property",
+                        "name": "Miss if Immune to Status",
+                        "begin": 7,
+                        "mask": "0x01",
+                        "bool": true
+                    },
+                    "showMessage": {
+                        "type": "property",
+                        "name": "Show Message",
+                        "begin": 7,
+                        "mask": "0x02",
+                        "bool": true
+                    },
+                    "attackMessage": {
+                        "type": "assembly",
+                        "name": "Message",
+                        "external": "attackMessage[%i]",
+                        "invalid": "!this.parent.showMessage.value"
+                    },
+                    "targeting": {
+                        "type": "property",
+                        "name": "Targeting",
+                        "begin": 0,
+                        "flag": true,
+                        "stringTable": "targetingFlags"
+                    },
+                    "flags": {
+                        "type": "property",
+                        "name": "Flags",
+                        "begin": 2,
+                        "mask": "0xFFFFFF",
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "0": "Physical Damage",
+                                "1": "Instant Death",
+                                "2": "Resurrection",
+                                "3": "Invert Undead Damage",
+                                "4": "Random Target",
+                                "5": "Ignore Defense",
+                                "6": "No Damage Split",
+                                "7": "Target Monsters Only",
+                                "8": "Available in Menu",
+                                "9": "Ignore Reflect",
+                                "10": "Lore",
+                                "11": "Enable Runic",
+                                "12": "Quick/Warp",
+                                "13": "Auto-Retarget",
+                                "14": "Air Anchor",
+                                "15": "Affect MP",
+                                "16": "Restore HP/MP",
+                                "17": "Drain",
+                                "18": "Remove Status",
+                                "19": "Toggle Status",
+                                "20": "Use Stamina for Defense",
+                                "21": "Can't Dodge",
+                                "22": "Level Divisible",
+                                "23": "HP Fraction"
+                            }
+                        }
+                    },
+                    "element": {
+                        "type": "property",
+                        "name": "Element",
+                        "begin": 1,
+                        "flag": true,
+                        "stringTable": "element"
+                    },
+                    "status12": {
+                        "type": "property",
+                        "name": "Status",
+                        "begin": 10,
+                        "mask": "0xFFFF",
+                        "flag": true,
+                        "stringTable": {
+                            "length": 16,
+                            "default": "<stringTable.statusNamesReversed[%i]>"
+                        }
+                    },
+                    "status34": {
+                        "type": "property",
+                        "begin": 12,
+                        "mask": "0xFFFF",
+                        "flag": true,
+                        "stringTable": {
+                            "length": 16,
+                            "default": "<stringTable.statusNamesReversed[%i+16]>"
+                        }
                     }
                 }
-            },
-            "stringTable": "attackName"
+            }
         },
         "attackTilemap2bpp": {
             "type": "tilemap",
@@ -610,6 +852,20 @@
             "height": 768,
             "width": 16,
             "disableZLevel": true
+        },
+        "battleBackgroundDance": {
+            "type": "array",
+            "name": "Battle Background Dance",
+            "range": "0xED8E5B-0xED8E9B",
+            "array": {
+                "length": 64
+            },
+            "assembly": {
+                "type": "property",
+                "name": "Dance",
+                "stringTable": "danceName",
+                "link": "danceAttacks[%i]"
+            }
         },
         "battleBackgroundGraphics": {
             "type": "array",
@@ -736,6 +992,11 @@
                         "begin": 5,
                         "mask": "0x80",
                         "bool": true
+                    },
+                    "dance": {
+                        "type": "assembly",
+                        "name": "Dance",
+                        "external": "battleBackgroundDance[%i]"
                     }
                 }
             }
@@ -1753,15 +2014,6 @@
                 "type": "data",
                 "length": 12,
                 "assembly": {
-                    "blitzName": {
-                        "type": "assembly",
-                        "name": "Name",
-                        "external": "attackName[%i+12]"
-                    },
-                    "blitzDescription": {
-                        "type": "assembly",
-                        "external": "blitzDescription[%i]"
-                    },
                     "level": {
                         "type": "assembly",
                         "external": "blitzLevel[%i]"
@@ -1769,7 +2021,7 @@
                     "cat-code": "Input Code",
                     "length": {
                         "type": "property",
-                        "name": "Length",
+                        "name": "Code Length",
                         "begin": 11,
                         "stringTable": {
                             "hideIndex": true,
@@ -1871,10 +2123,10 @@
                         "name": "Button 11",
                         "begin": 10,
                         "stringTable": "blitzCode.button1"
-                    }
+                    },
+                    "cat-end": ""
                 }
-            },
-            "stringTable": "blitzName"
+            }
         },
         "blitzDescription": {
             "type": "array",
@@ -1903,7 +2155,7 @@
             },
             "assembly": {
                 "type": "property",
-                "name": "Level",
+                "name": "Learn at Level",
                 "max": 99
             }
         },
@@ -2559,25 +2811,29 @@
                         "type": "property",
                         "name": "Attack 1",
                         "begin": 0,
-                        "stringTable": "attackName"
+                        "stringTable": "attackName",
+                        "link": "attackProperties[%i]"
                     },
                     "attack2": {
                         "type": "property",
                         "name": "Attack 2",
                         "begin": 1,
-                        "stringTable": "attackName"
+                        "stringTable": "attackName",
+                        "link": "attackProperties[%i]"
                     },
                     "attack3": {
                         "type": "property",
                         "name": "Attack 3",
                         "begin": 2,
-                        "stringTable": "attackName"
+                        "stringTable": "attackName",
+                        "link": "attackProperties[%i]"
                     },
                     "attack4": {
                         "type": "property",
                         "name": "Attack 4",
                         "begin": 3,
-                        "stringTable": "attackName"
+                        "stringTable": "attackName",
+                        "link": "attackProperties[%i]"
                     }
                 }
             },
@@ -2593,7 +2849,8 @@
             "assembly": {
                 "type": "property",
                 "name": "Background",
-                "stringTable": "battleBackground"
+                "stringTable": "battleBackground",
+                "link": "battleBackgroundProperties[%i]"
             }
         },
         "danceName": {
@@ -3711,22 +3968,13 @@
             "array": {
                 "length": 24
             },
-            "stringTable": "loreName",
             "assembly": {
                 "type": "data",
                 "length": 1,
                 "assembly": {
-                    "loreName": {
-                        "type": "assembly",
-                        "external": "attackName[%i+0x3A]"
-                    },
-                    "description": {
-                        "type": "assembly",
-                        "external": "loreDescription[%i]"
-                    },
                     "initialLore": {
                         "type": "property",
-                        "name": "Known Initially",
+                        "name": "Lore Known Initially",
                         "mask": "0x01",
                         "bool": true
                     }
@@ -4232,27 +4480,7 @@
                         "begin": 27,
                         "mask": "0xF0",
                         "invalid": "this.parent.itemType.value !== 1",
-                        "stringTable": {
-                            "hideIndex": true,
-                            "string": {
-                                "0": "None",
-                                "1": "<stringTable.itemNames[4]>",
-                                "2": "<stringTable.itemNames[28]>",
-                                "3": "<stringTable.itemNames[5]>, <stringTable.itemNames[41]>, <stringTable.itemNames[76]>, <stringTable.itemNames[80]>",
-                                "4": "<stringTable.itemNames[6]>",
-                                "5": "<stringTable.itemNames[18]>",
-                                "6": "<stringTable.itemNames[22]>",
-                                "7": "MP Critical",
-                                "8": "<stringTable.itemNames[73]>, <stringTable.itemNames[75]>",
-                                "9": "<stringTable.itemNames[81]>, <stringTable.itemNames[82]>",
-                                "10": "<stringTable.itemNames[9]>",
-                                "11": "<stringTable.itemNames[46]>",
-                                "12": "<stringTable.itemNames[51]>",
-                                "13": "<stringTable.itemNames[25]>",
-                                "14": "<stringTable.itemNames[23]>",
-                                "15": "MP Critical (More)"
-                            }
-                        }
+                        "stringTable": "weaponSpecialEffect"
                     },
                     "itemFlags": {
                         "type": "property",
@@ -4276,27 +4504,7 @@
                         "name": "Special Effect",
                         "begin": 27,
                         "invalid": "this.parent.itemType.value !== 6",
-                        "stringTable": {
-                            "hideIndex": true,
-                            "string": {
-                                "0": "None",
-                                "1": "<stringTable.itemNames[249]>",
-                                "2": "<stringTable.itemNames[250]>",
-                                "3": "<stringTable.itemNames[252]>",
-                                "4": "<stringTable.itemNames[238]>, <stringTable.itemNames[239]>",
-                                "5": "<stringTable.itemNames[253]>",
-                                "6": "<stringTable.itemNames[254]>",
-                                "8": "<stringTable.battleCommandName[28]>",
-                                "9": "<stringTable.battleCommandName[24]>",
-                                "10": "<stringTable.battleCommandName[5]>",
-                                "11": "<stringTable.battleCommandName[14]>",
-                                "12": "<stringTable.battleCommandName[17]>",
-                                "13": "<stringTable.battleCommandName[13]>",
-                                "14": "<stringTable.itemNames[167]>",
-                                "15": "<stringTable.itemNames[169]>",
-                                "255": "None"
-                            }
-                        }
+                        "stringTable": "itemSpecialEffect"
                     },
                     "blockGraphics": {
                         "type": "property",
@@ -6948,25 +7156,29 @@
                         "type": "property",
                         "name": "Control Attack 1",
                         "begin": 0,
-                        "stringTable": "attackName"
+                        "stringTable": "attackName",
+                        "link": "attackProperties[%i]"
                     },
                     "attack2": {
                         "type": "property",
                         "name": "Control Attack 2",
                         "begin": 1,
-                        "stringTable": "attackName"
+                        "stringTable": "attackName",
+                        "link": "attackProperties[%i]"
                     },
                     "attack3": {
                         "type": "property",
                         "name": "Control Attack 3",
                         "begin": 2,
-                        "stringTable": "attackName"
+                        "stringTable": "attackName",
+                        "link": "attackProperties[%i]"
                     },
                     "attack4": {
                         "type": "property",
                         "name": "Control Attack 4",
                         "begin": 3,
-                        "stringTable": "attackName"
+                        "stringTable": "attackName",
+                        "link": "attackProperties[%i]"
                     }
                 }
             }
@@ -6986,13 +7198,15 @@
                         "type": "property",
                         "name": "Rage Attack 1",
                         "begin": 0,
-                        "stringTable": "attackName"
+                        "stringTable": "attackName",
+                        "link": "attackProperties[%i]"
                     },
                     "attack2": {
                         "type": "property",
                         "name": "Rage Attack 2",
                         "begin": 1,
-                        "stringTable": "attackName"
+                        "stringTable": "attackName",
+                        "link": "attackProperties[%i]"
                     }
                 }
             }
@@ -7012,13 +7226,15 @@
                         "type": "property",
                         "name": "Sketch Attack 1",
                         "begin": 0,
-                        "stringTable": "attackName"
+                        "stringTable": "attackName",
+                        "link": "attackProperties[%i]"
                     },
                     "attack2": {
                         "type": "property",
                         "name": "Sketch Attack 2",
                         "begin": 1,
-                        "stringTable": "attackName"
+                        "stringTable": "attackName",
+                        "link": "attackProperties[%i]"
                     }
                 }
             }
@@ -8445,7 +8661,8 @@
                         "type": "property",
                         "name": "Spell",
                         "begin": 0,
-                        "stringTable": "spellNames"
+                        "stringTable": "spellNames",
+                        "link": "attackProperties[%i]"
                     },
                     "level1": {
                         "type": "property",
@@ -8458,7 +8675,8 @@
                         "type": "property",
                         "name": "Spell",
                         "begin": 2,
-                        "stringTable": "spellNames"
+                        "stringTable": "spellNames",
+                        "link": "attackProperties[%i]"
                     },
                     "level2": {
                         "type": "property",
@@ -8471,7 +8689,8 @@
                         "type": "property",
                         "name": "Spell",
                         "begin": 4,
-                        "stringTable": "spellNames"
+                        "stringTable": "spellNames",
+                        "link": "attackProperties[%i]"
                     },
                     "level3": {
                         "type": "property",
@@ -8484,7 +8703,8 @@
                         "type": "property",
                         "name": "Spell",
                         "begin": 6,
-                        "stringTable": "spellNames"
+                        "stringTable": "spellNames",
+                        "link": "attackProperties[%i]"
                     },
                     "level4": {
                         "type": "property",
@@ -8497,7 +8717,8 @@
                         "type": "property",
                         "name": "Spell",
                         "begin": 8,
-                        "stringTable": "spellNames"
+                        "stringTable": "spellNames",
+                        "link": "attackProperties[%i]"
                     },
                     "level5": {
                         "type": "property",
@@ -8510,7 +8731,8 @@
                         "type": "property",
                         "name": "Spell",
                         "begin": 10,
-                        "stringTable": "spellNames"
+                        "stringTable": "spellNames",
+                        "link": "attackProperties[%i]"
                     },
                     "level6": {
                         "type": "property",
@@ -8523,7 +8745,8 @@
                         "type": "property",
                         "name": "Spell",
                         "begin": 12,
-                        "stringTable": "spellNames"
+                        "stringTable": "spellNames",
+                        "link": "attackProperties[%i]"
                     },
                     "level7": {
                         "type": "property",
@@ -8536,7 +8759,8 @@
                         "type": "property",
                         "name": "Spell",
                         "begin": 14,
-                        "stringTable": "spellNames"
+                        "stringTable": "spellNames",
+                        "link": "attackProperties[%i]"
                     },
                     "level8": {
                         "type": "property",
@@ -8549,7 +8773,8 @@
                         "type": "property",
                         "name": "Spell",
                         "begin": 16,
-                        "stringTable": "spellNames"
+                        "stringTable": "spellNames",
+                        "link": "attackProperties[%i]"
                     },
                     "level9": {
                         "type": "property",
@@ -8562,7 +8787,8 @@
                         "type": "property",
                         "name": "Spell",
                         "begin": 18,
-                        "stringTable": "spellNames"
+                        "stringTable": "spellNames",
+                        "link": "attackProperties[%i]"
                     },
                     "level10": {
                         "type": "property",
@@ -8575,7 +8801,8 @@
                         "type": "property",
                         "name": "Spell",
                         "begin": 20,
-                        "stringTable": "spellNames"
+                        "stringTable": "spellNames",
+                        "link": "attackProperties[%i]"
                     },
                     "level11": {
                         "type": "property",
@@ -8588,7 +8815,8 @@
                         "type": "property",
                         "name": "Spell",
                         "begin": 22,
-                        "stringTable": "spellNames"
+                        "stringTable": "spellNames",
+                        "link": "attackProperties[%i]"
                     },
                     "level12": {
                         "type": "property",
@@ -8601,7 +8829,8 @@
                         "type": "property",
                         "name": "Spell",
                         "begin": 24,
-                        "stringTable": "spellNames"
+                        "stringTable": "spellNames",
+                        "link": "attackProperties[%i]"
                     },
                     "level13": {
                         "type": "property",
@@ -8614,7 +8843,8 @@
                         "type": "property",
                         "name": "Spell",
                         "begin": 26,
-                        "stringTable": "spellNames"
+                        "stringTable": "spellNames",
+                        "link": "attackProperties[%i]"
                     },
                     "level14": {
                         "type": "property",
@@ -8627,7 +8857,8 @@
                         "type": "property",
                         "name": "Spell",
                         "begin": 28,
-                        "stringTable": "spellNames"
+                        "stringTable": "spellNames",
+                        "link": "attackProperties[%i]"
                     },
                     "level15": {
                         "type": "property",
@@ -8640,7 +8871,8 @@
                         "type": "property",
                         "name": "Spell",
                         "begin": 30,
-                        "stringTable": "spellNames"
+                        "stringTable": "spellNames",
+                        "link": "attackProperties[%i]"
                     },
                     "level16": {
                         "type": "property",
@@ -9566,6 +9798,21 @@
                 }
             }
         },
+        "spellDescriptions": {
+            "type": "array",
+            "name": "Spell Descriptions",
+            "range": "0xD8C9A0-0xD8CEA0",
+            "arrayLength": 54,
+            "assembly": {
+                "type": "text",
+                "encoding": "nullTerminated",
+                "multiLine": true
+            },
+            "pointerTable": {
+                "range": "0xD8CF80-0xD8D000",
+                "offset": "0xD8C9A0"
+            }
+        },
         "spellNames": {
             "type": "array",
             "name": "Spell Name",
@@ -9640,23 +9887,13 @@
             "array": {
                 "length": 8
             },
-            "stringTable": "swdTechNames",
             "assembly": {
                 "type": "data",
                 "length": 1,
                 "assembly": {
-                    "swdTechName": {
-                        "type": "assembly",
-                        "name": "Name",
-                        "external": "swdTechNames[%i]"
-                    },
-                    "description": {
-                        "type": "assembly",
-                        "external": "swdTechDescription[%i]"
-                    },
                     "level": {
                         "type": "property",
-                        "name": "Level",
+                        "name": "Learn at Level",
                         "max": 99
                     }
                 }
@@ -12873,6 +13110,7 @@
                             "type": "property",
                             "name": "Attack 1",
                             "begin": 1,
+                            "link": "attackProperties[%i]",
                             "stringTable": {
                                 "length": 255,
                                 "default": "<stringTable.attackName[%i]>",
@@ -12885,6 +13123,7 @@
                             "type": "property",
                             "name": "Attack 2",
                             "begin": 2,
+                            "link": "attackProperties[%i]",
                             "stringTable": {
                                 "length": 255,
                                 "default": "<stringTable.attackName[%i]>",
@@ -12897,6 +13136,7 @@
                             "type": "property",
                             "name": "Attack 3",
                             "begin": 3,
+                            "link": "attackProperties[%i]",
                             "stringTable": {
                                 "length": 255,
                                 "default": "<stringTable.attackName[%i]>",
@@ -12914,6 +13154,7 @@
                         "attack": {
                             "type": "property",
                             "name": "Attack",
+                            "link": "attackProperties[%i]",
                             "stringTable": {
                                 "length": 240,
                                 "default": "<stringTable.attackName[%i]>"
@@ -13062,14 +13303,16 @@
                             "name": "Attack 1",
                             "begin": 2,
                             "invalid": "(this.parent.condition.value !== 2)",
-                            "stringTable": "attackName"
+                            "stringTable": "attackName",
+                            "link": "attackProperties[%i]"
                         },
                         "attack2": {
                             "type": "property",
                             "name": "Attack 2",
                             "begin": 3,
                             "invalid": "(this.parent.condition.value !== 2)",
-                            "stringTable": "attackName"
+                            "stringTable": "attackName",
+                            "link": "attackProperties[%i]"
                         },
                         "item1": {
                             "type": "property",
@@ -15419,6 +15662,28 @@
                 "7": "White"
             }
         },
+        "itemSpecialEffect": {
+            "name": "Item Special Effect",
+            "hideIndex": true,
+            "string": {
+                "0": "None",
+                "1": "<stringTable.itemNames[249]>",
+                "2": "<stringTable.itemNames[250]>",
+                "3": "<stringTable.itemNames[252]>",
+                "4": "<stringTable.itemNames[238]>, <stringTable.itemNames[239]>",
+                "5": "<stringTable.itemNames[253]>",
+                "6": "<stringTable.itemNames[254]>",
+                "8": "<stringTable.battleCommandName[28]>",
+                "9": "<stringTable.battleCommandName[24]>",
+                "10": "<stringTable.battleCommandName[5]>",
+                "11": "<stringTable.battleCommandName[14]>",
+                "12": "<stringTable.battleCommandName[17]>",
+                "13": "<stringTable.battleCommandName[13]>",
+                "14": "<stringTable.itemNames[167]>",
+                "15": "<stringTable.itemNames[169]>",
+                "255": "None"
+            }
+        },
         "loreName": {
             "name": "Lore Name",
             "length": 24,
@@ -16901,6 +17166,28 @@
                 "0": "None",
                 "1": "Airship",
                 "2": "Chocobo"
+            }
+        },
+        "weaponSpecialEffect": {
+            "name": "Weapon Special Effect",
+            "hideIndex": true,
+            "string": {
+                "0": "None",
+                "1": "<stringTable.itemNames[4]>",
+                "2": "<stringTable.itemNames[28]>",
+                "3": "<stringTable.itemNames[5]>, <stringTable.itemNames[41]>, <stringTable.itemNames[76]>, <stringTable.itemNames[80]>",
+                "4": "<stringTable.itemNames[6]>",
+                "5": "<stringTable.itemNames[18]>",
+                "6": "<stringTable.itemNames[22]>",
+                "7": "MP Critical",
+                "8": "<stringTable.itemNames[73]>, <stringTable.itemNames[75]>",
+                "9": "<stringTable.itemNames[81]>, <stringTable.itemNames[82]>",
+                "10": "<stringTable.itemNames[9]>",
+                "11": "<stringTable.itemNames[46]>",
+                "12": "<stringTable.itemNames[51]>",
+                "13": "<stringTable.itemNames[25]>",
+                "14": "<stringTable.itemNames[23]>",
+                "15": "MP Critical (More)"
             }
         }
     },
