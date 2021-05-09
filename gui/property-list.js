@@ -368,6 +368,19 @@ class ROMPropertyList {
             if (!tilemapHTML) return;
             properties.appendChild(tilemapHTML);
             this.observer.startObserving(object, this.showProperties);
+
+        } else if (object instanceof ROMAssembly) {
+            // add a control to change the length of the data
+            const controlDiv = this.propertyHTML(object, {
+                name: 'Length',
+                controlID: 'data-length'
+            });
+            properties.appendChild(controlDiv);
+            this.observer.startObserving(object, this.showProperties);
+            properties.appendChild(controlDiv);
+            const interlaceDiv = this.interlaceDiv(object);
+            properties.appendChild(interlaceDiv);
+
         }
 
         this.updateLabels();
@@ -709,6 +722,9 @@ class ROMPropertyList {
             controlDiv = this.specialControlHTML(object, options);
             label.innerHTML = '';
             if (!controlDiv) return null;
+
+        } else if (object instanceof ROMAssembly) {
+            controlDiv = this.dataLengthControlHTML(object, options);
 
         } else {
             return null;
@@ -1099,6 +1115,164 @@ class ROMPropertyList {
         if (value !== null) input.value = value;
 
         return controlDiv;
+    }
+
+    dataLengthControlHTML(object, options) {
+        // create a div for the control
+        const controlDiv = document.createElement('div');
+        controlDiv.classList.add('property-control-div');
+
+        // length input
+        const input = document.createElement('input');
+        controlDiv.appendChild(input);
+        input.id = options.controlID;
+        input.type = 'number';
+        input.classList.add('property-control');
+        input.value = object.data.length;
+        input.min = 0;
+        input.onchange = function() {
+            const length = Number(this.value);
+            if (length === object.data.length) return;
+            const newData = new Uint8Array(length);
+            if (object.data.length > length) {
+                // trim the previous data if needed
+                newData.set(object.data.subarray(0, length));
+            } else {
+                // otherwise, append zeros to reach the new length
+                newData.set(object.data);
+            }
+            object.setData(newData);
+            document.getElementById(this.id).focus();
+        };
+
+        return controlDiv;
+    }
+
+    interlaceDiv(object) {
+        const interlaceDiv = document.createElement('div');
+        interlaceDiv.classList.add('property-div');
+
+        const interlaceButton = document.createElement('button');
+        interlaceButton.innerHTML = 'Interlace';
+        interlaceButton.onclick = function() {
+            // open a dialog box
+            const content = openModal('Interlace Data');
+
+            let word = 1;
+            let layers = 1;
+            let stride = 1;
+
+            // control for interlace word size
+            const wordDiv = document.createElement('div');
+            wordDiv.classList.add('property-div');
+            content.appendChild(wordDiv);
+
+            const wordControlDiv = document.createElement('div');
+            wordControlDiv.classList.add("property-control-div");
+
+            const wordControl = document.createElement('input');
+            wordControl.classList.add('property-control');
+            wordControl.id = 'interlace-word';
+            wordControl.type = 'number';
+            wordControl.value = word;
+            wordControl.min = 1;
+            wordControl.max = object.data.length;
+            wordControl.onchange = function() {
+                word = Number(this.value);
+                word = Math.max(word, this.min);
+                word = Math.min(word, this.max);
+            };
+            wordControlDiv.appendChild(wordControl);
+
+            const wordLabel = document.createElement('label');
+            wordLabel.innerHTML = 'Word Size:';
+            wordLabel.classList.add('property-label');
+            wordLabel.htmlFor = 'interlace-word';
+
+            wordDiv.appendChild(wordLabel);
+            wordDiv.appendChild(wordControlDiv);
+            content.appendChild(wordDiv);
+
+            // control for number of interlace layers
+            const layerDiv = document.createElement('div');
+            layerDiv.classList.add('property-div');
+            content.appendChild(layerDiv);
+
+            const layerControlDiv = document.createElement('div');
+            layerControlDiv.classList.add("property-control-div");
+
+            const layerControl = document.createElement('input');
+            layerControl.classList.add('property-control');
+            layerControl.id = 'interlace-layer';
+            layerControl.type = 'number';
+            layerControl.value = layers;
+            layerControl.min = 1;
+            layerControl.max = object.data.length;
+            layerControl.onchange = function() {
+                layers = Number(this.value);
+                layers = Math.max(layers, this.min);
+                layers = Math.min(layers, this.max);
+            };
+            layerControlDiv.appendChild(layerControl);
+
+            const layerLabel = document.createElement('label');
+            layerLabel.innerHTML = 'Layers:';
+            layerLabel.classList.add('property-label');
+            layerLabel.htmlFor = 'interlace-layer';
+
+            layerDiv.appendChild(layerLabel);
+            layerDiv.appendChild(layerControlDiv);
+            content.appendChild(layerDiv);
+
+            // control for interlace stride
+            const strideDiv = document.createElement('div');
+            strideDiv.classList.add('property-div');
+            content.appendChild(strideDiv);
+
+            const strideControlDiv = document.createElement('div');
+            strideControlDiv.classList.add("property-control-div");
+
+            const strideControl = document.createElement('input');
+            strideControl.classList.add('property-control');
+            strideControl.id = 'interlace-stride';
+            strideControl.type = 'number';
+            strideControl.value = stride;
+            strideControl.min = 1;
+            strideControl.max = object.data.length;
+            strideControl.onchange = function() {
+                stride = Number(this.value);
+                stride = Math.max(stride, this.min);
+                stride = Math.min(stride, this.max);
+            };
+            strideControlDiv.appendChild(strideControl);
+
+            const strideLabel = document.createElement('label');
+            strideLabel.innerHTML = 'Stride:';
+            strideLabel.classList.add('property-label');
+            strideLabel.htmlFor = 'interlace-layer';
+
+            strideDiv.appendChild(strideLabel);
+            strideDiv.appendChild(strideControlDiv);
+            content.appendChild(strideDiv);
+
+            // okay and cancel buttons
+            const okayButton = document.createElement('button');
+            okayButton.innerHTML = 'Okay';
+            okayButton.onclick = function() {
+                closeModal();
+                const format = `interlace(${word},${layers},${stride})`;
+                const newData = ROMAssembly.encode(object.data, format);
+                object.setData(newData[0]);
+            };
+            content.appendChild(okayButton);
+
+            const cancelButton = document.createElement('button');
+            cancelButton.innerHTML = 'Cancel';
+            cancelButton.onclick = function() { closeModal(); };
+            content.appendChild(cancelButton);
+        };
+        interlaceDiv.appendChild(interlaceButton);
+        return interlaceDiv;
     }
 
     arrayLengthControlHTML(object, options) {

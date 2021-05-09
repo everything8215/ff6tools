@@ -245,9 +245,9 @@
                         "begin": 9,
                         "mask": "0xFF"
                     },
-                    "unknown10": {
+                    "song": {
                         "type": "property",
-                        "name": "Unknown 10",
+                        "name": "Song",
                         "begin": 10,
                         "mask": "0xFF"
                     },
