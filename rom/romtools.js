@@ -5198,7 +5198,7 @@ ROMTextEncoding.prototype.decode = function(data) {
         }
 
         if (!c) {
-            text += "\\" + hexString(b1, 2);
+            text += "\\" + hexString(b1, 2, 'x');
         } else if (c == "\\0") {
             break; // string terminator
         } else if (c == "\\pad") {
@@ -5227,8 +5227,19 @@ ROMTextEncoding.prototype.encode = function(text) {
             return remainingText.startsWith(s);
         });
 
-        if (matches.length === 0) {
-            this.rom.log("Invalid character: " + remainingText[0]);
+        if (!matches.length && remainingText.startsWith('\\x')) {
+            parameter = `0${remainingText.substring(1, 4)}`;
+            i += 4;
+            const n = Number(parameter);
+            if (!isNumber(n)) {
+                this.rom.log(`Invalid value: ${parameter}`);
+            } else {
+                data.push(n);
+            }
+            continue;
+
+        } else if (!matches.length) {
+            this.rom.log(`Invalid character: ${remainingText[0]}`);
             i++;
             continue;
         }
@@ -5494,7 +5505,12 @@ function ROMStringTable(rom, definition, parent) {
     if (this.link) {
         this.defaultString = "<" + this.link + ">";
     } else if (definition.default) {
-        this.defaultString = definition.default;
+        if (definition.default.language) {
+            this.defaultLanguage = definition.default.language;
+            this.defaultString = definition.default.value;
+        } else {
+            this.defaultString = definition.default;
+        }
     } else {
         this.defaultString = "String %i";
     }
@@ -5504,7 +5520,7 @@ function ROMStringTable(rom, definition, parent) {
     if (this.length) {
         for (i = 0; i < this.length; i++) {
             if (this.string[i]) continue;
-            this.string[i] = this.createString(this.defaultString);
+            this.string[i] = this.createString(this.defaultString, this.defaultLanguage);
             this.string[i].i = i;
         }
     }
@@ -5516,8 +5532,15 @@ ROMStringTable.prototype.constructor = ROMStringTable;
 Object.defineProperty(ROMStringTable.prototype, "definition", { get: function() {
     var definition = Object.getOwnPropertyDescriptor(ROMObject.prototype, "definition").get.call(this);
 
-    var defaultString = this.defaultString;
-    if (defaultString !== "String %i") definition.default = defaultString;
+    if (this.defaultLanguage) {
+        definition.default = {
+            value: this.defaultString,
+            language: this.defaultLanguage
+        };
+    } else if (this.defaultString !== "String %i") {
+        definition.default = this.defaultString;
+    }
+
     if (this.length) definition.length = this.length;
     if (this.link) definition.link = this.link;
     if (this.language) definition.language = this.language;
@@ -5525,26 +5548,44 @@ Object.defineProperty(ROMStringTable.prototype, "definition", { get: function() 
 
     // define the custom string list
     definition.string = {};
-    this.string.forEach(function(s, i) {
-        if (s.value !== defaultString) definition.string[i] = s.value;
-    })
+    // convert to json for easy comparison
+    const jsonLanguage = JSON.stringify(this.defaultLanguage);
+    for (const i in this.string) {
+        const s = this.string[i];
+        if (s.language) {
+            if (s.value !== this.defaultString ||
+                JSON.stringify(s.language) !== jsonLanguage) {
+
+                definition.string[i] = {
+                    value: s.value,
+                    language: s.language
+                };
+            }
+        } else if (s.value !== this.defaultString) {
+            definition.string[i] = s.value;
+        }
+    }
 
     // combine identical consecutive strings
     for (const key in definition.string) {
         const string = definition.string[key];
         if (!string) continue;
         const s = Number(key);
-        if (definition.string[s + 1] !== string) continue;
-        let run = 0;
-        while (definition.string[s + run] === string) {
+        const json1 = JSON.stringify(string);
+        let json2 = JSON.stringify(definition.string[s + 1]);
+        if (json1 !== json2) continue;
+        delete definition.string[s];
+        let run = 1;
+        while (json1 === json2) {
             delete definition.string[s + run];
             run++;
+            json2 = JSON.stringify(definition.string[s + run]);
         }
         definition.string[`${s}-${s+run}`] = string;
     }
 
     // delete the string list if there were no custom strings
-    if (Object.keys(definition.string).length === 0) definition.string = null;
+    if (Object.keys(definition.string).length === 0) delete definition.string;
 
     return definition;
 }});
@@ -5553,9 +5594,19 @@ Object.defineProperty(ROMStringTable.prototype, "path", { get: function() {
     return "stringTable." + this.key;
 }});
 
-ROMStringTable.prototype.createString = function(value) {
+ROMStringTable.prototype.createString = function(value, language) {
+    if (value.language) {
+        // unpack multi-language values
+        language = value.language;
+        value = value.value;
+    }
     if (isString(value)) {
-        return new ROMString(this.rom, {value: value, name: this.name, link: this.link}, this);
+        return new ROMString(this.rom, {
+            value: value,
+            language: language,
+            name: this.name,
+            link: this.link
+        }, this);
     } else {
         var definition = value;
         definition.name = value.name || this.name;
