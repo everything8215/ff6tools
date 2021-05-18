@@ -12,6 +12,10 @@ FF6Tools started as an app for OS X which is no longer being developed.
 Old builds are available here:
 https://www.ff6hacking.com/wiki/doku.php?id=ff3:ff3us:util:ff6tools
 
+A few folks have asked if I accept donations, so I set up a Patreon. If you'd
+like to help me out, I'd appreciate it!
+https://www.patreon.com/everything8215
+
 ## Currently supported ROMs
 
 ### NES/Famicom

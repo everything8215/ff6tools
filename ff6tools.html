@@ -601,10 +601,19 @@
                     'GitHub. If you find any bugs or have ideas for new ' +
                     'features, please feel free to open an issue on GitHub.';
 
+                p = document.createElement('p');
                 var a = document.createElement('a');
-                content.appendChild(a);
+                p.appendChild(a);
+                content.appendChild(p);
                 a.innerHTML = 'FF6Tools GitHub Repository'
                 a.href = 'https://github.com/everything8215/ff6tools';
+
+                p = document.createElement('p');
+                a = document.createElement('a');
+                p.appendChild(a);
+                content.appendChild(p);
+                a.innerHTML = 'FF6Tools Patreon'
+                a.href = 'https://www.patreon.com/everything8215';
 
                 p = document.createElement('p');
                 content.appendChild(p);
