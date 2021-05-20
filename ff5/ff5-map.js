@@ -331,7 +331,7 @@ class FF5Map extends ROMEditor {
 
         } else {
             // left mouse button down - draw tiles
-            this.beginAction();
+            this.beginAction(this.drawMap);
             this.rom.doAction(new ROMAction(this.selectedLayer, this.selectedLayer.decodeLayout, null, 'Decode Layout'));
             this.setTiles();
         }
@@ -404,7 +404,7 @@ class FF5Map extends ROMEditor {
         } else if (this.rom.action && this.isDragging) {
             this.rom.doAction(new ROMAction(this.selectedLayer, null, this.selectedLayer.decodeLayout, 'Decode Layout'));
             this.rom.pushAction(new ROMAction(this, null, this.drawMap, 'Redraw Map'));
-            this.endAction(this.drawMap);
+            this.endAction();
         }
 
         this.isDragging = false;

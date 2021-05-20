@@ -14,9 +14,14 @@ class FF5BattleBackgroundEditor extends ROMTilemapView {
 
     selectObject(object) {
         this.bgProperties = object;
-        const l = this.bgProperties.layout.value;
-        this.layout = this.rom.battleBackgroundLayout.item(l);
-        super.selectObject(this.layout);
+        if (this.rom.isGBA) {
+            this.updateBackgroundLayoutGBA();
+            this.format = GFX.tileFormat.gba4bppTile;
+        } else {
+            const l = this.bgProperties.layout.value;
+            this.layout = this.rom.battleBackgroundLayout.item(l);
+            super.selectObject(this.layout);
+        }
     }
 
     loadTilemap() {
@@ -84,6 +89,7 @@ class FF5BattleBackgroundEditor extends ROMTilemapView {
             layout.disassemble(layout.parent.data);
         }
         this.layout = layout;
+        this.object = this.layout;
 
         // create graphics definition
         const graphicsData = this.rom.battleBackgroundGraphics.item(bg);
@@ -103,5 +109,6 @@ class FF5BattleBackgroundEditor extends ROMTilemapView {
             paletteData.disassemble(paletteData.parent.data);
         }
         this.layout.palette = `battleBackgroundGraphics[${bg + 2}]`;
+        super.loadTilemap();
     }
 }

@@ -1,9 +1,9 @@
 {
     "type": "rom",
-    "key": "ff5u-gba",
-    "name": "Final Fantasy V Advance (U)",
-    "length": "0x800000",
-    "crc32": "0x7A24AB0C",
+    "key": "ff5e-gba",
+    "name": "Final Fantasy V Advance (E)",
+    "length": "0x1000000",
+    "crc32": "0x7197117E",
     "system": "gba",
     "pointerLength": 4,
     "mode": "gba",
@@ -36,7 +36,7 @@
                     "name": "Event Script",
                     "path": "eventScript"
                 }, {
-                    "name": "Dialog",
+                    "name": "Dialogue",
                     "path": "stringTable.dialog"
                 }, {
                     "name": "NPC Script",
@@ -86,7 +86,7 @@
         "battleBackgroundGraphics": {
             "type": "array",
             "name": "Battle Background Graphics",
-            "range": "0x0815A4D0-0x081C7B0C",
+            "range": "0x0815C3C0-0x081C99FC",
             "align": 4,
             "array": {
                 "length": 102
@@ -95,7 +95,7 @@
                 "align": 4
             },
             "pointerTable": {
-                "range": "0x081305F8-0x08130790"
+                "range": "0x08131A7C-0x8131C14"
             }
         },
         "battleBackgroundProperties": {
@@ -152,7 +152,7 @@
         "battleCharacterGraphics": {
             "type": "array",
             "name": "Battle Character Graphics",
-            "range": "0x0821D150-0x0823EDC4",
+            "range": "0x0821F040-0x08240CB4",
             "arrayLength": 130,
             "canRelocate": true,
             "assembly": {
@@ -171,13 +171,7 @@
                 }
             },
             "pointerTable": {
-                "range": "0x0870905C-0x08709264",
-                "reference": [
-                    {
-                        "begin": "0x08088628",
-                        "mask": "0x7FFFFFFF"
-                    }
-                ]
+                "range": "0x08856A50-0x08856C58"
             },
             "stringTable": {
                 "length": 130,
@@ -187,7 +181,7 @@
         "battleCharacterPalette": {
             "type": "array",
             "name": "Battle Character Palette",
-            "range": "0x0823EDC4-0x0824014C",
+            "range": "0x08240CB4-0x0824203C",
             "canRelocate": true,
             "array": {
                 "length": 130
@@ -197,19 +191,13 @@
                 "format": ["bgr555", "tose-palette"]
             },
             "pointerTable": {
-                "range": "0x08709264-0x0870946C",
-                "reference": [
-                    {
-                        "begin": "0x08088764",
-                        "mask": "0x7FFFFFFF"
-                    }
-                ]
+                "range": "0x08856C58-0x08856E60"
             }
         },
         "battleGroupEvent": {
             "type": "array",
             "name": "Event Battle Group",
-            "range": "0x0813A374-0x0813A5B4",
+            "range": "0x0813BB38-0x0813BD78",
             "array": {
                 "length": 144
             },
@@ -243,7 +231,7 @@
         "battleGroupRandom": {
             "type": "array",
             "name": "Random Battle Group",
-            "range": "0x08140FB8-0x08141898",
+            "range": "0x0814277C-0x814305C",
             "array": {
                 "length": 284
             },
@@ -293,7 +281,7 @@
         "battleProperties": {
             "type": "array",
             "name": "Battle Properties",
-            "range": "0x0814FAA8-0x08155484",
+            "range": "0x08151998-0x08157374",
             "array": {
                 "length": 639
             },
@@ -724,7 +712,7 @@
         "entranceTriggers": {
             "type": "array",
             "name": "Entrance Triggers",
-            "range": "0x0813CECC-0x08140FB8",
+            "range": "0x0813E690-0x0814277C",
             "isSequential": true,
             "array": {
                 "length": 547
@@ -776,7 +764,7 @@
         "entranceTriggerPointers": {
             "type": "array",
             "name": "Entrance Trigger Pointers",
-            "range": "0x0813CA84-0x0813CECC",
+            "range": "0x0813E248-0x0813E690",
             "array": {
                 "length": 547
             },
@@ -789,7 +777,7 @@
                         "begin": 0,
                         "mask": "0xFFFF",
                         "multiplier": 12,
-                        "offset": "0x0813CECC"
+                        "offset": "0x0813E690"
                     }
                 },
                 "length": 2
@@ -798,7 +786,7 @@
         "eventScript": {
             "type": "array",
             "name": "Event Script",
-            "range": "0x083C2B58-0x083E4838",
+            "range": "0x0850C058-0x0852DD38",
             "isSequential": true,
             "arrayLength": 2208,
             "assembly": {
@@ -806,8 +794,8 @@
                 "encoding": "event"
             },
             "pointerTable": {
-                "range": "0x083C08D8-0x083C2B58",
-                "offset": "0x083C2B58"
+                "range": "0x08509DD8-0x0850C058",
+                "offset": "0x0850C058"
             },
             "stringTable": {
                 "name": "Event Script",
@@ -820,7 +808,7 @@
         "eventSFC": {
             "type": "array",
             "name": "SFC Event",
-            "range": "0x08142C58-0x08143D98",
+            "range": "0x08144480-0x081455C0",
             "array": {
                 "length": 2208
             },
@@ -844,7 +832,7 @@
         "eventTriggers": {
             "type": "array",
             "name": "Event Triggers",
-            "range": "0x083BD254-0x83BE268",
+            "range": "0x08506754-0x08507768",
             "isSequential": true,
             "endPointer": true,
             "array": {
@@ -880,20 +868,20 @@
                 }
             },
             "pointerTable": {
-                "range": "0x083BCE0C-0x083BD254",
+                "range": "0x0850630C-0x08506754",
                 "pointerLength": 2,
-                "offset": "0x083BCE0C"
+                "offset": "0x0850630C"
             }
         },
         "mapAnimationGraphics": {
             "type": "assembly",
             "name": "Map Animation Graphics",
-            "range": "0x082992E8-0x0829FAE8"
+            "range": "0x082AB894-0x082B2094"
         },
         "mapAnimationFlags": {
             "type": "array",
             "name": "Map Animation Flags",
-            "range": "0x0811D5A8-0x0811D6F8",
+            "range": "0x0811E998-0x0811EAE8",
             "array": {
                 "length": 28
             },
@@ -991,7 +979,7 @@
         "mapAnimationProperties": {
             "type": "array",
             "name": "Map Animation Properties",
-            "range": "0x0811D6F8-0x0811D998",
+            "range": "0x0811EAE8-0x0811ED88",
             "array": {
                 "length": 28
             },
@@ -1077,7 +1065,7 @@
         "mapBattleGroups": {
             "type": "array",
             "name": "Map Battle Groups",
-            "range": "0x0813ABB4-0x0813AFF8",
+            "range": "0x0813C378-0x0813C7BC",
             "array": {
                 "length": 546
             },
@@ -1093,7 +1081,7 @@
         "mapBattleProbability": {
             "type": "array",
             "name": "Map Battle Probability",
-            "range": "0x0813B0B8-0x0813B140",
+            "range": "0x0813C87C-0x0813C904",
             "format": "linear2bpp",
             "array": {
                 "length": 546
@@ -1116,7 +1104,7 @@
         "mapColorMath": {
             "type": "array",
             "name": "Map Color Math Properties",
-            "range": "0x0813C038-0x0813C074",
+            "range": "0x0813D7FC-0x0813D838",
             "array": {
                 "length": 20
             },
@@ -1256,7 +1244,7 @@
         "mapGraphics": {
             "type": "array",
             "name": "Map Graphics",
-            "range": "0x082C8818-0x082F5F40",
+            "range": "0x082DADC4-0x083084EC",
             "array": {
                 "length": 39
             },
@@ -1264,13 +1252,13 @@
                 "format": ["linear4bpp", "tose-graphics", "gba-lzss"]
             },
             "pointerTable": {
-                "range": "0x08708D0C-0x08708DA8"
+                "range": "0x08856700-0x0885679C"
             }
         },
         "mapGraphicsLayer3": {
             "type": "array",
             "name": "Map Graphics (Layer 3)",
-            "range": "0x082F5F40-0x082F89F0",
+            "range": "0x083084EC-0x0830AF9C",
             "array": {
                 "length": 17
             },
@@ -1278,13 +1266,13 @@
                 "format": ["linear4bpp", "tose-graphics", "gba-lzss"]
             },
             "pointerTable": {
-                "range": "0x08708DA8-0x08708DEC"
+                "range": "0x0885679C-0x088567E0"
             }
         },
         "mapLayouts": {
             "type": "array",
             "name": "Map Layouts",
-            "range": "0x0829FF6C-0x082C8818",
+            "range": "0x082B2518-0x082DADC4",
             "array": {
                 "length": 380
             },
@@ -1292,13 +1280,13 @@
                 "format": "tose-70"
             },
             "pointerTable": {
-                "range": "0x0870871C-0x08708D0C"
+                "range": "0x08856110-0x08856700"
             }
         },
         "mapPalettes": {
             "type": "array",
             "name": "Map Palette",
-            "range": "0x082F89F0-0x082FB750",
+            "range": "0x0830AF9C-0x0830DCFC",
             "array": {
                 "length": 44
             },
@@ -1306,13 +1294,13 @@
                 "format": ["bgr555", "tose-palette"]
             },
             "pointerTable": {
-                "range": "0x08708DEC-0x08708E9C"
+                "range": "0x088567E0-0x08856890"
             }
         },
         "mapProperties": {
             "type": "array",
             "name": "Map Properties",
-            "range": "0x08136760-0x0813A334",
+            "range": "0x08137F24-0x0813BAF8",
             "array": {
                 "length": 547
             },
@@ -2103,7 +2091,7 @@
         "mapSpriteFrame": {
             "type": "array",
             "name": "Map Sprite Frame",
-            "range": "0x08125800-0x08125D00",
+            "range": "0x08126BF0-0x081270F0",
             "array": {
                 "length": 80
 
@@ -2142,25 +2130,25 @@
         "mapSpriteGraphics1": {
             "type": "assembly",
             "name": "Map Sprite Graphics 1",
-            "range": "0x083098A0-0x0830E694",
+            "range": "0x0831BE4C-0x08320C40",
             "format": ["linear4bpp", "tose-graphics", "gba-lzss"]
         },
         "mapSpriteGraphics2": {
             "type": "assembly",
             "name": "Map Sprite Graphics 2",
-            "range": "0x0830E694-0x08313048",
+            "range": "0x08320C40-0x083255F4",
             "format": ["linear4bpp", "tose-graphics", "gba-lzss"]
         },
         "mapSpriteGraphics3": {
             "type": "assembly",
             "name": "Map Sprite Graphics 3",
-            "range": "0x08313048-0x08315D64",
+            "range": "0x083255F4-0x08328310",
             "format": ["linear4bpp", "tose-graphics", "gba-lzss"]
         },
         "mapSpritePalettes": {
             "type": "array",
             "name": "Map Sprite Palettes",
-            "range": "0x08315F74-0x08315FF4",
+            "range": "0x08328520-0x083285A0",
             "array": {
                 "length": 4
             },
@@ -2172,7 +2160,7 @@
         "mapTileProperties": {
             "type": "array",
             "name": "Map Tile Properties",
-            "range": "0x08133960-0x08136760",
+            "range": "0x08135124-0x08137F24",
             "array": {
                 "length": 23
             },
@@ -2239,7 +2227,7 @@
         "mapTilePriority": {
             "type": "array",
             "name": "Map Tile Priority",
-            "range": "0x0811E400-0x08125800",
+            "range": "0x0811F7F0-0x08126BF0",
             "array": {
                 "length": 29
             },
@@ -2251,7 +2239,7 @@
         "mapTilesets": {
             "type": "array",
             "name": "Map Tilesets",
-            "range": "0x082FB750-0x083098A0",
+            "range": "0x0830DCFC-0x0831BE4C",
             "array": {
                 "length": 28
             },
@@ -2269,7 +2257,7 @@
                 }
             },
             "pointerTable": {
-                "range": "0x08708E9C-0x08708F0C"
+                "range": "0x0856890-0x0856900"
             },
             "stringTable": {
                 "length": 28,
@@ -2309,7 +2297,7 @@
         "mapTreasures": {
             "type": "array",
             "name": "Map Treasures",
-            "range": "0x08141BB8-0x08142000",
+            "range": "0x0814337C-0x081437C4",
             "array": {
                 "length": 547
             },
@@ -2329,18 +2317,18 @@
         "monsterGraphics": {
             "type": "array",
             "name": "Monster Graphics",
-            "range": "0x081C7E54-0x0821D150",
+            "range": "0x081C9D44-0x0821F040",
             "array": {
                 "length": 1472
             },
             "pointerTable": {
-                "range": "0x08130790-0x08131E90"
+                "range": "0x08131C14-0x08133314"
             }
         },
         "monsterPosition": {
             "type": "array",
             "name": "Monster Position",
-            "range": "0x0815408C-0x08155484",
+            "range": "0x08155F7C-0x08157374",
             "array": {
                 "length": 639
             },
@@ -2374,7 +2362,7 @@
         "monsterProperties": {
             "type": "array",
             "name": "Monster Properties",
-            "range": "0x0814B2A8-0x0814FAA8",
+            "range": "0x0814D198-0x08151998",
             "array": {
                 "length": 512
             },
@@ -2394,19 +2382,19 @@
                     "monsterName": {
                         "type": "assembly",
                         "name": "Name",
-                        "external": "text[%i+0x12FB-0xE0]",
+                        "external": "stringTable.monsterName[%i-0xE0]",
                         "invalid": "this.parent.i < 224"
                     },
                     "bossName": {
                         "type": "assembly",
                         "name": "Name",
-                        "external": "text[%i+0x13FB]",
+                        "external": "stringTable.bossName[%i]",
                         "invalid": "this.parent.i >= 112"
                     },
                     "bossNameGBA": {
                         "type": "assembly",
                         "name": "Name",
-                        "external": "text[%i+0x147B-0x80]",
+                        "external": "stringTable.bossNameGBA[%i-0x80]",
                         "invalid": "(this.parent.i < 128) || (this.parent.i >= 151)"
                     },
                     "speed": {
@@ -2582,7 +2570,7 @@
         "monsterSize": {
             "type": "array",
             "name": "Monster Size",
-            "range": "0x08145D40-0x081468C0",
+            "range": "0x08147C30-0x081487B0",
             "array": {
                 "length": 736
             },
@@ -2608,7 +2596,7 @@
         "npcProperties": {
             "type": "array",
             "name": "NPC Properties",
-            "range": "0x083B695C-0x083BAA9C",
+            "range": "0x084FFE5C-0x08503F9C",
             "isSequential": true,
             "endPointer": true,
             "array": {
@@ -2781,15 +2769,15 @@
                 }
             },
             "pointerTable": {
-                "range": "0x083B6514-0x083B695C",
+                "range": "0x084FFA14-0x084FFE5C",
                 "pointerLength": 2,
-                "offset": "0x083B6514"
+                "offset": "0x084FFA14"
             }
         },
         "npcScript": {
             "type": "array",
             "name": "NPC Script",
-            "range": "0x083BEB68-0x083C08D4",
+            "range": "0x08508068-0x08509DD4",
             "arrayLength": 1152,
             "isSequential": true,
             "assembly": {
@@ -2797,16 +2785,16 @@
                 "encoding": "trigger"
             },
             "pointerTable": {
-                "range": "0x083BE268-0x083BEB68",
+                "range": "0x08507768-0x08508068",
                 "pointerLength": 2,
-                "offset": "0x083BE268"
+                "offset": "0x08507768"
             },
             "stringTable": "npcSwitch"
         },
         "shopProperties": {
             "type": "array",
             "name": "Shop Properties",
-            "range": "0x081572FC-0x081577FC",
+            "range": "0x081591EC-0x081596EC",
             "array": {
                 "length": 64
             },
@@ -3022,10 +3010,10 @@
         "text": {
             "type": "array",
             "name": "Text",
-            "range": "0x08373B48-0x083B6074",
+            "range": "0x083A400C-0x084FF574",
             "isSequential": true,
             "array": {
-                "length": 6009
+                "length": 30755
             },
             "assembly": {
                 "type": "text",
@@ -3033,19 +3021,19 @@
                 "multiLine": true
             },
             "pointerTable": {
-                "range": "0x0836DD64-0x08373B48",
-                "offset": "0x0836DD54"
+                "range": "0x08385F80-0x083A400C",
+                "offset": "0x08385F70"
             },
             "stringTable": {
                 "name": "Text",
-                "length": 6009,
+                "length": 30755,
                 "default": "<text[%i]>"
             }
         },
         "treasureProperties": {
             "type": "array",
             "name": "Treasure Properties",
-            "range": "0x08142000-0x08142A88",
+            "range": "0x081437C4-0x0814424C",
             "isSequential": true,
             "array": {
                 "length": 547
@@ -3193,7 +3181,7 @@
         "treasurePointers": {
             "type": "array",
             "name": "Treasure Pointers",
-            "range": "0x08141BB8-0x08142000",
+            "range": "0x0814337C-0x081437C4",
             "array": {
                 "length": 547
             },
@@ -3207,7 +3195,7 @@
                         "begin": 0,
                         "mask": "0xFFFF",
                         "multiplier": 8,
-                        "offset": "0x08142000"
+                        "offset": "0x081437C4"
                     }
                 }
             }
@@ -3215,7 +3203,7 @@
         "triggerScript": {
             "type": "array",
             "name": "Trigger Script",
-            "range": "0x083BB0FC-0x083BCE0C",
+            "range": "0x085045FC-0x0850630C",
             "arrayLength": 815,
             "isSequential": true,
             "assembly": {
@@ -3223,9 +3211,9 @@
                 "encoding": "trigger"
             },
             "pointerTable": {
-                "range": "0x083BAA9C-0x083BB0FC",
+                "range": "0x08503F9C-0x085045FC",
                 "pointerLength": 2,
-                "offset": "0x083BAA9C"
+                "offset": "0x08503F9C"
             },
             "stringTable": {
                 "name": "Trigger Script",
@@ -3241,7 +3229,7 @@
         "worldBattleGroup": {
             "type": "array",
             "name": "World Map Battle Group",
-            "range": "0x0813A5B4-0x0813ABB4",
+            "range": "0x0813BD78-0x0813C378",
             "array": {
                 "length": 192
             },
@@ -3303,7 +3291,7 @@
         "worldBattleProbability": {
             "type": "array",
             "name": "World Map Battle Probability",
-            "range": "0x0813AFF8-0x0813B0B8",
+            "range": "0x0813C7BC-0x0813C87C",
             "array": {
                 "length": 192
             },
@@ -3348,7 +3336,7 @@
         "worldGraphics": {
             "type": "array",
             "name": "World Graphics",
-            "range": "0x0827082C-0x0827697B",
+            "range": "0x08282DD8-0x08288F27",
             "array": {
                 "length": 3
             },
@@ -3358,13 +3346,13 @@
                 "palette": "worldPalettes[%i]"
             },
             "pointerTable": {
-                "range": "0x08708F0C-0x08708F18"
+                "range": "0x08856900-0x0885690C"
             }
         },
         "worldLayouts": {
             "type": "array",
             "name": "World Layouts",
-            "range": "0x08279BAC-0x082977C8",
+            "range": "0x0828C158-0x082A9D74",
             "arrayLength": 5,
             "assembly": {
                 "type": "data",
@@ -3386,13 +3374,13 @@
                 }
             },
             "pointerTable": {
-                "range": "0x0812E808-0x0812E81C"
+                "range": "0x0812A74C-0x0812A760"
             }
         },
         "worldPalettes": {
             "type": "array",
             "name": "World Palettes",
-            "range": "0x0827714C-0x08277764",
+            "range": "0x082896F8-0x08289D10",
             "array": {
                 "length": 3
             },
@@ -3400,13 +3388,13 @@
                 "format": ["bgr555", "tose-palette"]
             },
             "pointerTable": {
-                "range": "0x08708F1C-0x08708F28"
+                "range": "0x08856910-0x0885691C"
             }
         },
         "worldTileProperties": {
             "type": "array",
             "name": "World Map Tile Properties",
-            "range": "0x0813B754-0x0813BE14",
+            "range": "0x0813CF18-0x0813D5D8",
             "array": {
                 "length": 3
             },
@@ -3497,18 +3485,18 @@
         "worldTilesets16": {
             "type": "array",
             "name": "World Tilesets (16-bit)",
-            "range": "0x08277764-0x08278F88",
+            "range": "0x08289D10-0x0828B534",
             "array": {
                 "length": 3
             },
             "pointerTable": {
-                "range": "0x08708F28-0x08708F34"
+                "range": "0x0885691C-0x08856928"
             }
         },
         "worldTilesets": {
             "type": "array",
             "name": "World Tilesets",
-            "range": "0x08278F88-0x08279BAC",
+            "range": "0x0828B534-0x0828C158",
             "array": {
                 "length": 3
             },
@@ -3528,7 +3516,7 @@
                 }
             },
             "pointerTable": {
-                "range": "0x08708F34-0x08708F40"
+                "range": "0x08856928-0x08856934"
             }
         }
     },
@@ -4335,13 +4323,13 @@
                     "length": 1
                 },
                 "npcDialog": {
-                    "name": "NPC Dialog",
+                    "name": "NPC Dialogue",
                     "opcode": "0x2D",
                     "length": 2,
                     "assembly": {
                         "dialog": {
                             "type": "property",
-                            "name": "Dialog",
+                            "name": "Dialogue",
                             "begin": 1,
                             "offset": 1
                         }
@@ -5113,17 +5101,17 @@
             }
         },
         "npcDialog": {
-            "name": "NPC Dialog",
+            "name": "NPC Dialogue",
             "delegate": "FF5Script",
             "command": {
                 "npcDialog": {
-                    "name": "NPC Dialog",
+                    "name": "NPC Dialogue",
                     "opcode": ["0", "default"],
                     "length": 2,
                     "assembly": {
                         "dialog": {
                             "type": "property",
-                            "name": "Dialog",
+                            "name": "Dialogue",
                             "begin": 0,
                             "mask": "0x7FFF",
                             "link": "dialog[%i]",
@@ -5321,153 +5309,213 @@
         "text": {
             "name": "Text",
             "char": {
-                "0x00": " ",
+                "0x00": "a",
                 "0x01": "e",
-                "0x02": "t",
-                "0x03": "a",
+                "0x02": "i",
+                "0x03": "n",
                 "0x04": "o",
-                "0x05": "n",
-                "0x06": "s",
-                "0x07": "r",
-                "0x08": "i",
-                "0x09": "h",
-                "0x0A": "l",
+                "0x05": " ",
+                "0x06": "r",
+                "0x07": "t",
+                "0x08": "s",
+                "0x09": "l",
+                "0x0A": "u",
                 "0x0B": ".",
                 "0x0C": "d",
                 "0x0D": "\\0",
-                "0x0E": "u",
-                "0x0F": "m",
-                "0x10": "g",
-                "0x11": "y",
-                "0x12": "c",
-                "0x13": "w",
-                "0x14": "f",
-                "0x15": "p",
-                "0x16": "!",
-                "0x17": "b",
-                "0x18": ":",
-                "0x19": "k",
-                "0x1A": "'",
-                "0x1B": ",",
-                "0x1C": "v",
-                "0x1D": "T",
-                "0x1E": "I",
-                "0x1F": "S",
-                "0x20": "C",
-                "0x21": "G",
-                "0x22": "W",
-                "0x23": "?",
-                "0x24": "F",
-                "0x25": "L",
-                "0x26": "-",
-                "0x27": "B",
-                "0x28": "P",
-                "0x29": "M",
+                "0x0E": "c",
+                "0x0F": "h",
+                "0x10": "m",
+                "0x11": "g",
+                "0x12": "p",
+                "0x13": "f",
+                "0x14": "!",
+                "0x15": ":",
+                "0x16": "b",
+                "0x17": "v",
+                "0x18": ",",
+                "0x19": "w",
+                "0x1A": "y",
+                "0x1B": "S",
+                "0x1C": "k",
+                "0x1D": "z",
+                "0x1E": "'",
+                "0x1F": "C",
+                "0x20": "é",
+                "0x21": "L",
+                "0x22": "G",
+                "0x23": "E",
+                "0x24": "A",
+                "0x25": "q",
+                "0x26": "T",
+                "0x27": "?",
+                "0x28": "M",
+                "0x29": "I",
                 "0x2A": "K",
-                "0x2B": "H",
-                "0x2C": "A",
-                "0x2D": "D",
-                "0x2E": "E",
-                "0x2F": "R",
-                "0x30": "x",
-                "0x31": "O",
-                "0x32": "Y",
-                "0x33": "N",
-                "0x34": "z",
-                "0x35": "j",
-                "0x36": "q",
-                "0x37": "1",
-                "0x38": "V",
+                "0x2B": "P",
+                "0x2C": "D",
+                "0x2D": "-",
+                "0x2E": "F",
+                "0x2F": "W",
+                "0x30": "B",
+                "0x31": "H",
+                "0x32": "N",
+                "0x33": "R",
+                "0x34": "x",
+                "0x35": "¡",
+                "0x36": "j",
+                "0x37": "V",
+                "0x38": "O",
                 "0x39": "U",
-                "0x3A": "2",
-                "0x3B": "X",
-                "0x3C": "J",
-                "0x3D": "*",
-                "0x3E": "\"",
-                "0x3F": "0",
-                "0x40": "3",
-                "0x41": "Z",
-                "0x42": "4",
-                "0x43": "5",
-                "0x44": "Q",
-                "0x45": "6",
-                "0x46": "8",
-                "0x47": "7",
-                "0x48": "%",
-                "0x49": "9",
-                "0x4A": "+",
-                "0x4B": ";",
-                "0x4C": "/",
-                "0x4E": "&",
-                "0x4F": "(",
-                "0x50": ")",
-                "0x51": "=",
-                "0x55": "—",
-                "0x56": "\\d-pad",
-                "0x57": "\\up-button",
-                "0x58": "\\right-button",
-                "0x59": "\\down-button",
-                "0x5A": "\\left-button",
-                "0x5B": "↑",
-                "0x5C": "→",
-                "0x5D": "↓",
-                "0x5E": "←",
-                "0x5F": "\\claw",
-                "0x60": "\\rod",
-                "0x61": "\\staff",
-                "0x62": "\\knife",
-                "0x63": "\\sword1",
-                "0x64": "\\sword2",
-                "0x65": "\\lance",
-                "0x66": "\\kunai",
-                "0x67": "\\katana",
-                "0x68": "\\shuriken",
-                "0x69": "\\boomerang",
-                "0x6A": "\\axe",
-                "0x6B": "\\tool",
-                "0x6C": "\\music",
-                "0x6D": "\\bow",
-                "0x6E": "\\arrow",
-                "0x6F": "\\hammer",
-                "0x70": "\\whip",
-                "0x71": "\\shield",
-                "0x72": "\\helmet",
-                "0x73": "\\armor",
-                "0x74": "\\glove",
-                "0x75": "\\white",
-                "0x76": "\\black",
-                "0x77": "\\time",
+                "0x3A": "ü",
+                "0x3B": "è",
+                "0x3C": "ä",
+                "0x3D": "á",
+                "0x3E": "J",
+                "0x3F": "à",
+                "0x40": "í",
+                "0x41": "ö",
+                "0x42": "ó",
+                "0x43": "Q",
+                "0x44": "¿",
+                "0x45": "1",
+                "0x46": "Y",
+                "0x47": "Z",
+                "0x48": "2",
+                "0x49": "X",
+                "0x4A": "0",
+                "0x4B": "ê",
+                "0x4C": "\"",
+                "0x4D": "ß",
+                "0x4E": "â",
+                "0x4F": "3",
+                "0x50": "ñ",
+                "0x51": "5",
+                "0x52": "4",
+                "0x53": "*",
+                "0x54": "ú",
+                "0x55": "ù",
+                "0x56": "ì",
+                "0x57": "È",
+                "0x58": "ò",
+                "0x59": "«",
+                "0x5A": "»",
+                "0x5B": "º",
+                "0x5C": "°",
+                "0x5D": "6",
+                "0x5E": "É",
+                "0x5F": "8",
+                "0x60": "ô",
+                "0x61": "+",
+                "0x62": "î",
+                "0x63": "û",
+                "0x64": "ç",
+                "0x65": "7",
+                "0x66": "%",
+                "0x67": "9",
+                "0x68": "(",
+                "0x69": ")",
+                "0x6A": "À",
+                "0x6B": "/",
+                "0x6C": "Ç",
+                "0x6D": "Á",
+                "0x6E": "Ü",
+                "0x6F": "æ",
+                "0x70": "Ä",
+                "0x71": "ï",
+                "0x72": "Ö",
+                "0x73": "“",
+                "0x75": "Ó",
+                "0x76": "Ú",
+                "0x77": ";",
+                "0x78": "Ê",
+                "0x79": "Ñ",
+                "0x7A": "”",
+                "0x7B": "‘",
+                "0x7C": "Æ",
+                "0x7D": "Í",
+                "0x7E": "Î",
+                "0x7F": "Â",
                 "0xC2": "\\xC2[",
-                "0xC28E": "\\n",
-                "0xC2B7": "\\key",
-                "0xC2A5": "\\portrait00",
-                "0xC2A6": "\\portrait01",
-                "0xC2A7": "\\portrait03",
-                "0xC2A8": "\\portrait04",
-                "0xC2A9": "\\portrait05",
-                "0xC2AA": "\\portrait06",
-                "0xC2AB": "\\portrait07",
-                "0xC2AC": "\\portrait08",
-                "0xC2AD": "\\portrait09",
-                "0xC2AE": "\\portrait10",
-                "0xC2AF": "\\portrait11",
-                "0xC2B0": "\\portrait12",
-                "0xC2B1": "\\portrait13",
-                "0xC2B2": "\\portrait14",
-                "0xC2B3": "\\char00",
-                "0xC2B4": "\\item",
-                "0xC2B5": "\\gil",
-                "0xC2B6": "\\spell",
-                "0xC2B7": "\\page",
-                "0xC2B8": "\\continue",
-                "0xC2B9": "\\wait0",
-                "0xC2BA": "\\wait1",
-                "0xC2BB": "\\wait2",
-                "0xC2BC": "\\wait3",
-                "0xC2BD": "\\wait4",
+                "0xC280": "Ô",
+                "0xC281": "Ë",
+                "0xC282": "Ì",
+                "0xC283": "Ï",
+                "0xC284": "Ò",
+                "0xC285": "Ù",
+                "0xC286": "Û",
+                "0xC287": "’",
+                "0xC288": "·",
+                "0xC289": "‥",
+                "0xC28A": "。",
+                "0xC28E": "ë",
+                "0xC28F": "—",
+                "0xC290": "\\d-pad",
+                "0xC291": "\\up-button",
+                "0xC292": "\\right-button",
+                "0xC293": "\\down-button",
+                "0xC294": "\\left-button",
+                "0xC295": "↑",
+                "0xC296": "→",
+                "0xC297": "↓",
+                "0xC298": "←",
+                "0xC299": "&",
+                "0xC29B": "Ã",
+                "0xC29E": "\\claw",
+                "0xC29F": "\\rod",
+                "0xC2A0": "\\staff",
+                "0xC2A1": "\\knife",
+                "0xC2A2": "\\sword1",
+                "0xC2A3": "\\sword2",
+                "0xC2A4": "\\lance",
+                "0xC2A5": "\\kunai",
+                "0xC2A6": "\\katana",
+                "0xC2A7": "\\shuriken",
+                "0xC2A8": "\\boomerang",
+                "0xC2A9": "\\axe",
+                "0xC2AA": "\\tool",
+                "0xC2AB": "\\music",
+                "0xC2AC": "\\bow",
+                "0xC2AD": "\\arrow",
+                "0xC2AE": "\\hammer",
+                "0xC2AF": "\\whip",
+                "0xC2B0": "\\shield",
+                "0xC2B1": "\\helmet",
+                "0xC2B2": "\\armor",
+                "0xC2B3": "\\glove",
+                "0xC2B4": "\\white",
+                "0xC2B5": "\\black",
+                "0xC2B6": "\\time",
                 "0xC3": "\\xC3[",
-                "0xC391": "\\clearportrait",
-                "0xC4": "\\xC4["
+                "0xC38E": "\\n",
+                "0xC3A5": "\\portrait00",
+                "0xC3A6": "\\portrait01",
+                "0xC3A7": "\\portrait03",
+                "0xC3A8": "\\portrait04",
+                "0xC3A9": "\\portrait05",
+                "0xC3AA": "\\portrait06",
+                "0xC3AB": "\\portrait07",
+                "0xC3AC": "\\portrait08",
+                "0xC3AD": "\\portrait09",
+                "0xC3AE": "\\portrait10",
+                "0xC3AF": "\\portrait11",
+                "0xC3B0": "\\portrait12",
+                "0xC3B1": "\\portrait13",
+                "0xC3B2": "\\portrait14",
+                "0xC3B3": "\\char00",
+                "0xC3B4": "\\item",
+                "0xC3B5": "\\gil",
+                "0xC3B6": "\\spell",
+                "0xC3B7": "\\page",
+                "0xC3B8": "\\continue",
+                "0xC3B9": "\\wait0",
+                "0xC3BA": "\\wait1",
+                "0xC3BB": "\\wait2",
+                "0xC3BC": "\\wait3",
+                "0xC3BD": "\\wait4",
+                "0xC4": "\\xC4[",
+                "0xC487": "–",
+                "0xC491": "\\clearportrait"
             }
         }
     },
@@ -5497,25 +5545,145 @@
         "bossName": {
             "name": "Boss Name",
             "length": 112,
-            "link": "text[%i+0x13FB]"
+            "default": {
+                "value": "<text[%i*5+0x6559]>",
+                "language": {
+                    "en": {
+                        "name": "English",
+                        "link": "text[%i*5+0x6559]"
+                    },
+                    "de": {
+                        "name": "German",
+                        "link": "text[%i*5+0x655A]"
+                    },
+                    "fr": {
+                        "name": "French",
+                        "link": "text[%i*5+0x655B]"
+                    },
+                    "it": {
+                        "name": "Italian",
+                        "link": "text[%i*5+0x655C]"
+                    },
+                    "es": {
+                        "name": "Spanish",
+                        "link": "text[%i*5+0x655D]"
+                    }
+                }
+            }
         },
         "bossNameGBA": {
             "name": "Boss Name (GBA)",
             "length": 23,
-            "link": "text[%i+0x147B]"
+            "default": {
+                "value": "<text[%i*5+0x67D9]>",
+                "language": {
+                    "en": {
+                        "name": "English",
+                        "link": "text[%i*5+0x67D9]"
+                    },
+                    "de": {
+                        "name": "German",
+                        "link": "text[%i*5+0x67DA]"
+                    },
+                    "fr": {
+                        "name": "French",
+                        "link": "text[%i*5+0x67DB]"
+                    },
+                    "it": {
+                        "name": "Italian",
+                        "link": "text[%i*5+0x67DC]"
+                    },
+                    "es": {
+                        "name": "Spanish",
+                        "link": "text[%i*5+0x67DD]"
+                    }
+                }
+            }
         },
         "characterNames": {
-            "name": "Dialog",
+            "name": "Character Name",
             "length": 5,
-            "default": "<text[0x0B71+%i]>",
+            "default": {
+                "value": "<text[%i*5+0x3A3E]>",
+                "language": {
+                    "en": {
+                        "name": "English",
+                        "link": "text[%i*5+0x3A3E]"
+                    },
+                    "de": {
+                        "name": "German",
+                        "link": "text[%i*5+0x3A3F]"
+                    },
+                    "fr": {
+                        "name": "French",
+                        "link": "text[%i*5+0x3A40]"
+                    },
+                    "it": {
+                        "name": "Italian",
+                        "link": "text[%i*5+0x3A41]"
+                    },
+                    "es": {
+                        "name": "Spanish",
+                        "link": "text[%i*5+0x3A42]"
+                    }
+                }
+            },
             "string": {
-                "0": "<text[0x0B76]>"
+                "0": {
+                    "value": "<text[0x3A57]>",
+                    "language": {
+                        "en": {
+                            "name": "English",
+                            "link": "text[0x3A57]"
+                        },
+                        "de": {
+                            "name": "German",
+                            "link": "text[0x3A58]"
+                        },
+                        "fr": {
+                            "name": "French",
+                            "link": "text[0x3A59]"
+                        },
+                        "it": {
+                            "name": "Italian",
+                            "link": "text[0x3A5A]"
+                        },
+                        "es": {
+                            "name": "Spanish",
+                            "link": "text[0x3A5B]"
+                        }
+                    }
+                }
             }
         },
         "dialog": {
-            "name": "Dialog",
-            "length": 2404,
-            "link": "text[%i]"
+            "name": "Dialogue",
+            "length": 2457,
+            "default": {
+                "value": "<text[%i*5+0]>",
+                "language": {
+                    "en": {
+                        "name": "English",
+                        "link": "text[%i*5+0]"
+                    },
+                    "de": {
+                        "name": "German",
+                        "link": "text[%i*5+1]"
+                    },
+                    "fr": {
+                        "name": "French",
+                        "link": "text[%i*5+2]"
+                    },
+                    "it": {
+                        "name": "Italian",
+                        "link": "text[%i*5+3]"
+                    },
+                    "es": {
+                        "name": "Spanish",
+                        "link": "text[%i*5+4]"
+                    }
+                }
+            }
         },
         "eventCharacter": {
             "name": "Event Character",
@@ -5543,19 +5711,115 @@
         "itemNames": {
             "name": "Item Names",
             "length": 260,
-            "link": "text[%i+0x0CEF]"
+            "default": {
+                "value": "<text[%i*5+0x41BE]>",
+                "language": {
+                    "en": {
+                        "name": "English",
+                        "link": "text[%i*5+0x41BE]"
+                    },
+                    "de": {
+                        "name": "German",
+                        "link": "text[%i*5+0x41BF]"
+                    },
+                    "fr": {
+                        "name": "French",
+                        "link": "text[%i*5+0x41C0]"
+                    },
+                    "it": {
+                        "name": "Italian",
+                        "link": "text[%i*5+0x41C1]"
+                    },
+                    "es": {
+                        "name": "Spanish",
+                        "link": "text[%i*5+0x41C2]"
+                    }
+                }
+            }
         },
         "jobName": {
             "name": "Job Name",
             "length": 26,
-            "link": "text[%i+0x0E0D]"
+            "default": {
+                "value": "<text[%i*5+0x4754]>",
+                "language": {
+                    "en": {
+                        "name": "English",
+                        "link": "text[%i*5+0x4754]"
+                    },
+                    "de": {
+                        "name": "German",
+                        "link": "text[%i*5+0x4755]"
+                    },
+                    "fr": {
+                        "name": "French",
+                        "link": "text[%i*5+0x4756]"
+                    },
+                    "it": {
+                        "name": "Italian",
+                        "link": "text[%i*5+0x4757]"
+                    },
+                    "es": {
+                        "name": "Spanish",
+                        "link": "text[%i*5+0x4758]"
+                    }
+                }
+            }
         },
         "mapTitle": {
             "name": "Map Title",
             "length": 197,
-            "link": "text[%i+0x16B3]",
+            "default": {
+                "value": "<text[%i*5+0x72F1]>",
+                "language": {
+                    "en": {
+                        "name": "English",
+                        "link": "text[%i*5+0x72F1]"
+                    },
+                    "de": {
+                        "name": "German",
+                        "link": "text[%i*5+0x72F2]"
+                    },
+                    "fr": {
+                        "name": "French",
+                        "link": "text[%i*5+0x72F3]"
+                    },
+                    "it": {
+                        "name": "Italian",
+                        "link": "text[%i*5+0x72F4]"
+                    },
+                    "es": {
+                        "name": "Spanish",
+                        "link": "text[%i*5+0x72F5]"
+                    }
+                }
+            },
             "string": {
-                "0": "No Title"
+                "0": {
+                    "value": "No Title",
+                    "language": {
+                        "en": {
+                            "name": "English",
+                            "link": "text[0x72F1]"
+                        },
+                        "de": {
+                            "name": "German",
+                            "link": "text[0x72F2]"
+                        },
+                        "fr": {
+                            "name": "French",
+                            "link": "text[0x72F3]"
+                        },
+                        "it": {
+                            "name": "Italian",
+                            "link": "text[0x72F4]"
+                        },
+                        "es": {
+                            "name": "Spanish",
+                            "link": "text[0x72F5]"
+                        }
+                    }
+                }
             }
         },
         "mapVRAMPalette": {
@@ -5582,7 +5846,31 @@
         "monsterName": {
             "name": "Monster Name",
             "length": 256,
-            "link": "text[%i+0x12FB]"
+            "default": {
+                "value": "<text[%i*5+0x6059]>",
+                "language": {
+                    "en": {
+                        "name": "English",
+                        "link": "text[%i*5+0x6059]"
+                    },
+                    "de": {
+                        "name": "German",
+                        "link": "text[%i*5+0x605A]"
+                    },
+                    "fr": {
+                        "name": "French",
+                        "link": "text[%i*5+0x605B]"
+                    },
+                    "it": {
+                        "name": "Italian",
+                        "link": "text[%i*5+0x605C]"
+                    },
+                    "es": {
+                        "name": "Spanish",
+                        "link": "text[%i*5+0x605D]"
+                    }
+                }
+            }
         },
         "npcSwitch": {
             "name": "NPC Switch",
@@ -5983,12 +6271,60 @@
         "summon": {
             "name": "Summon Name",
             "length": 16,
-            "link": "text[%i+0x146B]"
+            "default": {
+                "value": "<text[%i*5+0x6789]>",
+                "language": {
+                    "en": {
+                        "name": "English",
+                        "link": "text[%i*5+0x6789]"
+                    },
+                    "de": {
+                        "name": "German",
+                        "link": "text[%i*5+0x678A]"
+                    },
+                    "fr": {
+                        "name": "French",
+                        "link": "text[%i*5+0x678B]"
+                    },
+                    "it": {
+                        "name": "Italian",
+                        "link": "text[%i*5+0x678C]"
+                    },
+                    "es": {
+                        "name": "Spanish",
+                        "link": "text[%i*5+0x678D]"
+                    }
+                }
+            }
         },
         "spellName": {
             "name": "Spell Names",
             "length": 94,
-            "link": "text[%i+0x11E3]"
+            "default": {
+                "value": "<text[%i*5+0x5AE1]>",
+                "language": {
+                    "en": {
+                        "name": "English",
+                        "link": "text[%i*5+0x5AE1]"
+                    },
+                    "de": {
+                        "name": "German",
+                        "link": "text[%i*5+0x5AE2]"
+                    },
+                    "fr": {
+                        "name": "French",
+                        "link": "text[%i*5+0x5AE3]"
+                    },
+                    "it": {
+                        "name": "Italian",
+                        "link": "text[%i*5+0x5AE4]"
+                    },
+                    "es": {
+                        "name": "Spanish",
+                        "link": "text[%i*5+0x5AE5]"
+                    }
+                }
+            }
         },
         "status": {
             "name": "Status",
@@ -6042,6 +6378,6 @@
         }
     },
     "freeSpace": [
-        "0x0870AE60-0x08800000"
+        "0x088588D8-0x08800000"
     ]
 }

@@ -89,6 +89,13 @@
             "0x7A24AB0C"
         ]
     },
+    "ff5e-gba": {
+        "name": "Final Fantasy V Advance (E)",
+        "url": "ff5/ff5e-gba.json",
+        "crc32": [
+            "0x7197117E"
+        ]
+    },
     "ff3u-sfc": {
         "name": "Final Fantasy III (U)",
         "url": "ff6/ff3u-sfc.json",

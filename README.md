@@ -39,6 +39,7 @@ https://www.patreon.com/everything8215
 - Final Fantasy IV Advance (U)
 - Final Fantasy IV Advance (E)
 - Final Fantasy V Advance (U)
+- Final Fantasy V Advance (E)
 - Final Fantasy VI Advance (U)
 - Final Fantasy VI Advance (J)
 - Final Fantasy VI Advance (E)
