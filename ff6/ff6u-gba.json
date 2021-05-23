@@ -194,6 +194,8 @@
                 {
                     "name": "Menu Window",
                     "path": "windowGraphics"
+                }, {
+                    "path": "stringTable.menuText"
                 }
             ]
         }
@@ -13855,8 +13857,8 @@
         "menuEscapeSequences": {
             "name": "Menu Escape Sequences",
             "char": {
-                "0xC387": "\\item",
-                "0xC388": "\\character"
+                "0xC387": "\\menuitem",
+                "0xC388": "\\menuchar"
             }
         },
         "portraits": {
@@ -15391,6 +15393,11 @@
                 "14": "Sprite Palette 6",
                 "15": "Sprite Palette 7"
             }
+        },
+        "menuText": {
+            "name": "Menu Text",
+            "length": 282,
+            "link": "text1[%i]"
         },
         "monsterAnimation": {
             "name": "Monster Animation",

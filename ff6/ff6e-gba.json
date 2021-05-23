@@ -194,6 +194,8 @@
                 {
                     "name": "Menu Window",
                     "path": "windowGraphics"
+                }, {
+                    "path": "stringTable.menuText"
                 }
             ]
         }
@@ -13800,8 +13802,8 @@
         "menuEscapeSequences": {
             "name": "Menu Escape Sequences",
             "char": {
-                "0xC484": "\\item",
-                "0xC485": "\\character"
+                "0xC484": "\\menuitem",
+                "0xC485": "\\menuchar"
             }
         },
         "portraits": {
@@ -16063,6 +16065,35 @@
                 "13": "Sprite Palette 5",
                 "14": "Sprite Palette 6",
                 "15": "Sprite Palette 7"
+            }
+        },
+        "menuText": {
+            "name": "Menu Text",
+            "length": 299,
+            "default": {
+                "value": "<text1[%i*5]>",
+                "language": {
+                    "en": {
+                        "name": "English",
+                        "link": "text1[%i*5]"
+                    },
+                    "de": {
+                        "name": "German",
+                        "link": "text1[%i*5+1]"
+                    },
+                    "fr": {
+                        "name": "French",
+                        "link": "text1[%i*5+2]"
+                    },
+                    "it": {
+                        "name": "Italian",
+                        "link": "text1[%i*5+3]"
+                    },
+                    "es": {
+                        "name": "Spanish",
+                        "link": "text1[%i*5+4]"
+                    }
+                }
             }
         },
         "monsterAnimation": {

@@ -78,6 +78,24 @@
                 {
                     "name": "Character Graphics",
                     "path": "battleCharacterGraphics"
+                }, {
+                    "path": "stringTable.spellName"
+                }
+            ]
+        }, {
+            "name": "Item",
+            "list": [
+                {
+                    "path": "stringTable.itemNames"
+                }, {
+                    "path": "shopProperties"
+                }
+            ]
+        }, {
+            "name": "System",
+            "list": [
+                {
+                    "path": "stringTable.menuText"
                 }
             ]
         }
@@ -2832,112 +2850,128 @@
                     "item1": {
                         "type": "property",
                         "name": "Item 1",
-                        "begin": 1,
+                        "begin": 2,
+                        "mask": "0xFFFF",
                         "stringTable": "itemNames",
                         "invalid": "this.parent.shopType.value === 0"
                     },
                     "item2": {
                         "type": "property",
                         "name": "Item 2",
-                        "begin": 2,
+                        "begin": 4,
+                        "mask": "0xFFFF",
                         "stringTable": "itemNames",
                         "invalid": "this.parent.shopType.value === 0"
                     },
                     "item3": {
                         "type": "property",
                         "name": "Item 3",
-                        "begin": 3,
+                        "begin": 6,
+                        "mask": "0xFFFF",
                         "stringTable": "itemNames",
                         "invalid": "this.parent.shopType.value === 0"
                     },
                     "item4": {
                         "type": "property",
                         "name": "Item 4",
-                        "begin": 4,
+                        "begin": 8,
+                        "mask": "0xFFFF",
                         "stringTable": "itemNames",
                         "invalid": "this.parent.shopType.value === 0"
                     },
                     "item5": {
                         "type": "property",
                         "name": "Item 5",
-                        "begin": 5,
+                        "begin": 10,
+                        "mask": "0xFFFF",
                         "stringTable": "itemNames",
                         "invalid": "this.parent.shopType.value === 0"
                     },
                     "item6": {
                         "type": "property",
                         "name": "Item 6",
-                        "begin": 6,
+                        "begin": 12,
+                        "mask": "0xFFFF",
                         "stringTable": "itemNames",
                         "invalid": "this.parent.shopType.value === 0"
                     },
                     "item7": {
                         "type": "property",
                         "name": "Item 7",
-                        "begin": 7,
+                        "begin": 14,
+                        "mask": "0xFFFF",
                         "stringTable": "itemNames",
                         "invalid": "this.parent.shopType.value === 0"
                     },
                     "item8": {
                         "type": "property",
                         "name": "Item 8",
-                        "begin": 8,
+                        "begin": 16,
+                        "mask": "0xFFFF",
                         "stringTable": "itemNames",
                         "invalid": "this.parent.shopType.value === 0"
                     },
                     "spell1": {
                         "type": "property",
                         "name": "Spell 1",
-                        "begin": 1,
+                        "begin": 2,
+                        "mask": "0xFFFF",
                         "stringTable": "spellName",
                         "invalid": "this.parent.shopType.value !== 0"
                     },
                     "spell2": {
                         "type": "property",
                         "name": "Spell 2",
-                        "begin": 2,
+                        "begin": 4,
+                        "mask": "0xFFFF",
                         "stringTable": "spellName",
                         "invalid": "this.parent.shopType.value !== 0"
                     },
                     "spell3": {
                         "type": "property",
                         "name": "Spell 3",
-                        "begin": 3,
+                        "begin": 6,
+                        "mask": "0xFFFF",
                         "stringTable": "spellName",
                         "invalid": "this.parent.shopType.value !== 0"
                     },
                     "spell4": {
                         "type": "property",
                         "name": "Spell 4",
-                        "begin": 4,
+                        "begin": 8,
+                        "mask": "0xFFFF",
                         "stringTable": "spellName",
                         "invalid": "this.parent.shopType.value !== 0"
                     },
                     "spell5": {
                         "type": "property",
                         "name": "Spell 5",
-                        "begin": 5,
+                        "begin": 10,
+                        "mask": "0xFFFF",
                         "stringTable": "spellName",
                         "invalid": "this.parent.shopType.value !== 0"
                     },
                     "spell6": {
                         "type": "property",
                         "name": "Spell 6",
-                        "begin": 6,
+                        "begin": 12,
+                        "mask": "0xFFFF",
                         "stringTable": "spellName",
                         "invalid": "this.parent.shopType.value !== 0"
                     },
                     "spell7": {
                         "type": "property",
                         "name": "Spell 7",
-                        "begin": 7,
+                        "begin": 14,
+                        "mask": "0xFFFF",
                         "stringTable": "spellName",
                         "invalid": "this.parent.shopType.value !== 0"
                     },
                     "spell8": {
                         "type": "property",
                         "name": "Spell 8",
-                        "begin": 8,
+                        "begin": 16,
+                        "mask": "0xFFFF",
                         "stringTable": "spellName",
                         "invalid": "this.parent.shopType.value !== 0"
                     }
@@ -5714,25 +5748,45 @@
             "default": {
                 "value": "<text[%i*5+0x41BE]>",
                 "language": {
-                    "en": {
-                        "name": "English",
+                    "enName": {
+                        "name": "Name (en)",
                         "link": "text[%i*5+0x41BE]"
                     },
-                    "de": {
-                        "name": "German",
+                    "enDesc": {
+                        "name": "Desc. (en)",
+                        "link": "text[%i*5+0x6842]"
+                    },
+                    "deName": {
+                        "name": "Name (de)",
                         "link": "text[%i*5+0x41BF]"
                     },
-                    "fr": {
-                        "name": "French",
+                    "deDesc": {
+                        "name": "Desc. (de)",
+                        "link": "text[%i*5+0x6843]"
+                    },
+                    "frName": {
+                        "name": "Name (fr)",
                         "link": "text[%i*5+0x41C0]"
                     },
-                    "it": {
-                        "name": "Italian",
+                    "frDesc": {
+                        "name": "Desc. (fr)",
+                        "link": "text[%i*5+0x6844]"
+                    },
+                    "itName": {
+                        "name": "Name (it)",
                         "link": "text[%i*5+0x41C1]"
                     },
-                    "es": {
-                        "name": "Spanish",
+                    "itDesc": {
+                        "name": "Desc. (it)",
+                        "link": "text[%i*5+0x6845]"
+                    },
+                    "esName": {
+                        "name": "Name (es)",
                         "link": "text[%i*5+0x41C2]"
+                    },
+                    "esDesc": {
+                        "name": "Desc. (es)",
+                        "link": "text[%i*5+0x6846]"
                     }
                 }
             }
@@ -5868,6 +5922,35 @@
                     "es": {
                         "name": "Spanish",
                         "link": "text[%i*5+0x605D]"
+                    }
+                }
+            }
+        },
+        "menuText": {
+            "name": "Menu Text",
+            "length": 292,
+            "default": {
+                "value": "<text[%i*5+0x552D]>",
+                "language": {
+                    "en": {
+                        "name": "English",
+                        "link": "text[%i*5+0x552D]"
+                    },
+                    "de": {
+                        "name": "German",
+                        "link": "text[%i*5+0x552E]"
+                    },
+                    "fr": {
+                        "name": "French",
+                        "link": "text[%i*5+0x552F]"
+                    },
+                    "it": {
+                        "name": "Italian",
+                        "link": "text[%i*5+0x5530]"
+                    },
+                    "es": {
+                        "name": "Spanish",
+                        "link": "text[%i*5+0x5531]"
                     }
                 }
             }
@@ -6303,25 +6386,45 @@
             "default": {
                 "value": "<text[%i*5+0x5AE1]>",
                 "language": {
-                    "en": {
-                        "name": "English",
+                    "enName": {
+                        "name": "Name (en)",
                         "link": "text[%i*5+0x5AE1]"
                     },
-                    "de": {
-                        "name": "German",
+                    "enDesc": {
+                        "name": "Desc. (en)",
+                        "link": "text[%i*5+0x47D6]"
+                    },
+                    "deName": {
+                        "name": "Name (de)",
                         "link": "text[%i*5+0x5AE2]"
                     },
-                    "fr": {
-                        "name": "French",
+                    "deDesc": {
+                        "name": "Desc. (de)",
+                        "link": "text[%i*5+0x47D7]"
+                    },
+                    "frName": {
+                        "name": "Name (fr)",
                         "link": "text[%i*5+0x5AE3]"
                     },
-                    "it": {
-                        "name": "Italian",
+                    "frDesc": {
+                        "name": "Desc. (fr)",
+                        "link": "text[%i*5+0x47D8]"
+                    },
+                    "itName": {
+                        "name": "Name (it)",
                         "link": "text[%i*5+0x5AE4]"
                     },
-                    "es": {
-                        "name": "Spanish",
+                    "itDesc": {
+                        "name": "Desc. (it)",
+                        "link": "text[%i*5+0x47D9]"
+                    },
+                    "esName": {
+                        "name": "Name (es)",
                         "link": "text[%i*5+0x5AE5]"
+                    },
+                    "esDesc": {
+                        "name": "Desc. (es)",
+                        "link": "text[%i*5+0x47DA]"
                     }
                 }
             }
