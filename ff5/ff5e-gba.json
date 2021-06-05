@@ -68,6 +68,12 @@
                     "name": "Monsters",
                     "path": "monsterProperties"
                 }, {
+                    "name": "Battle Messages",
+                    "path": "stringTable.battleMessage"
+                }, {
+                    "name": "Battle Dialogue",
+                    "path": "stringTable.battleDialog"
+                }, {
                     "name": "Battle Backgrounds",
                     "path": "battleBackgroundProperties"
                 }
@@ -80,6 +86,15 @@
                     "path": "battleCharacterGraphics"
                 }, {
                     "path": "stringTable.spellName"
+                }, {
+                    "name": "Job Names",
+                    "path": "stringTable.jobName"
+                }, {
+                    "name": "Ability Names",
+                    "path": "stringTable.ability"
+                }, {
+                    "name": "Passive Ability Names",
+                    "path": "stringTable.abilityPassive"
                 }
             ]
         }, {
@@ -95,7 +110,9 @@
             "name": "System",
             "list": [
                 {
-                    "path": "stringTable.menuText"
+                    "path": "stringTable.menuText1"
+                }, {
+                    "path": "stringTable.menuText2"
                 }
             ]
         }
@@ -5562,10 +5579,166 @@
         }
     },
     "stringTable": {
+        "ability": {
+            "name": "Ability",
+            "length": 78,
+            "default": {
+                "value": "<text[%i*5+0x3A61]>",
+                "language": {
+                    "enName": {
+                        "name": "Name (en)",
+                        "link": "text[%i*5+0x3A61]"
+                    },
+                    "enDesc": {
+                        "name": "Desc. (en)",
+                        "link": "text[%i*5+0x3C41]"
+                    },
+                    "deName": {
+                        "name": "Name (de)",
+                        "link": "text[%i*5+0x3A62]"
+                    },
+                    "deDesc": {
+                        "name": "Desc. (de)",
+                        "link": "text[%i*5+0x3C42]"
+                    },
+                    "frName": {
+                        "name": "Name (fr)",
+                        "link": "text[%i*5+0x3A63]"
+                    },
+                    "frDesc": {
+                        "name": "Desc. (fr)",
+                        "link": "text[%i*5+0x3C43]"
+                    },
+                    "itName": {
+                        "name": "Name (it)",
+                        "link": "text[%i*5+0x3A64]"
+                    },
+                    "itDesc": {
+                        "name": "Desc. (it)",
+                        "link": "text[%i*5+0x3C44]"
+                    },
+                    "esName": {
+                        "name": "Name (es)",
+                        "link": "text[%i*5+0x3A65]"
+                    },
+                    "esDesc": {
+                        "name": "Desc. (es)",
+                        "link": "text[%i*5+0x3C45]"
+                    }
+                }
+            }
+        },
+        "abilityPassive": {
+            "name": "Passive Ability",
+            "length": 39,
+            "default": {
+                "value": "<text[%i*5+0x30C0]>",
+                "language": {
+                    "enName": {
+                        "name": "Name (en)",
+                        "link": "text[%i*5+0x30C0]"
+                    },
+                    "enDesc": {
+                        "name": "Desc. (en)",
+                        "link": "text[%i*5+0x2FFD]"
+                    },
+                    "deName": {
+                        "name": "Name (de)",
+                        "link": "text[%i*5+0x30C1]"
+                    },
+                    "deDesc": {
+                        "name": "Desc. (de)",
+                        "link": "text[%i*5+0x2FFE]"
+                    },
+                    "frName": {
+                        "name": "Name (fr)",
+                        "link": "text[%i*5+0x30C2]"
+                    },
+                    "frDesc": {
+                        "name": "Desc. (fr)",
+                        "link": "text[%i*5+0x2FFF]"
+                    },
+                    "itName": {
+                        "name": "Name (it)",
+                        "link": "text[%i*5+0x30C3]"
+                    },
+                    "itDesc": {
+                        "name": "Desc. (it)",
+                        "link": "text[%i*5+0x3000]"
+                    },
+                    "esName": {
+                        "name": "Name (es)",
+                        "link": "text[%i*5+0x30C4]"
+                    },
+                    "esDesc": {
+                        "name": "Desc. (es)",
+                        "link": "text[%i*5+0x3001]"
+                    }
+                }
+            }
+        },
+        "battleDialog": {
+            "name": "Battle Dialogue",
+            "length": 238,
+            "default": {
+                "value": "<text[%i*5+0x3598]>",
+                "language": {
+                    "en": {
+                        "name": "English",
+                        "link": "text[%i*5+0x3598]"
+                    },
+                    "de": {
+                        "name": "German",
+                        "link": "text[%i*5+0x3599]"
+                    },
+                    "fr": {
+                        "name": "French",
+                        "link": "text[%i*5+0x359A]"
+                    },
+                    "it": {
+                        "name": "Italian",
+                        "link": "text[%i*5+0x359B]"
+                    },
+                    "es": {
+                        "name": "Spanish",
+                        "link": "text[%i*5+0x359C]"
+                    }
+                }
+            }
+        },
         "battleSwitch": {
             "name": "Battle Switch",
             "length": 256,
             "default": "Battle Switch %i"
+        },
+        "battleMessage": {
+            "name": "Battle Message",
+            "length": 145,
+            "default": {
+                "value": "<text[%i*5+0x32C3]>",
+                "language": {
+                    "en": {
+                        "name": "English",
+                        "link": "text[%i*5+0x32C3]"
+                    },
+                    "de": {
+                        "name": "German",
+                        "link": "text[%i*5+0x32C4]"
+                    },
+                    "fr": {
+                        "name": "French",
+                        "link": "text[%i*5+0x32C5]"
+                    },
+                    "it": {
+                        "name": "Italian",
+                        "link": "text[%i*5+0x32C6]"
+                    },
+                    "es": {
+                        "name": "Spanish",
+                        "link": "text[%i*5+0x32C7]"
+                    }
+                }
+            }
         },
         "battleMonster": {
             "name": "Battle Monster",
@@ -5797,25 +5970,45 @@
             "default": {
                 "value": "<text[%i*5+0x4754]>",
                 "language": {
-                    "en": {
-                        "name": "English",
+                    "enName": {
+                        "name": "Name (en)",
                         "link": "text[%i*5+0x4754]"
                     },
-                    "de": {
-                        "name": "German",
+                    "enDesc": {
+                        "name": "Desc. (en)",
+                        "link": "text[%i*5+0x46D2]"
+                    },
+                    "deName": {
+                        "name": "Name (de)",
                         "link": "text[%i*5+0x4755]"
                     },
-                    "fr": {
-                        "name": "French",
+                    "deDesc": {
+                        "name": "Desc. (de)",
+                        "link": "text[%i*5+0x46D3]"
+                    },
+                    "frName": {
+                        "name": "Name (fr)",
                         "link": "text[%i*5+0x4756]"
                     },
-                    "it": {
-                        "name": "Italian",
+                    "frDesc": {
+                        "name": "Desc. (fr)",
+                        "link": "text[%i*5+0x46D4]"
+                    },
+                    "itName": {
+                        "name": "Name (it)",
                         "link": "text[%i*5+0x4757]"
                     },
-                    "es": {
-                        "name": "Spanish",
+                    "itDesc": {
+                        "name": "Desc. (it)",
+                        "link": "text[%i*5+0x46D5]"
+                    },
+                    "esName": {
+                        "name": "Name (es)",
                         "link": "text[%i*5+0x4758]"
+                    },
+                    "esDesc": {
+                        "name": "Desc. (es)",
+                        "link": "text[%i*5+0x46D6]"
                     }
                 }
             }
@@ -5926,8 +6119,37 @@
                 }
             }
         },
-        "menuText": {
-            "name": "Menu Text",
+        "menuText1": {
+            "name": "Menu Text 1",
+            "length": 34,
+            "default": {
+                "value": "<text[%i*5+0x3E26]>",
+                "language": {
+                    "en": {
+                        "name": "English",
+                        "link": "text[%i*5+0x3E26]"
+                    },
+                    "de": {
+                        "name": "German",
+                        "link": "text[%i*5+0x3E27]"
+                    },
+                    "fr": {
+                        "name": "French",
+                        "link": "text[%i*5+0x3E28]"
+                    },
+                    "it": {
+                        "name": "Italian",
+                        "link": "text[%i*5+0x3E29]"
+                    },
+                    "es": {
+                        "name": "Spanish",
+                        "link": "text[%i*5+0x3E2A]"
+                    }
+                }
+            }
+        },
+        "menuText2": {
+            "name": "Menu Text 2",
             "length": 292,
             "default": {
                 "value": "<text[%i*5+0x552D]>",

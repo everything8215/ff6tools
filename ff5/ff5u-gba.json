@@ -68,6 +68,12 @@
                     "name": "Monsters",
                     "path": "monsterProperties"
                 }, {
+                    "name": "Battle Messages",
+                    "path": "stringTable.battleMessage"
+                }, {
+                    "name": "Battle Dialogue",
+                    "path": "stringTable.battleDialog"
+                }, {
                     "name": "Battle Backgrounds",
                     "path": "battleBackgroundProperties"
                 }
@@ -80,6 +86,15 @@
                     "path": "battleCharacterGraphics"
                 }, {
                     "path": "stringTable.spellName"
+                }, {
+                    "name": "Job Names",
+                    "path": "stringTable.jobName"
+                }, {
+                    "name": "Ability Names",
+                    "path": "stringTable.ability"
+                }, {
+                    "name": "Passive Ability Names",
+                    "path": "stringTable.abilityPassive"
                 }
             ]
         }, {
@@ -95,7 +110,9 @@
             "name": "System",
             "list": [
                 {
-                    "path": "stringTable.menuText"
+                    "path": "stringTable.menuText1"
+                }, {
+                    "path": "stringTable.menuText2"
                 }
             ]
         }
@@ -5514,10 +5531,54 @@
         }
     },
     "stringTable": {
+        "ability": {
+            "name": "Ability",
+            "length": 78,
+            "default": {
+                "value": "<text[%i+0x0B78]>",
+                "language": {
+                    "abilityName": {
+                        "name": "Name",
+                        "link": "text[%i+0x0B78]"
+                    },
+                    "abilityDescription": {
+                        "name": "Description",
+                        "link": "text[%i+0x0BD8]"
+                    }
+                }
+            }
+        },
+        "abilityPassive": {
+            "name": "Passive Ability",
+            "length": 39,
+            "default": {
+                "value": "<text[%i+0x098B]>",
+                "language": {
+                    "abilityName": {
+                        "name": "Name",
+                        "link": "text[%i+0x098B]"
+                    },
+                    "abilityDescription": {
+                        "name": "Description",
+                        "link": "text[%i+0x0964]"
+                    }
+                }
+            }
+        },
+        "battleDialog": {
+            "name": "Battle Dialogue",
+            "length": 238,
+            "link": "text[%i+0x0A83]"
+        },
         "battleSwitch": {
             "name": "Battle Switch",
             "length": 256,
             "default": "Battle Switch %i"
+        },
+        "battleMessage": {
+            "name": "Battle Message",
+            "length": 145,
+            "link": "text[%i+0x09F2]"
         },
         "battleMonster": {
             "name": "Battle Monster",
@@ -5594,7 +5655,19 @@
         "jobName": {
             "name": "Job Name",
             "length": 26,
-            "link": "text[%i+0x0E0D]"
+            "default": {
+                "value": "<text[%i+0x0E0D]>",
+                "language": {
+                    "jobName": {
+                        "name": "Name",
+                        "link": "text[%i+0x0E0D]"
+                    },
+                    "jobDescription": {
+                        "name": "Description",
+                        "link": "text[%i+0x0DF3]"
+                    }
+                }
+            }
         },
         "mapTitle": {
             "name": "Map Title",
@@ -5625,8 +5698,13 @@
                 "15": "Sprite Palette 7"
             }
         },
-        "menuText": {
-            "name": "Menu Text",
+        "menuText1": {
+            "name": "Menu Text 1",
+            "length": 32,
+            "link": "text[%i+0x0C39]"
+        },
+        "menuText2": {
+            "name": "Menu Text 2",
             "length": 273,
             "link": "text[%i+0x10D2]"
         },
