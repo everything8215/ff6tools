@@ -15,6 +15,9 @@
                     "name": "Maps",
                     "path": "mapProperties"
                 }, {
+                    "name": "World Maps",
+                    "path": "worldMap"
+                }, {
                     "path": "mapGraphics"
                 }
             ]
@@ -281,7 +284,24 @@
                 "default": "Map %i",
                 "length": 512,
                 "string": {
+                    "0x0000": "Game Start",
+                    "0x0001": "Ur - Shed 2F",
+                    "0x0002": "Ur - Shed 1F",
+                    "0x0003": "Ur - Magic Shop",
+                    "0x0004": "Ur - Armor Shop",
+                    "0x0005": "Ur - Weapon Shop",
+                    "0x0006": "Ur - Elder's House 1",
+                    "0x0007": "Ur - Elder's House 2",
+                    "0x0008": "Ur - Inn/Item Shop",
+                    "0x0009": "Ur - Pub",
                     "0x000A": "Kazus",
+                    "0x000B": "Kazus - Shrine",
+                    "0x000C": "Kazus - Inn/Item Shop 1F",
+                    "0x000D": "Kazus - Inn/Item Shop 2F",
+                    "0x000E": "Kazus - Blacksmith",
+                    "0x000F": "Kazus - Magic Shop",
+                    "0x0010": "Kazus - Weapon Shop",
+                    "0x0011": "Kazus - Armor Shop",
                     "0x0012": "Castle Sasune",
                     "0x0016": "Altar Cave",
                     "0x001F": "Canaan",
@@ -440,6 +460,121 @@
             "stringTable": {
                 "length": 1712,
                 "default": "<text[%i]>"
+            }
+        },
+        "worldGraphics": {
+            "type": "array",
+            "name": "World Graphics",
+            "range": "0x0A9400-0x0B8800",
+            "arrayLength": 3,
+            "assembly": {
+                "type": "graphics",
+                "length": "0x800",
+                "format": "nes2bpp",
+                "palette": "worldPalette",
+                "backColor": true
+            }
+        },
+        "worldGraphicsCommon": {
+            "type": "graphics",
+            "name": "World Graphics (Common)",
+            "range": "0x0A8C00-0x0A9400",
+            "format": "nes2bpp",
+            "palette": "worldPalette",
+            "backColor": true
+        },
+        "worldLayout": {
+            "type": "array",
+            "name": "World Layout",
+            "range": "0x069800-0x09B3DC",
+            "array": {
+                "length": "0x0400"
+            },
+            "assembly": {
+                "format": "ff1-map"
+            },
+            "pointerTable": {
+                "range": "0x069000-0x069800",
+                "offset": "0x069000"
+            }
+        },
+        "worldMap": {
+            "type": "array",
+            "name": "World Maps",
+            "arrayLength": 5,
+            "assembly": {
+                "type": "assembly",
+                "editor": "FF3Map"
+            },
+            "stringTable": {
+                "string": {
+                    "0": "Floating Continent 1",
+                    "1": "Floating Continent 2",
+                    "2": "Flooded World",
+                    "3": "Surface World",
+                    "4": "Underwater"
+                }
+            }
+        },
+        "worldPalette": {
+            "type": "assembly",
+            "name": "World Palette",
+            "range": "0x008380-0x0083A0",
+            "format": "nesPalette"
+        },
+        "worldPaletteAssignment": {
+            "type": "array",
+            "name": "World Palette Assignment",
+            "range": "0x008440-0x008500",
+            "arrayLength": 3,
+            "assembly": {
+                "format": ["interlace(2,16,2)", "linear2bpp"],
+                "length": 64
+            }
+        },
+        "worldPaletteAssignmentCommon": {
+            "type": "assembly",
+            "name": "World Palette Assignment (Common)",
+            "range": "0x008400-0x008440",
+            "format": ["interlace(2,16,2)", "linear2bpp"]
+        },
+        "worldTileset": {
+            "type": "array",
+            "name": "World Tileset",
+            "range": "0x008100-0x008400",
+            "arrayLength": 3,
+            "assembly": {
+                "type": "tilemap",
+                "length": "0x0100",
+                "format": ["generic2bppTile", "interlace(2,16,2)", "interlace(1,4,64)"],
+                "width": 32,
+                "height": 8,
+                "backColor": true,
+                "graphics": "worldGraphics[%i]",
+                "palette": {
+                    "path": "worldPalette"
+                },
+                "colorOffset": {
+                    "path": "worldPaletteAssignment[%i]",
+                    "multiplier": 4
+                }
+            }
+        },
+        "worldTilesetCommon": {
+            "type": "tilemap",
+            "name": "World Tileset (Common)",
+            "range": "0x008000-0x008100",
+            "format": ["generic2bppTile", "interlace(2,16,2)", "interlace(1,4,64)"],
+            "width": 32,
+            "height": 8,
+            "backColor": true,
+            "graphics": "worldGraphicsCommon",
+            "palette": {
+                "path": "worldPalette"
+            },
+            "colorOffset": {
+                "path": "worldPaletteAssignmentCommon",
+                "multiplier": 4
             }
         }
     },
@@ -697,6 +832,7 @@
     "stringTable": {
     },
     "freeSpace": [
+        "0x09B3DC-0x09B400",
         "0x17BFD4-0x188000"
     ]
 }

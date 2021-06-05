@@ -123,6 +123,7 @@ class FF3Map extends ROMEditor {
 
         if (object.key === 'worldMap') {
             this.isWorld = true;
+            this.m = object.i;
             this.loadWorldMap();
             propertyList.select(null);
         } else {
@@ -702,38 +703,56 @@ class FF3Map extends ROMEditor {
 
         // load graphics and layout
         const size = 256;
-        const gfx = this.rom.worldGraphics;
-        const pal = this.rom.worldPalette;
-        const paletteAssignment = this.rom.worldPaletteAssignment;
-        const tileset = this.rom.worldTileset;
+        const gfx = new Uint8Array(0x4000)
+        gfx.set(this.rom.worldGraphicsCommon.data);
+        const g = this.m >> 1;
+        gfx.set(this.rom.worldGraphics.item(g).data, 0x2000);
+        const basePaletteObject = this.rom.mapPaletteBase;
+        const palette = new Uint32Array(16);
+        palette.set(basePaletteObject.data.subarray(g * 16, (g + 1) * 16));
+        const paletteAssignment = new Uint8Array(0x0200)
+        paletteAssignment.set(this.rom.worldPaletteAssignmentCommon.data);
+        paletteAssignment.set(this.rom.worldPaletteAssignment.item(g).data, 0x100);
+        const tileset = new Uint8Array(0x0200);
+        tileset.set(this.rom.worldTilesetCommon.data);
+        tileset.set(this.rom.worldTileset.item(g).data, 0x0100);
         const layout = [];
-        for (let i = 0; i < size; i++) layout.push(rom.worldLayout.item(i));
+        const layoutIndex = [0, 0, 1, 2, 3]; // see 3E/CC42
+        let layoutOffset = layoutIndex[this.m] * 256;
+        for (let i = 0; i < size; i++) {
+            layout.push(this.rom.worldLayout.item(layoutOffset + i));
+        }
         this.layer[0].loadLayout({
             type: FF3MapLayer.Type.world,
             layout: layout,
-            tileset: tileset.data,
+            tileset: tileset,
             w: size,
             h: size,
-            paletteAssignment:
-            paletteAssignment.data
+            paletteAssignment: paletteAssignment
         });
 
         this.observer.startObserving([
-            gfx, pal, paletteAssignment, tileset
+            this.rom.worldGraphicsCommon,
+            this.rom.worldGraphics.item(this.m),
+            this.rom.mapPaletteBase,
+            this.rom.worldPaletteAssignmentCommon,
+            this.rom.worldPaletteAssignment.item(this.m),
+            this.rom.worldTilesetCommon,
+            this.rom.worldTileset.item(this.m)
         ], this.loadWorldMap);
 
         // observe tile properties (redraw map and tileset, don't reload map)
-        const self = this;
-        for (const tile of this.rom.worldTileProperties.iterator()) {
-            this.observer.startObservingSub(tile, function() {
-                self.redraw();
-                self.tileset.redraw();
-            });
-        }
+        // const self = this;
+        // for (const tile of this.rom.worldTileProperties.iterator()) {
+        //     this.observer.startObservingSub(tile, function() {
+        //         self.redraw();
+        //         self.tileset.redraw();
+        //     });
+        // }
 
         // set up the ppu
         this.ppu = new GFX.PPU();
-        this.ppu.pal = this.rom.gammaCorrectedPalette(pal.data);
+        this.ppu.pal = this.rom.gammaCorrectedPalette(palette);
         this.ppu.width = size * 16;
         this.ppu.height = size * 16;
         this.ppu.back = true;
@@ -742,7 +761,7 @@ class FF3Map extends ROMEditor {
         this.ppu.layers[0].cols = size * 2;
         this.ppu.layers[0].rows = size * 2;
         this.ppu.layers[0].z[0] = GFX.Z.top;
-        this.ppu.layers[0].gfx = gfx.data;
+        this.ppu.layers[0].gfx = gfx;
         this.ppu.layers[0].tiles = this.layer[0].tiles;
         this.ppu.layers[0].main = this.showBackground; // layer 1 always in main screen
 
@@ -753,7 +772,7 @@ class FF3Map extends ROMEditor {
 
         this.invalidateMap();
         this.selectedTrigger = null;
-        this.loadTriggers();
+        // this.loadTriggers();
         this.scroll();
         this.redraw();
 
