@@ -3046,6 +3046,15 @@ ROM.dataFormat = {
 
             return [dest.slice(0, d), s];
         }
+    },
+    "apultra": {
+        encode: function(data, winSize) {
+            winSize = winSize || 0x10000;
+            return apultra_pack(data, winSize);
+        },
+        decode: function(data) {
+            return apultra_unpack(data);
+        }
     }
 };
 
