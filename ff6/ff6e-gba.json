@@ -142,6 +142,9 @@
                 {
                     "path": "attackProperties"
                 }, {
+                    "name": "Spell Descriptions (Menu)",
+                    "path": "stringTable.spellDescriptionMenu"
+                }, {
                     "name": "Attack Messages",
                     "path": "stringTable.attackMessage"
                 }, {
@@ -168,6 +171,9 @@
                 {
                     "name": "Items",
                     "path": "itemProperties"
+                }, {
+                    "name": "Item Descriptions (Menu)",
+                    "path": "stringTable.itemDescriptionMenu"
                 }, {
                     "name": "Rare Items",
                     "path": "stringTable.rareItem"
@@ -15259,6 +15265,35 @@
                 }
             }
         },
+        "itemDescriptionMenu": {
+            "name": "Item Desc.",
+            "length": 19,
+            "default": {
+                "value": "<text1[%i*5+0x26DE]>",
+                "language": {
+                    "en": {
+                        "name": "English",
+                        "link": "text1[%i*5+0x26DE]"
+                    },
+                    "de": {
+                        "name": "German",
+                        "link": "text1[%i*5+0x26DF]"
+                    },
+                    "fr": {
+                        "name": "French",
+                        "link": "text1[%i*5+0x26E0]"
+                    },
+                    "it": {
+                        "name": "Italian",
+                        "link": "text1[%i*5+0x26E1]"
+                    },
+                    "es": {
+                        "name": "Spanish",
+                        "link": "text1[%i*5+0x26E2]"
+                    }
+                }
+            }
+        },
         "itemSpecialEffect": {
             "name": "Item Special Effect",
             "hideIndex": true,
@@ -16853,6 +16888,35 @@
                 "83": "Ending Theme 1",
                 "84": "Ending Theme 2",
                 "0xFF": "Continue Previous Song"
+            }
+        },
+        "spellDescriptionMenu": {
+            "name": "Spell Desc.",
+            "length": 10,
+            "default": {
+                "value": "<text1[%i*5+0x273D]>",
+                "language": {
+                    "en": {
+                        "name": "English",
+                        "link": "text1[%i*5+0x273D]"
+                    },
+                    "de": {
+                        "name": "German",
+                        "link": "text1[%i*5+0x273E]"
+                    },
+                    "fr": {
+                        "name": "French",
+                        "link": "text1[%i*5+0x273F]"
+                    },
+                    "it": {
+                        "name": "Italian",
+                        "link": "text1[%i*5+0x2740]"
+                    },
+                    "es": {
+                        "name": "Spanish",
+                        "link": "text1[%i*5+0x2741]"
+                    }
+                }
             }
         },
         "spellName": {

@@ -142,6 +142,9 @@
                 {
                     "path": "attackProperties"
                 }, {
+                    "name": "Spell Descriptions (Menu)",
+                    "path": "stringTable.spellDescriptionMenu"
+                }, {
                     "name": "Attack Messages",
                     "path": "stringTable.attackMessage"
                 }, {
@@ -168,6 +171,9 @@
                 {
                     "name": "Items",
                     "path": "itemProperties"
+                }, {
+                    "name": "Item Descriptions (Menu)",
+                    "path": "stringTable.itemDescriptionMenu"
                 }, {
                     "name": "Rare Items",
                     "path": "stringTable.rareItem"
@@ -16642,6 +16648,11 @@
             "length": 271,
             "default": "<text1[%i+0x05F9]>"
         },
+        "itemDescriptionMenu": {
+            "name": "Item Desc.",
+            "length": 19,
+            "link": "text1[%i+0x07B5]"
+        },
         "itemSpecialEffect": {
             "name": "Item Special Effect",
             "hideIndex": true,
@@ -17955,6 +17966,11 @@
                 "84": "Ending Theme 2",
                 "0xFF": "Continue Previous Song"
             }
+        },
+        "spellDescriptionMenu": {
+            "name": "Spell Desc.",
+            "length": 10,
+            "link": "text1[%i+0x07C8]"
         },
         "spellName": {
             "name": "Spell Name",
