@@ -2838,6 +2838,9 @@ ROM.dataFormat = {
             var header, pass, r, w, c, i, l;
 
             var length = src[s++] | (src[s++] << 8);
+            if (length === 0xFFFF) {
+                return ROM.dataFormat.apultra.decode(data);
+            }
             while (s < length) {
 
                 // read header
