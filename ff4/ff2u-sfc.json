@@ -6467,26 +6467,29 @@
             "type": "array",
             "name": "Shop Properties",
             "range": "0x13A300-0x13A500",
-            "array": {
-                "length": 48
-            },
+            "arrayLength": 48,
             "assembly": {
-                "type": "array",
+                "type": "data",
                 "length": 8,
-                "array": {
-                    "length": 8,
-                    "min": 8,
-                    "max": 8
-                },
                 "assembly": {
-                    "type": "data",
-                    "length": 1,
-                    "assembly": {
-                        "shopItem": {
-                            "type": "property",
-                            "name": "Item",
-                            "stringTable": "itemNames",
-                            "link": "itemProperties[%i]"
+                    "itemArray": {
+                        "type": "array",
+                        "name": "Items",
+                        "length": 8,
+                        "arrayLength": 8,
+                        "arrayMin": 8,
+                        "arrayMax": 8,
+                        "assembly": {
+                            "type": "data",
+                            "length": 1,
+                            "assembly": {
+                                "shopItem": {
+                                    "type": "property",
+                                    "name": "Item",
+                                    "stringTable": "itemNames",
+                                    "link": "itemProperties[%i]"
+                                }
+                            }
                         }
                     }
                 }
