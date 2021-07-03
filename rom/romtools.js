@@ -5213,8 +5213,6 @@ ROMTextEncoding.prototype.decode = function(data) {
             text += "\\" + hexString(b1, 2, 'x');
         } else if (c == "\\0") {
             break; // string terminator
-        } else if (c == "\\pad") {
-            continue; // pad
         } else if (c.endsWith("[")) {
             text += c;
             b1 = data[i++] || 0;
@@ -5223,6 +5221,11 @@ ROMTextEncoding.prototype.decode = function(data) {
         } else {
             text += c;
         }
+    }
+
+    // remove padding from the end of the string
+    while (text.endsWith("\\pad")) {
+        text = text.substring(0, text.length - 4);
     }
 
     return text;
