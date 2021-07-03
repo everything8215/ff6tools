@@ -2305,7 +2305,6 @@
         "characterExpProgression": {
             "type": "array",
             "name": "Character Experience Progression",
-            "editor": "FF6LevelProgression",
             "range": "0xED8220-0xED82E4",
             "array": {
                 "length": 98,
@@ -9579,7 +9578,7 @@
         "vectorApproachLayout": {
             "type": "tilemap",
             "name": "Vector Approach Tile Layout",
-            "range": "0xD8E5BF-0xD8E6B9",
+            "range": "0xD8E5BF-0xD8E6BA",
             "format": ["snes4bppTile", "ff6-lzss"],
             "graphics": "vectorApproachGraphics",
             "palette": {

@@ -234,8 +234,18 @@ class ROMPropertyList {
                 headingDiv.appendChild(list);
                 list.onchange = function() {
                     const i = Number(list.value);
-                    propertyList.select(array.item(i))
+                    if (i === -1) {
+                        propertyList.select(array)
+                    } else {
+                        propertyList.select(array.item(i))
+                    }
                 };
+
+                // create an option to select the parent array
+                const parentOption = document.createElement('option');
+                parentOption.value = -1;
+                parentOption.innerHTML = 'Select Parent Array';
+                list.appendChild(parentOption);
 
                 // create an option for each valid string in the table
                 const stringTable = rom.stringTable[array.stringTable];
@@ -351,7 +361,7 @@ class ROMPropertyList {
 
         } else if (object instanceof ROMArray) {
             // object is an array
-            const arrayHTML = this.arrayHTML(object);
+            const arrayHTML = this.arrayHTML(object, { parentOnly: true });
             for (const html of arrayHTML) properties.appendChild(html);
             this.observer.startObserving(object, this.showProperties);
 
@@ -1316,12 +1326,14 @@ class ROMPropertyList {
         const divs = [];
 
         // create the category (array heading)
-        const categoryDiv = document.createElement('div');
-        categoryDiv.classList.add('property-category');
-        divs.push(categoryDiv);
-        const category = document.createElement('p');
-        if (!object.hideCategory) category.innerHTML = options.name;
-        categoryDiv.appendChild(category);
+        if (!options.parentOnly) {
+            const categoryDiv = document.createElement('div');
+            categoryDiv.classList.add('property-category');
+            divs.push(categoryDiv);
+            const category = document.createElement('p');
+            if (!object.hideCategory) category.innerHTML = options.name;
+            categoryDiv.appendChild(category);
+        }
 
         // create the length control
         if (object.min !== object.max) {
@@ -1331,6 +1343,8 @@ class ROMPropertyList {
             });
             divs.push(lengthDiv);
         }
+
+        if (options.parentOnly) return divs;
 
         // create divs for each element in the array
         for (const element of object.iterator()) {

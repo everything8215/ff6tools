@@ -1681,7 +1681,6 @@
         "characterExpProgression": {
             "type": "array",
             "name": "Character Experience Progression",
-            "editor": "FF5LevelProgression",
             "range": "0xD15000-0xD15129",
             "array": {
                 "length": 99,
