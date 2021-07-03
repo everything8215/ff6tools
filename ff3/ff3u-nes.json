@@ -187,11 +187,38 @@
                         "type": "assembly",
                         "external": "mapGraphicsID[%i].graphicsSet"
                     },
-                    "unknown1": {
+                    "unknown1_5": {
                         "type": "property",
-                        "name": "Unknown 1",
+                        "name": "Unknown 1.5",
                         "begin": 1,
-                        "mask": "0xFF"
+                        "mask": "0x20",
+                        "bool": true
+                    },
+                    "unknown1_6": {
+                        "type": "property",
+                        "name": "Unknown 1.6",
+                        "begin": 1,
+                        "mask": "0x40",
+                        "bool": true
+                    },
+                    "unknown1_7": {
+                        "type": "property",
+                        "name": "Unknown 1.7",
+                        "begin": 1,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "x": {
+                        "type": "property",
+                        "name": "X Position",
+                        "begin": 0,
+                        "mask": "0x1F"
+                    },
+                    "y": {
+                        "type": "property",
+                        "name": "Y Position",
+                        "begin": 1,
+                        "mask": "0x1F"
                     },
                     "title": {
                         "type": "property",
@@ -248,15 +275,15 @@
                         "begin": 9,
                         "mask": "0xFF"
                     },
-                    "unknown10": {
+                    "song": {
                         "type": "property",
-                        "name": "Unknown 10",
+                        "name": "Song",
                         "begin": 10,
                         "mask": "0xFF"
                     },
-                    "unknown11": {
+                    "exit": {
                         "type": "property",
-                        "name": "Unknown 11",
+                        "name": "Exit",
                         "begin": 11,
                         "mask": "0xFF"
                     },
