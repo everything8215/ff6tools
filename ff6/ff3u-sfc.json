@@ -4322,13 +4322,13 @@
                         "name": "Spell Learned",
                         "begin": 4,
                         "stringTable": "spellNames",
-                        "invalid": "(this.parent.itemType.value < 2) || (this.parent.itemType.value === 6)"
+                        "invalid": "(this.parent.itemType.value === 0) || (this.parent.itemType.value === 6)"
                     },
                     "spellRate": {
                         "type": "property",
                         "name": "Learn Rate",
                         "begin": 3,
-                        "invalid": "(this.parent.itemType.value < 2) || (this.parent.itemType.value === 6)"
+                        "invalid": "(this.parent.itemType.value === 0) || (this.parent.itemType.value === 6)"
                     },
                     "canEquip": {
                         "type": "property",
