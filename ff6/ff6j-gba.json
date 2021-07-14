@@ -142,6 +142,8 @@
                 {
                     "path": "attackProperties"
                 }, {
+                    "path": "battleCommandProperties"
+                }, {
                     "name": "Spell Descriptions (Menu)",
                     "path": "stringTable.spellDescriptionMenu"
                 }, {
@@ -890,6 +892,45 @@
                     "4": "Cyan, Shadow, Setzer (Battle/Menu)",
                     "5": "Mog, Umaro (Battle/Menu)",
                     "6": "Esper Terra (Battle/Menu)"
+                }
+            }
+        },
+        "battleCommandProperties": {
+            "type": "array",
+            "name": "Battle Command Properties",
+            "range": "0x0862A5D8-0x0862A618",
+            "arrayLength": 32,
+            "stringTable": "battleCommandName",
+            "assembly": {
+                "type": "data",
+                "length": 2,
+                "assembly": {
+                    "commandName": {
+                        "type": "assembly",
+                        "name": "Name",
+                        "external": "stringTable.battleCommandName[%i]"
+                    },
+                    "targeting": {
+                        "type": "property",
+                        "name": "Targeting",
+                        "begin": 1,
+                        "flag": true,
+                        "stringTable": "targetingFlags"
+                    },
+                    "flags": {
+                        "type": "property",
+                        "name": "Flags",
+                        "begin": 0,
+                        "mask": "0x07",
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "0": "Gogo Can Use",
+                                "1": "Can Mimic",
+                                "2": "Imp Can Use"
+                            }
+                        }
+                    }
                 }
             }
         },
@@ -16166,10 +16207,14 @@
         },
         "battleCommandName": {
             "name": "Battle Command Name",
-            "length": 49,
+            "length": 32,
             "default": {
-                "value": "<text2[%i*2+0x2B9A]>",
+                "value": "<text1[%i+0x015A]>",
                 "language": {
+                    "small": {
+                        "name": "Small Text",
+                        "link": "text1[%i+0x015A]"
+                    },
                     "noKanji": {
                         "name": "No Kanji",
                         "link": "text2[%i*2+0x2B9A]"

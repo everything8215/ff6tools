@@ -137,6 +137,8 @@
                 {
                     "path": "attackProperties"
                 }, {
+                    "path": "battleCommandProperties"
+                }, {
                     "name": "Attack Messages",
                     "path": "attackMessage"
                 }, {
@@ -1033,6 +1035,45 @@
                     "0x2F": "Change Switch",
                     "0x30": "Misc. Effects",
                     "0xFF": "Nothing"
+                }
+            }
+        },
+        "battleCommandProperties": {
+            "type": "array",
+            "name": "Battle Command Properties",
+            "range": "0xCFFE00-0xCFFE40",
+            "arrayLength": 32,
+            "stringTable": "battleCommandName",
+            "assembly": {
+                "type": "data",
+                "length": 2,
+                "assembly": {
+                    "commandName": {
+                        "type": "assembly",
+                        "name": "Name",
+                        "external": "battleCommandName[%i]"
+                    },
+                    "targeting": {
+                        "type": "property",
+                        "name": "Targeting",
+                        "begin": 1,
+                        "flag": true,
+                        "stringTable": "targetingFlags"
+                    },
+                    "flags": {
+                        "type": "property",
+                        "name": "Flags",
+                        "begin": 0,
+                        "mask": "0x07",
+                        "flag": true,
+                        "stringTable": {
+                            "string": {
+                                "0": "Gogo Can Use",
+                                "1": "Can Mimic",
+                                "2": "Imp Can Use"
+                            }
+                        }
+                    }
                 }
             }
         },
