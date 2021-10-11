@@ -8767,6 +8767,8 @@
                 "width": 5,
                 "height": 5,
                 "spriteSheet": {
+                    "width": 5,
+                    "height": 5,
                     "tilemap": [
                          0, 1, 2, 3, 8,
                         16,17,18,19, 9,
