@@ -26,7 +26,7 @@ class FF6Script extends ROMScriptDelegate {
         }
 
         // npcs
-        for (const triggerArray of this.rom.eventTriggers.iterator()) {
+        for (const triggerArray of this.rom.npcProperties.iterator()) {
             if (triggerArray.i < 3) continue;
             for (const trigger of triggerArray.iterator()) {
                 if (trigger.scriptPointer.invalid) continue;
