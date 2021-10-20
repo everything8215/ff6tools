@@ -3531,7 +3531,11 @@ ROMProperty.prototype.setValue = function(value) {
         }
 
         // add a reference to the new command
-        script.addPlaceholder(assembly, newRef);
+        var newCommand = script.ref[newRef];
+        if (newCommand) {
+            var reference = new ROMReference(this.rom, {target: assembly}, newCommand);
+            script.ref[newRef].reference.push(reference);
+        }
     }
 
     function redo() {
@@ -4588,6 +4592,7 @@ function ROMScript(rom, definition, parent) {
     this.encoding = definition.encoding;
     this.command = []; // commands in sequential order
     this.ref = []; // commands by reference (note that this is distinct from "reference")
+    this.placeholder = []; // placeholder refs
     this.label = {}; // commands by label
     this.nextRef = 0;
 
@@ -4596,17 +4601,20 @@ function ROMScript(rom, definition, parent) {
         this.label = definition.label;
         var keys = Object.keys(definition.label);
         for (var i = 0; i < keys.length; i++) {
-            var label = keys[i];
-            var ref = definition.label[label];
+            var labelString = keys[i];
+            var labelObject = definition.label[labelString];
+            var placeholder = {
+                reference: [],
+                label: labelString
+            };
             var offset;
-            if (isString(ref)) {
+            if (isString(labelObject)) {
                 // most labels are just an offset
-                offset = Number(ref);
-                ref = { label: label };
-            } else if (ref.offset) {
+                offset = Number(labelObject);
+            } else if (labelObject.offset) {
                 // some are a dictionary with other attributes
-                offset = Number(ref.offset);
-                ref.label = label;
+                offset = Number(labelObject.offset);
+                Object.assign(placeholder, labelObject);
             }
 
             if (!isNumber(offset)) {
@@ -4615,7 +4623,7 @@ function ROMScript(rom, definition, parent) {
             }
 
             offset = rom.mapAddress(Number(offset) - this.range.begin);
-            this.ref[offset] = ref;
+            this.placeholder[offset] = placeholder;
         }
     }
 }
@@ -4722,9 +4730,9 @@ ROMScript.prototype.disassemble = function(data) {
     while (offset < this.data.length) {
 
         // get placeholder at this offset
-        var ref = this.ref[offset];
-        if (ref && ref.encoding) {
-            encoding = this.rom.scriptEncoding[ref.encoding] || encoding;
+        var placeholder = this.placeholder[offset];
+        if (placeholder && placeholder.encoding) {
+            encoding = this.rom.scriptEncoding[placeholder.encoding] || encoding;
         }
 
         var opcode = this.data[offset];
@@ -4742,7 +4750,7 @@ ROMScript.prototype.disassemble = function(data) {
         // set the command's offset, ref, and label
         definition.begin = offset.toString();
         definition.ref = offset;
-        if (ref && ref.label) definition.label = ref.label;
+        if (placeholder && placeholder.label) definition.label = placeholder.label;
 
         // create the new command and disassemble it
         var command = new ROMCommand(this.rom, definition, this);
@@ -4753,17 +4761,6 @@ ROMScript.prototype.disassemble = function(data) {
         this.command.push(command);
         this.ref[offset] = command;
 
-        // copy references from placeholders
-        if (ref && ref.reference) {
-            for (var r = 0; r < ref.reference.length; r++) {
-                // skip references that target the rom, they are just used
-                // to update the script encoding during disassembly
-                if (ref.reference[r].target === this.rom) continue;
-                ref.reference[r].parent = command;
-                command.reference.push(ref.reference[r]);
-            }
-        }
-
         // get the encoding for the next command
         var nextEncoding = command.nextEncoding;
         if (encoding.key !== nextEncoding) encoding = this.rom.scriptEncoding[nextEncoding];
@@ -4773,6 +4770,21 @@ ROMScript.prototype.disassemble = function(data) {
     }
     this.nextRef = offset;
     this.updateOffsets();
+
+    // copy references from placeholders
+    for (const offset in this.placeholder) {
+        var command = this.ref[offset];
+        if (!command) continue;
+        var placeholder = this.placeholder[offset];
+        for (var r = 0; r < placeholder.reference.length; r++) {
+            // skip references that target the rom, they are just used
+            // to update the script encoding during disassembly
+            if (placeholder.reference[r].target === this.rom) continue;
+            placeholder.reference[r].parent = command;
+            command.reference.push(placeholder.reference[r]);
+        }
+    }
+    this.placeholder = [];
 }
 
 ROMScript.prototype.blankCommand = function(identifier) {
@@ -4858,19 +4870,17 @@ ROMScript.prototype.removeCommand = function(command) {
 }
 
 ROMScript.prototype.addPlaceholder = function(target, offset, encoding, label) {
-    var placeholder = this.ref[offset] || {};
+
+    // create a placeholder
+    placeholder = this.placeholder[offset] || {};
     placeholder.reference = placeholder.reference || [];
-    this.ref[offset] = placeholder;
+    placeholder.encoding = placeholder.encoding || encoding;
+    placeholder.label = placeholder.label || label;
+    this.placeholder[offset] = placeholder;
 
     // add a reference
     var reference = new ROMReference(this.rom, {target: target}, placeholder);
     placeholder.reference.push(reference);
-
-    if (placeholder instanceof ROMCommand) return;
-
-    // save the encoding and label in the placeholder
-    placeholder.encoding = placeholder.encoding || encoding;
-    placeholder.label = placeholder.label || label;
 }
 
 ROMScript.prototype.updateOffsets = function() {
