@@ -12864,7 +12864,8 @@
                         "duration": {
                             "type": "property",
                             "name": "Duration",
-                            "begin": 1
+                            "begin": 1,
+                            "multiplier": 4
                         }
                     }
                 }
@@ -13360,7 +13361,8 @@
                         "duration": {
                             "type": "property",
                             "name": "Duration",
-                            "begin": 1
+                            "begin": 1,
+                            "multiplier": 4
                         }
                     }
                 }
@@ -13790,7 +13792,8 @@
                         "duration": {
                             "type": "property",
                             "name": "Duration",
-                            "begin": 1
+                            "begin": 1,
+                            "multiplier": 4
                         }
                     }
                 }

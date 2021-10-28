@@ -151,6 +151,32 @@ happends, FF6Tools will prompt you with a list of options for how to deal
 with the new data. Note that the "Relocate", "Optimize", and "Expand" options
 can cause a ROM to no longer be compatible with patches and other utilities.
 
+### Compatibility with FF3usME
+
+FF3usME is another commonly used ROM editor written by Lord J. Because FF3usME
+is closed-source, it is not known exactly what changes it makes when saving a
+ROM. Because of this, compatibility issues can arise when trying to
+open a ROM previously edited in FF3usME. Fixes for some of these issues are
+described here. These fixes can be implemented by editing the definition file
+that you use to open a ROM in FF6Tools.
+
+#### World of Ruin Graphics and Tilemap Swapped
+
+If the World of Ruin is blank in the map editor (black/blue vertical stripes)
+edit your definition file as follows:
+
+- Search for `"worldGraphics2"` and change its `"range"` to `"0xEF7D07-0xEF9D17"`
+- Search for `"worldLayout2"` and change its `"range"` to `"0xEF4A46-0xEF7D07"`
+
+#### World of Balance Graphics Data Moved
+
+This problem seems to be much less common. If the World of Balance looks
+corrupted in the map editor (wrong tiles with blue/white palette) edit your
+definition file as follows:
+
+- Search for `"worldGraphics1"` change its `"range"` to `"0xEF111C-0xEF3250"`
+- Search for `"worldLayout1"` change its `"range"` to `"0xEED434-0xEF111C"`
+
 ## Acknowledgments
 
 The following people contributed to FF6Tools, either indirectly by creating
@@ -160,7 +186,7 @@ Geiger/Evil Peer, Cless, Master ZED, Imzogelmo, Terrii Senshi, Mnrogar,
 Yousei, Lord J, Novalia Spirit, Corundum, giangurgolo, Disch, Ben Siron,
 PKT Paladin, Kea, JCE3000GT, samurai goroh, Lenophis, m06, Squall_FF8,
 Warrax, Tenkarider, Grimoire LD, Odym82, Jorgur, instructrtrepe,
-Light Phoenix, kwhazit, killXtech, snaphat
+Light Phoenix, kwhazit, killXtech, snaphat, Maeson, OS, Dreami
 
 FF6Tools uses the following libraries:
 
