@@ -1,0 +1,1238 @@
+{
+    "type": "rom",
+    "key": "ff2u-nes",
+    "name": "Final Fantasy II (U)",
+    "length": "0x040010",
+    "crc32": "0x35B5157F",
+    "system": "nes",
+    "mode": "mmc1",
+    "pad": "0x00",
+    "hierarchy": [
+        {
+            "name": "Map",
+            "list": [
+                {
+                    "name": "World Map",
+                    "path": "worldMap"
+                }, {
+                    "name": "World Map Tileset",
+                    "path": "worldTileset"
+                }, {
+                    "name": "Maps",
+                    "path": "mapProperties"
+                }, {
+                    "name": "NPC Graphics",
+                    "path": "mapSpriteGraphics"
+                }
+            ]
+        }
+    ],
+    "assembly": {
+        "dialogueEvent": {
+            "type": "array",
+            "name": "Event Dialogue",
+            "range": "0x0D87EC-0x0D9800",
+            "array": {
+                "length": 96
+            },
+            "assembly": {
+                "type": "text",
+                "encoding": "dialog",
+                "multiLine": true
+            },
+            "pointerTable": {
+                "range": "0x0DBF00-0x0DBFC0",
+                "offset": "0x0D0000",
+                "isMapped": true
+            },
+            "stringTable": {
+                "length": 96,
+                "default": "<text1[%i]>"
+            }
+        },
+        "text1": {
+            "type": "array",
+            "name": "Text 1",
+            "range": "0x068200-0x078000",
+            "array": {
+                "length": 256
+            },
+            "assembly": {
+                "type": "text",
+                "encoding": "dialog",
+                "multiLine": true
+            },
+            "pointerTable": {
+                "range": "0x068000-0x068200",
+                "offset": "0x060000",
+                "isMapped": true
+            },
+            "stringTable": {
+                "length": 256,
+                "default": "<text1[%i]>"
+            }
+        },
+        "text2": {
+            "type": "array",
+            "name": "Text 2",
+            "range": "0x0A8600-0x0B8000",
+            "array": {
+                "length": 768
+            },
+            "assembly": {
+                "type": "text",
+                "encoding": "dialog",
+                "multiLine": true
+            },
+            "pointerTable": {
+                "range": "0x0A8000-0x0A8600",
+                "offset": "0x0A0000",
+                "isMapped": true
+            },
+            "stringTable": {
+                "length": 768,
+                "default": "<text2[%i]>"
+            }
+        },
+        "text4": {
+            "type": "array",
+            "name": "Text 4",
+            "range": "0x05B147-0x05B295",
+            "array": {
+                "length": 167
+            },
+            "assembly": {
+                "type": "text",
+                "encoding": "dialog",
+                "multiLine": true
+            },
+            "pointerTable": {
+                "range": "0x05B0BB-0x05B147",
+                "offset": "0x050000",
+                "isMapped": true
+            },
+            "stringTable": {
+                "length": 167,
+                "default": "<text4[%i]>"
+            }
+        },
+        "text6": {
+            "type": "array",
+            "name": "Text 6",
+            "range": "0x0D87EC-0x0D9800",
+            "array": {
+                "length": 96
+            },
+            "assembly": {
+                "type": "text",
+                "encoding": "dialog",
+                "multiLine": true
+            },
+            "pointerTable": {
+                "range": "0x0DBF00-0x0DBFC0",
+                "offset": "0x0D0000",
+                "isMapped": true
+            },
+            "stringTable": {
+                "length": 96,
+                "default": "<text6[%i]>"
+            }
+        },
+        "mapAttributes": {
+            "type": "array",
+            "name": "Map Attributes",
+            "range": "0x008A00-0x008AC0",
+            "arrayLength": 3,
+            "assembly": {
+                "type": "assembly",
+                "length": 64,
+                "format": ["interlace(2,16,2)", "linear2bpp"]
+            },
+            "stringTable": {
+                "length": 3,
+                "string": {
+                    "0": "Exterior",
+                    "1": "Interior",
+                    "2": "Common"
+                }
+            }
+        },
+        "mapBattleProbability": {
+            "type": "array",
+            "name": "Map Battle Probability",
+            "range": "0x0B8000-0x0B8100",
+            "array": {
+                "length": 256
+            },
+            "assembly": {
+                "type": "data",
+                "length": 1,
+                "assembly": {
+                    "probability": {
+                        "type": "property",
+                        "name": "Battle Probability",
+                        "begin": 0,
+                        "mask": "0xFF"
+                    }
+                }
+            }
+        },
+        "mapCharacterGraphics": {
+            "type": "array",
+            "name": "Map Character Graphics",
+            "range": "0x029B00-0x038000",
+            "array": {
+                "length": 37
+            },
+            "assembly": {
+                "type": "graphics",
+                "length": "0x0100",
+                "format": "nes2bpp",
+                "width": 2,
+                "palette": [[
+                    {
+                        "path": "worldPalette",
+                        "range": "16-24"
+                    }, {
+                        "path": "mapCharacterPalette[%i]",
+                        "offset": 2,
+                        "range": "0-1"
+                    }, {
+                        "path": "mapCharacterPalette[%i]",
+                        "offset": 6,
+                        "range": "1-2"
+                    }
+                ]],
+                "spriteSheet": {
+                    "width": 8,
+                    "height": 2,
+                    "fixedPalette": true,
+                    "tilemap": [
+                        "0x00000000","0x00000001", "0x00000004","0x00000005", "0x00000008","0x00000009", "0x0000000C","0x0000000D",
+                        "0x00040002","0x00040003", "0x00040006","0x00040007", "0x0004000A","0x0004000B", "0x0004000E","0x0004000F"
+                    ]
+                }
+            },
+            "stringTable": {
+                "length": 37,
+                "default": "Map Character Graphics %i",
+                "string": {
+                    "0": "Firion",
+                    "1": "Maria",
+                    "2": "Guy",
+                    "3": "Minwu",
+                    "4": "Josef",
+                    "5": "Gordon",
+                    "6": "Leila",
+                    "7": "Ricard",
+                    "8": "Leon"
+                }
+            }
+        },
+        "mapCharacterPalette": {
+            "type": "array",
+            "name": "Map Character Palette",
+            "range": "0x0083A0-0x0083B2",
+            "array": {
+                "length": 9
+            },
+            "assembly": {
+                "length": "2",
+                "format": "nesPalette"
+            }
+        },
+        "mapGraphicsCommon": {
+            "type": "array",
+            "name": "Map Graphics (Common)",
+            "range": "0x038000-0x038480",
+            "arrayLength": 2,
+            "stringTable": {
+                "string": {
+                    "0": "Exterior",
+                    "1": "Interior"
+                }
+            },
+            "assembly": {
+                "type": "graphics",
+                "length": "0x0240",
+                "format": "nes2bpp",
+                "palette": "mapPalette",
+                "backColor": true
+            }
+        },
+        "mapGraphicsFillTile": {
+            "type": "array",
+            "name": "Map Graphics (Fill Tile)",
+            "range": "0x039EC0-0x03A000",
+            "arrayLength": 10,
+            "stringTable": {
+                "length": 10,
+                "default": "Map Fill Tile Graphics %i"
+            },
+            "assembly": {
+                "type": "graphics",
+                "length": "0x20",
+                "format": "nes2bpp",
+                "palette": "mapPalette",
+                "backColor": true
+            },
+            "stringTable": {
+                "length": 10,
+                "default": "Map Fill Tile Graphics %i"
+            }
+        },
+        "mapGraphicsLarge": {
+            "type": "array",
+            "name": "Map Graphics (Large)",
+            "range": "0x038C00-0x039EC0",
+            "arrayLength": 5,
+            "stringTable": {
+                "length": 5,
+                "default": "Large Map Graphics %i"
+            },
+            "assembly": {
+                "type": "graphics",
+                "length": "0x03C0",
+                "format": "nes2bpp",
+                "palette": "mapPalette",
+                "backColor": true
+            },
+            "stringTable": {
+                "length": 5,
+                "default": "Large Map Graphics %i"
+            }
+        },
+        "mapGraphicsSmall": {
+            "type": "array",
+            "name": "Map Graphics (Small)",
+            "range": "0x038480-0x038C00",
+            "arrayLength": 10,
+            "stringTable": {
+                "length": 10,
+                "default": "Small Map Graphics %i"
+            },
+            "assembly": {
+                "type": "graphics",
+                "length": "0xC0",
+                "format": "nes2bpp",
+                "palette": "mapPalette",
+                "backColor": true
+            },
+            "stringTable": {
+                "length": 10,
+                "default": "Small Map Graphics %i"
+            }
+        },
+        "mapLayout1": {
+            "type": "array",
+            "name": "Map Layout 1",
+            "range": "0x0480C0-0x04BC00",
+            "isSequential": true,
+            "array": {
+                "length": 96
+            },
+            "assembly": {
+                "format": "ff1-map"
+            },
+            "pointerTable": {
+                "range": "0x048000-0x0480C0",
+                "offset": "0x040000",
+                "isMapped": true
+            }
+        },
+        "mapLayout2": {
+            "type": "array",
+            "name": "Map Layout 2",
+            "range": "0x058080-0x059D80",
+            "isSequential": true,
+            "array": {
+                "length": 64
+            },
+            "assembly": {
+                "format": "ff1-map"
+            },
+            "pointerTable": {
+                "range": "0x058000-0x058080",
+                "offset": "0x050000",
+                "isMapped": true
+            }
+        },
+        "mapLayoutID": {
+            "type": "array",
+            "name": "Map Layout ID",
+            "range": "0x00B200-0x00B300",
+            "array": {
+                "length": 256
+            },
+            "assembly": {
+                "type": "data",
+                "length": 1,
+                "assembly": {
+                    "layoutID": {
+                        "type": "property",
+                        "name": "Map Layout ID",
+                        "begin": 0,
+                        "mask": "0x7F"
+                    },
+                    "layoutBank": {
+                        "type": "property",
+                        "name": "Map Layout Bank",
+                        "begin": 0,
+                        "mask": "0x80",
+                        "stringTable": {
+                            "string": {
+                                "0": "Bank 04",
+                                "1": "Bank 05"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "mapPalette": {
+            "type": "array",
+            "name": "Map Palette",
+            "range": "0x008E00-0x008F80",
+            "format": "interlace(1,3,128)",
+            "array": {
+                "length": 128
+            },
+            "assembly": {
+                "length": 3,
+                "format": "nesPalette"
+            }
+        },
+        "mapProperties": {
+            "type": "array",
+            "name": "Map Properties",
+            "range": "0x00A000-0x00B000",
+            "array": {
+                "length": 256
+            },
+            "assembly": {
+                "type": "data",
+                "length": 16,
+                "editor": "FF2Map",
+                "assembly": {
+                    "tilesetID": {
+                        "type": "property",
+                        "name": "Tileset",
+                        "external": "mapTilesetID[%i].tilesetID"
+                    },
+                    "graphicsSmall": {
+                        "type": "property",
+                        "name": "Small Graphics",
+                        "external": "mapTilesetID[%i].graphicsSmall"
+                    },
+                    "graphicsLarge": {
+                        "type": "property",
+                        "name": "Large Graphics",
+                        "external": "mapTilesetID[%i].graphicsLarge"
+                    },
+                    "initPosX": {
+                        "type": "property",
+                        "name": "Initial X Position",
+                        "external": "mapInitPosX[%i].x"
+                    },
+                    "initPosY": {
+                        "type": "property",
+                        "name": "Initial Y Position",
+                        "external": "mapInitPosY[%i].y"
+                    },
+                    "fillTile": {
+                        "type": "property",
+                        "name": "Fill Tile",
+                        "external": "mapInitPosX[%i].fillTile"
+                    },
+                    "npcType": {
+                        "type": "property",
+                        "name": "NPC Type",
+                        "begin": 0,
+                        "mask": "0x40",
+                        "stringTable": {
+                            "string": {
+                                "0": "Multi",
+                                "1": "Single"
+                            }
+                        }
+                    },
+                    "npcPropertiesMulti": {
+                        "type": "property",
+                        "name": "NPC Properties",
+                        "begin": 0,
+                        "mask": "0x3F",
+                        "invalid": "this.parent.npcType.value === 1"
+                    },
+                    "npcPropertiesSingle": {
+                        "type": "property",
+                        "name": "NPC Properties",
+                        "begin": 0,
+                        "mask": "0x3F",
+                        "invalid": "this.parent.npcType.value === 0"
+                    },
+                    "unknown0_7": {
+                        "type": "property",
+                        "name": "Unknown 0.7",
+                        "begin": 0,
+                        "mask": "0x80",
+                        "bool": true
+                    },
+                    "bgPalette1": {
+                        "type": "property",
+                        "name": "BG Palette 1",
+                        "begin": 1
+                    },
+                    "bgPalette2": {
+                        "type": "property",
+                        "name": "BG Palette 2",
+                        "begin": 2
+                    },
+                    "bgPalette3": {
+                        "type": "property",
+                        "name": "BG Palette 3",
+                        "begin": 3
+                    },
+                    "spritePalette1": {
+                        "type": "property",
+                        "name": "Sprite Palette 1",
+                        "begin": 4
+                    },
+                    "spritePalette2": {
+                        "type": "property",
+                        "name": "Sprite Palette 2",
+                        "begin": 5
+                    },
+                    "exit": {
+                        "type": "property",
+                        "name": "Exit ID",
+                        "begin": 6
+                    },
+                    "trigger1": {
+                        "type": "property",
+                        "name": "Trigger 1",
+                        "begin": 7
+                    },
+                    "trigger2": {
+                        "type": "property",
+                        "name": "Trigger 2",
+                        "begin": 8
+                    },
+                    "trigger3": {
+                        "type": "property",
+                        "name": "Trigger 3",
+                        "begin": 9
+                    },
+                    "trigger4": {
+                        "type": "property",
+                        "name": "Trigger 4",
+                        "begin": 10
+                    },
+                    "trigger5": {
+                        "type": "property",
+                        "name": "Trigger 5",
+                        "begin": 11
+                    },
+                    "trigger6": {
+                        "type": "property",
+                        "name": "Trigger 6",
+                        "begin": 12
+                    },
+                    "trigger7": {
+                        "type": "property",
+                        "name": "Trigger 7",
+                        "begin": 13
+                    },
+                    "trigger8": {
+                        "type": "property",
+                        "name": "Trigger 8",
+                        "begin": 14
+                    },
+                    "song": {
+                        "type": "property",
+                        "name": "Song",
+                        "begin": 15
+                    }
+                }
+            },
+            "stringTable": {
+                "length": 256,
+                "default": "Map %i"
+            }
+        },
+        "mapTileset16": {
+            "type": "array",
+            "name": "Map Tileset (16x16)",
+            "range": "0x008400-0x008700",
+            "arrayLength": 3,
+            "assembly": {
+                "type": "tilemap",
+                "length": 256,
+                "format": ["generic2bppTile", "interlace(2,16,2)", "interlace(1,4,64)"],
+                "width": 32,
+                "height": 8,
+                "backColor": true,
+                "graphics": "mapGraphics[%i]",
+                "palette": [
+                    {
+                        "path": "mapPalette",
+                        "range": "32-48"
+                    }, {
+                        "path": "mapPalette",
+                        "range": "0-16"
+                    }
+                ],
+                "colorOffset": {
+                    "path": "tilesetPalette[%i]",
+                    "multiplier": 4
+                }
+            },
+            "stringTable": {
+                "length": 3,
+                "string": {
+                    "0": "Exterior",
+                    "1": "Interior",
+                    "2": "Common"
+                }
+            }
+        },
+        "mapTileset32": {
+            "type": "array",
+            "name": "Map Tileset (32x32)",
+            "range": "0x008700-0x008A00",
+            "arrayLength": 3,
+            "assembly": {
+                "type": "tilemap",
+                "length": 256,
+                "format": ["interlace(2,16,2)", "interlace(1,4,64)"]
+            },
+            "stringTable": {
+                "length": 3,
+                "string": {
+                    "0": "Exterior",
+                    "1": "Interior",
+                    "2": "Common"
+                }
+            }
+        },
+        "mapTilesetID": {
+            "type": "array",
+            "name": "Map Tileset ID",
+            "range": "0x00B300-0x00B400",
+            "array": {
+                "length": 256
+            },
+            "assembly": {
+                "type": "data",
+                "length": 1,
+                "assembly": {
+                    "tilesetID": {
+                        "type": "property",
+                        "name": "Tileset ID",
+                        "begin": 0,
+                        "mask": "0x01",
+                        "stringTable": {
+                            "string": {
+                                "0": "Exterior",
+                                "1": "Interior"
+                            }
+                        }
+                    },
+                    "graphicsSmall": {
+                        "type": "property",
+                        "name": "Small Graphics",
+                        "begin": 0,
+                        "mask": "0x1E",
+                        "stringTable": "mapGraphicsSmall"
+                    },
+                    "graphicsLarge": {
+                        "type": "property",
+                        "name": "Large Graphics",
+                        "begin": 0,
+                        "mask": "0xE0",
+                        "stringTable": "mapGraphicsLarge"
+                    }
+                }
+            }
+        },
+        "mapInitPosX": {
+            "type": "array",
+            "name": "Map Initial X Position",
+            "range": "0x00B000-0x00B100",
+            "array": {
+                "length": 256
+            },
+            "assembly": {
+                "type": "data",
+                "length": 1,
+                "assembly": {
+                    "x": {
+                        "type": "property",
+                        "name": "Initial X Position",
+                        "begin": 0,
+                        "mask": "0x1F"
+                    },
+                    "fillTile": {
+                        "type": "property",
+                        "name": "Fill Tile",
+                        "begin": 0,
+                        "mask": "0xE0",
+                        "stringTable": "mapGraphicsFillTile"
+                    }
+                }
+            }
+        },
+        "mapInitPosY": {
+            "type": "array",
+            "name": "Map Initial Y Position",
+            "range": "0x00B100-0x00B200",
+            "array": {
+                "length": 256
+            },
+            "assembly": {
+                "type": "data",
+                "length": 1,
+                "assembly": {
+                    "y": {
+                        "type": "property",
+                        "name": "Initial Y Position",
+                        "begin": 0,
+                        "mask": "0xFF"
+                    }
+                }
+            }
+        },
+        "mapSpriteGraphics": {
+            "type": "array",
+            "name": "Map Sprite Graphics",
+            "range": "0x029B00-0x02BB00",
+            "arrayLength": 32,
+            "assembly": {
+                "type": "graphics",
+                "length": "0x0100",
+                "format": "nes2bpp",
+                "palette": {
+                    "path": "mapPalette",
+                    "offset": "1"
+                },
+                "spriteSheet": {
+                    "width": 8,
+                    "height": 2,
+                    "fixedPalette": true,
+                    "tilemap": [
+                        0,1, 4,5, 8,9, 12,13,
+                        2,3, 6,7, 10,11, 14,15
+                    ]
+                }
+            }
+        },
+        "mapMiscGraphics": {
+            "type": "array",
+            "name": "Map Misc. Graphics",
+            "range": "0x02BB00-0x038000",
+            "arrayLength": 15,
+            "assembly": {
+                "type": "graphics",
+                "format": "nes2bpp",
+                "palette": {
+                    "path": "mapPalette",
+                    "offset": "1"
+                },
+                "spriteSheet": {
+                    "width": 8,
+                    "height": 2,
+                    "fixedPalette": true,
+                    "tilemap": [
+                        0,1, 4,5,
+                        2,3, 6,7
+                    ]
+                }
+            },
+            "pointerTable": {
+                "range": "0x0FE6C3-0x0FE6E1",
+                "offset": "0x02BB00"
+            }
+        },
+        "npcGraphics": {
+            "type": "array",
+            "name": "NPC Graphics",
+            "range": "0x008D00-0x008E00",
+            "array": {
+                "length": 256
+            },
+            "assembly": {
+                "type": "data",
+                "length": 1,
+                "assembly": {
+                    "graphics": {
+                        "type": "property",
+                        "name": "Graphics",
+                        "link": "mapSpriteGraphics[%i]"
+                    }
+                }
+            }
+        },
+        "npcPropertiesMulti": {
+            "type": "array",
+            "name": "NPC Properties (Multi)",
+            "range": "0x00B500-0x00BE00",
+            "arrayLength": 64,
+            "assembly": {
+                "type": "array",
+                "length": 36,
+                "arrayLength": 12,
+                "assembly": {
+                    "type": "data",
+                    "length": 3,
+                    "assembly": {
+                        "npcID": {
+                            "type": "property",
+                            "name": "NPC ID",
+                            "begin": 0,
+                            "link": "npcGraphics[%i]"
+                        },
+                        "x": {
+                            "type": "property",
+                            "name": "X Position",
+                            "begin": 1,
+                            "mask": "0x1F",
+                            "hidden": true
+                        },
+                        "y": {
+                            "type": "property",
+                            "name": "Y Position",
+                            "begin": 2,
+                            "mask": "0x1F",
+                            "hidden": true
+                        }
+                    }
+                }
+            }
+        },
+        "npcPropertiesSingle": {
+            "type": "array",
+            "name": "NPC Properties (Single)",
+            "range": "0x00BE00-0x00BEC0",
+            "arrayLength": 64,
+            "assembly": {
+                "type": "data",
+                "length": 3,
+                "assembly": {
+                    "npcID": {
+                        "type": "property",
+                        "name": "NPC ID",
+                        "begin": 0,
+                        "link": "npcGraphics[%i]"
+                    },
+                    "x": {
+                        "type": "property",
+                        "name": "X Position",
+                        "begin": 1,
+                        "mask": "0x1F",
+                        "hidden": true
+                    },
+                    "y": {
+                        "type": "property",
+                        "name": "Y Position",
+                        "begin": 2,
+                        "mask": "0x1F",
+                        "hidden": true
+                    }
+                }
+            }
+        },
+        "worldGraphics": {
+            "type": "graphics",
+            "name": "World Graphics",
+            "range": "0x028000-0x029000",
+            "format": "nes2bpp",
+            "palette": "worldPalette",
+            "backColor": true
+        },
+        "worldLayout": {
+            "type": "array",
+            "name": "World Layout",
+            "range": "0x018200-0x01BF40",
+            "array": {
+                "length": "0x0100"
+            },
+            "assembly": {
+                "format": "ff1-map"
+            },
+            "pointerTable": {
+                "range": "0x018000-0x018200",
+                "offset": "0x010000",
+                "isMapped": true
+            }
+        },
+        "worldMap": {
+            "type": "assembly",
+            "name": "World Map",
+            "editor": "FF2Map"
+        },
+        "worldPalette": {
+            "type": "assembly",
+            "name": "World Palette",
+            "range": "0x008380-0x0083A0",
+            "format": "nesPalette"
+        },
+        "worldPaletteAssignment": {
+            "type": "assembly",
+            "name": "World Palette Assignment",
+            "range": "0x008300-0x008380",
+            "format": ["interlace(2,16,2)", "linear2bpp"]
+        },
+        "worldSpriteGraphics": {
+            "type": "graphics",
+            "name": "World Sprite Graphics",
+            "range": "0x029000-0x029B00",
+            "format": "nes2bpp",
+            "width": 2,
+            "palette": {
+                "path": "worldPalette",
+                "range": "28-32"
+            },
+            "spriteSheet": {
+                "width": 8,
+                "height": 2,
+                "tilemap": [
+                     0, 1,  4, 5,  8, 9, 12,13,
+                     2, 3,  6, 7, 10,11, 14,15
+                ]
+            }
+        },
+        "worldTileProperties": {
+            "type": "array",
+            "name": "World Map Tile Properties",
+            "range": "0x008000-0x008100",
+            "array": {
+                "length": 128
+            },
+            "assembly": {
+                "type": "data",
+                "length": 2,
+                "assembly": {
+                    "passability": {
+                        "type": "property",
+                        "name": "Passability",
+                        "flag": true,
+                        "mask": "0x3F",
+                        "stringTable": {
+                            "string": {
+                                "0": "Impassable on Foot",
+                                "1": "Impassable in Canoe",
+                                "2": "Impassable in Ship",
+                                "3": "Airship Can't Land",
+                                "4": "Forest",
+                                "5": "Ship Can Dock"
+                            }
+                        }
+                    },
+                    "specialTile": {
+                        "type": "property",
+                        "name": "Special",
+                        "mask": "0xC0",
+                        "stringTable": {
+                            "string": {
+                                "0": "None",
+                                "1": "Chime",
+                                "2": "Caravan",
+                                "3": "Airship"
+                            }
+                        }
+                    },
+                    "trigger": {
+                        "type": "property",
+                        "name": "Trigger",
+                        "begin": 1,
+                        "mask": "0xC0",
+                        "stringTable": {
+                            "string": {
+                                "0": "None",
+                                "1": "Battle",
+                                "2": "Entrance"
+                            }
+                        }
+                    },
+                    "entrance": {
+                        "type": "property",
+                        "name": "Entrance",
+                        "begin": 1,
+                        "mask": "0x3F",
+                        "invalid": "this.parent.trigger.value !== 2",
+                        "stringTable": "worldEntrance",
+                        "link": "worldEntrance[%i]"
+                    },
+                    "battle": {
+                        "type": "property",
+                        "name": "Battle",
+                        "begin": 1,
+                        "mask": "0x3F",
+                        "invalid": "this.parent.trigger.value !== 1",
+                        "stringTable": {
+                            "string": {
+                                "0": "Land",
+                                "1": "River",
+                                "2": "Ocean"
+                            }
+                        }
+                    },
+                    "background": {
+                        "type": "assembly",
+                        "external": "worldBattleBackground[%i].background"
+                    }
+                }
+            }
+        },
+        "worldTileset": {
+            "type": "tilemap",
+            "name": "World Tileset",
+            "range": "0x008100-0x008300",
+            "format": ["generic2bppTile", "interlace(2,16,2)", "interlace(1,4,128)"],
+            "width": 32,
+            "height": 16,
+            "backColor": true,
+            "graphics": "worldGraphics",
+            "palette": {
+                "path": "worldPalette",
+                "range": "0-16"
+            },
+            "colorOffset": {
+                "path": "worldPaletteAssignment",
+                "multiplier": 4
+            }
+        }
+    },
+    "charTable": {
+        "dte": {
+            "name": "DTE",
+            "char": {
+                "0x3C": "in",
+                "0x3D": "th",
+                "0x3E": "ed",
+                "0x3F": "an",
+                "0x40": "is",
+                "0x41": "ng",
+                "0x42": "er",
+                "0x43": " a",
+                "0x44": "on",
+                "0x45": "ou",
+                "0x46": "ll",
+                "0x47": "s ",
+                "0x48": "d ",
+                "0x49": " t",
+                "0x4A": "re",
+                "0x4B": " c",
+                "0x4C": " w",
+                "0x4D": "e ",
+                "0x4E": " b",
+                "0x4F": "t ",
+                "0x50": "y ",
+                "0x51": "or",
+                "0x52": "at",
+                "0x53": "o ",
+                "0x54": "he",
+                "0x55": "ha",
+                "0x56": "ea",
+                "0x57": "nd",
+                "0x58": "it",
+                "0x59": "de",
+                "0x5A": "es",
+                "0x5B": "st",
+                "0x5C": " i",
+                "0x5D": "of",
+                "0x5E": "nt",
+                "0x5F": "ti",
+                "0x60": "to",
+                "0x61": "io",
+                "0x62": "ve",
+                "0x63": "le",
+                "0x64": "li",
+                "0x65": " I",
+                "0x66": "ar",
+                "0x67": " y",
+                "0x68": "gh",
+                "0x69": " f",
+                "0x6A": "as",
+                "0x6B": " m",
+                "0x6C": "me",
+                "0x6D": "et"
+            }
+        },
+        "fixedLength": {
+            "name": "Fixed Length",
+            "char": {
+                "0xFF": "\\pad"
+            }
+        },
+        "nullTerminated": {
+            "name": "Null-Terminated",
+            "char": {
+                "0x00": "\\0",
+                "0x01": "\\n",
+                "0xFF": " "
+            }
+        },
+        "text": {
+            "name": "Text",
+            "char": {
+                "0x18": "\\x18[",
+                "0x6E": "\\unarmed",
+                "0x6F": "\\shield",
+                "0x70": "\\knife",
+                "0x71": "\\staff",
+                "0x72": "\\spear",
+                "0x73": "\\sword",
+                "0x74": "\\axe",
+                "0x75": "\\bow",
+                "0x76": "\\trash1",
+                "0x77": "\\trash2",
+                "0x78": "(",
+                "0x79": ")",
+                "0x7A": "/",
+                "0x7B": "tt",
+                "0x7C": "\\bell",
+                "0x7D": "ai",
+                "0x7E": "la",
+                "0x7F": "le",
+                "0x80": "0",
+                "0x81": "1",
+                "0x82": "2",
+                "0x83": "3",
+                "0x84": "4",
+                "0x85": "5",
+                "0x86": "6",
+                "0x87": "7",
+                "0x88": "8",
+                "0x89": "9",
+                "0x8A": "A",
+                "0x8B": "B",
+                "0x8C": "C",
+                "0x8D": "D",
+                "0x8E": "E",
+                "0x8F": "F",
+                "0x90": "G",
+                "0x91": "H",
+                "0x92": "I",
+                "0x93": "J",
+                "0x94": "K",
+                "0x95": "L",
+                "0x96": "M",
+                "0x97": "N",
+                "0x98": "O",
+                "0x99": "P",
+                "0x9A": "Q",
+                "0x9B": "R",
+                "0x9C": "S",
+                "0x9D": "T",
+                "0x9E": "U",
+                "0x9F": "V",
+                "0xA0": "W",
+                "0xA1": "X",
+                "0xA2": "Y",
+                "0xA3": "Z",
+                "0xA4": "a",
+                "0xA5": "b",
+                "0xA6": "c",
+                "0xA7": "d",
+                "0xA8": "e",
+                "0xA9": "f",
+                "0xAA": "g",
+                "0xAB": "h",
+                "0xAC": "i",
+                "0xAD": "j",
+                "0xAE": "k",
+                "0xAF": "l",
+                "0xB0": "m",
+                "0xB1": "n",
+                "0xB2": "o",
+                "0xB3": "p",
+                "0xB4": "q",
+                "0xB5": "r",
+                "0xB6": "s",
+                "0xB7": "t",
+                "0xB8": "u",
+                "0xB9": "v",
+                "0xBA": "w",
+                "0xBB": "x",
+                "0xBC": "y",
+                "0xBD": "z",
+                "0xBE": "'",
+                "0xBF": ",",
+                "0xC0": ".",
+                "0xC1": ":",
+                "0xC2": "-",
+                "0xC3": "…",
+                "0xC4": "!",
+                "0xC5": "?",
+                "0xC6": "%",
+                "0xC7C9": "\\mp",
+                "0xC8C9": "\\hp",
+                "0xCA": "\\armor",
+                "0xCB": "\\helmet",
+                "0xCC": "\\glove",
+                "0xCD": "rr",
+                "0xCE": "\\potion",
+                "0xCF": "\\book",
+                "0xD0": "\\cuirass",
+                "0xD1": "ll",
+                "0xD2": "il",
+                "0xD3": "li",
+                "0xD4": "ui",
+                "0xD5": "ti",
+                "0xD6": "ie",
+                "0xD7": "re",
+                "0xD8": "th",
+                "0xD9": "te",
+                "0xDA": "lt",
+                "0xDBDC": "ima",
+                "0xDCDD": "ar ",
+                "0xD6DD": "ier ",
+                "0xDE": "'s",
+                "0xDF": "'l",
+                "0xE0": "'t",
+                "0xE1": "'d",
+                "0xE2DD": "er ",
+                "0xE3": "'r",
+                "0xE4": "'v",
+                "0xE5": "'m",
+                "0xE6E7": "hun",
+                "0xE8": "dr",
+                "0xE9": "pt",
+                "0xEB": "zz",
+                "0xEC": "rd",
+                "0xED": "st",
+                "0xF2": "el",
+                "0xF4": "Ba",
+                "0xE2F5": "enc",
+                "0xF6": "se",
+                "0xFF": " "
+            }
+        }
+    },
+    "textEncoding": {
+        "dialog": {
+            "name": "Dialog",
+            "charTable": [
+                "text",
+                "dte",
+                "nullTerminated"
+            ]
+        },
+        "fixedLength": {
+            "name": "Fixed Length",
+            "charTable": [
+                "text",
+                "fixedLength"
+            ]
+        },
+        "nullTerminated": {
+            "name": "Null-Terminated",
+            "charTable": [
+                "text",
+                "nullTerminated"
+            ]
+        }
+    },
+    "stringTable": {
+    }
+}

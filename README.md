@@ -22,6 +22,9 @@ https://www.patreon.com/everything8215
 
 - Final Fantasy (U)
 - Final Fantasy (J)
+- Final Fantasy I+II (J) (FF1 only)
+- Final Fantasy II (Chaos Rush and NeoDemiforce Translations)
+- Final Fantasy II (J)
 - Final Fantasy III (Translation by Alex W. Jackson, Neill Corlett, SoM2Freak)
 - Final Fantasy III (J)
 

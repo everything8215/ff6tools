@@ -4,7 +4,8 @@
         "url": "ff1/ff1j-nes.json",
         "crc32": [
             "0x23C13B15",
-            "0x8328E614"
+            "0x8328E614",
+            "0x6F8906AD"
         ]
     },
     "ff1u-nes": {
@@ -12,6 +13,21 @@
         "url": "ff1/ff1u-nes.json",
         "crc32": [
             "0xAB12ECE6"
+        ]
+    },
+    "ff2j-nes": {
+        "name": "Final Fantasy II (J), NES",
+        "url": "ff2/ff2u-nes.json",
+        "crc32": [
+            "0xB7327510"
+        ]
+    },
+    "ff2u-nes": {
+        "name": "Final Fantasy II (U), NES",
+        "url": "ff2/ff2u-nes.json",
+        "crc32": [
+            "0x35B5157F",
+            "0x6AE03277"
         ]
     },
     "ff3j-nes": {
