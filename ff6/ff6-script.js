@@ -61,7 +61,7 @@ class FF6Script extends ROMScriptDelegate {
         switch (`${command.encoding}.${command.key}`) {
 
             case 'event.objectEvent':
-            case 'event.startTimer':
+            case 'event.timerStart':
             case 'event.jumpSub':
             case 'event.jumpSubRepeat':
             case 'event.jumpBattleSwitch':
