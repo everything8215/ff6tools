@@ -8638,6 +8638,7 @@
             "name": "Monster Script",
             "range": "0xCF8700-0xCFC049",
             "encoding": "monster",
+            "canRelocate": true,
             "reference": [
                 {
                     "begin": "0xC21A45",
@@ -8669,6 +8670,7 @@
                 "length": 2,
                 "script": "monsterScript"
             },
+            "canRelocate": true,
             "reference": [
                 {
                     "begin": "0xC22D79",
