@@ -964,6 +964,9 @@ class ROMPropertyList {
             document.getElementById(this.id).focus();
         };
 
+        // refresh if the command's label changes
+        this.observer.startObserving(command, this.showProperties);
+
         return controlDiv;
     }
 

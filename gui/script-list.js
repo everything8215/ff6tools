@@ -460,6 +460,7 @@ class ROMScriptList {
         this.node.forEach(function(li) {
             var command = self.script.ref[li.value];
             if (!command) return;
+            self.observer.startObserving(command, self.update);
             self.observer.startObservingSub(command, self.update);
         });
 

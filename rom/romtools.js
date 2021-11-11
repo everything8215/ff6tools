@@ -4569,14 +4569,29 @@ ROMCommand.prototype.setLabel = function(label) {
         return;
     }
 
+    var prevCommand = null;
+    if (label) {
+        prevCommand = this.parent.label[label];
+    }
+
     // functions to undo/redo
     var command = this;
     function redo() {
         command._label = label;
+        command.parent.label[label] = command;
+        if (prevCommand) {
+            prevCommand._label = null;
+            prevCommand.notifyObservers();
+        }
         command.notifyObservers();
     }
     function undo() {
         command._label = oldLabel;
+        command.parent.label[label] = prevCommand;
+        if (prevCommand) {
+            prevCommand._label = label;
+            prevCommand.notifyObservers();
+        }
         command.notifyObservers();
     }
 
