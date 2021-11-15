@@ -793,7 +793,7 @@ ROMGraphicsImporter.prototype.copyGraphics = function() {
             var offset = this.graphicsRight.selection.x + x;
             offset += (this.graphicsRight.selection.y + y) * this.graphicsRight.width;
             offset *= this.graphicsLeft.bytesPerTile;
-            if ((offset + tile.length) >= this.graphicsRight.graphics.length) break;
+            if ((offset + tile.length) > this.graphicsRight.graphics.length) break;
             this.graphicsRight.graphics.set(tile, offset);
         }
     }
