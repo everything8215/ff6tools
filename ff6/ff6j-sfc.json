@@ -8076,12 +8076,14 @@
                     "flags2": {
                         "type": "property",
                         "begin": 30,
-                        "mask": "0x82",
+                        "mask": "0x87",
                         "flag": true,
                         "stringTable": {
                             "string": {
-                                "0": "Speck",
-                                "6": "Piranha"
+                                "0": "True Knight",
+                                "1": "Speck",
+                                "2": "Life 3",
+                                "7": "Piranha"
                             }
                         }
                     },
