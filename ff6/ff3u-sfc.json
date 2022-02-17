@@ -10537,7 +10537,13 @@
                     "range": "0x2400-0x2480",
                     "format": "linear4bpp"
                 }
-            }
+            },
+            "reference": [
+                {
+                    "begin": "0xEEB212",
+                    "mask": "0xFFFFFF"
+                }
+            ]
         },
         "worldGraphics2": {
             "type": "data",
@@ -10574,7 +10580,13 @@
                     "range": "0x2400-0x2480",
                     "format": "linear4bpp"
                 }
-            }
+            },
+            "reference": [
+                {
+                    "begin": "0xEEB21E",
+                    "mask": "0xFFFFFF"
+                }
+            ]
         },
         "worldGraphics3": {
             "type": "data",
@@ -10614,7 +10626,13 @@
                     "range": "0x2400-0x2480",
                     "format": "linear4bpp"
                 }
-            }
+            },
+            "reference": [
+                {
+                    "begin": "0xEEB22A",
+                    "mask": "0xFFFFFF"
+                }
+            ]
         },
         "worldLayout1": {
             "type": "assembly",
