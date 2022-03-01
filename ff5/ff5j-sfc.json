@@ -4776,7 +4776,9 @@
             },
             "assembly": {
                 "type": "graphics",
-                "palette": "monsterPalette"
+                "palette": "monsterPalette",
+                "width": 16,
+                "height": 16
             },
             "pointerObject": {
                 "arrayPath": "monsterGraphicsProperties",
