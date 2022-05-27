@@ -8759,7 +8759,7 @@
             "name": "Character Portrait Graphics",
             "range": "0xED1D00-0xED5860",
             "array": {
-                "length": 18
+                "length": 19
             },
             "assembly": {
                 "type": "graphics",
@@ -8799,7 +8799,8 @@
                     "14": "Soldier",
                     "15": "Imp",
                     "16": "Leo",
-                    "17": "Banon"
+                    "17": "Banon",
+                    "18": "Ghost"
                 }
             }
         },
@@ -8808,7 +8809,7 @@
             "name": "Character Portrait Palette",
             "range": "0xED5860-0xED5AC0",
             "array": {
-                "length": 18
+                "length": 19
             },
             "assembly": {
                 "type": "assembly",
