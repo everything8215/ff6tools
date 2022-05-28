@@ -95,6 +95,9 @@
                     "name": "Battle Dialog",
                     "path": "battleDialog"
                 }, {
+                    "name": "Battle Messages",
+                    "path": "battleMessage"
+                }, {
                     "name": "Battle Backgrounds",
                     "path": "battleBackgroundProperties"
                 }
@@ -274,6 +277,40 @@
             "format": "snes3bpp",
             "palette": "attackPalette"
         },
+        "attackGraphicsProperties": {
+            "type": "array",
+            "name": "Attack Graphics Properties",
+            "range": "0x0FA050-0x0FA350",
+            "array": {
+                "length": 168
+            },
+            "assembly": {
+                "type": "data",
+                "length": 4,
+                "assembly": {
+                    "palette": {
+                        "type": "property",
+                        "name": "Palette",
+                        "begin": 0
+                    },
+                    "graphics": {
+                        "type": "property",
+                        "name": "Graphics",
+                        "begin": 1
+                    },
+                    "animScript": {
+                        "type": "property",
+                        "name": "Animation Script",
+                        "begin": 2
+                    },
+                    "animEffect": {
+                        "type": "property",
+                        "name": "Animation Effect",
+                        "begin": 3
+                    }
+                }
+            }
+        },
         "attackNames": {
             "type": "array",
             "name": "Attack Names",
@@ -413,6 +450,27 @@
                         "begin": 5,
                         "mask": "0x80",
                         "bool": true
+                    },
+                    "cat-graphics": "Graphics",
+                    "palette": {
+                        "type": "assembly",
+                        "external": "attackGraphicsProperties[%i-1].palette",
+                        "invalid": "(this.i != 0) && this.i <= 168"
+                    },
+                    "graphics": {
+                        "type": "assembly",
+                        "external": "attackGraphicsProperties[%i-1].graphics",
+                        "invalid": "(this.i != 0) && this.i <= 168"
+                    },
+                    "animScript": {
+                        "type": "assembly",
+                        "external": "attackGraphicsProperties[%i-1].animScript",
+                        "invalid": "(this.i != 0) && this.i <= 168"
+                    },
+                    "animEffect": {
+                        "type": "assembly",
+                        "external": "attackGraphicsProperties[%i-1].animEffect",
+                        "invalid": "(this.i != 0) && this.i <= 168"
                     }
                 }
             },
@@ -899,6 +957,30 @@
                     "9": "Moon",
                     "10": "Hidden Underground Area"
                 }
+            }
+        },
+        "battleMessage": {
+            "type": "array",
+            "name": "Battle Message",
+            "range": "0x0FB076-0x0FB3FF",
+            "array": {
+                "length": 59
+            },
+            "assembly": {
+                "type": "text",
+                "name": "Dialog",
+                "encoding": "nullTerminated",
+                "multiLine": true
+            },
+            "pointerTable": {
+                "range": "0x0FB000-0x0FB075",
+                "offset": "0x0F0000",
+                "isMapped": true
+            },
+            "stringTable": {
+                "name": "Battle Message",
+                "length": 59,
+                "default": "<battleMessage[%i]>"
             }
         },
         "battleProperties": {

@@ -95,6 +95,9 @@
                     "name": "Battle Dialog",
                     "path": "battleDialog"
                 }, {
+                    "name": "Battle Messages",
+                    "path": "battleMessage"
+                }, {
                     "name": "Battle Backgrounds",
                     "path": "battleBackgroundProperties"
                 }
@@ -189,6 +192,38 @@
         }
     ],
     "assembly": {
+        "attackAnimationFrame": {
+            "type": "array",
+            "name": "Attack Animation Frame",
+            "range": "0x0FE0B2-0x100000",
+            "array": {
+                "length": 361
+            },
+            "assembly": {
+                "type": "assembly"
+            },
+            "pointerTable": {
+                "range": "0x0FDDE0-0x0FE0B2",
+                "offset": "0x0F0000",
+                "isMapped": true
+            }
+        },
+        "attackAnimationScript": {
+            "type": "array",
+            "name": "Attack Animation Script",
+            "range": "0x0FD67E-0x0FDDE0",
+            "array": {
+                "length": 79
+            },
+            "assembly": {
+                "type": "assembly"
+            },
+            "pointerTable": {
+                "range": "0x0FD5E0-0x0FD67E",
+                "offset": "0x0F0000",
+                "isMapped": true
+            }
+        },
         "attackElementStatus": {
             "type": "array",
             "name": "Attack Element/Status",
@@ -270,12 +305,46 @@
             "format": "snes3bpp",
             "palette": "attackPalette"
         },
+        "attackGraphicsProperties": {
+            "type": "array",
+            "name": "Attack Graphics Properties",
+            "range": "0x0FA050-0x0FA350",
+            "array": {
+                "length": 168
+            },
+            "assembly": {
+                "type": "data",
+                "length": 4,
+                "assembly": {
+                    "palette": {
+                        "type": "property",
+                        "name": "Palette",
+                        "begin": 0
+                    },
+                    "graphics": {
+                        "type": "property",
+                        "name": "Graphics",
+                        "begin": 1
+                    },
+                    "animScript": {
+                        "type": "property",
+                        "name": "Animation Script",
+                        "begin": 2
+                    },
+                    "animEffect": {
+                        "type": "property",
+                        "name": "Animation Effect",
+                        "begin": 3
+                    }
+                }
+            }
+        },
         "attackNames": {
             "type": "array",
             "name": "Attack Names",
-            "range": "0x0F8AB0-0x0F8DF0",
+            "range": "0x0F8AB0-0x0F9070",
             "array": {
-                "length": 104
+                "length": 184
             },
             "assembly": {
                 "type": "text",
@@ -288,7 +357,7 @@
                 "default": "Attack %i",
                 "string": {
                     "0-72": "<stringTable.spellNames[%i]>",
-                    "72-176": "<attackNames[%i-72]>",
+                    "72-192": "<attackNames[%i-72]>",
                     "192-222": "<battleCommandNames[%i-192]>"
                 }
             }
@@ -409,6 +478,27 @@
                         "begin": 5,
                         "mask": "0x80",
                         "bool": true
+                    },
+                    "cat-graphics": "Graphics",
+                    "palette": {
+                        "type": "assembly",
+                        "external": "attackGraphicsProperties[%i-1].palette",
+                        "invalid": "(this.i != 0) && this.i <= 168"
+                    },
+                    "graphics": {
+                        "type": "assembly",
+                        "external": "attackGraphicsProperties[%i-1].graphics",
+                        "invalid": "(this.i != 0) && this.i <= 168"
+                    },
+                    "animScript": {
+                        "type": "assembly",
+                        "external": "attackGraphicsProperties[%i-1].animScript",
+                        "invalid": "(this.i != 0) && this.i <= 168"
+                    },
+                    "animEffect": {
+                        "type": "assembly",
+                        "external": "attackGraphicsProperties[%i-1].animEffect",
+                        "invalid": "(this.i != 0) && this.i <= 168"
                     }
                 }
             },
@@ -897,6 +987,30 @@
                     "9": "Moon",
                     "10": "Hidden Underground Area"
                 }
+            }
+        },
+        "battleMessage": {
+            "type": "array",
+            "name": "Battle Message",
+            "range": "0x0FB276-0x0FB4FF",
+            "array": {
+                "length": 59
+            },
+            "assembly": {
+                "type": "text",
+                "name": "Dialog",
+                "encoding": "nullTerminated",
+                "multiLine": true
+            },
+            "pointerTable": {
+                "range": "0x0FB200-0x0FB275",
+                "offset": "0x0F0000",
+                "isMapped": true
+            },
+            "stringTable": {
+                "name": "Battle Message",
+                "length": 59,
+                "default": "<battleMessage[%i]>"
             }
         },
         "battleProperties": {
@@ -3112,7 +3226,8 @@
                     "layout1": {
                         "type": "property",
                         "name": "Layer 1 Layout",
-                        "begin": 1
+                        "begin": 1,
+                        "link": "mapLayouts.undergroundMoonLayouts[%i]"
                     },
                     "layout2": {
                         "type": "property",
@@ -6673,6 +6788,38 @@
             "range": "0x08EC00-0x08EC80",
             "format": "bgr555"
         },
+        "statusName": {
+            "type": "array",
+            "name": "Status Name",
+            "range": "0x0FA898-0x0FA900",
+            "arrayLength": 32,
+            "assembly": {
+                "type": "text",
+                "encoding": "text"
+            },
+            "pointerTable": {
+                "range": "0x0FA858-0x0FA898",
+                "offset": "0x0F0000",
+                "isMapped": true
+            },
+            "stringTable": {
+                "length": 32,
+                "default": "<statusName[%i].formattedText>"
+            }
+        },
+        "summonGraphicsMap": {
+            "type": "array",
+            "name": "Summon Graphics Map",
+            "range": "0x0DF282-0x0DF660",
+            "array": {
+                "length": 17
+            },
+            "pointerTable": {
+                "range": "0x0DF260-0x0DF282",
+                "offset": "0x0D0000",
+                "isMapped": true
+            }
+        },
         "triggerScript": {
             "type": "array",
             "name": "Trigger Script",
@@ -8541,7 +8688,7 @@
                 "0xBD": "ャ",
                 "0xBE": "ュ",
                 "0xBF": "ョ",
-                "0xC0": "〟",
+                "0xC0": "゛",
                 "0xC1": "。",
                 "0xC2": "ー",
                 "0xC3": "‥‥",
