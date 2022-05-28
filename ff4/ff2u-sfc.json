@@ -282,7 +282,7 @@
             "name": "Attack Graphics Properties",
             "range": "0x0FA050-0x0FA350",
             "array": {
-                "length": 168
+                "length": 192
             },
             "assembly": {
                 "type": "data",
@@ -455,22 +455,22 @@
                     "palette": {
                         "type": "assembly",
                         "external": "attackGraphicsProperties[%i-1].palette",
-                        "invalid": "(this.i != 0) && this.i <= 168"
+                        "invalid": "(this.i != 0) && this.i <= 192"
                     },
                     "graphics": {
                         "type": "assembly",
                         "external": "attackGraphicsProperties[%i-1].graphics",
-                        "invalid": "(this.i != 0) && this.i <= 168"
+                        "invalid": "(this.i != 0) && this.i <= 192"
                     },
                     "animScript": {
                         "type": "assembly",
                         "external": "attackGraphicsProperties[%i-1].animScript",
-                        "invalid": "(this.i != 0) && this.i <= 168"
+                        "invalid": "(this.i != 0) && this.i <= 192"
                     },
                     "animEffect": {
                         "type": "assembly",
                         "external": "attackGraphicsProperties[%i-1].animEffect",
-                        "invalid": "(this.i != 0) && this.i <= 168"
+                        "invalid": "(this.i != 0) && this.i <= 192"
                     }
                 }
             },
