@@ -180,6 +180,16 @@ definition file as follows:
 - Search for `"worldGraphics1"` change its `"range"` to `"0xEF111C-0xEF3250"`
 - Search for `"worldLayout1"` change its `"range"` to `"0xEED434-0xEF111C"`
 
+### Fixes for Other Known Issues
+
+#### Treasure data in FF5 (SNES/SFC versions)
+
+There can be up to 256 unique treasures in FF5, and they are stored sequentially in the ROM by map index. There is a table at 0x113000 that determines the index of the first treasure on each map. The problem is that there are two maps which share the same treasure data with a previous map, so their values in the table are out of sequence. FF6Tools doesn't know how to deal with this so it just duplicates the treasure data for those two maps when you save. But then there are more than 256 treasures in the game, so the table overflows and the last few treasures (on map 507) become inaccessible. Maps 216 and 218 are both level 5 of the Ronka Ruins, and maps 227 and 235 are both level 2 of Castle Exdeath.
+
+Here is a way to prevent this issue. Any time you edit any treasures with FF6Tools, before saving the ROM, delete the treasures from maps 218 and and 235 (right click and select "Delete Trigger" from the menu). If you want to edit those treasures, do so from maps 216 and 227. After saving, open the ROM with a hex editor and go to offset 0x1130DA and change one byte to match the byte at 0x1130D8, then go to offset 0x1130EB and change it to match the byte at 0x1130E3 (the values should be 0x64 and 0x66 unless you added or removed treasures in previous maps). You only need to do this after modifying treasures with FF6Tools, so if you open the ROM again later to make other changes you won't need to do this again.
+
+Thanks to Tzepish for pointing this out.
+
 ## Acknowledgments
 
 The following people contributed to FF6Tools, either indirectly by creating
