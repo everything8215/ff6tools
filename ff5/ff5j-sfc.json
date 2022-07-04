@@ -118,11 +118,15 @@
                     "name": "Battle Command Names",
                     "path": "battleCommandName"
                 }, {
+                    "path": "battleCommandStats"
+                }, {
                     "name": "Ability Names",
                     "path": "abilityName"
                 }, {
                     "name": "Innate Ability Names",
                     "path": "abilityNameInnate"
+                }, {
+                    "path": "abilityStatsInnate"
                 }, {
                     "name": "Spell Graphics 1",
                     "path": "attackTilemap1"
@@ -214,6 +218,39 @@
             "stringTable": {
                 "length": 33,
                 "default": "<abilityNameInnate[%i]>"
+            }
+        },
+        "abilityStatsInnate": {
+            "type": "array",
+            "name": "Innate Ability Stat Bonuses",
+            "range": "0xD16308-0xD1638C",
+            "arrayLength": 33,
+            "stringTable": "abilityNameInnate",
+            "assembly": {
+                "type": "data",
+                "length": 4,
+                "assembly": {
+                    "strength": {
+                        "type": "property",
+                        "name": "Strength",
+                        "begin": 0
+                    },
+                    "agility": {
+                        "type": "property",
+                        "name": "Agility",
+                        "begin": 1
+                    },
+                    "stamina": {
+                        "type": "property",
+                        "name": "Stamina",
+                        "begin": 2
+                    },
+                    "magic": {
+                        "type": "property",
+                        "name": "Magic",
+                        "begin": 3
+                    }
+                }
             }
         },
         "attackGraphics1": {
@@ -1124,6 +1161,39 @@
             "stringTable": {
                 "length": 96,
                 "default": "<battleCommandName[%i]>"
+            }
+        },
+        "battleCommandStats": {
+            "type": "array",
+            "name": "Battle Command Stat Bonuses",
+            "range": "0xD15E00-0xD16200",
+            "arrayLength": 128,
+            "stringTable": "battleCommandName",
+            "assembly": {
+                "type": "data",
+                "length": 4,
+                "assembly": {
+                    "strength": {
+                        "type": "property",
+                        "name": "Strength",
+                        "begin": 0
+                    },
+                    "agility": {
+                        "type": "property",
+                        "name": "Agility",
+                        "begin": 1
+                    },
+                    "stamina": {
+                        "type": "property",
+                        "name": "Stamina",
+                        "begin": 2
+                    },
+                    "magic": {
+                        "type": "property",
+                        "name": "Magic",
+                        "begin": 3
+                    }
+                }
             }
         },
         "battleDialog": {
