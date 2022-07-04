@@ -6359,56 +6359,56 @@
                         "type": "property",
                         "name": "Spell 1",
                         "begin": 1,
-                        "stringTable": "spellName",
+                        "stringTable": "attackName",
                         "invalid": "this.parent.shopType.value !== 0"
                     },
                     "spell2": {
                         "type": "property",
                         "name": "Spell 2",
                         "begin": 2,
-                        "stringTable": "spellName",
+                        "stringTable": "attackName",
                         "invalid": "this.parent.shopType.value !== 0"
                     },
                     "spell3": {
                         "type": "property",
                         "name": "Spell 3",
                         "begin": 3,
-                        "stringTable": "spellName",
+                        "stringTable": "attackName",
                         "invalid": "this.parent.shopType.value !== 0"
                     },
                     "spell4": {
                         "type": "property",
                         "name": "Spell 4",
                         "begin": 4,
-                        "stringTable": "spellName",
+                        "stringTable": "attackName",
                         "invalid": "this.parent.shopType.value !== 0"
                     },
                     "spell5": {
                         "type": "property",
                         "name": "Spell 5",
                         "begin": 5,
-                        "stringTable": "spellName",
+                        "stringTable": "attackName",
                         "invalid": "this.parent.shopType.value !== 0"
                     },
                     "spell6": {
                         "type": "property",
                         "name": "Spell 6",
                         "begin": 6,
-                        "stringTable": "spellName",
+                        "stringTable": "attackName",
                         "invalid": "this.parent.shopType.value !== 0"
                     },
                     "spell7": {
                         "type": "property",
                         "name": "Spell 7",
                         "begin": 7,
-                        "stringTable": "spellName",
+                        "stringTable": "attackName",
                         "invalid": "this.parent.shopType.value !== 0"
                     },
                     "spell8": {
                         "type": "property",
                         "name": "Spell 8",
                         "begin": 8,
-                        "stringTable": "spellName",
+                        "stringTable": "attackName",
                         "invalid": "this.parent.shopType.value !== 0"
                     }
                 }
