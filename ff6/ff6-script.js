@@ -787,6 +787,11 @@ class FF6MonsterScript extends ROMScriptDelegate {
     }
 
     initScript(script) {
+
+        // remove all labels
+        script.label = {};
+        script.placeholder = [];
+
         // add references for monsters
         for (var e = 0; e < this.rom.monsterScriptPointers.arrayLength; e++) {
             var offset = this.rom.monsterScriptPointers.item(e).value;
