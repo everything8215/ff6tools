@@ -3106,29 +3106,7 @@
                         }
                     }
                 }
-            },
-            "reference": [
-                {
-                    "begin": "0x00FC37",
-                    "mask": "0xFF",
-                    "bankByte": true
-                }, {
-                    "begin": "0x00FC4F",
-                    "mask": "0xFFFFFF"
-                }, {
-                    "begin": "0x00FC55",
-                    "mask": "0xFFFFFF",
-                    "offset": -1
-                }, {
-                    "begin": "0x00FC63",
-                    "mask": "0xFFFFFF",
-                    "offset": -2
-                }, {
-                    "begin": "0x00FC69",
-                    "mask": "0xFFFFFF",
-                    "offset": -3
-                }
-            ]
+            }
         },
         "mapPalettes": {
             "type": "array",

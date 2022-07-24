@@ -5898,15 +5898,6 @@
                 "offset": "0x0E0000",
                 "isMapped": true
             },
-            "reference": [
-                {
-                    "begin": "0x038FE5",
-                    "mask": "0xFFFF"
-                }, {
-                    "begin": "0x038FEE",
-                    "mask": "0xFFFFFF"
-                }
-            ],
             "stringTable": "monsterName"
         },
         "monsterScript": {
