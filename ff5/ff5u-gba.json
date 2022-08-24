@@ -85,6 +85,9 @@
                     "name": "Character Graphics",
                     "path": "battleCharacterGraphics"
                 }, {
+                    "name": "Portrait Graphics",
+                    "path": "portraitGraphics1"
+                }, {
                     "path": "stringTable.spellName"
                 }, {
                     "name": "Job Names",
@@ -2837,6 +2840,168 @@
                 "offset": "0x083BE268"
             },
             "stringTable": "npcSwitch"
+        },
+        "portraitGraphics1": {
+            "type": "array",
+            "name": "Portrait Graphics",
+            "isFragmented": true,
+            "arrayLength": 14,
+            "assembly": {
+                "type": "graphics",
+                "format": ["linear4bpp", "tose-graphics", "gba-lzss"],
+                "width": 4,
+                "height": 5,
+                "palette": "portraitPalette1[%i]"
+            },
+            "pointerObject": {
+                "arrayPath": "portraitPointers",
+                "pointerPath": "gfxPointer1"
+            },
+            "stringTable": {
+                "string": {
+                    "0": "Bartz",
+                    "1": "Lenna",
+                    "2": "Galuf",
+                    "3": "Faris",
+                    "4": "Krile",
+                    "5": "Boko",
+                    "6": "Cid",
+                    "7": "Mid",
+                    "8": "Dorgann",
+                    "9": "Kelger",
+                    "10": "Xexat",
+                    "11": "King Tycoon",
+                    "12": "Gilgamesh",
+                    "13": "Exdeath"
+                }
+            }
+        },
+        "portraitGraphics2": {
+            "type": "array",
+            "name": "Portrait Graphics (Stone)",
+            "isFragmented": true,
+            "arrayLength": 14,
+            "assembly": {
+                "type": "graphics",
+                "format": ["linear4bpp", "tose-graphics", "gba-lzss"],
+                "width": 4,
+                "height": 5,
+                "palette": "portraitPalette2[%i]"
+            },
+            "pointerObject": {
+                "arrayPath": "portraitPointers",
+                "pointerPath": "gfxPointer2"
+            }
+        },
+        "portraitGraphics3": {
+            "type": "array",
+            "name": "Portrait Graphics (Dead)",
+            "isFragmented": true,
+            "arrayLength": 14,
+            "assembly": {
+                "type": "graphics",
+                "format": ["linear4bpp", "tose-graphics", "gba-lzss"],
+                "width": 4,
+                "height": 5,
+                "palette": "portraitPalette3[%i]"
+            },
+            "pointerObject": {
+                "arrayPath": "portraitPointers",
+                "pointerPath": "gfxPointer3"
+            }
+        },
+        "portraitPalette1": {
+            "type": "array",
+            "name": "Portrait Palette",
+            "isFragmented": true,
+            "arrayLength": 14,
+            "assembly": {
+                "type": "assembly",
+                "length": "40",
+                "format": ["bgr555", "tose-palette"]
+            },
+            "pointerObject": {
+                "arrayPath": "portraitPointers",
+                "pointerPath": "palPointer1"
+            }
+        },
+        "portraitPalette2": {
+            "type": "array",
+            "name": "Portrait Palette (Stone)",
+            "isFragmented": true,
+            "arrayLength": 14,
+            "assembly": {
+                "type": "assembly",
+                "length": "40",
+                "format": ["bgr555", "tose-palette"]
+            },
+            "pointerObject": {
+                "arrayPath": "portraitPointers",
+                "pointerPath": "palPointer2"
+            }
+        },
+        "portraitPalette3": {
+            "type": "array",
+            "name": "Portrait Palette (Dead)",
+            "isFragmented": true,
+            "arrayLength": 14,
+            "assembly": {
+                "type": "assembly",
+                "length": "40",
+                "format": ["bgr555", "tose-palette"]
+            },
+            "pointerObject": {
+                "arrayPath": "portraitPointers",
+                "pointerPath": "palPointer3"
+            }
+        },
+        "portraitPointers": {
+            "type": "array",
+            "name": "Pointers to Portrait Graphics Data",
+            "range": "0x081446E8-0x08144838",
+            "arrayLength": 14,
+            "assembly": {
+                "type": "data",
+                "length": 24,
+                "assembly": {
+                    "gfxPointer1": {
+                        "type": "property",
+                        "name": "Portrait 1",
+                        "begin": 0,
+                        "mask": "0x7FFFFFFF"
+                    },
+                    "gfxPointer2": {
+                        "type": "property",
+                        "name": "Portrait 2",
+                        "begin": 4,
+                        "mask": "0x7FFFFFFF"
+                    },
+                    "gfxPointer3": {
+                        "type": "property",
+                        "name": "Portrait 3",
+                        "begin": 8,
+                        "mask": "0x7FFFFFFF"
+                    },
+                    "palPointer1": {
+                        "type": "property",
+                        "name": "Portrait 1",
+                        "begin": 12,
+                        "mask": "0x7FFFFFFF"
+                    },
+                    "palPointer2": {
+                        "type": "property",
+                        "name": "Portrait 2",
+                        "begin": 16,
+                        "mask": "0x7FFFFFFF"
+                    },
+                    "palPointer3": {
+                        "type": "property",
+                        "name": "Portrait 3",
+                        "begin": 20,
+                        "mask": "0x7FFFFFFF"
+                    }
+                }
+            }
         },
         "shopProperties": {
             "type": "array",
