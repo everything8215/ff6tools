@@ -11,6 +11,7 @@ class ROMScriptList {
         this.container = this.scriptList.parentElement;
         this.script = null;
         this.selection = []; // selected commands
+        this.highlightedNodes = []; // highlighted commands
         this.node = []; // command nodes by ref
 
         this.blockSize = 50; // number of commands per block
@@ -95,6 +96,7 @@ class ROMScriptList {
         if (this.script === script) return;
         this.deselectAll();
         this.script = script;
+        this.highlightedNodes = [];
 
         // populate the list
         this.blockStart = 0;
@@ -417,6 +419,29 @@ class ROMScriptList {
         this.rom.endAction();
     }
 
+    highlight() {
+        // return if nothing is selected
+        if (!this.script) return;
+        if (this.selection.length === 0) return;
+
+        for (let command of this.selection) {
+            const i = this.highlightedNodes.indexOf(command.ref);
+            if (i === -1) {
+                // highlight command
+                this.highlightedNodes.push(command.ref);
+                const commandNode = this.node[command.ref];
+                if (!commandNode) continue;
+                commandNode.classList.add('highlighted')
+            } else {
+                // unhighlight if command is already highlighted
+                this.highlightedNodes.splice(i, 1);
+                const commandNode = this.node[command.ref];
+                if (!commandNode) continue;
+                commandNode.classList.remove('highlighted')
+            }
+        }
+    }
+
     update() {
 
         if (!this.script) return;
@@ -478,7 +503,7 @@ class ROMScriptList {
             var command = this.selection[c];
             var node = this.node[command.ref];
             if (!node) continue;
-            node.className = 'selected';
+            node.classList.add('selected');
         }
     }
 
@@ -519,6 +544,9 @@ class ROMScriptList {
                 propertyList.select(refCommand);
             }
         };
+        if (this.highlightedNodes.includes(command.ref)) {
+            li.classList.add('highlighted');
+        }
         var span = document.createElement('span');
         span.classList.add('script-offset');
         if (command._label) span.classList.add('bold');
@@ -600,6 +628,14 @@ class ROMScriptList {
             name: 'Paste',
             onclick: function() {
                 self.paste();
+                self.closeMenu();
+            }
+        });
+
+        this.menu.createMenuItem(this.menu.topMenu, {
+            name: 'Highlight',
+            onclick: function() {
+                self.highlight();
                 self.closeMenu();
             }
         });

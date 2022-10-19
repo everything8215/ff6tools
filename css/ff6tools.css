@@ -591,6 +591,11 @@ body {
     width: 75%;
 }
 
+#script-list li.highlighted {
+    background-color: var(--list-color-hover);
+    filter: hue-rotate(180deg);
+}
+
 #script-list li:hover {
     background-color: var(--list-color-hover);
 }
