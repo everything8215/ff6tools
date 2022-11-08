@@ -138,7 +138,13 @@
         "name": "Final Fantasy VI Advance (J), GBA",
         "url": "ff6/ff6j-gba.json",
         "crc32": [
-            "0xD67478FE",
+            "0xD67478FE"
+        ]
+    },
+    "ff6j-steam": {
+        "name": "Final Fantasy VI Advance (J), Steam",
+        "url": "ff6/ff6j-steam.json",
+        "crc32": [
             "0x479179F5"
         ]
     },
