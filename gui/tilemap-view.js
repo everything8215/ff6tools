@@ -337,11 +337,13 @@ class ROMTilemapView extends ROMEditor {
     }
 
     selectPalette(p) {
-        p <<= 16;
         for (let t = 0; t < this.selection.tilemap.length; t++) {
             this.selection.tilemap[t] &= 0xFF00FFFF;
-            this.selection.tilemap[t] |= p;
+            this.selection.tilemap[t] |= (p << 16);
         }
+
+        // change per graphics tile color offset
+        this.setPerTileColorOffset(this.object.colorOffset, p);
     }
 
     toggleSelectionVFlip() {
@@ -762,6 +764,26 @@ class ROMTilemapView extends ROMEditor {
         }
     }
 
+    setPerTileColorOffset(definition, p) {
+        if (!definition) return;
+
+        // recursively load array definitions
+        if (isArray(definition)) {
+            for (const def of definition) this.setPerTileColorOffset(def, p);
+            return;
+        }
+
+        const r = this.parseDefinition(definition);
+        if (!r.perTile || !r.data) return;
+        let data = r.data.slice();
+        const colorOffset = p / r.multiplier;
+        for (let t = 0; t < this.selection.tilemap.length; t++) {
+            const tile = this.selection.tilemap[t] & 0xFFFF;
+            data[tile] = colorOffset;
+        }
+        r.object.setData(data);
+    }
+
     setColorOffset(definition, tilemap) {
         if (!definition) return;
 
@@ -803,7 +825,7 @@ class ROMTilemapView extends ROMEditor {
             }
             r.object.setData(data);
 
-        } else if (r.object instanceof  ROMArray) {
+        } else if (r.object instanceof ROMArray) {
             for (let t = r.offset; t < tilemap.length; t++) {
                 let tile = tilemap[t];
                 const d = r.perTile ? (tile & 0x0000FFFF) : t;
