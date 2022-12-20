@@ -3310,7 +3310,7 @@ ROM.prototype.showSettings = function() {
     romOnlyLabel.innerHTML = "Save ROM File Only (don't save .json file)";
     romOnlyLabel.htmlFor = "settings-rom-only-control";
     romOnlyLabel.classList.add("property-check-label");
-    romOnlyDiv.appendChild(gammaLabel);
+    romOnlyDiv.appendChild(romOnlyLabel);
 }
 
 ROM.prototype.gammaCorrectedPalette = function(palette) {
