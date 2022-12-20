@@ -3304,7 +3304,7 @@ ROM.prototype.showSettings = function() {
     romOnlyControl.onchange = function() {
         rom.saveRomOnly = this.checked;
     }
-    romOnlyControl.checked = rom.gammaCorrection;
+    romOnlyControl.checked = rom.saveRomOnly;
     romOnlyDiv.appendChild(romOnlyControl);
     var romOnlyLabel = document.createElement('label');
     romOnlyLabel.innerHTML = "Save ROM File Only (don't save .json file)";
