@@ -446,6 +446,26 @@
                     }
                 }
 
+                if (rom.saveRomOnly) {
+                    const blob = new Blob([rom.data]);
+                    url = window.URL.createObjectURL(blob);
+
+                    // create a link element, hide it, direct it towards the blob,
+                    // and then 'click' it programatically
+                    var a = document.createElement("a");
+                    a.style = "display: none";
+                    document.body.appendChild(a);
+
+                    a.href = url;
+                    a.download = `${rom.name}.${rom.system}`;
+                    a.click();
+
+                    // release the reference to the file by revoking the Object URL
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    return;
+                }
+
                 var definition;
                 var definitionFilename;
                 if (rom.definitionFormat === 'yaml') {

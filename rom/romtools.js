@@ -1336,6 +1336,7 @@ function ROM(rom, definition) {
     this.numberBase = definition.numberBase || 10;
     this.noChecksumFix = definition.noChecksumFix || false;
     this.gammaCorrection = definition.gammaCorrection || false;
+    this.saveRomOnly = definition.saveRomOnly || false;
     this.definitionFormat = definition.definitionFormat || 'json';
     this.clipboard = null;
     this.scriptDelegate = {};
@@ -1415,6 +1416,7 @@ Object.defineProperty(ROM.prototype, "definition", { get: function() {
     if (this.numberBase !== 10) definition.numberBase = this.numberBase;
     if (this.noChecksumFix) definition.noChecksumFix = true;
     if (this.gammaCorrection) definition.gammaCorrection = true;
+    if (this.saveRomOnly) definition.saveRomOnly = true;
     if (this.definitionFormat !== 'json') definition.definitionFormat = this.definitionFormat;
 
     var keys, key;
@@ -3290,6 +3292,25 @@ ROM.prototype.showSettings = function() {
         gammaLabel.classList.add("property-check-label");
         gammaDiv.appendChild(gammaLabel);
     }
+
+    // add a checkbox to save just the ROM (and not the json file)
+    var romOnlyDiv = document.createElement('div');
+    romOnlyDiv.classList.add("property-div");
+    content.appendChild(romOnlyDiv);
+    var romOnlyControl = document.createElement('input');
+    romOnlyControl.type = "checkbox";
+    romOnlyControl.id = "settings-rom-only-control";
+    romOnlyControl.classList.add("property-label");
+    romOnlyControl.onchange = function() {
+        rom.saveRomOnly = this.checked;
+    }
+    romOnlyControl.checked = rom.gammaCorrection;
+    romOnlyDiv.appendChild(romOnlyControl);
+    var romOnlyLabel = document.createElement('label');
+    romOnlyLabel.innerHTML = "Save ROM File Only (don't save .json file)";
+    romOnlyLabel.htmlFor = "settings-rom-only-control";
+    romOnlyLabel.classList.add("property-check-label");
+    romOnlyDiv.appendChild(gammaLabel);
 }
 
 ROM.prototype.gammaCorrectedPalette = function(palette) {
