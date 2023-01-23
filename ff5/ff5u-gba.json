@@ -167,6 +167,24 @@
                         "name": "Name",
                         "external": "text[%i+0x11E3]"
                     },
+                    "attackDesc1": {
+                        "type": "assembly",
+                        "name": "Description",
+                        "external": "text[%i+0x0E27]",
+                        "invalid": "this.parent.i >= 95"
+                    },
+                    "attackDesc2": {
+                        "type": "assembly",
+                        "name": "Description",
+                        "external": "text[%i+0xE27+95-130]",
+                        "invalid": "this.parent.i < 130 || this.parent.i >= 160"
+                    },
+                    "attackDesc3": {
+                        "type": "assembly",
+                        "name": "Description",
+                        "external": "text[%i+0xE27+125-243]",
+                        "invalid": "this.parent.i < 243 || this.parent.i >= 253"
+                    },
                     "targeting": {
                         "type": "property",
                         "name": "Targeting",
