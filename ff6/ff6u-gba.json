@@ -5811,7 +5811,11 @@
             "assembly": {
                 "type": "graphics",
                 "format": "linear4bpp",
-                "palette": ["mapSpritePalettes", "battleCharacterPalette"],
+                "palette": [
+                    "mapSpritePalettes",
+                    "battleCharacterPalette",
+                    "menuCharacterPalette"
+                ],
                 "width": 16,
                 "height": 21,
                 "spriteSheet": [
