@@ -17,6 +17,7 @@ class FF5BattleBackgroundEditor extends ROMTilemapView {
         if (this.rom.isGBA) {
             this.updateBackgroundLayoutGBA();
             this.format = GFX.tileFormat.gba4bppTile;
+            super.resetControls();
         } else {
             const l = this.bgProperties.layout.value;
             this.layout = this.rom.battleBackgroundLayout.item(l);
