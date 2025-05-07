@@ -84,7 +84,16 @@
                 {
                     "name": "Character Graphics",
                     "path": "battleCharacterGraphics"
-                }, {
+                },
+                {
+                    "name": "Dead Character Graphics",
+                    "path": "deadCharacterGraphics"
+                },
+                {
+                    "name": "Misc. Battle Graphics",
+                    "path": "miscBattleGraphics"
+                },
+                {
                     "name": "Character Portraits",
                     "path": "portraitGraphics1"
                 }, {
@@ -215,6 +224,53 @@
                 "length": 130,
                 "default": "<stringTable.characterNames[%i/26|0]> (<stringTable.jobName[%i%26]>)"
             }
+        },
+        "deadCharacterGraphics": {
+            "type": "array",
+            "name": "Dead Character Graphics",
+            "range": "0x0824203C-0x08242400",
+            "arrayLength": 5,
+            "canRelocate": true,
+            "assembly": {
+                "type": "graphics",
+                "format": [
+                    "linear4bpp",
+                    "tose-graphics",
+                    "gba-lzss"
+                ],
+                "palette": "battleCharacterPalette[%i*26+25]",
+                "align": 4,
+                "spriteSheet": {
+                    "width": 3,
+                    "height": 2,
+                    "tilemap": [
+                        0,
+                        2,
+                        3,
+                        1,
+                        4,
+                        5
+                    ]
+                }
+            },
+            "pointerTable": {
+                "range": "0x08131694-0x081316A7"
+            },
+            "stringTable": {
+                "length": 5,
+                "default": "<stringTable.characterNames[%i]>"
+            }
+        },
+        "miscBattleGraphics": {
+            "type": "graphics",
+            "name": "Misc. Battle Character Graphics",
+            "range": "0x082425F4-0x08242D30",
+            "format": [
+                "linear4bpp",
+                "tose-graphics",
+                "gba-lzss"
+            ],
+            "palette": "battleCharacterPalette[0]"
         },
         "battleCharacterPalette": {
             "type": "array",
