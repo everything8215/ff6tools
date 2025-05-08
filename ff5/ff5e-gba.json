@@ -27,6 +27,18 @@
                 }, {
                     "name": "World Map Tilesets",
                     "path": "worldTilesets"
+                },
+                {
+                    "name": "Map Sprite Graphics 1",
+                    "path": "mapSpriteGraphics1"
+                },
+                {
+                    "name": "Map Sprite Graphics 2",
+                    "path": "mapSpriteGraphics2"
+                },
+                {
+                    "name": "Map Sprite Graphics 3",
+                    "path": "mapSpriteGraphics3"
                 }
             ]
         }, {
@@ -2222,22 +2234,40 @@
             }
         },
         "mapSpriteGraphics1": {
-            "type": "assembly",
+            "type": "graphics",
             "name": "Map Sprite Graphics 1",
             "range": "0x0831BE4C-0x08320C40",
-            "format": ["linear4bpp", "tose-graphics", "gba-lzss"]
+            "width": 2,
+            "palette": "mapSpritePalettes",
+            "format": [
+                "linear4bpp",
+                "tose-graphics",
+                "gba-lzss"
+            ]
         },
         "mapSpriteGraphics2": {
-            "type": "assembly",
+            "type": "graphics",
             "name": "Map Sprite Graphics 2",
             "range": "0x08320C40-0x083255F4",
-            "format": ["linear4bpp", "tose-graphics", "gba-lzss"]
+            "width": 2,
+            "palette": "mapSpritePalettes",
+            "format": [
+                "linear4bpp",
+                "tose-graphics",
+                "gba-lzss"
+            ]
         },
         "mapSpriteGraphics3": {
-            "type": "assembly",
+            "type": "graphics",
             "name": "Map Sprite Graphics 3",
             "range": "0x083255F4-0x08328310",
-            "format": ["linear4bpp", "tose-graphics", "gba-lzss"]
+            "width": 2,
+            "palette": "mapSpritePalettes",
+            "format": [
+                "linear4bpp",
+                "tose-graphics",
+                "gba-lzss"
+            ]
         },
         "mapSpritePalettes": {
             "type": "array",
