@@ -15371,6 +15371,10 @@
                         "name": "Name 2 (en)",
                         "link": "text1[%i*5+0x347B]"
                     },
+                    "name3-en": {
+                        "name": "Name 3 (en)",
+                        "link": "text2[%i*5+0x6572]"
+                    },
                     "description-en": {
                         "name": "Description (en)",
                         "link": "text1[%i*5+0x24B3]"
@@ -15382,6 +15386,10 @@
                     "name2-de": {
                         "name": "Name 2 (de)",
                         "link": "text1[%i*5+0x347C]"
+                    },
+                    "name3-de": {
+                        "name": "Name 3 (de)",
+                        "link": "text2[%i*5+0x6573]"
                     },
                     "description-de": {
                         "name": "Description (de)",
@@ -15395,6 +15403,10 @@
                         "name": "Name 2 (fr)",
                         "link": "text1[%i*5+0x347D]"
                     },
+                    "name3-fr": {
+                        "name": "Name 3 (fr)",
+                        "link": "text2[%i*5+0x6574]"
+                    },
                     "description-fr": {
                         "name": "Description (fr)",
                         "link": "text1[%i*5+0x24B5]"
@@ -15407,6 +15419,10 @@
                         "name": "Name 2 (it)",
                         "link": "text1[%i*5+0x347E]"
                     },
+                    "name3-it": {
+                        "name": "Name 3 (it)",
+                        "link": "text2[%i*5+0x6575]"
+                    },
                     "description-it": {
                         "name": "Description (it)",
                         "link": "text1[%i*5+0x24B6]"
@@ -15418,6 +15434,10 @@
                     "name2-es": {
                         "name": "Name 2 (es)",
                         "link": "text1[%i*5+0x347F]"
+                    },
+                    "name3-es": {
+                        "name": "Name 3 (es)",
+                        "link": "text2[%i*5+0x6576]"
                     },
                     "description-es": {
                         "name": "Description (es)",

@@ -15252,6 +15252,10 @@
                     },
                     "name2": {
                         "name": "Name 2",
+                        "link": "text1[%i+0x0A6E]"
+                    },
+                    "name3": {
+                        "name": "Name 3",
                         "link": "text2[%i+0x144A]"
                     },
                     "description": {
