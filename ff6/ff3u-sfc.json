@@ -4930,7 +4930,7 @@
         "fontGraphicsSmall": {
             "type": "graphics",
             "name": "Small Font Graphics",
-            "range": "0xC487C0-0xC48FC0",
+            "range": "0xC47FC0-0xC48FC0",
             "format": "snes2bpp",
             "palette": "fontPalette"
         },
