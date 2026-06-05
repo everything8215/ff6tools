@@ -109,7 +109,20 @@
                 }, {
                     "name": "Character Graphics (Dead)",
                     "path": "battleCharacterGraphicsDead"
-                }, {
+                },
+                {
+                    "name": "Map Sprite Graphics",
+                    "path": "mapSpriteGraphics"
+                },
+                {
+                    "name": "Vehicle Graphics",
+                    "path": "vehicleGraphics"
+                },
+                {
+                    "name": "World Sprite Graphics",
+                    "path": "worldSpriteGraphics"
+                },
+                {
                     "name": "Jobs",
                     "path": "jobStats"
                 }, {
@@ -4868,17 +4881,39 @@
             }
         },
         "mapSpriteGraphics": {
-            "type": "assembly",
+            "type": "graphics",
             "name": "Map Sprite Graphics",
             "range": "0xDA0000-0xDB3A00",
-            "format": "snes4bpp"
+            "format": [
+                "snes4bpp"
+            ],
+            "palette": "mapSpritePalettes"
+        },
+        "vehicleGraphics": {
+            "type": "graphics",
+            "name": "Vehicle Graphics",
+            "range": "0xDB3A00-0xDB4D80",
+            "format": [
+                "interlace(128,8,2)",
+                "snes3bpp"
+            ],
+            "palette": "mapSpritePalettes"
+        },
+        "worldSpriteGraphics": {
+            "type": "graphics",
+            "name": "World Sprite Graphics",
+            "range": "0xDB4D80-0xDB8000",
+            "format": [
+                "snes4bpp"
+            ],
+            "palette": "mapSpritePalettes"
         },
         "mapSpritePalettes": {
             "type": "array",
             "name": "Map Sprite Palettes",
-            "range": "0xDFFC00-0xDFFC80",
+            "range": "0xDFFC00-0xE00000",
             "array": {
-                "length": 4
+                "length": 32
             },
             "assembly": {
                 "length": 32,
