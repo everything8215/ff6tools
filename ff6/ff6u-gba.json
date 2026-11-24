@@ -6582,7 +6582,7 @@
             "name": "Map Startup Event (GBA)",
             "range": "0x0803123A-0x080313F0",
             "array": {
-                "length": 512
+                "length": 73
             },
             "assembly": {
                 "type": "data",
@@ -10343,6 +10343,11 @@
                     "category": "Battle",
                     "opcode": "0x8E"
                 },
+                "battleColosseum": {
+                    "name": "Colosseum Battle",
+                    "category": "Battle",
+                    "opcode": "0xAF"
+                },
                 "characterEquip": {
                     "name": "Change a Character's Equipment",
                     "category": "Character",
@@ -11213,6 +11218,11 @@
                     "category": "Map",
                     "opcode": "0x75"
                 },
+                "mapOverlayClear": {
+                    "name": "Clear Map Overlay",
+                    "category": "Map",
+                    "opcode": "0xA2"
+                },
                 "mapPalette": {
                     "name": "Change Map Palette",
                     "category": "Map",
@@ -11344,6 +11354,14 @@
                             "stringTable": "shopProperties"
                         }
                     }
+                },
+                "noOperation": {
+                    "name": "No Operation",
+                    "category": "Control",
+                    "opcode": [
+                        "0xFB",
+                        "0xFD"
+                    ]
                 },
                 "objectCharacters": {
                     "name": "Update Character Objects",
@@ -11521,6 +11539,11 @@
                             "stringTable": "eventObjects"
                         }
                     }
+                },
+                "objectPyramidHide": {
+                    "name": "Hide Pyramid",
+                    "category": "Object",
+                    "opcode": "0xA6"
                 },
                 "objectScript": {
                     "name": "Object Script",
@@ -12317,6 +12340,11 @@
                             "begin": 1
                         }
                     }
+                },
+                "spcSongContinue": {
+                    "name": "Continue Song",
+                    "category": "Sound",
+                    "opcode": "0xF7"
                 },
                 "spcSongManual": {
                     "name": "Play Song (manual)",
@@ -15492,7 +15520,7 @@
         },
         "eventSwitchGBA": {
             "name": "Event Switch (GBA)",
-            "length": "0x0300",
+            "length": "0x80",
             "default": "Switch %i (GBA)",
             "string": {
                 "0": "Ice Dragon Defeated",
