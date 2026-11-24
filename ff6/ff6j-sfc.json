@@ -11031,8 +11031,8 @@
                             "stringTable": {
                                 "string": {
                                     "0x88": "Remove (AND)",
-                                    "0x89": "Toggle (XOR)",
-                                    "0x8A": "Set (OR)"
+                                    "0x89": "Set (OR)",
+                                    "0x8A": "Toggle (XOR)"
                                 }
                             }
                         },
