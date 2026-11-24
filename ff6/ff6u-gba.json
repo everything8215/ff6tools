@@ -111,6 +111,10 @@
                     "path": "battleGroupsEvent"
                 },
                 {
+                    "name": "Battle Item Drops (GBA)",
+                    "path": "battleItemsGBA"
+                },
+                {
                     "name": "Battle Dialogue",
                     "path": "stringTable.battleDialog"
                 },
@@ -1470,6 +1474,40 @@
                         "name": "Magic Points"
                     }
                 }
+            }
+        },
+        "battleItemsGBA": {
+            "type": "array",
+            "name": "Battle Item Drops (GBA)",
+            "range": "0x080967E4-0x08096810",
+            "array": {
+                "length": 11
+            },
+            "assembly": {
+                "type": "data",
+                "length": 4,
+                "assembly": {
+                    "battle": {
+                        "type": "property",
+                        "name": "Battle",
+                        "begin": 0,
+                        "mask": "0xFFFF",
+                        "link": "battleProperties[%i]",
+                        "stringTable": "battleProperties"
+                    },
+                    "item": {
+                        "type": "property",
+                        "name": "Item",
+                        "begin": 2,
+                        "mask": "0xFFFF",
+                        "link": "itemProperties[%i]",
+                        "stringTable": "itemNames"
+                    }
+                }
+            },
+            "stringTable": {
+                "length": 11,
+                "default": "Battle Item Drop %i"
             }
         },
         "battleProperties": {
@@ -3295,14 +3333,50 @@
                         "name": "Monster",
                         "begin": 0,
                         "stringTable": "monsterName",
-                        "link": "monsterProperties[%i]"
+                        "link": "monsterProperties[%i]",
+                        "invalid": "this.parent.i >= 256"
+                    },
+                    "monsterGBA": {
+                        "type": "property",
+                        "name": "Monster",
+                        "begin": 0,
+                        "msb": "this.parent.monsterMSB",
+                        "stringTable": "monsterName",
+                        "link": "monsterProperties[%i]",
+                        "invalid": "this.parent.i < 256"
+                    },
+                    "monsterMSB": {
+                        "type": "property",
+                        "name": "Monster MSB",
+                        "begin": 1,
+                        "mask": "0xF0",
+                        "hidden": true,
+                        "invalid": "this.parent.i < 256"
                     },
                     "prize": {
                         "type": "property",
                         "name": "Prize Item",
                         "begin": 2,
                         "stringTable": "itemNames",
-                        "link": "itemProperties[%i]"
+                        "link": "itemProperties[%i]",
+                        "invalid": "this.parent.i >= 256"
+                    },
+                    "prizeGBA": {
+                        "type": "property",
+                        "name": "Prize Item",
+                        "begin": 2,
+                        "msb": "this.parent.prizeMSB",
+                        "stringTable": "itemNames",
+                        "link": "itemProperties[%i]",
+                        "invalid": "this.parent.i < 256"
+                    },
+                    "prizeMSB": {
+                        "type": "property",
+                        "name": "Prize Item MSB",
+                        "begin": 1,
+                        "mask": "0x0F",
+                        "hidden": true,
+                        "invalid": "this.parent.i < 256"
                     },
                     "hidePrize": {
                         "type": "property",
@@ -9695,8 +9769,18 @@
                             "type": "property",
                             "name": "Item",
                             "begin": 4,
+                            "max": "0x01FF",
+                            "msb": "this.parent.itemMSB",
                             "stringTable": "itemNames",
                             "invalid": "this.parent.treasureType.value !== 4"
+                        },
+                        "itemMSB": {
+                            "type": "property",
+                            "name": "Item MSB",
+                            "begin": 3,
+                            "mask": "0x04",
+                            "bool": true,
+                            "hidden": true
                         },
                         "gp": {
                             "type": "property",
