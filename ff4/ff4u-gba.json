@@ -1411,7 +1411,7 @@
                     },
                     "attackGBA2": {
                         "type": "assembly",
-                        "external": "equipmentProperties[%i-87].attack",
+                        "external": "equipmentProperties[%i-85].attack",
                         "invalid": "this.parent.itemType.value >= 19 || this.parent.itemType.value === 0 || this.parent.i < 278 || this.parent.i >= 313"
                     },
                     "attackGBA3": {
@@ -1431,7 +1431,7 @@
                     },
                     "accuracyGBA2": {
                         "type": "assembly",
-                        "external": "equipmentProperties[%i-87].accuracy",
+                        "external": "equipmentProperties[%i-85].accuracy",
                         "invalid": "this.parent.itemType.value >= 19 || this.parent.itemType.value === 0 || this.parent.i < 278 || this.parent.i >= 313"
                     },
                     "accuracyGBA3": {
@@ -1454,7 +1454,7 @@
                     "defenseGBA2": {
                         "type": "assembly",
                         "name": "Defense",
-                        "external": "equipmentProperties[%i-87].attack",
+                        "external": "equipmentProperties[%i-85].attack",
                         "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value < 19 || this.parent.i < 278 || this.parent.i >= 313"
                     },
                     "defenseGBA3": {
@@ -1478,7 +1478,7 @@
                     "evadeGBA2": {
                         "type": "assembly",
                         "name": "Evade",
-                        "external": "equipmentProperties[%i-87].accuracy",
+                        "external": "equipmentProperties[%i-85].accuracy",
                         "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value < 19 || this.parent.i < 278 || this.parent.i >= 313"
                     },
                     "evadeGBA3": {
@@ -1499,7 +1499,7 @@
                     },
                     "magicDefenseGBA2": {
                         "type": "assembly",
-                        "external": "equipmentProperties[%i-87].magicDefense",
+                        "external": "equipmentProperties[%i-85].magicDefense",
                         "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value < 19 || this.parent.i < 278 || this.parent.i >= 313"
                     },
                     "magicDefenseGBA3": {
@@ -1519,7 +1519,7 @@
                     },
                     "magicEvadeGBA2": {
                         "type": "assembly",
-                        "external": "equipmentProperties[%i-87].magicEvade",
+                        "external": "equipmentProperties[%i-85].magicEvade",
                         "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value < 19 || this.parent.i < 278 || this.parent.i >= 313"
                     },
                     "magicEvadeGBA3": {
@@ -1539,7 +1539,7 @@
                     },
                     "strengthGBA2": {
                         "type": "assembly",
-                        "external": "equipmentProperties[%i-87].strength",
+                        "external": "equipmentProperties[%i-85].strength",
                         "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i < 278 || this.parent.i >= 313"
                     },
                     "strengthGBA3": {
@@ -1559,7 +1559,7 @@
                     },
                     "agilityGBA2": {
                         "type": "assembly",
-                        "external": "equipmentProperties[%i-87].agility",
+                        "external": "equipmentProperties[%i-85].agility",
                         "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i < 278 || this.parent.i >= 313"
                     },
                     "agilityGBA3": {
@@ -1579,7 +1579,7 @@
                     },
                     "staminaGBA2": {
                         "type": "assembly",
-                        "external": "equipmentProperties[%i-87].stamina",
+                        "external": "equipmentProperties[%i-85].stamina",
                         "invalid": "this.parent.itemType.value >= 23 || this.parent.itemType.value === 0 || this.parent.i < 278 || this.parent.i >= 313"
                     },
                     "staminaGBA3": {
